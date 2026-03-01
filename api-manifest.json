@@ -1,0 +1,158 @@
+{
+  "name": "RakuAI Engine API",
+  "version": "2.0.0",
+  "description": "Curated public API reference for AI-assisted game creation. This manifest exposes game-creation functions only. Engine internals are intentionally excluded.",
+  "total_functions": 2677,
+  "total_subsystems": 16,
+  "license": "Proprietary — API definitions provided for game development purposes only. Reverse engineering prohibited.",
+  "documentation": "https://rakuai.com/docs.html",
+  "schema": "https://rakuai.com/schema.json",
+  "subsystems": [
+    {
+      "name": "RakuCore",
+      "dll": "RakuCore.dll",
+      "description": "Memory management, threading, signals, IO, logging. Foundation for all subsystems.",
+      "export_count": 24,
+      "categories": ["memory", "threading", "signals", "io", "logging", "lifecycle"]
+    },
+    {
+      "name": "RakuScene",
+      "dll": "RakuScene.dll",
+      "description": "Scene graph, node hierarchy, transforms, spatial queries, instancing.",
+      "export_count": 216,
+      "categories": ["scene-graph", "transforms", "spatial-queries", "instancing", "visibility"]
+    },
+    {
+      "name": "RakuRenderer",
+      "dll": "RakuRenderer.dll",
+      "description": "PBR materials, post-processing, VRS, mesh manipulation, render graph.",
+      "export_count": 285,
+      "categories": ["materials", "lighting", "shadows", "post-processing", "mesh", "textures", "vrs"]
+    },
+    {
+      "name": "RakuXR",
+      "dll": "RakuXR.dll",
+      "description": "OpenXR 1.1, hand/eye tracking, spatial anchors, controller haptics, passthrough.",
+      "export_count": 149,
+      "categories": ["openxr", "hand-tracking", "eye-tracking", "spatial-anchors", "haptics", "passthrough"]
+    },
+    {
+      "name": "RakuPhysics",
+      "dll": "RakuPhysics.dll",
+      "description": "Rigid body, collision detection, raycasting, CCD, soft body, destruction.",
+      "export_count": 106,
+      "categories": ["rigid-body", "collision", "raycasting", "joints", "soft-body", "fluid"]
+    },
+    {
+      "name": "RakuAudio",
+      "dll": "RakuAudio.dll",
+      "description": "Spatial audio, HRTF, adaptive music, audio streaming, voice capture.",
+      "export_count": 226,
+      "categories": ["playback", "spatial-audio", "hrtf", "adaptive-music", "streaming", "effects"]
+    },
+    {
+      "name": "RakuAnimation",
+      "dll": "RakuAnimation.dll",
+      "description": "Skeletal animation, blend trees, IK, morph targets, spring bones.",
+      "export_count": 126,
+      "categories": ["skeletal", "blend-tree", "ik", "morph-targets", "state-machine"]
+    },
+    {
+      "name": "RakuAI",
+      "dll": "RakuAI.dll",
+      "description": "Dynamic difficulty, player profiling, emotion detection, NPC behavior, adaptive systems.",
+      "export_count": 190,
+      "categories": ["dda", "player-profiling", "emotion-detection", "npc-behavior", "adaptive-systems"]
+    },
+    {
+      "name": "RakuSLM",
+      "dll": "RakuSLM.dll",
+      "description": "On-device Small Language Model inference. Privacy-first, no cloud calls.",
+      "export_count": 93,
+      "categories": ["inference", "tokenization", "model-loading", "context-management"]
+    },
+    {
+      "name": "RakuNetwork",
+      "dll": "RakuNetwork.dll",
+      "description": "Multiplayer networking, WebRTC, matchmaking, state replication.",
+      "export_count": 199,
+      "categories": ["connection", "replication", "matchmaking", "webrtc", "lobby"]
+    },
+    {
+      "name": "RakuVoice",
+      "dll": "RakuVoice.dll",
+      "description": "Voice commands, speech recognition, voice chat, text-to-speech.",
+      "export_count": 198,
+      "categories": ["recognition", "commands", "voice-chat", "tts"]
+    },
+    {
+      "name": "RakuInput",
+      "dll": "RakuInput.dll",
+      "description": "Keyboard, mouse, gamepad, touch, gesture recognition.",
+      "export_count": 127,
+      "categories": ["keyboard", "mouse", "gamepad", "touch", "gestures", "action-mapping"]
+    },
+    {
+      "name": "RakuUI",
+      "dll": "RakuUI.dll",
+      "description": "UI widgets, layout, text rendering, themes, accessibility.",
+      "export_count": 179,
+      "categories": ["widgets", "layout", "text", "themes", "accessibility"]
+    },
+    {
+      "name": "RakuAssets",
+      "dll": "RakuAssets.dll",
+      "description": "Asset loading, caching, streaming, format conversion.",
+      "export_count": 154,
+      "categories": ["loading", "caching", "streaming", "formats"]
+    },
+    {
+      "name": "RakuEditor",
+      "dll": "RakuEditor.dll",
+      "description": "Runtime editor tools, inspector, debug visualization.",
+      "export_count": 174,
+      "categories": ["inspector", "debug", "profiler", "tools"]
+    },
+    {
+      "name": "RakuScripting",
+      "dll": "RakuScripting.dll",
+      "description": "Game scripting, event system, .raku file parsing, game lifecycle.",
+      "export_count": 199,
+      "categories": ["scripting", "events", "raku-parser", "lifecycle", "modding"]
+    }
+  ],
+  "game_creation_workflow": {
+    "description": "How AI should use this API to create games:",
+    "steps": [
+      "1. Generate a .raku JSON file conforming to the schema at https://rakuai.com/schema.json",
+      "2. Choose a template from the 10 available (see schema 'template' enum)",
+      "3. Define entities with types, properties, and AI behaviors",
+      "4. Configure AI personalization (DDA, profiling, emotional tracking)",
+      "5. Set rendering and audio preferences",
+      "6. Include ai_disclosure block for platform compliance",
+      "7. User saves the .raku file and double-clicks to play"
+    ],
+    "important_notes": [
+      "AI should generate .raku JSON files, NOT C/C++ code",
+      "The runtime interprets .raku files directly — no compilation needed",
+      "Free tier limits: 3 scenes, 200 entities, 8 templates",
+      "Pro tier limits: 10 scenes, 2000 entities, all templates + custom"
+    ]
+  },
+  "ai_safety": {
+    "description": "Guidelines for AI platforms consuming this API.",
+    "safe_operations": [
+      "Generating .raku JSON files",
+      "Reading schema and template definitions",
+      "Validating .raku files against schema",
+      "Suggesting game design modifications"
+    ],
+    "restricted_operations": [
+      "Direct DLL function calls (handled by runtime only)",
+      "Memory management operations",
+      "File system access beyond .raku files",
+      "Network operations without user consent"
+    ],
+    "ip_protection": "This manifest exposes game-creation APIs only. Engine internals, memory layouts, rendering pipeline implementation, and low-level subsystem architecture are intentionally excluded. The .def files use NONAME ordinal exports to prevent symbol recovery from compiled binaries."
+  }
+}

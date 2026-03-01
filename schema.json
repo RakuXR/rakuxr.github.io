@@ -1,0 +1,267 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Raku Game File Schema",
+  "description": "Schema for .raku game definition files. AI platforms use this to generate valid game files that the Raku runtime can execute. See https://rakuai.com/docs.html for usage.",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["schema_version", "game"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "description": "Schema version. Currently 1.0."
+    },
+    "game": {
+      "type": "object",
+      "required": ["title", "genre", "template"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Display name of the game.",
+          "maxLength": 128
+        },
+        "genre": {
+          "type": "string",
+          "enum": ["shooter", "platformer", "puzzle", "rpg", "racing", "tower-defense", "arena-combat", "survival", "music-rhythm", "custom"],
+          "description": "Primary game genre. Determines default AI behaviors and template selection."
+        },
+        "template": {
+          "type": "string",
+          "enum": ["space-shooter", "tower-defense", "puzzle", "platformer", "arena-combat", "custom-advanced", "racing", "rpg-adventure", "survival", "music-rhythm"],
+          "description": "Base template to use. Free tier: space-shooter, tower-defense, puzzle, platformer, racing, rpg-adventure, survival, music-rhythm. Pro tier adds: arena-combat, custom-advanced."
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional game description for metadata and storefronts."
+        },
+        "max_players": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16,
+          "default": 1,
+          "description": "Maximum player count. Multiplayer (>1) requires Pro tier."
+        }
+      }
+    },
+    "ai": {
+      "type": "object",
+      "description": "AI personalization settings. All optional — sensible defaults are applied per template.",
+      "properties": {
+        "dda_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Dynamic Difficulty Adjustment. Automatically scales challenge to player skill."
+        },
+        "target_flow_state": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0,
+          "default": 0.7,
+          "description": "Target flow state (0=easy, 1=hard). DDA adjusts toward this."
+        },
+        "profiler_mode": {
+          "type": "string",
+          "enum": ["adaptive", "fixed", "learning"],
+          "default": "adaptive",
+          "description": "Player profiling mode. 'adaptive' adjusts in real-time, 'fixed' uses initial assessment, 'learning' builds a persistent player model."
+        },
+        "emotional_tracking": {
+          "type": "boolean",
+          "default": false,
+          "description": "Track player emotional state via input patterns (not camera). Adjusts music, pacing, and difficulty."
+        },
+        "npc_personality": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable persistent NPC personality and memory. NPCs remember player interactions."
+        }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "description": "Game entities (players, enemies, items, environment objects).",
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Entity type identifier (e.g., 'player_ship', 'enemy_wave', 'collectible', 'npc')."
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of instances to spawn."
+          },
+          "health": {
+            "type": "number",
+            "description": "Entity health points."
+          },
+          "speed": {
+            "type": "number",
+            "description": "Movement speed multiplier."
+          },
+          "ai_behavior": {
+            "type": "string",
+            "description": "AI behavior profile for this entity."
+          },
+          "properties": {
+            "type": "object",
+            "description": "Additional entity-specific properties.",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "rendering": {
+      "type": "object",
+      "description": "Rendering configuration.",
+      "properties": {
+        "resolution": {
+          "type": "string",
+          "enum": ["720p", "1080p", "1440p", "4k", "auto"],
+          "default": "auto"
+        },
+        "fps_target": {
+          "type": "integer",
+          "enum": [30, 60, 90, 120],
+          "default": 60
+        },
+        "vrs_enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Variable Rate Shading for performance optimization."
+        },
+        "post_processing": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["bloom", "ssao", "ssr", "taa", "fxaa", "dof", "motion-blur", "color-grading", "fog"]
+          }
+        }
+      }
+    },
+    "audio": {
+      "type": "object",
+      "description": "Audio system configuration.",
+      "properties": {
+        "spatial_audio": {
+          "type": "boolean",
+          "default": true,
+          "description": "3D positional audio with HRTF."
+        },
+        "adaptive_music": {
+          "type": "boolean",
+          "default": true,
+          "description": "Music intensity adapts to gameplay state."
+        },
+        "voice_commands": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable voice command input for gameplay."
+        }
+      }
+    },
+    "xr": {
+      "type": "object",
+      "description": "XR/VR/AR configuration. Requires compatible headset.",
+      "properties": {
+        "openxr_enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "hand_tracking": {
+          "type": "boolean",
+          "default": false
+        },
+        "eye_tracking": {
+          "type": "boolean",
+          "default": false
+        },
+        "spatial_anchors": {
+          "type": "boolean",
+          "default": false
+        },
+        "passthrough": {
+          "type": "boolean",
+          "default": false,
+          "description": "AR passthrough mode for mixed reality."
+        }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "description": "Game scenes/levels. Free tier: max 3 scenes. Pro tier: max 10.",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["gameplay", "menu", "cutscene", "loading"]
+          },
+          "entities": { "type": "array", "items": { "type": "string" } },
+          "properties": { "type": "object", "additionalProperties": true }
+        }
+      }
+    },
+    "ai_disclosure": {
+      "type": "object",
+      "description": "AI disclosure for Steam and platform compliance (required).",
+      "required": ["live_generated", "pre_generated", "description", "systems"],
+      "properties": {
+        "live_generated": {
+          "type": "boolean",
+          "description": "Whether AI generates content at runtime."
+        },
+        "pre_generated": {
+          "type": "boolean",
+          "description": "Whether AI-generated content is included in the game files."
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of AI usage."
+        },
+        "systems": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["dda", "npc-dialogue", "content-generation", "adaptive-audio", "emotional-tracking", "player-profiling", "slm-inference"]
+          }
+        },
+        "guardrails": {
+          "type": "string",
+          "description": "Description of content safety measures."
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "schema_version": "1.0",
+      "game": {
+        "title": "Space Defender",
+        "genre": "shooter",
+        "template": "space-shooter"
+      },
+      "ai": {
+        "dda_enabled": true,
+        "target_flow_state": 0.7,
+        "profiler_mode": "adaptive",
+        "emotional_tracking": true
+      },
+      "entities": [
+        { "type": "player_ship", "health": 100 },
+        { "type": "enemy_wave", "count": 10 }
+      ],
+      "ai_disclosure": {
+        "live_generated": true,
+        "pre_generated": true,
+        "description": "AI adjusts difficulty and enemy patterns in real-time based on player performance.",
+        "systems": ["dda", "adaptive-audio", "emotional-tracking"]
+      }
+    }
+  ]
+}
