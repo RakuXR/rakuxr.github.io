@@ -1,0 +1,189 @@
+{
+  "$schema": "https://rakuai.com/schema/api-manifest-v1.json",
+  "name": "RakuAI Engine API",
+  "version": "2026.1",
+  "description": "Curated public API surface for game creation. This manifest exposes game creation APIs only. Engine internals, memory management, and low-level rendering are intentionally excluded.",
+  "total_functions": 2718,
+  "subsystems": [
+    {
+      "name": "Core",
+      "dll": "RakuCore.dll",
+      "description": "Engine lifecycle, initialization, and shutdown",
+      "function_count": 26,
+      "key_functions": [
+        {"name": "raku_init", "description": "Initialize the Raku runtime engine", "params": [], "returns": "int"},
+        {"name": "raku_shutdown", "description": "Shut down the engine and release all resources", "params": [], "returns": "void"},
+        {"name": "raku_get_version", "description": "Get engine version string", "params": [], "returns": "const char*"},
+        {"name": "raku_log", "description": "Log a message to the engine console", "params": [{"name": "level", "type": "int"}, {"name": "message", "type": "const char*"}], "returns": "void"}
+      ]
+    },
+    {
+      "name": "Renderer",
+      "dll": "RakuRenderer.dll",
+      "description": "Window management, cameras, lighting, textures, and PBR materials",
+      "function_count": 287,
+      "key_functions": [
+        {"name": "raku_renderer_create_window", "description": "Create the game window", "params": [{"name": "width", "type": "int"}, {"name": "height", "type": "int"}, {"name": "title", "type": "const char*"}, {"name": "vsync", "type": "bool"}], "returns": "handle"},
+        {"name": "raku_renderer_set_clear_color", "description": "Set the background clear color", "params": [{"name": "color", "type": "float[4]"}], "returns": "void"},
+        {"name": "raku_renderer_create_camera", "description": "Create a camera", "params": [{"name": "id", "type": "const char*"}, {"name": "fov", "type": "float"}, {"name": "near", "type": "float"}, {"name": "far", "type": "float"}], "returns": "handle"},
+        {"name": "raku_renderer_create_light", "description": "Create a light source", "params": [{"name": "type", "type": "const char*"}, {"name": "color", "type": "float[3]"}, {"name": "intensity", "type": "float"}], "returns": "handle"},
+        {"name": "raku_renderer_load_texture", "description": "Load a texture from file", "params": [{"name": "path", "type": "const char*"}, {"name": "id", "type": "const char*"}], "returns": "handle"},
+        {"name": "raku_renderer_set_camera_position", "description": "Set camera world position", "params": [{"name": "id", "type": "const char*"}, {"name": "x", "type": "float"}, {"name": "y", "type": "float"}, {"name": "z", "type": "float"}], "returns": "void"}
+      ]
+    },
+    {
+      "name": "Scene",
+      "dll": "RakuScene.dll",
+      "description": "Scene graph, sprites, models, and the game loop",
+      "function_count": 218,
+      "key_functions": [
+        {"name": "raku_scene_create", "description": "Create a named scene", "params": [{"name": "name", "type": "const char*"}], "returns": "handle"},
+        {"name": "raku_scene_destroy", "description": "Destroy a scene and its children", "params": [{"name": "name", "type": "const char*"}], "returns": "void"},
+        {"name": "raku_scene_create_sprite", "description": "Create a 2D sprite in the scene", "params": [{"name": "texture", "type": "const char*"}, {"name": "x", "type": "float"}, {"name": "y", "type": "float"}, {"name": "tag", "type": "const char*"}], "returns": "handle"},
+        {"name": "raku_scene_add_model", "description": "Add a 3D model to the scene", "params": [{"name": "model", "type": "const char*"}, {"name": "x", "type": "float"}, {"name": "y", "type": "float"}, {"name": "z", "type": "float"}], "returns": "handle"},
+        {"name": "raku_scene_start_loop", "description": "Enter the main game loop", "params": [], "returns": "void"}
+      ]
+    },
+    {
+      "name": "Physics",
+      "dll": "RakuPhysics.dll",
+      "description": "Rigid body dynamics, colliders, raycasting, and joints",
+      "function_count": 108,
+      "key_functions": [
+        {"name": "raku_physics_create_world", "description": "Create a physics world", "params": [{"name": "gravity", "type": "float[3]"}], "returns": "handle"},
+        {"name": "raku_physics_add_rigidbody", "description": "Add a rigid body to an entity", "params": [{"name": "tag", "type": "const char*"}, {"name": "mass", "type": "float"}], "returns": "handle"},
+        {"name": "raku_physics_add_collider", "description": "Add a collision shape", "params": [{"name": "tag", "type": "const char*"}, {"name": "type", "type": "const char*"}], "returns": "handle"},
+        {"name": "raku_physics_add_static_collider", "description": "Add a static mesh collider", "params": [{"name": "model", "type": "const char*"}, {"name": "type", "type": "const char*"}], "returns": "handle"}
+      ]
+    },
+    {
+      "name": "Audio",
+      "dll": "RakuAudio.dll",
+      "description": "Sound playback, spatial audio, HRTF, and adaptive music",
+      "function_count": 228,
+      "key_functions": [
+        {"name": "raku_audio_init", "description": "Initialize the audio subsystem", "params": [{"name": "channels", "type": "int"}, {"name": "hrtf", "type": "bool"}], "returns": "void"},
+        {"name": "raku_audio_load", "description": "Load an audio asset", "params": [{"name": "path", "type": "const char*"}, {"name": "id", "type": "const char*"}], "returns": "handle"},
+        {"name": "raku_audio_play", "description": "Play a loaded audio clip", "params": [{"name": "id", "type": "const char*"}, {"name": "loop", "type": "bool"}], "returns": "void"},
+        {"name": "raku_audio_play_spatial", "description": "Play audio at a 3D position", "params": [{"name": "id", "type": "const char*"}, {"name": "x", "type": "float"}, {"name": "y", "type": "float"}, {"name": "z", "type": "float"}], "returns": "void"}
+      ]
+    },
+    {
+      "name": "Input",
+      "dll": "RakuInput.dll",
+      "description": "Keyboard, gamepad, touch, and gesture binding",
+      "function_count": 129,
+      "key_functions": [
+        {"name": "raku_input_bind_key", "description": "Bind a key to an action", "params": [{"name": "key", "type": "const char*"}, {"name": "action", "type": "const char*"}], "returns": "void"},
+        {"name": "raku_input_bind_gamepad", "description": "Bind a gamepad button to an action", "params": [{"name": "button", "type": "const char*"}, {"name": "action", "type": "const char*"}], "returns": "void"}
+      ]
+    },
+    {
+      "name": "AI",
+      "dll": "RakuAI.dll",
+      "description": "Dynamic difficulty, player profiling, behavior trees, navigation",
+      "function_count": 192,
+      "key_functions": [
+        {"name": "raku_ai_init", "description": "Initialize the AI subsystem", "params": [], "returns": "void"},
+        {"name": "raku_ai_set_difficulty", "description": "Set difficulty adaptation mode", "params": [{"name": "mode", "type": "const char*"}, {"name": "initial", "type": "float"}], "returns": "void"},
+        {"name": "raku_ai_navmesh_create", "description": "Create a navigation mesh", "params": [{"name": "scene", "type": "const char*"}], "returns": "handle"},
+        {"name": "raku_ai_create_agent", "description": "Create an AI-controlled agent", "params": [{"name": "tag", "type": "const char*"}, {"name": "behavior", "type": "const char*"}], "returns": "handle"}
+      ]
+    },
+    {
+      "name": "SLM",
+      "dll": "RakuSLM.dll",
+      "description": "On-device language models, NPC dialogue, emotion recognition",
+      "function_count": 95,
+      "key_functions": [
+        {"name": "raku_slm_init", "description": "Initialize the SLM subsystem", "params": [], "returns": "void"},
+        {"name": "raku_slm_set_context", "description": "Set conversation context for NPC dialogue", "params": [{"name": "context", "type": "const char*"}], "returns": "void"},
+        {"name": "raku_slm_shutdown", "description": "Shut down the SLM subsystem", "params": [], "returns": "void"},
+        {"name": "raku_dialogue_create", "description": "Create a dialogue session", "params": [{"name": "npc_id", "type": "const char*"}], "returns": "handle"}
+      ]
+    },
+    {
+      "name": "Animation",
+      "dll": "RakuAnimation.dll",
+      "description": "Skeletal animation, IK, blend trees, motion matching",
+      "function_count": 128,
+      "key_functions": [
+        {"name": "raku_animation_load", "description": "Load an animation clip", "params": [{"name": "model", "type": "const char*"}, {"name": "path", "type": "const char*"}, {"name": "id", "type": "const char*"}], "returns": "handle"},
+        {"name": "raku_animation_play", "description": "Play a loaded animation", "params": [{"name": "id", "type": "const char*"}, {"name": "loop", "type": "bool"}], "returns": "void"}
+      ]
+    },
+    {
+      "name": "Network",
+      "dll": "RakuNetwork.dll",
+      "description": "WebRTC, LAN discovery, replication, multiplayer",
+      "function_count": 201,
+      "key_functions": [
+        {"name": "raku_network_init", "description": "Initialize networking", "params": [{"name": "mode", "type": "const char*"}, {"name": "max_players", "type": "int"}], "returns": "void"},
+        {"name": "raku_network_disconnect", "description": "Disconnect from network session", "params": [], "returns": "void"}
+      ]
+    },
+    {
+      "name": "XR",
+      "dll": "RakuXR.dll",
+      "description": "OpenXR integration, hand/eye tracking, spatial anchors",
+      "function_count": 151,
+      "key_functions": [
+        {"name": "raku_xr_init", "description": "Initialize XR subsystem", "params": [{"name": "mode", "type": "const char*"}], "returns": "void"},
+        {"name": "raku_xr_shutdown", "description": "Shut down XR", "params": [], "returns": "void"},
+        {"name": "raku_anchor_create", "description": "Create a spatial anchor", "params": [{"name": "x", "type": "float"}, {"name": "y", "type": "float"}, {"name": "z", "type": "float"}], "returns": "handle"}
+      ]
+    },
+    {
+      "name": "UI",
+      "dll": "RakuUI.dll",
+      "description": "2D/3D widgets, canvas, theming, accessibility",
+      "function_count": 181,
+      "key_functions": [
+        {"name": "raku_ui_create_label", "description": "Create a text label", "params": [{"name": "text", "type": "const char*"}, {"name": "x", "type": "float"}, {"name": "y", "type": "float"}], "returns": "handle"},
+        {"name": "raku_canvas_create", "description": "Create a UI canvas", "params": [], "returns": "handle"}
+      ]
+    },
+    {
+      "name": "Assets",
+      "dll": "RakuAssets.dll",
+      "description": "GLTF/FBX loading, texture streaming, caching",
+      "function_count": 156,
+      "key_functions": [
+        {"name": "raku_assets_load_model", "description": "Load a 3D model (GLB/GLTF/FBX)", "params": [{"name": "path", "type": "const char*"}, {"name": "id", "type": "const char*"}], "returns": "handle"}
+      ]
+    },
+    {
+      "name": "Voice",
+      "dll": "RakuVoice.dll",
+      "description": "Voice chat, VAD, speech processing, voice commands",
+      "function_count": 200,
+      "key_functions": [
+        {"name": "raku_voice_init", "description": "Initialize voice subsystem", "params": [], "returns": "void"}
+      ]
+    },
+    {
+      "name": "Editor",
+      "dll": "RakuEditor.dll",
+      "description": "Inspector, scene editor, debug tools",
+      "function_count": 176,
+      "key_functions": [
+        {"name": "raku_editor_init", "description": "Initialize the editor subsystem", "params": [], "returns": "void"}
+      ]
+    },
+    {
+      "name": "Scripting",
+      "dll": "RakuScripting.dll",
+      "description": "Lua VM, sandbox, hot reload, script binding",
+      "function_count": 201,
+      "key_functions": [
+        {"name": "raku_scripting_init", "description": "Initialize the scripting VM", "params": [], "returns": "void"}
+      ]
+    }
+  ],
+  "safety": {
+    "note": "This manifest exposes game creation APIs only. Engine internals, memory management, and low-level rendering are intentionally excluded.",
+    "ai_callable": true,
+    "requires_user_confirmation": ["raku_network_init", "raku_xr_init", "raku_voice_init"],
+    "rate_limiting": "Recommended: max 100 API calls per .raku file for game creation workflows"
+  }
+}
