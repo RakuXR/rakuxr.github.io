@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Integration Guide - RakuAI</title>
+    <meta name="description" content="How to use ChatGPT, Claude, Gemini, and other AI to generate valid .raku game files. Copy-paste prompts, troubleshooting, and common fixes.">
+    <meta property="og:title" content="LLM Integration Guide - RakuAI">
+    <meta property="og:description" content="Generate valid .raku games with any AI. Includes copy-paste prompts and a troubleshooting guide for common LLM mistakes.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/llm-guide">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/llm-guide.html">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover { background: var(--accent-bright); }
+        .copy-btn.copied { background: var(--success); }
+        .prompt-block {
+            position: relative;
+            background: #0d0d1f;
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 24px;
+            padding-right: 100px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin: 24px 0;
+            color: var(--text-primary);
+        }
+        .trouble-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .trouble-card h3 { color: #ff6b6b; margin-bottom: 8px; }
+        .trouble-card .fix { color: var(--success); font-weight: 600; }
+        .warning-box {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+        .warning-box h3 { color: #ff6b6b; margin-bottom: 8px; }
+        .success-box {
+            background: rgba(0, 206, 201, 0.1);
+            border: 1px solid rgba(0, 206, 201, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+        .success-box h3 { color: var(--success); margin-bottom: 8px; }
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 24px 0;
+        }
+        .platform-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .platform-card h3 { color: var(--accent-bright); margin-bottom: 8px; }
+        .platform-card .rating { font-size: 1.2rem; margin-bottom: 8px; }
+        .step-compact { margin-bottom: 32px; }
+        .step-compact h3 { color: var(--accent-bright); margin-bottom: 8px; }
+        .step-compact code {
+            background: #0d0d1f;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo"><span class="kanji-logo">楽</span>AI</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="docs.html">Docs</a>
+            <a href="templates.html">Templates</a>
+            <a href="llm-guide.html">LLM Guide</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://github.com/RakuXR/raku-runtime/releases/latest" class="nav-cta">Download Runtime</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <h1>LLM Integration Guide</h1>
+        <p class="subtitle">How to get ChatGPT, Claude, Gemini, and other AI to generate valid .raku games every time</p>
+    </div>
+</section>
+
+<!-- TWO FORMATS -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Two Formats, One Engine</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            The Raku engine supports two .raku file formats. Pick the one that matches your needs.
+        </p>
+        <div class="platform-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="platform-card" style="border-color: var(--accent);">
+                <h3>Standard Format</h3>
+                <div class="rating" style="color: var(--success);">Recommended</div>
+                <p>Declarative config &mdash; describe <em>what</em> you want, the engine figures out <em>how</em>.</p>
+                <p style="margin-top: 12px;"><strong>Version key:</strong> <code>"schema_version": "1.0"</code></p>
+                <p><strong>Top-level:</strong> <code>game</code>, <code>ai</code>, <code>entities</code>, <code>scenes</code>, <code>rendering</code>, <code>audio</code>, <code>xr</code>, <code>ai_disclosure</code></p>
+                <p style="margin-top: 12px;"><strong>Schema:</strong> <a href="schema.json" style="color: var(--accent-bright);">rakuai.com/schema.json</a></p>
+                <p><strong>Examples:</strong> <a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">All standard samples &rarr;</a></p>
+                <p style="margin-top: 8px; color: var(--text-secondary); font-size: 0.85rem;">Best for: quick game creation, beginners, most LLM tasks</p>
+            </div>
+            <div class="platform-card">
+                <h3>Runtime Format</h3>
+                <div class="rating">Advanced</div>
+                <p>Explicit API call sequences &mdash; every engine function call is specified in order.</p>
+                <p style="margin-top: 12px;"><strong>Version key:</strong> <code>"raku_format": "1.0.0"</code></p>
+                <p><strong>Top-level:</strong> <code>metadata</code>, <code>assets</code>, <code>initialization</code>, <code>setup</code>, <code>game_loop</code>, <code>ai_pipeline</code>, <code>shutdown</code></p>
+                <p style="margin-top: 12px;"><strong>Reference:</strong> <a href="https://github.com/RakuXR/raku-public/blob/main/docs/llm-raku-reference.md" style="color: var(--accent-bright);">Runtime format reference card &rarr;</a></p>
+                <p><strong>Example:</strong> <a href="https://github.com/RakuXR/raku-public/blob/main/samples/void-wyrm.raku" style="color: var(--accent-bright);">void-wyrm.raku (290 lines) &rarr;</a></p>
+                <p style="margin-top: 8px; color: var(--text-secondary); font-size: 0.85rem;">Best for: complex games, custom behavior trees, granular AI pipeline control</p>
+            </div>
+        </div>
+        <p style="text-align: center; color: var(--text-secondary); margin-top: 16px;">
+            The rest of this page covers the <strong>Standard Format</strong>. For the runtime format,
+            see the <a href="https://github.com/RakuXR/raku-public/blob/main/docs/llm-raku-reference.md" style="color: var(--accent-bright);">LLM Runtime Reference Card</a> on GitHub.
+        </p>
+    </div>
+</section>
+
+<!-- THE PROBLEM -->
+<section class="section">
+    <div class="container">
+        <h2>The Problem</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            LLMs will hallucinate a schema if you don't give them the real one. They'll invent fields like
+            <code style="color: #ff6b6b;">settings</code>, <code style="color: #ff6b6b;">gameplay</code>,
+            <code style="color: #ff6b6b;">controls</code>, and <code style="color: #ff6b6b;">analytics</code>
+            that don't exist in the Raku spec. The file will look like valid JSON, but it won't run.
+        </p>
+
+        <div class="warning-box">
+            <h3>What happens without the schema</h3>
+            <p>We tested this: we asked ChatGPT to "create a .raku game file for a zombie survival game." It generated
+            150 lines of valid JSON with a completely made-up structure. The validator caught 2 errors and 2 warnings
+            including wrong version format (<code>"1.0.0"</code> instead of <code>"1.0"</code>), missing <code>game</code>
+            object, 6 hallucinated fields, and wrong <code>ai_disclosure</code> format.</p>
+        </div>
+
+        <div class="success-box">
+            <h3>The fix is simple</h3>
+            <p>Always point the AI at the schema URL: <strong>https://rakuai.com/schema.json</strong>.
+            When LLMs can read the actual spec, they generate valid files on the first try.
+            Always validate with the <a href="https://github.com/RakuXR/raku-public/blob/main/tools/validate-raku.py" style="color: var(--accent-bright);">validator tool</a> before playing.</p>
+        </div>
+    </div>
+</section>
+
+<!-- COPY-PASTE PROMPTS -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Copy-Paste Prompts</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
+            Use these tested prompts in any AI assistant. They include the schema URL so the AI reads the real spec.
+        </p>
+
+        <h3 style="color: var(--accent-bright); margin-bottom: 12px;">Basic Prompt (any game)</h3>
+        <div class="prompt-block" id="prompt-basic">
+            <button class="copy-btn" onclick="copyPrompt('prompt-basic')">Copy</button>
+            Using the Raku game engine schema at https://rakuai.com/schema.json &mdash; read that schema first, then create a .raku game file for: [describe your game here]. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.
+        </div>
+
+        <h3 style="color: var(--accent-bright); margin-bottom: 12px;">Detailed Prompt (survival game example)</h3>
+        <div class="prompt-block" id="prompt-survival">
+            <button class="copy-btn" onclick="copyPrompt('prompt-survival')">Copy</button>
+            Using the Raku game engine schema at https://rakuai.com/schema.json &mdash; read that schema first, then create a .raku game file for: A zombie survival game with day/night cycles, crafting, and base building. Zombies should get more aggressive at night. The AI should track emotional state and back off if the player is frustrated. Use the "survival" template and genre. Include the ai_disclosure section with appropriate systems. Output only the raw JSON, no markdown code fences.
+        </div>
+
+        <h3 style="color: var(--accent-bright); margin-bottom: 12px;">Strict Prompt (for stubborn LLMs)</h3>
+        <div class="prompt-block" id="prompt-strict">
+            <button class="copy-btn" onclick="copyPrompt('prompt-strict')">Copy</button>
+            Read the JSON schema at https://rakuai.com/schema.json before generating anything. Create a .raku file for: [describe your game here].<br><br>
+            RULES:<br>
+            - schema_version must be "1.0" (not "1.0.0")<br>
+            - Top-level must have: schema_version, game, ai, entities, scenes, rendering, audio, xr, ai_disclosure<br>
+            - The "game" object must contain: title, genre, template<br>
+            - Do NOT invent fields like settings, gameplay, controls, ui, analytics, assets, or levels<br>
+            - ai_disclosure must have: live_generated, pre_generated, description, systems<br>
+            - Output raw JSON only, no markdown fences, no explanation
+        </div>
+
+        <h3 style="color: var(--accent-bright); margin-bottom: 12px;">Iteration Prompt (fix a bad file)</h3>
+        <div class="prompt-block" id="prompt-fix">
+            <button class="copy-btn" onclick="copyPrompt('prompt-fix')">Copy</button>
+            The .raku file you generated has validation errors. Read the correct schema at https://rakuai.com/schema.json and fix these issues:<br><br>
+            [paste your validator output here]<br><br>
+            Output only the corrected raw JSON, no markdown code fences.
+        </div>
+    </div>
+</section>
+
+<!-- STEP BY STEP -->
+<section class="section">
+    <div class="container">
+        <h2>Step-by-Step Workflow</h2>
+
+        <div class="step-compact">
+            <h3>1. Generate with AI</h3>
+            <p>Copy one of the prompts above into ChatGPT, Claude, Gemini, or any LLM. Fill in your game description. The AI will output JSON.</p>
+        </div>
+
+        <div class="step-compact">
+            <h3>2. Save as .raku file</h3>
+            <p>Save the JSON output as a <code>.raku</code> file. Important: save as <strong>UTF-8 without BOM</strong>.
+            If using Windows Notepad, choose "Save As" &rarr; Encoding: "UTF-8" (not "UTF-8 with BOM").
+            If the AI wrapped it in <code>```json</code> fences, remove those lines first.</p>
+        </div>
+
+        <div class="step-compact">
+            <h3>3. Validate</h3>
+            <p>Clone <a href="https://github.com/RakuXR/raku-public" style="color: var(--accent-bright);">raku-public</a> and run the validator:</p>
+            <div class="code-block">
+                <span class="code-comment"># Validate your file</span><br>
+                python tools/validate-raku.py my-game.raku<br>
+                <br>
+                <span class="code-comment"># Auto-fix common LLM mistakes (BOM, fences, wrong version)</span><br>
+                python tools/validate-raku.py my-game.raku --fix<br>
+                <br>
+                <span class="code-comment"># Validate all files in a folder</span><br>
+                python tools/validate-raku.py *.raku
+            </div>
+        </div>
+
+        <div class="step-compact">
+            <h3>4. Fix remaining errors</h3>
+            <p>If the validator reports errors, copy the output back into the AI using the "Iteration Prompt" above.
+            Or use <code>--fix</code> mode to auto-repair the most common issues.</p>
+        </div>
+
+        <div class="step-compact">
+            <h3>5. Play</h3>
+            <p>Once you see <code>PASS - Valid .raku file</code>, double-click the file to play.
+            <a href="https://github.com/RakuXR/raku-public/releases" style="color: var(--accent-bright);">Download the runtime &rarr;</a></p>
+        </div>
+    </div>
+</section>
+
+<!-- PLATFORM NOTES -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Platform-Specific Notes</h2>
+        <div class="platform-grid">
+            <div class="platform-card">
+                <h3>ChatGPT</h3>
+                <div class="rating">Accuracy: Good</div>
+                <p>GPT-4 and GPT-4o read the schema URL reliably. Watch out for: markdown code fences in output (strip <code>```json</code> lines), and occasionally inventing extra fields. Always include "output only raw JSON" in your prompt.</p>
+            </div>
+            <div class="platform-card">
+                <h3>Claude</h3>
+                <div class="rating">Accuracy: Excellent</div>
+                <p>Claude Opus and Sonnet follow the schema precisely when given the URL. Supports MCP server integration for direct validation. Rarely adds markdown fences when told not to.</p>
+            </div>
+            <div class="platform-card">
+                <h3>Gemini</h3>
+                <div class="rating">Accuracy: Good</div>
+                <p>Gemini Pro reads schemas well. Best for iterative design across multi-turn conversations. May sometimes use <code>"1.0.0"</code> instead of <code>"1.0"</code> for schema_version.</p>
+            </div>
+            <div class="platform-card">
+                <h3>GitHub Copilot</h3>
+                <div class="rating">Accuracy: Good</div>
+                <p>Works well in VS Code with the schema as a reference file. Open <code>schema.json</code> in an adjacent tab and Copilot will use it for autocomplete in <code>.raku</code> files.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TROUBLESHOOTING -->
+<section class="section">
+    <div class="container">
+        <h2>Troubleshooting</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
+            Common validator errors and how to fix them. Most can be auto-fixed with <code>--fix</code>.
+        </p>
+
+        <div class="trouble-card">
+            <h3>Invalid JSON: Expecting value: line 1 column 1</h3>
+            <p>The file is empty, has a BOM, or starts with markdown fences (<code>```json</code>).</p>
+            <p class="fix">Fix: Run <code>python tools/validate-raku.py my-game.raku --fix</code> to strip BOM and fences automatically.</p>
+        </div>
+
+        <div class="trouble-card">
+            <h3>Unsupported schema version: '1.0.0'. Expected '1.0'</h3>
+            <p>LLMs love adding extra digits to version numbers.</p>
+            <p class="fix">Fix: Change <code>"schema_version": "1.0.0"</code> to <code>"schema_version": "1.0"</code>. The <code>--fix</code> flag does this automatically.</p>
+        </div>
+
+        <div class="trouble-card">
+            <h3>Missing required field 'game'</h3>
+            <p>The AI put title, genre, and template at the top level instead of inside a <code>"game"</code> object.</p>
+            <p class="fix">Fix: Wrap them in <code>"game": { "title": "...", "genre": "...", "template": "..." }</code>. The <code>--fix</code> flag does this automatically.</p>
+        </div>
+
+        <div class="trouble-card">
+            <h3>AI-hallucinated fields detected</h3>
+            <p>The AI invented fields like <code>settings</code>, <code>gameplay</code>, <code>controls</code>, <code>ui</code>, <code>analytics</code>, <code>assets</code>, or <code>levels</code>.</p>
+            <p class="fix">Fix: Delete these fields. The only valid top-level fields are: <code>schema_version</code>, <code>game</code>, <code>ai</code>, <code>entities</code>, <code>scenes</code>, <code>rendering</code>, <code>audio</code>, <code>xr</code>, <code>ai_disclosure</code>. The <code>--fix</code> flag removes them automatically.</p>
+        </div>
+
+        <div class="trouble-card">
+            <h3>Wrong ai_disclosure format</h3>
+            <p>The AI used fields like <code>compliance</code>, <code>uses_player_data</code>, <code>data_tracked</code> instead of the correct schema.</p>
+            <p class="fix">Fix: Replace the ai_disclosure section with: <code>live_generated</code> (bool), <code>pre_generated</code> (bool), <code>description</code> (string), <code>systems</code> (array). See the schema for valid system names.</p>
+        </div>
+
+        <div class="trouble-card">
+            <h3>File starts with UTF-8 BOM</h3>
+            <p>Windows Notepad and PowerShell's <code>Set-Content -Encoding UTF8</code> add invisible BOM bytes.</p>
+            <p class="fix">Fix: Use <code>--fix</code> or in PowerShell: <code>[IO.File]::WriteAllText("$PWD\file.raku", (Get-Content file.raku -Raw), [Text.UTF8Encoding]::new($false))</code></p>
+        </div>
+    </div>
+</section>
+
+<!-- VALID SCHEMA QUICK REFERENCE -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Schema Quick Reference</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
+            The complete structure of a valid .raku file. <a href="schema.json" style="color: var(--accent-bright);">Full schema &rarr;</a>
+        </p>
+        <div class="code-block">
+{<br>
+&nbsp;&nbsp;<span class="code-string">"schema_version"</span>: <span class="code-string">"1.0"</span>,<br>
+&nbsp;&nbsp;<span class="code-string">"game"</span>: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"title"</span>: <span class="code-string">"string (1-128 chars)"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"genre"</span>: <span class="code-string">"shooter|platformer|puzzle|rpg|racing|tower-defense|arena-combat|survival|music-rhythm|custom"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"template"</span>: <span class="code-string">"space-shooter|tower-defense|puzzle|platformer|arena-combat|custom-advanced|racing|rpg-adventure|survival|music-rhythm"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"description"</span>: <span class="code-string">"optional"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"max_players"</span>: <span class="code-keyword">1</span> <span class="code-comment">// 1-16, multiplayer requires Pro</span><br>
+&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;<span class="code-string">"ai"</span>: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"dda_enabled"</span>: <span class="code-keyword">true</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"target_flow_state"</span>: <span class="code-keyword">0.7</span>, <span class="code-comment">// 0.0-1.0</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"profiler_mode"</span>: <span class="code-string">"adaptive|fixed|learning"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"emotional_tracking"</span>: <span class="code-keyword">true</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"npc_personality"</span>: <span class="code-keyword">false</span><br>
+&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;<span class="code-string">"entities"</span>: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"type"</span>: <span class="code-string">"player"</span>, <span class="code-string">"health"</span>: 100, <span class="code-string">"speed"</span>: 1.0, <span class="code-string">"properties"</span>: { } }<br>
+&nbsp;&nbsp;],<br>
+&nbsp;&nbsp;<span class="code-string">"scenes"</span>: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"name"</span>: <span class="code-string">"Main Menu"</span>, <span class="code-string">"type"</span>: <span class="code-string">"menu"</span> },<br>
+&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"name"</span>: <span class="code-string">"Gameplay"</span>, <span class="code-string">"type"</span>: <span class="code-string">"gameplay"</span>, <span class="code-string">"entities"</span>: [<span class="code-string">"player"</span>] }<br>
+&nbsp;&nbsp;],<br>
+&nbsp;&nbsp;<span class="code-string">"rendering"</span>: { <span class="code-string">"resolution"</span>: <span class="code-string">"auto"</span>, <span class="code-string">"fps_target"</span>: 60, <span class="code-string">"vrs_enabled"</span>: <span class="code-keyword">true</span> },<br>
+&nbsp;&nbsp;<span class="code-string">"audio"</span>: { <span class="code-string">"spatial_audio"</span>: <span class="code-keyword">true</span>, <span class="code-string">"adaptive_music"</span>: <span class="code-keyword">true</span> },<br>
+&nbsp;&nbsp;<span class="code-string">"xr"</span>: { <span class="code-string">"openxr_enabled"</span>: <span class="code-keyword">false</span> },<br>
+&nbsp;&nbsp;<span class="code-string">"ai_disclosure"</span>: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"live_generated"</span>: <span class="code-keyword">true</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"pre_generated"</span>: <span class="code-keyword">false</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"description"</span>: <span class="code-string">"What AI does in your game"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"systems"</span>: [<span class="code-string">"dda"</span>, <span class="code-string">"emotional-tracking"</span>],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"guardrails"</span>: <span class="code-string">"optional safety bounds"</span><br>
+&nbsp;&nbsp;}<br>
+}
+        </div>
+        <p style="text-align: center; margin-top: 16px;">
+            <a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">Browse 6 complete sample .raku files on GitHub &rarr;</a>
+        </p>
+    </div>
+</section>
+
+<script>
+function copyPrompt(id) {
+    const block = document.getElementById(id);
+    const btn = block.querySelector('.copy-btn');
+    const text = block.textContent.replace('Copy', '').trim();
+    navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+        }, 2000);
+    });
+}
+</script>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="docs.html">Documentation</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="mailto:hello@rakuai.com">Contact</a>
+        </div>
+        <p>&copy; 2026 楽AI (RakuAI), LLC. Protected by 5 granted patents (priority July 2012).</p>
+    </div>
+</footer>
+
+</body>
+</html>
