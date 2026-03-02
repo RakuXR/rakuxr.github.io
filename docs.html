@@ -17,15 +17,15 @@
 
 <nav>
     <div class="container">
-        <a href="index.html" class="logo"><span class="kanji">æ¥½</span>RakuAI</a>
+        <a href="index.html" class="logo"><span class="kanji-logo">&#x697D;</span>AI</a>
         <div class="nav-links">
             <a href="index.html">Home</a>
             <a href="docs.html">Docs</a>
             <a href="templates.html">Templates</a>
+            <a href="llm-guide.html">LLM Guide</a>
             <a href="pricing.html">Pricing</a>
-            <a href="schema.html">Schema</a>
-            <a href="https://github.com/RakuXR/raku-public">GitHub</a>
-            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">Download Runtime</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://github.com/RakuXR/raku-runtime/releases/latest" class="nav-cta">Download Runtime</a>
         </div>
     </div>
 </nav>
@@ -43,18 +43,18 @@
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>Install the Runtime</h3>
-                <p>Download the latest release from <a href="https://github.com/RakuXR/raku-public/releases/latest" style="color: var(--accent-bright);">GitHub Releases</a>. Run the installer (19 MB). The Visual C++ Redistributable is included automatically if not already installed.</p>
+                <h3>Get the Schema</h3>
+                <p>The <a href="schema.json" style="color: var(--accent-bright);">.raku file schema</a> defines the game format. Point any AI at it, or browse the <a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">sample games on GitHub</a> to see the format in action.</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
-                <h3>Choose Your AI Platform</h3>
-                <p>Open ChatGPT, Claude, Gemini, or any AI assistant. All major platforms support .raku file generation through the documented schema.</p>
+                <h3>Describe Your Game to AI</h3>
+                <p>Open any AI assistant and say: <em>"Using the Raku game engine schema at rakuai.com/schema.json, create a space shooter with adaptive difficulty."</em> The AI generates a complete .raku file.</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
-                <h3>Describe Your Game</h3>
-                <p>Example prompt: "Create a space shooter with adaptive difficulty, enemy waves that scale based on my performance, and voice commands for special abilities."</p>
+                <h3>Validate &amp; Play</h3>
+                <p>Validate your .raku file with the <a href="https://github.com/RakuXR/raku-public/blob/main/tools/validate-raku.py" style="color: var(--accent-bright);">validator tool</a>, then double-click to play. <a href="https://github.com/RakuXR/raku-public/releases" style="color: var(--accent-bright);">Download the runtime &rarr;</a></p>
             </div>
         </div>
     </div>
@@ -62,15 +62,27 @@
 
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container">
+        <h2>AI Integration</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
+            AI platforms generate .raku files using our published schema. Point any LLM at
+            <a href="schema.json" style="color: var(--accent-bright);">rakuai.com/schema.json</a>
+            for the full .raku file specification, or
+            <a href="api-manifest.json" style="color: var(--accent-bright);">rakuai.com/api-manifest.json</a>
+            for the curated API reference.
+        </p>
         <h2>Supported AI Platforms</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; margin-top: -32px;">
+            <a href="llm-guide.html" style="color: var(--accent-bright); font-weight: 600;">Full LLM Integration Guide &rarr;</a>
+            copy-paste prompts, troubleshooting, and auto-fix tools
+        </p>
         <div class="features">
             <div class="feature">
                 <h3>ChatGPT (OpenAI)</h3>
-                <p>GPT-4 and GPT-4o fully support .raku file generation. Use the GPT Store listing for optimized prompts and validation.</p>
+                <p>GPT-4 and GPT-4o fully support .raku file generation. Always point it at <a href="schema.json" style="color: var(--accent-bright);">rakuai.com/schema.json</a> first to avoid hallucinated fields.</p>
             </div>
             <div class="feature">
                 <h3>Claude (Anthropic)</h3>
-                <p>Claude 3 Opus and Sonnet models generate syntactically correct .raku files. Supports MCP server integration for enhanced tooling.</p>
+                <p>Claude Opus and Sonnet models generate syntactically correct .raku files. Supports MCP server integration for enhanced tooling.</p>
             </div>
             <div class="feature">
                 <h3>Gemini (Google)</h3>
@@ -78,33 +90,7 @@
             </div>
             <div class="feature">
                 <h3>GitHub Copilot</h3>
-                <p>VS Code and Visual Studio extensions provide .raku file completion and validation. Optimized for game mod workflows.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="section">
-    <div class="container">
-        <h2>AI Integration</h2>
-        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            AI platforms can read our machine-readable endpoints to generate valid .raku files automatically.
-        </p>
-        <div class="features">
-            <div class="feature">
-                <h3>JSON Schema</h3>
-                <p>Full .raku file format specification for validation and generation.</p>
-                <a href="https://rakuai.com/schema.json" style="color: var(--accent-bright);">rakuai.com/schema.json →</a>
-            </div>
-            <div class="feature">
-                <h3>API Manifest</h3>
-                <p>Curated public API surface with function signatures, parameters, and categories.</p>
-                <a href="https://rakuai.com/api-manifest.json" style="color: var(--accent-bright);">rakuai.com/api-manifest.json →</a>
-            </div>
-            <div class="feature">
-                <h3>AI Discovery</h3>
-                <p>OpenAI-compatible plugin manifest for automatic platform integration.</p>
-                <a href="https://rakuai.com/.well-known/ai-plugin.json" style="color: var(--accent-bright);">.well-known/ai-plugin.json →</a>
+                <p>VS Code and Visual Studio extensions provide .raku file completion and validation. Open schema.json in an adjacent tab for autocomplete.</p>
             </div>
         </div>
     </div>
@@ -114,37 +100,39 @@
     <div class="container">
         <h2>Example .raku File</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            This is what AI generates when you describe a game. All fields are documented in the <a href="schema.html" style="color: var(--accent-bright);">schema</a>.
+            This is what AI generates when you describe a game. All fields are documented in the schema.
         </p>
         <div class="code-block">
 {<br>
-  <span class="code-string">"raku_format"</span>: <span class="code-string">"1.0.0"</span>,<br>
-  <span class="code-string">"metadata"</span>: {<br>
-    <span class="code-string">"name"</span>: <span class="code-string">"Space Defender"</span>,<br>
-    <span class="code-string">"description"</span>: <span class="code-string">"A space shooter with adaptive difficulty"</span>,<br>
-    <span class="code-string">"genre"</span>: <span class="code-string">"space_shooter"</span>,<br>
-    <span class="code-string">"creator"</span>: <span class="code-string">"ai_generated"</span>,<br>
-    <span class="code-string">"version"</span>: <span class="code-string">"1.0"</span>,<br>
-    <span class="code-string">"tags"</span>: [<span class="code-string">"shooter"</span>, <span class="code-string">"space"</span>, <span class="code-string">"adaptive_ai"</span>]<br>
+  <span class="code-string">"schema_version"</span>: <span class="code-string">"1.0"</span>,<br>
+  <span class="code-string">"game"</span>: {<br>
+    <span class="code-string">"title"</span>: <span class="code-string">"Space Defender"</span>,<br>
+    <span class="code-string">"genre"</span>: <span class="code-string">"shooter"</span>,<br>
+    <span class="code-string">"template"</span>: <span class="code-string">"space-shooter"</span><br>
   },<br>
-  <span class="code-string">"initialization"</span>: [<br>
-    {<span class="code-string">"function"</span>: <span class="code-string">"raku_init"</span>, <span class="code-string">"params"</span>: {}},<br>
-    {<span class="code-string">"function"</span>: <span class="code-string">"raku_renderer_create_window"</span>, <span class="code-string">"params"</span>: {<span class="code-string">"width"</span>: 1280, <span class="code-string">"height"</span>: 720}},<br>
-    {<span class="code-string">"function"</span>: <span class="code-string">"raku_audio_init"</span>, <span class="code-string">"params"</span>: {<span class="code-string">"channels"</span>: 32}},<br>
-    {<span class="code-string">"function"</span>: <span class="code-string">"raku_ai_init"</span>, <span class="code-string">"params"</span>: {}}<br>
+  <span class="code-string">"ai"</span>: {<br>
+    <span class="code-string">"dda_enabled"</span>: <span class="code-keyword">true</span>,<br>
+    <span class="code-string">"target_flow_state"</span>: 0.7,<br>
+    <span class="code-string">"profiler_mode"</span>: <span class="code-string">"adaptive"</span>,<br>
+    <span class="code-string">"emotional_tracking"</span>: <span class="code-keyword">true</span><br>
+  },<br>
+  <span class="code-string">"entities"</span>: [<br>
+    { <span class="code-string">"type"</span>: <span class="code-string">"player_ship"</span>, <span class="code-string">"health"</span>: 100 },<br>
+    { <span class="code-string">"type"</span>: <span class="code-string">"enemy_wave"</span>, <span class="code-string">"count"</span>: 10 }<br>
   ],<br>
-  <span class="code-string">"calls"</span>: [<br>
-    {<span class="code-string">"function"</span>: <span class="code-string">"raku_scene_create"</span>, <span class="code-string">"params"</span>: {<span class="code-string">"name"</span>: <span class="code-string">"main_scene"</span>}},<br>
-    {<span class="code-string">"function"</span>: <span class="code-string">"raku_input_bind_key"</span>, <span class="code-string">"params"</span>: {<span class="code-string">"key"</span>: <span class="code-string">"SPACE"</span>, <span class="code-string">"action"</span>: <span class="code-string">"fire"</span>}},<br>
-    {<span class="code-string">"function"</span>: <span class="code-string">"raku_ai_set_difficulty"</span>, <span class="code-string">"params"</span>: {<span class="code-string">"mode"</span>: <span class="code-string">"adaptive"</span>}},<br>
-    {<span class="code-string">"function"</span>: <span class="code-string">"raku_scene_start_loop"</span>, <span class="code-string">"params"</span>: {}}<br>
-  ],<br>
-  <span class="code-string">"shutdown"</span>: [<br>
-    {<span class="code-string">"function"</span>: <span class="code-string">"raku_scene_destroy"</span>, <span class="code-string">"params"</span>: {<span class="code-string">"name"</span>: <span class="code-string">"main_scene"</span>}},<br>
-    {<span class="code-string">"function"</span>: <span class="code-string">"raku_shutdown"</span>, <span class="code-string">"params"</span>: {}}<br>
-  ]<br>
+  <span class="code-string">"ai_disclosure"</span>: {<br>
+    <span class="code-string">"live_generated"</span>: <span class="code-keyword">true</span>,<br>
+    <span class="code-string">"pre_generated"</span>: <span class="code-keyword">true</span>,<br>
+    <span class="code-string">"description"</span>: <span class="code-string">"AI adjusts difficulty based on player performance."</span>,<br>
+    <span class="code-string">"systems"</span>: [<span class="code-string">"dda"</span>, <span class="code-string">"adaptive-audio"</span>, <span class="code-string">"emotional-tracking"</span>]<br>
+  }<br>
 }
         </div>
+        <p style="text-align: center; color: var(--text-secondary); margin-top: 16px;">
+            <a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">See more examples on GitHub &rarr;</a>
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            <a href="https://github.com/RakuXR/raku-public/blob/main/tools/validate-raku.py" style="color: var(--accent-bright);">Validate your .raku file &rarr;</a>
+        </p>
     </div>
 </section>
 
@@ -153,89 +141,87 @@
         <h2>API Reference</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 48px;">
             2,718 C API functions across 16 subsystems. Full documentation available on GitHub.
-            <br><a href="schema.html" style="color: var(--accent-bright);">View .raku File Schema â†’</a> |
-            <a href="schema.json" style="color: var(--accent-bright);">Download JSON Schema â†’</a>
         </p>
         <div class="features">
             <div class="feature">
                 <h3>Core API</h3>
-                <p>Memory management, threading, signals, IO, logging. Foundation for all other subsystems.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuCore.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <p>Engine lifecycle, memory pools, multi-threaded job system, signal/slot event bus, file IO, structured logging, and timer management. Every other subsystem depends on Core for resource allocation and cross-system communication.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuCore.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
-                <h3>Scene & Rendering</h3>
-                <p>Scene graph, PBR materials, post-processing, VRS, mesh manipulation.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuRenderer.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <h3>Scene &amp; Rendering</h3>
+                <p>Hierarchical scene graph, PBR materials with metallic/roughness workflow, dynamic lighting (point, spot, directional, area), post-processing pipeline (bloom, SSAO, motion blur, color grading), variable-rate shading, LOD management, particle systems, and procedural mesh generation.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuRenderer.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
-                <h3>AI & Personalization</h3>
-                <p>Dynamic difficulty, player profiling, emotion detection, adaptive systems.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuAI.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <h3>AI &amp; Personalization</h3>
+                <p>Dynamic difficulty adjustment (DDA) with configurable flow-state targeting (0.0&ndash;1.0), real-time player profiling (skill, aggression, exploration style), emotional state detection (frustration, boredom, excitement), adaptive NPC behavior trees, and on-device SLM inference for procedural dialogue and content generation.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuAI.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
-                <h3>XR & Input</h3>
-                <p>OpenXR integration, hand/eye tracking, spatial anchors, controller haptics.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuXR.def" style="color: var(--accent-bright);">View Functions â†’</a>
-            </div>
-            <div class="feature">
-                <h3>Scene Graph</h3>
-                <p>Node hierarchy, CSG, GridMap, sprite and model management, game loop.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuScene.def" style="color: var(--accent-bright);">View Functions â†’</a>
-            </div>
-            <div class="feature">
-                <h3>Physics</h3>
-                <p>Rigid body dynamics, joints, raycasting, ragdoll, collision shapes.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuPhysics.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <h3>XR &amp; Input</h3>
+                <p>OpenXR 1.1 runtime, hand tracking (26-joint skeleton per hand), eye tracking with foveated rendering, spatial anchors for persistent world placement, passthrough AR compositing, controller haptics with HD rumble, and automatic fallback between VR/AR/flatscreen modes.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuXR.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
                 <h3>Audio</h3>
-                <p>Spatial audio, HRTF, interactive music, sound effects, voice integration.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuAudio.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <p>Spatial 3D audio with HRTF (head-related transfer functions), adaptive music system that responds to gameplay intensity, voice assistant integration, procedural sound effects, audio occlusion/obstruction, and multi-channel mixing with per-source attenuation curves.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuAudio.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
+            </div>
+            <div class="feature">
+                <h3>Physics &amp; Collision</h3>
+                <p>Rigid body dynamics, continuous collision detection, raycasting, trigger volumes, joint constraints (hinge, spring, fixed, slider), and spatial partitioning. Supports 2D and 3D physics modes with configurable gravity and simulation substeps.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuPhysics.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
+            </div>
+            <div class="feature">
+                <h3>Networking</h3>
+                <p>WebRTC peer-to-peer multiplayer, authoritative state replication, lobby management, player matchmaking, and latency compensation. Supports up to 16 players (Pro tier). Automatic NAT traversal and relay fallback.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuNetwork.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
                 <h3>Animation</h3>
-                <p>Skeletal animation, IK, motion matching, blend trees.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuAnimation.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <p>Skeletal animation with blend trees, IK solvers, animation state machines, procedural animation layers, sprite sheet animation for 2D, and tween/easing functions for UI and gameplay transitions.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuAnimation.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
+            </div>
+            <div class="feature">
+                <h3>Scene Graph</h3>
+                <p>Hierarchical node system with parent-child transforms, CSG boolean operations, GridMap for tile-based worlds, sprite management, and the core game loop tick dispatcher.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuScene.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
                 <h3>SLM (On-Device AI)</h3>
-                <p>Small Language Models, emotion/gesture/vision AI, NPC dialogue, privacy-first.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuSLM.def" style="color: var(--accent-bright);">View Functions â†’</a>
-            </div>
-            <div class="feature">
-                <h3>Network</h3>
-                <p>WebRTC, replication, LAN discovery, cloud sync, multiplayer.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuNetwork.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <p>Small Language Model inference running entirely on-device. Emotion recognition, gesture detection, vision-based player analysis, NPC dialogue generation, and privacy-first AI processing with no cloud dependency.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuSLM.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
                 <h3>Voice</h3>
-                <p>Voice chat, VAD, speech processing, voice commands.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuVoice.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <p>Voice chat with echo cancellation, voice activity detection (VAD), speech processing pipeline, voice command recognition, and push-to-talk support for multiplayer.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuVoice.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
                 <h3>Input</h3>
-                <p>Controllers, haptics, touch, gestures, keyboard and gamepad binding.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuInput.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <p>Unified input system for keyboard, mouse, gamepad, touch, and gesture. Action-based binding with dead zones, curves, and multi-device support. Haptic feedback on supported controllers.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuInput.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
                 <h3>UI</h3>
-                <p>2D/3D widgets, theming, accessibility, HUD overlays.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuUI.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <p>2D and 3D widget system, theme engine with runtime skinning, accessibility features (screen reader, high contrast, remappable controls), and HUD overlay management.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuUI.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
                 <h3>Assets</h3>
-                <p>GLTF/FBX loading, texture streaming, codecs, caching.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuAssets.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <p>GLTF 2.0 and FBX model loading, texture streaming with mip-map management, audio codec support (WAV, OGG, MP3), asset caching, and hot-reload for rapid iteration.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuAssets.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
                 <h3>Editor</h3>
-                <p>Inspector, scene editor, debug tools, profiling overlays.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuEditor.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <p>Built-in scene inspector, property editor, debug visualization overlays, real-time performance profiler, and entity hierarchy browser for development and testing.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuEditor.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
             <div class="feature">
                 <h3>Scripting</h3>
-                <p>Lua VM, sandbox, hot reload, script binding.</p>
-                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuScripting.def" style="color: var(--accent-bright);">View Functions â†’</a>
+                <p>Embedded Lua VM with sandboxed execution, hot-reload for live editing, automatic C API bindings, and coroutine support for game logic and cutscene scripting.</p>
+                <a href="https://github.com/RakuXR/raku-public/blob/main/defs/RakuScripting.def" style="color: var(--accent-bright);">View Functions &rarr;</a>
             </div>
         </div>
     </div>
@@ -244,14 +230,13 @@
 <footer>
     <div class="container">
         <div class="footer-links">
-            <a href="https://github.com/RakuXR/raku-public">GitHub</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
             <a href="docs.html">Documentation</a>
             <a href="privacy.html">Privacy</a>
             <a href="terms.html">Terms</a>
             <a href="mailto:hello@rakuai.com">Contact</a>
         </div>
-        <div class="footer-brand">æ¥½AI Â· æ¥½XR</div>
-        <p>&copy; 2026 楽AI (RakuAI), LLC. Protected by 5 granted patents (priority July 2012).</p>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Protected by 5 granted patents (priority July 2012).</p>
     </div>
 </footer>
 
