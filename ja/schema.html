@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>.rakuファイルスキーマ - RakuAI</title>
+    <meta name="description" content=".rakuゲーム定義ファイルのJSONスキーマ。このスキーマを使用してAIアシスタントで有効なゲームを生成できます。">
+    <meta property="og:title" content=".rakuファイルスキーマ - RakuAI">
+    <meta property="og:description" content=".rakuゲーム定義ファイルのJSONスキーマ。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ja/schema.html">
+    <link rel="canonical" href="https://rakuai.com/ja/schema.html">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI</a>
+        <div class="nav-links">
+            <a href="index.html">ホーム</a>
+            <a href="sdk.html">SDK</a>
+            <a href="docs.html">ドキュメント</a>
+            <a href="templates.html">テンプレート</a>
+            <a href="llm-guide.html">LLMガイド</a>
+            <a href="pricing.html">料金</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">ランタイムをダウンロード</a>
+            <a href="../schema.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <h1>.rakuファイルスキーマ</h1>
+        <p class="subtitle">有効なRakuゲームファイルを生成するためにAIが必要とするすべて</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2>AIアシスタント向け</h2>
+        <div class="features">
+            <div class="feature">
+                <h3>JSONスキーマ</h3>
+                <p>.rakuファイル形式を定義する機械可読スキーマ。ゲームファイルの検証と生成に使用します。</p>
+                <a href="../schema.json" style="color: var(--accent-bright);">schema.json &rarr;</a>
+            </div>
+            <div class="feature">
+                <h3>AIプラグインマニフェスト</h3>
+                <p>AIプラットフォームの統合と検出のためのOpenAI互換プラグインマニフェスト。</p>
+                <a href="../.well-known/ai-plugin.json" style="color: var(--accent-bright);">ai-plugin.json &rarr;</a>
+            </div>
+            <div class="feature">
+                <h3>API定義</h3>
+                <p>NONAME序数エクスポートを持つ2,693のエクスポートされたAPI関数をすべて記載した16の.defファイル。</p>
+                <a href="https://github.com/RakuXR/raku-public/tree/main/defs" style="color: var(--accent-bright);">.defファイルを閲覧 &rarr;</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>.rakuファイル構造</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
+            .rakuファイルは5つの必須セクションを持つJSONドキュメントです。
+        </p>
+        <div class="steps">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3>raku_format</h3>
+                <p>スキーマバージョン文字列。現在は<code>"1.0.0"</code>。</p>
+            </div>
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3>metadata</h3>
+                <p>ゲーム情報：名前、説明、ジャンル（space_shooter、tower_defense、puzzle、platformer、arena_combatなど）、作成者、バージョン、タグ。</p>
+            </div>
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3>initialization</h3>
+                <p>エンジンのセットアップ呼び出し。<code>raku_init</code>で開始する必要があります。ウィンドウ、物理、オーディオ、AIサブシステムを設定します。</p>
+            </div>
+        </div>
+        <div class="steps" style="margin-top: 24px;">
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3>calls</h3>
+                <p>ゲームプレイのセットアップ：シーンの作成、アセットの読み込み、入力のバインド、AIの設定。<code>raku_scene_start_loop</code>で終了する必要があります。</p>
+            </div>
+            <div class="step">
+                <div class="step-number">5</div>
+                <h3>shutdown</h3>
+                <p>クリーンアップ：シーンの破棄とエンジンのシャットダウン。<code>raku_shutdown</code>で終了する必要があります。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2>16のエンジンサブシステム</h2>
+        <div class="features">
+            <div class="feature">
+                <h3>コア</h3>
+                <p><code>raku_init</code>、<code>raku_shutdown</code></p>
+            </div>
+            <div class="feature">
+                <h3>レンダラー</h3>
+                <p><code>raku_renderer_create_window</code>、<code>raku_renderer_create_camera</code>、<code>raku_renderer_create_light</code></p>
+            </div>
+            <div class="feature">
+                <h3>シーン</h3>
+                <p><code>raku_scene_create</code>、<code>raku_scene_create_sprite</code>、<code>raku_scene_start_loop</code></p>
+            </div>
+            <div class="feature">
+                <h3>物理</h3>
+                <p><code>raku_physics_create_world</code>、<code>raku_physics_add_rigidbody</code></p>
+            </div>
+            <div class="feature">
+                <h3>オーディオ</h3>
+                <p><code>raku_audio_init</code>、<code>raku_audio_play</code>、<code>raku_audio_play_spatial</code></p>
+            </div>
+            <div class="feature">
+                <h3>AI &amp; SLM</h3>
+                <p><code>raku_ai_set_difficulty</code>、<code>raku_slm_init</code>、<code>raku_ai_create_agent</code></p>
+            </div>
+            <div class="feature">
+                <h3>入力</h3>
+                <p><code>raku_input_bind_key</code></p>
+            </div>
+            <div class="feature">
+                <h3>XR</h3>
+                <p><code>raku_xr_init</code> &mdash; OpenXR 1.1、ハンド/アイトラッキング</p>
+            </div>
+            <div class="feature">
+                <h3>アニメーション</h3>
+                <p><code>raku_animation_load</code>、<code>raku_animation_play</code></p>
+            </div>
+            <div class="feature">
+                <h3>ネットワーク</h3>
+                <p><code>raku_network_init</code> &mdash; LAN、WebRTC、レプリケーション</p>
+            </div>
+            <div class="feature">
+                <h3>UI</h3>
+                <p><code>raku_ui_create_label</code> &mdash; 2D/3Dウィジェット、HUD</p>
+            </div>
+            <div class="feature">
+                <h3>アセット</h3>
+                <p><code>raku_assets_load_model</code> &mdash; GLTF、FBX、ストリーミング</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>AIプロンプト例</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
+            このプロンプトをChatGPT、Claude、または任意のAIアシスタントにコピーしてください：
+        </p>
+        <div class="code-block">
+<span class="code-comment">// Paste this prompt into any AI assistant:</span><br>
+<br>
+Generate a .raku game file for a space shooter game with these features:<br>
+- Adaptive difficulty that scales with player performance<br>
+- Keyboard controls (arrows + space to fire)<br>
+- Background music with spatial audio<br>
+- 1280x720 window<br>
+<br>
+Use the Raku Runtime schema from https://rakuai.com/schema.json<br>
+The file must include: raku_format, metadata, initialization, calls, shutdown.<br>
+All API functions follow the pattern: raku_&lt;module&gt;_&lt;action&gt;
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR/raku-public">GitHub</a>
+            <a href="docs.html">ドキュメント</a>
+            <a href="privacy.html">プライバシー</a>
+            <a href="terms.html">利用規約</a>
+            <a href="mailto:hello@rakuai.com">お問い合わせ</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. 5件の取得済み特許により保護（優先日2012年7月）。</p>
+    </div>
+</footer>
+
+</body>
+</html>
