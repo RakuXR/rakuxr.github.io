@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raku SDK - Spatial Engine for Game Studios & XR Developers</title>
+    <meta name="description" content="The Raku SDK: 16-module spatial engine with AI-native architecture, OpenXR 1.1, on-device ML, and companion gaming. Unity, Unreal, and C/C++ support. Free for indie devs.">
+    <meta property="og:title" content="Raku SDK - Spatial Engine for Game Studios & XR Developers">
+    <meta property="og:description" content="16-module spatial engine. 2,718 C API functions. AI-native architecture. OpenXR 1.1. On-device ML. Companion gaming. 19 MB total.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/sdk">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/sdk">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* SDK-specific styles */
+        .arch-diagram {
+            background: #0d0d1f;
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 32px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--text-primary);
+            margin: 32px 0;
+        }
+        .arch-diagram .hl { color: var(--accent-bright); font-weight: 700; }
+        .arch-diagram .hl-cyan { color: var(--success); font-weight: 700; }
+        .arch-diagram .hl-green { color: #50fa7b; }
+        .arch-diagram .dim { color: #555577; }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            margin: 32px 0;
+        }
+        .module-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .module-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .module-card h4 {
+            color: var(--accent-bright);
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        .module-card .module-size {
+            color: var(--success);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .module-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+        .platform-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .platform-card h4 { color: var(--accent-bright); margin-bottom: 8px; }
+        .platform-card .platform-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .platform-card .platform-status.ready { background: var(--success); color: var(--bg-primary); }
+        .platform-card .platform-status.beta { background: var(--accent); color: white; }
+        .platform-card .platform-status.preview { background: #ff79c6; color: var(--bg-primary); }
+
+        .ai-flow {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            gap: 0;
+            align-items: center;
+            margin: 40px 0;
+        }
+        .ai-flow-box {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .ai-flow-box h4 { color: var(--accent-bright); margin-bottom: 8px; }
+        .ai-flow-arrow {
+            text-align: center;
+            color: var(--success);
+            font-size: 2rem;
+            font-weight: 800;
+            padding: 0 8px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+        }
+        .comparison-table th {
+            background: var(--accent);
+            color: white;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .comparison-table td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #222244;
+            color: var(--text-secondary);
+        }
+        .comparison-table tr:nth-child(even) { background: var(--bg-secondary); }
+        .comparison-table .check { color: var(--success); font-weight: 700; }
+        .comparison-table .cross { color: #555577; }
+
+        .target-badge {
+            display: inline-block;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            color: var(--accent-bright);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 4px;
+        }
+
+        .sdk-hero-brand {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 8px;
+        }
+        .sdk-hero-brand .kanji-logo {
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sdk-hero-brand .xr-badge {
+            font-size: 1.8rem;
+            color: var(--success);
+            font-weight: 700;
+            -webkit-text-fill-color: var(--success);
+            background: none;
+            letter-spacing: 0.1em;
+        }
+
+        .patent-bar {
+            background: linear-gradient(135deg, #1a1a3a, #111128);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            margin: 24px auto;
+            max-width: 800px;
+            flex-wrap: wrap;
+        }
+        .patent-bar span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .patent-bar strong {
+            color: var(--accent-bright);
+        }
+
+        @media (max-width: 768px) {
+            .ai-flow { grid-template-columns: 1fr; gap: 16px; }
+            .ai-flow-arrow { transform: rotate(90deg); font-size: 1.5rem; }
+            .sdk-hero-brand { font-size: 2.5rem; }
+            .arch-diagram { font-size: 0.65rem; padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo"><span class="kanji-logo">&#x697D;</span>AI</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="sdk.html">SDK</a>
+            <a href="docs.html">Docs</a>
+            <a href="templates.html">Templates</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://github.com/RakuXR/raku-sdk/releases/latest" class="nav-cta">Download SDK</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <div class="beta-badge">SDK Developer Preview</div>
+        <div class="sdk-hero-brand">
+            <span class="kanji-logo">&#x697D;</span><span class="xr-badge">XR</span>
+        </div>
+        <h1>Spatial Engine SDK</h1>
+        <p class="subtitle">
+            16 modules. 2,718 API functions. AI-native architecture.
+            Build spatial games for PC, console, and XR from a single codebase.
+        </p>
+        <div class="cta-group">
+            <a href="https://github.com/RakuXR/raku-sdk/releases/latest" class="btn btn-primary">Download SDK</a>
+            <a href="#architecture" class="btn btn-secondary">View Architecture</a>
+        </div>
+        <div class="patent-bar">
+            <span><strong>5</strong> Granted Patents</span>
+            <span><strong>19 MB</strong> Runtime</span>
+            <span><strong>100%</strong> Test Pass Rate</span>
+            <span><strong>0</strong> Cloud Dependencies</span>
+        </div>
+        <div style="margin-top: 16px;">
+            <span class="target-badge">Game Studios</span>
+            <span class="target-badge">Console Manufacturers</span>
+            <span class="target-badge">XR Platforms</span>
+            <span class="target-badge">AI Companies</span>
+            <span class="target-badge">Indie Developers</span>
+        </div>
+    </div>
+</section>
+
+<!-- How RakuAI Execution Works -->
+<section class="section" id="execution" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>How RakuAI Works</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            RakuAI separates game definition from engine execution. AI generates the game logic.
+            The runtime executes it in real-time through 16 compiled native modules.
+        </p>
+
+        <div class="ai-flow">
+            <div class="ai-flow-box">
+                <h4>AI Generates</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">.raku JSON file<br>Game logic, entities,<br>AI behaviors, scenes</p>
+            </div>
+            <div class="ai-flow-arrow">&rarr;</div>
+            <div class="ai-flow-box" style="border-color: var(--success);">
+                <h4 style="color: var(--success);">Runtime Interprets</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">16 native DLLs<br>Parse &rarr; Validate &rarr;<br>Execute at 60+ FPS</p>
+            </div>
+            <div class="ai-flow-arrow">&rarr;</div>
+            <div class="ai-flow-box">
+                <h4>Player Experiences</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Adaptive gameplay<br>On-device AI personalization<br>XR-ready output</p>
+            </div>
+        </div>
+
+        <div class="arch-diagram"><span class="dim">  Execution Pipeline</span>
+<span class="dim">  ─────────────────────────────────────────────────────────────────────────</span>
+
+  <span class="hl">ChatGPT / Claude / Gemini</span>           <span class="hl-cyan">Raku Runtime (16 Modules)</span>
+  ┌───────────────────────┐            ┌──────────────────────────────────┐
+  │  Developer describes  │            │  <span class="hl">RakuCore</span>     ── Memory, Threading │
+  │  game in natural      │  .raku     │  <span class="hl">RakuScene</span>    ── Scene Graph, CSG  │
+  │  language              │  JSON     │  <span class="hl">RakuRenderer</span> ── D3D11, PBR, Post  │
+  │                       │ ────────► │  <span class="hl">RakuXR</span>       ── OpenXR 1.1, Track │
+  │  AI generates valid   │            │  <span class="hl">RakuPhysics</span>  ── Rigid, Soft, CCD  │
+  │  .raku game file      │            │  <span class="hl">RakuAudio</span>    ── HRTF, Adaptive    │
+  └───────────────────────┘            │  <span class="hl">RakuAnimation</span>── Skeletal, IK, BT  │
+                                       │  <span class="hl">RakuAI</span>       ── DDA, Profiling    │
+  <span class="hl-green">On-Device AI Loop</span>                    │  <span class="hl">RakuSLM</span>      ── ML Inference      │
+  ┌───────────────────────┐            │  <span class="hl">RakuNetwork</span>  ── WebRTC, UDP, LAN  │
+  │ Player Input ──────►  │            │  <span class="hl">RakuVoice</span>    ── VAD, AEC, STT     │
+  │ Behavior Analysis     │            │  <span class="hl">RakuInput</span>    ── Gamepad, Gesture  │
+  │        │              │            │  <span class="hl">RakuUI</span>       ── 2D/3D, A11y       │
+  │        ▼              │            │  <span class="hl">RakuAssets</span>   ── GLTF, Stream, LOD │
+  │ <span class="hl-cyan">DDA</span> ◄─► <span class="hl-cyan">Profiler</span>     │            │  <span class="hl">RakuEditor</span>   ── Inspector, Debug  │
+  │        │              │            │  <span class="hl">RakuScripting</span>── Lua VM, Sandbox   │
+  │        ▼              │            └──────────────────────────────────┘
+  │ Adapt Difficulty      │                         │
+  │ Adapt Audio           │            ┌────────────▼─────────────────────┐
+  │ Adapt NPC Behavior    │            │  <span class="hl-cyan">Output: 60+ FPS Native Game</span>      │
+  │ Emotional Response    │            │  PC │ Console │ XR │ AR Glasses  │
+  └───────────────────────┘            └──────────────────────────────────┘</div>
+    </div>
+</section>
+
+<!-- Architecture -->
+<section class="section" id="architecture">
+    <div class="container">
+        <h2>16-Module Architecture</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px;">
+            Each module compiles to a standalone native DLL. Load only what you need. Total runtime: 19 MB.
+        </p>
+        <div class="module-grid">
+            <div class="module-card">
+                <h4>RakuCore</h4>
+                <div class="module-size">1,744 KB</div>
+                <p>Engine lifecycle, memory pools, multi-threaded job system, signal/slot event bus, structured logging, ECS.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuScene</h4>
+                <div class="module-size">6,866 KB</div>
+                <p>Hierarchical scene graph, CSG boolean operations, GridMap tiling, node-based world composition.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuRenderer</h4>
+                <div class="module-size">1,478 KB</div>
+                <p>PBR materials, dynamic lighting, post-processing (bloom, SSAO, TAA, volumetric fog), variable-rate shading, GPU particles.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuXR</h4>
+                <div class="module-size">994 KB</div>
+                <p>OpenXR 1.1, hand tracking (26 joints), eye tracking, spatial anchors, passthrough AR, foveated rendering.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuPhysics</h4>
+                <div class="module-size">535 KB</div>
+                <p>Rigid body, soft body, continuous collision detection, joint constraints, raycasting, vehicle physics.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuAudio</h4>
+                <div class="module-size">610 KB</div>
+                <p>Spatial 3D with HRTF, adaptive music system, voice assistant, audio occlusion, multi-channel mixing.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuAnimation</h4>
+                <div class="module-size">809 KB</div>
+                <p>Skeletal animation, blend trees, IK solvers, animation state machines, motion matching, spring bones.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuAI</h4>
+                <div class="module-size">382 KB</div>
+                <p>Dynamic difficulty adjustment, player profiling, emotional state detection, behavior trees, NavMesh pathfinding.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuSLM</h4>
+                <div class="module-size">798 KB</div>
+                <p>On-device small language model inference. Emotion recognition, gesture detection, procedural dialogue. No cloud calls.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuNetwork</h4>
+                <div class="module-size">691 KB</div>
+                <p>WebRTC peer-to-peer, authoritative replication, lobby management, matchmaking, NAT traversal, cloud sync.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuVoice</h4>
+                <div class="module-size">137 KB</div>
+                <p>Voice chat with echo cancellation, voice activity detection, speech processing, push-to-talk.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuInput</h4>
+                <div class="module-size">291 KB</div>
+                <p>Unified input for keyboard, mouse, gamepad, touch, and gesture. Action bindings, dead zones, haptic feedback.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuUI</h4>
+                <div class="module-size">673 KB</div>
+                <p>2D and 3D widget system, runtime theming, accessibility (screen reader, high contrast, remappable controls).</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuAssets</h4>
+                <div class="module-size">1,427 KB</div>
+                <p>GLTF 2.0 and FBX loading, texture streaming, asset caching with LRU, hot-reload for rapid iteration.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuEditor</h4>
+                <div class="module-size">432 KB</div>
+                <p>Scene inspector, property editor, debug visualization, performance profiler, entity hierarchy browser.</p>
+            </div>
+            <div class="module-card">
+                <h4>RakuScripting</h4>
+                <div class="module-size">1,787 KB</div>
+                <p>Embedded Lua VM with sandboxed execution, hot-reload, C API auto-bindings, coroutine support, visual scripting.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SDK vs Runtime Architecture -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>SDK Architecture</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px;">
+            Clean separation between the public SDK interface and the compiled runtime.
+            Your application links against the SDK. The SDK calls the runtime.
+        </p>
+        <div class="arch-diagram"><span class="dim">  SDK &harr; Runtime Separation</span>
+<span class="dim">  ─────────────────────────────────────────────────────────────────────────</span>
+
+  <span class="hl">Your Application</span>
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │  Unity C# Game  │  Unreal C++/Blueprint  │  Native C/C++ Engine    │
+  └────────┬────────┴───────────┬─────────────┴────────┬───────────────┘
+           │                    │                      │
+           ▼                    ▼                      ▼
+  <span class="hl-cyan">Raku SDK</span> (Public API Layer)
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │  <span class="hl-green">Headers</span>          │  <span class="hl-green">Bindings</span>         │  <span class="hl-green">Samples</span>               │
+  │  C API headers    │  Unity package    │  HelloAR, Space        │
+  │  Type definitions │  Unreal plugin    │  Battleship Defense,   │
+  │  Error codes      │  Blueprint nodes  │  GazeSelect, Anchors   │
+  └────────────────────────────┬─────────────────────────────────────────┘
+                               │ Calls via loader
+                               ▼
+  <span class="hl">Raku Runtime</span> (Compiled Native Modules)
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │  16 DLLs │ NONAME exports │ Symbol-stripped │ Patent-protected      │
+  │                                                                      │
+  │  All implementation details compiled to native code.                 │
+  │  No source exposure. No algorithm visibility.                        │
+  └──────────────────────────────────────────────────────────────────────┘</div>
+    </div>
+</section>
+
+<!-- Companion Gaming -->
+<section class="section">
+    <div class="container">
+        <h2>Companion Gaming Architecture</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            Build once. Play on any screen. Optionally extend with AR glasses for spatial overlay experiences.
+            No separate VR port required.
+        </p>
+        <div class="arch-diagram"><span class="dim">  Companion Gaming Model</span>
+<span class="dim">  ─────────────────────────────────────────────────────────────────────────</span>
+
+  <span class="hl">Primary Display</span>                              <span class="hl-cyan">AR Glasses Overlay</span>
+  ┌─────────────────────────────┐              ┌─────────────────────────┐
+  │                             │    SDK       │                         │
+  │  Full game runs on          │  ◄───────►  │  HUD elements           │
+  │  PC / Console / Mobile      │  Low-latency │  Minimap / radar        │
+  │                             │   stream     │  Health / ammo status   │
+  │  Rendered at native res     │              │  Objective markers      │
+  │  Main gameplay loop         │              │  AI companion overlay   │
+  │                             │              │                         │
+  └─────────────────────────────┘              └─────────────────────────┘
+
+  <span class="hl-green">Supported Primary Platforms</span>           <span class="hl-green">Supported AR Devices</span>
+  ├── PlayStation 5                     ├── Meta Quest 3 (Passthrough)
+  ├── Xbox Series X|S                   ├── OpenXR-compatible glasses
+  ├── Nintendo Switch                   └── Future XR devices
+  ├── Windows PC
+  └── Mobile (iOS / Android)</div>
+    </div>
+</section>
+
+<!-- Platform Support -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Platform &amp; Integration Support</h2>
+        <div class="platform-grid">
+            <div class="platform-card">
+                <h4>Unity</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Full C# package with samples, Blueprint-style API</p>
+                <span class="platform-status ready">Production Ready</span>
+            </div>
+            <div class="platform-card">
+                <h4>Unreal Engine</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">C++ and Blueprint support, editor integration</p>
+                <span class="platform-status ready">Production Ready</span>
+            </div>
+            <div class="platform-card">
+                <h4>Native C/C++</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Cross-platform headers, minimal dependencies</p>
+                <span class="platform-status ready">Production Ready</span>
+            </div>
+            <div class="platform-card">
+                <h4>OpenXR 1.1</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Hand tracking, eye tracking, spatial anchors</p>
+                <span class="platform-status ready">Production Ready</span>
+            </div>
+            <div class="platform-card">
+                <h4>Networking</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">WebRTC, UDP/TCP sessions, avatar sync</p>
+                <span class="platform-status beta">Beta</span>
+            </div>
+            <div class="platform-card">
+                <h4>Scene Understanding</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Plane detection, spatial mesh, environment lighting</p>
+                <span class="platform-status beta">Beta</span>
+            </div>
+            <div class="platform-card">
+                <h4>Voice AI</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Intent recognition, assistant UI, voice commands</p>
+                <span class="platform-status preview">Preview</span>
+            </div>
+            <div class="platform-card">
+                <h4>LearnAPI (ML)</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">On-device adaptive learning, TFLite integration</p>
+                <span class="platform-status preview">Preview</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Comparison -->
+<section class="section">
+    <div class="container">
+        <h2>Why Raku SDK</h2>
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Capability</th>
+                    <th>Raku SDK</th>
+                    <th>Traditional Engines</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>AI-native difficulty adjustment</td>
+                    <td class="check">Built-in (DDA + Profiler)</td>
+                    <td class="cross">Plugin / custom code</td>
+                </tr>
+                <tr>
+                    <td>On-device ML inference</td>
+                    <td class="check">RakuSLM, no cloud</td>
+                    <td class="cross">Requires cloud APIs</td>
+                </tr>
+                <tr>
+                    <td>XR support</td>
+                    <td class="check">OpenXR 1.1, every game</td>
+                    <td class="cross">Separate VR build</td>
+                </tr>
+                <tr>
+                    <td>Companion gaming (AR overlay)</td>
+                    <td class="check">Single codebase</td>
+                    <td class="cross">Not supported</td>
+                </tr>
+                <tr>
+                    <td>Emotional state detection</td>
+                    <td class="check">Built-in profiler</td>
+                    <td class="cross">Not available</td>
+                </tr>
+                <tr>
+                    <td>Adaptive music system</td>
+                    <td class="check">HRTF + intensity-driven</td>
+                    <td class="cross">Manual scripting</td>
+                </tr>
+                <tr>
+                    <td>Total runtime size</td>
+                    <td class="check">19 MB</td>
+                    <td class="cross">500 MB &ndash; 2 GB+</td>
+                </tr>
+                <tr>
+                    <td>Royalties</td>
+                    <td class="check">None. Zero.</td>
+                    <td class="cross">Revenue share above threshold</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Localization -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Global SDK Support</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
+            SDK documentation and samples available in 8 languages.
+        </p>
+        <div class="stats">
+            <div>
+                <div class="stat-number" style="font-size: 2rem;">EN</div>
+                <div class="stat-label">English</div>
+            </div>
+            <div>
+                <div class="stat-number" style="font-size: 2rem;">&#x65E5;&#x672C;</div>
+                <div class="stat-label">Japanese</div>
+            </div>
+            <div>
+                <div class="stat-number" style="font-size: 2rem;">FR</div>
+                <div class="stat-label">French</div>
+            </div>
+            <div>
+                <div class="stat-number" style="font-size: 2rem;">DE</div>
+                <div class="stat-label">German</div>
+            </div>
+            <div>
+                <div class="stat-number" style="font-size: 2rem;">ES</div>
+                <div class="stat-label">Spanish</div>
+            </div>
+            <div>
+                <div class="stat-number" style="font-size: 2rem;">PT</div>
+                <div class="stat-label">Portuguese</div>
+            </div>
+            <div>
+                <div class="stat-number" style="font-size: 2rem;">&#x4E2D;</div>
+                <div class="stat-label">Chinese (Simplified)</div>
+            </div>
+            <div>
+                <div class="stat-number" style="font-size: 2rem;">&#x7E41;</div>
+                <div class="stat-label">Chinese (Traditional)</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Download CTA -->
+<section class="section" id="download">
+    <div class="container" style="text-align: center;">
+        <h2>Get the SDK</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">
+            Free for indie developers. No royalties. No license fees.
+            Includes Unity, Unreal, and C/C++ bindings with complete sample projects.
+        </p>
+        <div class="cta-group" style="margin-bottom: 24px;">
+            <a href="https://github.com/RakuXR/raku-sdk/releases/latest" class="btn btn-primary">Download SDK</a>
+            <a href="docs.html" class="btn btn-secondary">Read the Docs</a>
+        </div>
+        <div style="display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; margin-top: 24px;">
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">2,718</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">API Functions</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">16</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">Native Modules</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">10+</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">Sample Projects</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">3</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">Engine Integrations</div>
+            </div>
+        </div>
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #222244;">
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Using the SDK? We want your feedback.</p>
+            <div class="cta-group">
+                <a href="https://github.com/RakuXR/raku-sdk/discussions/new?category=sdk-feedback" class="btn btn-secondary" style="font-size: 0.95rem; padding: 10px 24px;">Developer Feedback</a>
+                <a href="https://github.com/RakuXR/raku-sdk/discussions/new?category=bug-reports" class="btn btn-secondary" style="font-size: 0.95rem; padding: 10px 24px;">Report SDK Bug</a>
+            </div>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 24px;">
+            Enterprise licensing and partnership inquiries:
+            <a href="mailto:hello@rakuai.com" style="color: var(--accent-bright);">hello@rakuai.com</a>
+        </p>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="index.html">Runtime</a>
+            <a href="sdk.html">SDK</a>
+            <a href="docs.html">Documentation</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="mailto:hello@rakuai.com">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Protected by 5 granted patents (priority July 2012).</p>
+    </div>
+</footer>
+
+</body>
+</html>
