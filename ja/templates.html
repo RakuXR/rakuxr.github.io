@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゲームテンプレート - RakuAI</title>
+    <meta name="description" content="AIでカスタマイズできる10種類のゲームテンプレート。シューティング、タワーディフェンス、RPG、パズルなど。">
+    <meta property="og:title" content="ゲームテンプレート - RakuAI">
+    <meta property="og:description" content="AIにゲームを説明するだけで、本物のプレイ可能なゲームを作成。無料ランタイム、10種類のテンプレート、AIによる完全なパーソナライゼーション。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ja/templates">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/ja/templates.html">
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI</a>
+        <div class="nav-links">
+            <a href="index.html">ホーム</a>
+            <a href="sdk.html">SDK</a>
+            <a href="docs.html">ドキュメント</a>
+            <a href="templates.html">テンプレート</a>
+            <a href="llm-guide.html">LLMガイド</a>
+            <a href="pricing.html">料金</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">ランタイムをダウンロード</a>
+            <a href="../templates.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <h1>ゲームテンプレート</h1>
+        <p class="subtitle">10種類のすぐに遊べるテンプレート。AIに自由にカスタマイズしてもらえます。</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px;">
+            <button class="btn-filter active" onclick="filterTemplates('all')">すべて</button>
+            <button class="btn-filter" onclick="filterTemplates('free')">無料</button>
+            <button class="btn-filter" onclick="filterTemplates('pro')">プロ</button>
+            <button class="btn-filter" onclick="filterTemplates('action')">アクション</button>
+            <button class="btn-filter" onclick="filterTemplates('strategy')">ストラテジー</button>
+            <button class="btn-filter" onclick="filterTemplates('puzzle')">パズル</button>
+            <button class="btn-filter" onclick="filterTemplates('rpg')">RPG</button>
+        </div>
+        <style>
+            .btn-filter {
+                background: var(--bg-secondary); color: var(--text-secondary); border: 1px solid #222244;
+                padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; font-weight: 500;
+                transition: all 0.2s;
+            }
+            .btn-filter:hover, .btn-filter.active { background: var(--accent); color: white; border-color: var(--accent); }
+            .ai-tag {
+                display: inline-block; background: #1a1a3a; color: var(--text-secondary); padding: 2px 8px;
+                border-radius: 4px; font-size: 0.7rem; margin: 2px;
+            }
+            .prompt-example {
+                position: relative;
+                background: #0d0d1f; border: 1px solid #222244; border-radius: 6px; padding: 12px;
+                padding-right: 48px;
+                font-size: 0.85rem; color: var(--text-secondary); margin-top: 12px; font-style: italic;
+            }
+            .prompt-copy-btn {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: none;
+                border: 1px solid #444;
+                color: var(--text-secondary);
+                width: 30px;
+                height: 30px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.8rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+            }
+            .prompt-copy-btn:hover { border-color: var(--accent-bright); color: var(--accent-bright); }
+            .prompt-copy-btn.copied { border-color: var(--success); color: var(--success); }
+        </style>
+
+        <div class="template-grid" id="templateGrid">
+
+            <div class="template-card" data-genre="action" data-tier="free">
+                <h3>Space Shooter</h3>
+                <span class="template-tag">アーケード</span>
+                <span class="tier-badge">無料</span>
+                <p>小惑星を避け、敵の波と戦うクラシックなアーケードアクション。最新のAI難易度調整でフロー状態を維持します。</p>
+                <div style="margin-top: 8px;">
+                    <span class="ai-tag">DDA</span>
+                    <span class="ai-tag">Adaptive Audio</span>
+                    <span class="ai-tag">Emotional State</span>
+                </div>
+                <div class="prompt-example" data-prompt="Read the Raku game engine schema at https://rakuai.com/schema.json first. Then create a .raku game file using the &quot;space-shooter&quot; template for: a space shooter where enemies get smarter as I improve, with adaptive difficulty that keeps me in flow state, and an escalating wave system. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.">試す: 「上達するほど敵が賢くなるスペースシューターを作って」 <button class="prompt-copy-btn" onclick="copyTemplatePrompt(this)" title="プロンプトをコピー">&#x2398;</button></div>
+            </div>
+
+            <div class="template-card" data-genre="strategy" data-tier="free">
+                <h3>Tower Defense</h3>
+                <span class="template-tag">ストラテジー</span>
+                <span class="tier-badge">無料</span>
+                <p>タワーを建設し、敵の波から防衛。戦略的な配置とプレイスタイルに適応するAIのウェーブ構成。</p>
+                <div style="margin-top: 8px;">
+                    <span class="ai-tag">DDA</span>
+                    <span class="ai-tag">Player Profiler</span>
+                </div>
+                <div class="prompt-example" data-prompt="Read the Raku game engine schema at https://rakuai.com/schema.json first. Then create a .raku game file using the &quot;tower-defense&quot; template for: a tower defense game with fantasy creatures, multiple upgrade paths for each tower type, and AI that adapts wave composition to my playstyle. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.">試す: 「ファンタジーの生き物とアップグレードパスのあるタワーディフェンスを作って」 <button class="prompt-copy-btn" onclick="copyTemplatePrompt(this)" title="プロンプトをコピー">&#x2398;</button></div>
+            </div>
+
+            <div class="template-card" data-genre="puzzle" data-tier="free">
+                <h3>Puzzle</h3>
+                <span class="template-tag">パズル</span>
+                <span class="tier-badge">無料</span>
+                <p>段階的に難しくなるカラーマッチングタイルパズル。AIがフラストレーションを検知し、リアルタイムでパズルの複雑さを調整します。</p>
+                <div style="margin-top: 8px;">
+                    <span class="ai-tag">Emotional State</span>
+                    <span class="ai-tag">DDA</span>
+                </div>
+                <div class="prompt-example" data-prompt="Read the Raku game engine schema at https://rakuai.com/schema.json first. Then create a .raku game file using the &quot;puzzle&quot; template for: a gem-matching puzzle game with combo chains, power-ups, and AI that detects frustration and adjusts puzzle complexity in real time. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.">試す: 「コンボとパワーアップのある宝石マッチングパズルを作って」 <button class="prompt-copy-btn" onclick="copyTemplatePrompt(this)" title="プロンプトをコピー">&#x2398;</button></div>
+            </div>
+
+            <div class="template-card" data-genre="action" data-tier="free">
+                <h3>Platformer</h3>
+                <span class="template-tag">アクション</span>
+                <span class="tier-badge">無料</span>
+                <p>横スクロールジャンプアドベンチャー。精密な操作、収集アイテム、スキルレベルに適応する敵のパターン。</p>
+                <div style="margin-top: 8px;">
+                    <span class="ai-tag">DDA</span>
+                    <span class="ai-tag">Adaptive Audio</span>
+                </div>
+                <div class="prompt-example" data-prompt="Read the Raku game engine schema at https://rakuai.com/schema.json first. Then create a .raku game file using the &quot;platformer&quot; template for: a side-scrolling platformer with wall jumps, a robot character, collectibles, and enemy patterns that adapt to my skill level. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.">試す: 「壁ジャンプとロボットキャラクターのプラットフォーマーを作って」 <button class="prompt-copy-btn" onclick="copyTemplatePrompt(this)" title="プロンプトをコピー">&#x2398;</button></div>
+            </div>
+
+            <div class="template-card" data-genre="action" data-tier="pro">
+                <h3>Arena Combat</h3>
+                <span class="template-tag">格闘</span>
+                <span class="tier-badge pro">プロ</span>
+                <p>ネットワークレプリケーション対応のマルチプレイヤーアリーナバトル。AI NPCがプレイヤーの行動から学習し、独自の戦闘スタイルを発展させます。</p>
+                <div style="margin-top: 8px;">
+                    <span class="ai-tag">Multiplayer</span>
+                    <span class="ai-tag">NPC AI</span>
+                    <span class="ai-tag">Player Profiler</span>
+                </div>
+                <div class="prompt-example" data-prompt="Read the Raku game engine schema at https://rakuai.com/schema.json first. Then create a .raku game file using the &quot;arena-combat&quot; template for: a 4-player arena brawler with power-ups, AI bots that learn from player behavior, and network replication for multiplayer. Set max_players to 4. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.">試す: 「パワーアップとAIボット付きの4人対戦アリーナバトルを作って」 <button class="prompt-copy-btn" onclick="copyTemplatePrompt(this)" title="プロンプトをコピー">&#x2398;</button></div>
+            </div>
+
+            <div class="template-card" data-genre="action" data-tier="pro">
+                <h3>Custom Advanced</h3>
+                <span class="template-tag">カスタム</span>
+                <span class="tier-badge pro">プロ</span>
+                <p>フルAIパイプライン搭載の白紙キャンバス。16のサブシステムすべてが利用可能。ゼロから何でも構築できます。</p>
+                <div style="margin-top: 8px;">
+                    <span class="ai-tag">Full Pipeline</span>
+                    <span class="ai-tag">Custom SLM</span>
+                    <span class="ai-tag">Export</span>
+                </div>
+                <div class="prompt-example" data-prompt="Read the Raku game engine schema at https://rakuai.com/schema.json first. Then create a .raku game file using the &quot;custom-advanced&quot; template for: a unique hybrid game combining tower defense and RPG elements, with the full AI pipeline enabled including custom SLM integration, NPC personality, and adaptive difficulty. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.">試す: 「タワーディフェンスとRPGを組み合わせたユニークなゲームを作って」 <button class="prompt-copy-btn" onclick="copyTemplatePrompt(this)" title="プロンプトをコピー">&#x2398;</button></div>
+            </div>
+
+            <div class="template-card" data-genre="action" data-tier="free">
+                <h3>Racing</h3>
+                <span class="template-tag">レース</span>
+                <span class="tier-badge">無料</span>
+                <p>AI対戦相手とのトラックレース。ラバーバンド難易度で常に競争力のあるレースを実現。エンジンと環境の空間オーディオ。</p>
+                <div style="margin-top: 8px;">
+                    <span class="ai-tag">DDA</span>
+                    <span class="ai-tag">Spatial Audio</span>
+                    <span class="ai-tag">NPC AI</span>
+                </div>
+                <div class="prompt-example" data-prompt="Read the Raku game engine schema at https://rakuai.com/schema.json first. Then create a .raku game file using the &quot;racing&quot; template for: a kart racer with 8 tracks, drifting mechanics, AI opponents with rubber-banding difficulty, and spatial audio for engine sounds. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.">試す: 「8コースとドリフト機能のあるカートレーサーを作って」 <button class="prompt-copy-btn" onclick="copyTemplatePrompt(this)" title="プロンプトをコピー">&#x2398;</button></div>
+            </div>
+
+            <div class="template-card" data-genre="rpg" data-tier="free">
+                <h3>RPG Adventure</h3>
+                <span class="template-tag">RPG</span>
+                <span class="tier-badge">無料</span>
+                <p>クエストと戦闘のあるトップダウンRPG。NPCが永続的な記憶と性格を持ち、会話がプレイヤーの選択に適応します。</p>
+                <div style="margin-top: 8px;">
+                    <span class="ai-tag">NPC Personality</span>
+                    <span class="ai-tag">DDA</span>
+                    <span class="ai-tag">Emotional State</span>
+                </div>
+                <div class="prompt-example" data-prompt="Read the Raku game engine schema at https://rakuai.com/schema.json first. Then create a .raku game file using the &quot;rpg-adventure&quot; template for: a top-down fantasy RPG with a magic system, branching quests, NPCs with persistent memory and personality, and dialogue that adapts to player choices. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.">試す: 「魔法システムと分岐クエストのあるファンタジーRPGを作って」 <button class="prompt-copy-btn" onclick="copyTemplatePrompt(this)" title="プロンプトをコピー">&#x2398;</button></div>
+            </div>
+
+            <div class="template-card" data-genre="action" data-tier="free">
+                <h3>Survival</h3>
+                <span class="template-tag">サバイバル</span>
+                <span class="tier-badge">無料</span>
+                <p>クラフト要素のある昼夜サバイバル。AIがサバイバル習熟度に基づいて資源の希少性と脅威レベルを調整します。</p>
+                <div style="margin-top: 8px;">
+                    <span class="ai-tag">DDA</span>
+                    <span class="ai-tag">Player Profiler</span>
+                    <span class="ai-tag">Adaptive Audio</span>
+                </div>
+                <div class="prompt-example" data-prompt="Read the Raku game engine schema at https://rakuai.com/schema.json first. Then create a .raku game file using the &quot;survival&quot; template for: a zombie survival game with day/night cycles, base building, crafting, and AI that adjusts resource scarcity and zombie aggression based on my survival proficiency. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.">試す: 「拠点構築とクラフトのあるゾンビサバイバルゲームを作って」 <button class="prompt-copy-btn" onclick="copyTemplatePrompt(this)" title="プロンプトをコピー">&#x2398;</button></div>
+            </div>
+
+            <div class="template-card" data-genre="puzzle" data-tier="free">
+                <h3>Music Rhythm</h3>
+                <span class="template-tag">ミュージック</span>
+                <span class="tier-badge">無料</span>
+                <p>ビートマッチングの4レーンリズムゲーム。適応型オーディオシステムが音楽に合わせて難易度を同期。HRTF空間エフェクト。</p>
+                <div style="margin-top: 8px;">
+                    <span class="ai-tag">Adaptive Audio</span>
+                    <span class="ai-tag">HRTF</span>
+                    <span class="ai-tag">DDA</span>
+                </div>
+                <div class="prompt-example" data-prompt="Read the Raku game engine schema at https://rakuai.com/schema.json first. Then create a .raku game file using the &quot;music-rhythm&quot; template for: a 4-lane rhythm game with neon visuals, electronic music, beat matching with adaptive difficulty, and HRTF spatial audio effects. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.">試す: 「ネオンビジュアルとエレクトロニックミュージックのリズムゲームを作って」 <button class="prompt-copy-btn" onclick="copyTemplatePrompt(this)" title="プロンプトをコピー">&#x2398;</button></div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<script>
+function copyTemplatePrompt(btn) {
+    const prompt = btn.parentElement.getAttribute('data-prompt');
+    navigator.clipboard.writeText(prompt).then(() => {
+        btn.innerHTML = '&#x2713;';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.innerHTML = '&#x2398;';
+            btn.classList.remove('copied');
+        }, 2000);
+    });
+}
+
+function filterTemplates(filter) {
+    document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    document.querySelectorAll('.template-card').forEach(card => {
+        if (filter === 'all') { card.style.display = ''; return; }
+        const genre = card.dataset.genre;
+        const tier = card.dataset.tier;
+        card.style.display = (genre === filter || tier === filter) ? '' : 'none';
+    });
+}
+</script>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="docs.html">ドキュメント</a>
+            <a href="privacy.html">プライバシー</a>
+            <a href="terms.html">利用規約</a>
+            <a href="mailto:hello@rakuai.com">お問い合わせ</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. 5件の取得済み特許により保護（優先日2012年7月）。</p>
+    </div>
+</footer>
+
+</body>
+</html>
