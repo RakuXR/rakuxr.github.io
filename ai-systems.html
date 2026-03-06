@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Systems - Navigation, Behavior Trees &amp; Voice Commands - RakuAI</title>
+    <meta name="description" content="RakuAI AI Systems: NavMesh pathfinding, behavior trees, voice commands with speech recognition, and NPC intelligence with dialogue and quest generation.">
+    <meta property="og:title" content="AI Systems - Navigation, Behavior Trees &amp; Voice Commands - RakuAI">
+    <meta property="og:description" content="NavMesh generation, visual behavior trees, voice commands with wake words, and on-device NPC intelligence. All AI runs locally.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ai-systems">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/ai-systems.html">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .ai-section {
+            padding: 64px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .ai-section:last-of-type {
+            border-bottom: none;
+        }
+        .ai-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: start;
+        }
+        .ai-content h3 {
+            font-size: 1.8rem;
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+        }
+        .ai-content p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+        .ai-content ul {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+        .ai-content li {
+            padding: 6px 0;
+            color: var(--text-secondary);
+        }
+        .ai-content li:before {
+            content: "\2713 ";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .ai-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+        .ai-code {
+            background: #0d0d1f;
+            border: 1px solid #222244;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            overflow-x: auto;
+            color: var(--text-primary);
+        }
+        .ai-code .kw { color: #ff79c6; font-weight: 600; }
+        .ai-code .fn { color: var(--accent-bright); }
+        .ai-code .str { color: #50fa7b; }
+        .ai-code .cmt { color: #6272a4; font-style: italic; }
+        .ai-code .num { color: #bd93f9; }
+        .ai-benefit {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-top: 16px;
+        }
+        .ai-benefit strong {
+            color: var(--success);
+        }
+        .ai-callout {
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(0, 206, 201, 0.1));
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            margin-top: 48px;
+        }
+        .ai-callout h3 {
+            font-size: 1.6rem;
+            color: var(--accent-bright);
+            margin-bottom: 16px;
+        }
+        .ai-callout-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .ai-callout-item {
+            background: var(--bg-primary);
+            border: 1px solid #222244;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        @media (max-width: 768px) {
+            .ai-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .ai-content h3 {
+                font-size: 1.4rem;
+            }
+            .ai-callout-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="sdk.html">SDK</a>
+            <a href="docs.html">Docs</a>
+            <a href="templates.html">Templates</a>
+            <a href="llm-guide.html">LLM Guide</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="pro-features.html">Pro</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">Download Runtime</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <div class="ai-badge">AI SYSTEMS</div>
+        <h1>AI Systems</h1>
+        <p class="subtitle">Navigation, behavior trees, voice commands, and NPC intelligence. All AI runs on-device with zero cloud dependency.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+
+        <!-- Navigation -->
+        <div class="ai-section" id="navigation">
+            <div class="ai-grid">
+                <div class="ai-content">
+                    <div class="ai-badge">NAVIGATION</div>
+                    <h3>Navigation</h3>
+                    <p>Automatic NavMesh generation, A* pathfinding, nav agents, crowd simulation, and tactical formations for groups of NPCs.</p>
+                    <ul>
+                        <li>NavMesh generation from scene geometry with bake-time or runtime updates</li>
+                        <li>A* pathfinding with dynamic obstacle avoidance</li>
+                        <li>Nav agents with configurable radius, speed, and acceleration</li>
+                        <li>Crowd simulation with local avoidance (RVO2)</li>
+                        <li>Formation movement: line, wedge, circle, and custom shapes</li>
+                    </ul>
+                    <div class="ai-benefit">
+                        <strong>Key benefit:</strong> NPCs that navigate complex environments naturally, avoiding each other and dynamic obstacles in real time.
+                    </div>
+                </div>
+                <div class="ai-code">
+<span class="cmt">// Generate NavMesh from scene</span>
+<span class="fn">raku_nav_mesh_bake</span>(scene, &amp;nav_config);
+
+<span class="cmt">// Create a nav agent</span>
+RakuNavAgent agent = <span class="fn">raku_nav_agent_create</span>(entity);
+<span class="fn">raku_nav_agent_set_radius</span>(agent, <span class="num">0.5f</span>);
+<span class="fn">raku_nav_agent_set_speed</span>(agent, <span class="num">3.5f</span>);
+
+<span class="cmt">// Pathfind to target</span>
+<span class="fn">raku_nav_agent_set_destination</span>(agent, target_pos);
+
+<span class="cmt">// Crowd simulation with avoidance</span>
+RakuCrowd crowd = <span class="fn">raku_nav_crowd_create</span>(<span class="num">64</span>);
+<span class="fn">raku_nav_crowd_add_agent</span>(crowd, agent);
+
+<span class="cmt">// Formation movement</span>
+<span class="fn">raku_nav_formation_create</span>(squad, <span class="str">RAKU_FORM_WEDGE</span>);
+<span class="fn">raku_nav_formation_move_to</span>(squad, rally_point);
+                </div>
+            </div>
+        </div>
+
+        <!-- Behavior Trees -->
+        <div class="ai-section" id="behavior-trees">
+            <div class="ai-grid">
+                <div class="ai-content">
+                    <div class="ai-badge">BEHAVIOR</div>
+                    <h3>Behavior Trees</h3>
+                    <p>Visual node graph for designing complex NPC behaviors. Composites, decorators, blackboard data sharing, and full serialization.</p>
+                    <ul>
+                        <li>Visual node graph editor for behavior authoring</li>
+                        <li>Composite nodes: sequence, selector, parallel, random</li>
+                        <li>Decorator nodes: inverter, repeater, cooldown, probability</li>
+                        <li>Blackboard for shared data across tree nodes</li>
+                        <li>JSON serialization for runtime loading and hot-reloading</li>
+                    </ul>
+                    <div class="ai-benefit">
+                        <strong>Key benefit:</strong> Design sophisticated enemy AI without writing state machine spaghetti. Behavior trees are modular, debuggable, and reusable.
+                    </div>
+                </div>
+                <div class="ai-code">
+<span class="cmt">// Create behavior tree</span>
+RakuBT bt = <span class="fn">raku_bt_create</span>();
+
+<span class="cmt">// Build tree structure</span>
+RakuBTNode root = <span class="fn">raku_bt_selector</span>(bt);
+RakuBTNode combat = <span class="fn">raku_bt_sequence</span>(bt);
+  <span class="fn">raku_bt_add_child</span>(combat, <span class="fn">raku_bt_condition</span>(<span class="str">"enemy_visible"</span>));
+  <span class="fn">raku_bt_add_child</span>(combat, <span class="fn">raku_bt_action</span>(<span class="str">"attack"</span>, attack_fn));
+RakuBTNode patrol = <span class="fn">raku_bt_action</span>(<span class="str">"patrol"</span>, patrol_fn);
+
+<span class="fn">raku_bt_add_child</span>(root, combat);
+<span class="fn">raku_bt_add_child</span>(root, patrol);
+
+<span class="cmt">// Blackboard data</span>
+<span class="fn">raku_bt_blackboard_set_float</span>(bt, <span class="str">"aggro_range"</span>, <span class="num">15.0f</span>);
+<span class="fn">raku_bt_blackboard_set_entity</span>(bt, <span class="str">"target"</span>, player);
+
+<span class="cmt">// Serialize / deserialize</span>
+<span class="fn">raku_bt_save_json</span>(bt, <span class="str">"guard_ai.json"</span>);
+RakuBT loaded = <span class="fn">raku_bt_load_json</span>(<span class="str">"guard_ai.json"</span>);
+                </div>
+            </div>
+        </div>
+
+        <!-- Voice Commands -->
+        <div class="ai-section" id="voice-commands">
+            <div class="ai-grid">
+                <div class="ai-content">
+                    <div class="ai-badge">VOICE</div>
+                    <h3>Voice Commands</h3>
+                    <p>On-device speech recognition with intent parsing, wake words, and text-to-speech with lip sync for NPCs. No cloud, no latency.</p>
+                    <ul>
+                        <li>Speech recognition with configurable vocabulary</li>
+                        <li>Intent parsing: map spoken phrases to game actions</li>
+                        <li>Wake word detection for hands-free activation</li>
+                        <li>Text-to-speech with multiple voices and emotions</li>
+                        <li>TTS-driven lip sync with viseme generation</li>
+                    </ul>
+                    <div class="ai-benefit">
+                        <strong>Key benefit:</strong> Talk to your game. Say "open inventory" or "attack the dragon" and watch it happen. NPCs talk back with synchronized lip animation.
+                    </div>
+                </div>
+                <div class="ai-code">
+<span class="cmt">// Register voice commands</span>
+<span class="fn">raku_voice_register_command</span>(<span class="str">"open inventory"</span>, open_inv_cb);
+<span class="fn">raku_voice_register_command</span>(<span class="str">"cast fireball"</span>, cast_fire_cb);
+
+<span class="cmt">// Intent parsing with parameters</span>
+<span class="fn">raku_voice_register_intent</span>(<span class="str">"attack {target}"</span>, attack_cb);
+<span class="cmt">// "attack the goblin" -> target = "goblin"</span>
+
+<span class="cmt">// Set wake word</span>
+<span class="fn">raku_voice_set_wake_word</span>(<span class="str">"hey raku"</span>);
+<span class="fn">raku_voice_on_wake</span>(on_wake_cb);
+
+<span class="cmt">// Text-to-speech with lip sync</span>
+<span class="fn">raku_tts_speak</span>(npc_entity, <span class="str">"Welcome, traveler."</span>);
+<span class="fn">raku_tts_set_voice</span>(npc_entity, <span class="str">RAKU_VOICE_DEEP_MALE</span>);
+<span class="fn">raku_tts_set_emotion</span>(npc_entity, <span class="str">RAKU_EMO_FRIENDLY</span>);
+
+<span class="cmt">// Lip sync auto-binds to character mesh</span>
+<span class="fn">raku_tts_enable_lipsync</span>(npc_entity, <span class="num">true</span>);
+                </div>
+            </div>
+        </div>
+
+        <!-- NPC Intelligence -->
+        <div class="ai-section" id="npc-intelligence">
+            <div class="ai-grid">
+                <div class="ai-content">
+                    <div class="ai-badge">NPC</div>
+                    <h3>NPC Intelligence</h3>
+                    <p>On-device SLM-powered NPCs with dynamic dialogue, sentiment analysis, and procedural quest generation. Built on the RakuSLM inference engine.</p>
+                    <ul>
+                        <li>Dynamic dialogue generation with context and memory</li>
+                        <li>Sentiment analysis on player text and voice input</li>
+                        <li>Procedural quest generation based on world state</li>
+                        <li>NPC personality profiles with trait-based responses</li>
+                        <li>Relationship tracking with reputation and affinity</li>
+                    </ul>
+                    <div class="ai-benefit">
+                        <strong>Key benefit:</strong> NPCs that remember conversations, react to player tone, and generate unique quests. Every playthrough is different.
+                    </div>
+                </div>
+                <div class="ai-code">
+<span class="cmt">// Create NPC with personality</span>
+RakuNPC npc = <span class="fn">raku_npc_create</span>(entity);
+<span class="fn">raku_npc_set_personality</span>(npc, <span class="str">"gruff but kind blacksmith"</span>);
+<span class="fn">raku_npc_set_knowledge</span>(npc, <span class="str">"knows about the dragon attack"</span>);
+
+<span class="cmt">// Dynamic dialogue</span>
+<span class="kw">const char</span>* response = <span class="fn">raku_npc_dialogue</span>(
+    npc, <span class="str">"Do you have any quests for me?"</span>
+);
+
+<span class="cmt">// Sentiment analysis on player input</span>
+RakuSentiment s = <span class="fn">raku_npc_analyze_sentiment</span>(player_text);
+<span class="cmt">// s.valence, s.arousal, s.dominance</span>
+
+<span class="cmt">// Generate quest from world state</span>
+RakuQuest quest = <span class="fn">raku_npc_generate_quest</span>(npc, world_state);
+<span class="fn">raku_quest_activate</span>(quest);
+
+<span class="cmt">// Relationship tracking</span>
+<span class="fn">raku_npc_modify_affinity</span>(npc, player, <span class="num">+10</span>);
+                </div>
+            </div>
+        </div>
+
+        <!-- Powered by AI Callout -->
+        <div class="ai-callout">
+            <h3>Powered by AI</h3>
+            <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 16px;">Every AI system runs on-device via RakuSLM. No cloud calls, no latency, no privacy concerns. Works offline.</p>
+            <div class="ai-callout-grid">
+                <div class="ai-callout-item">NavMesh Pathfinding</div>
+                <div class="ai-callout-item">Behavior Trees</div>
+                <div class="ai-callout-item">Voice Commands</div>
+                <div class="ai-callout-item">Speech Recognition</div>
+                <div class="ai-callout-item">NPC Dialogue</div>
+                <div class="ai-callout-item">Sentiment Analysis</div>
+                <div class="ai-callout-item">Quest Generation</div>
+                <div class="ai-callout-item">Dynamic Difficulty</div>
+                <div class="ai-callout-item">Player Profiling</div>
+                <div class="ai-callout-item">Adaptive Audio</div>
+                <div class="ai-callout-item">Text-to-Speech</div>
+                <div class="ai-callout-item">Lip Sync</div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+        <h2>Build Smarter Games</h2>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: -24px auto 32px; font-size: 1.1rem;">
+            AI is not a plugin. It is the foundation. Every Raku game has access to navigation, behavior, voice, and NPC intelligence from day one.
+        </p>
+        <a href="sdk.html" class="btn btn-primary">Explore the SDK</a>
+        <a href="xr-features.html" class="btn btn-secondary" style="margin-left: 16px;">XR Features</a>
+        <a href="spatial-engine.html" class="btn btn-secondary" style="margin-left: 16px;">Spatial Engine</a>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="docs.html">Documentation</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="mailto:hello@rakuai.com">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Protected by 5 granted patents (priority July 2012).</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. &#x697D;AI and &#x697D;XR are stylized marks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+</body>
+</html>
