@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building Mixed Reality Experiences - RakuAI Tutorials</title>
+    <meta name="description" content="Build mixed reality experiences in Raku: scene understanding, surface placement, passthrough portals, spatial anchors, and cloud anchors.">
+    <meta property="og:title" content="Building Mixed Reality Experiences - RakuAI">
+    <meta property="og:description" content="Scan rooms, place virtual objects on real surfaces, create passthrough portals, and share MR experiences with cloud anchors.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://rakuai.com/tutorials/mixed-reality-tutorial">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/tutorials/mixed-reality-tutorial.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .guide-section { padding: 48px 0; border-bottom: 1px solid #222244; }
+        .guide-section:last-of-type { border-bottom: none; }
+        .guide-section h3 { color: var(--accent-bright); font-size: 1.6rem; margin-bottom: 16px; }
+        .guide-section > p, .guide-section > ul { color: var(--text-secondary); font-size: 1.05rem; line-height: 1.7; margin-bottom: 24px; max-width: 800px; }
+        .guide-section ul { padding-left: 24px; }
+        .guide-section li { margin-bottom: 8px; }
+        .guide-badge { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 12px; }
+        .guide-code { background: #0d0d1f; border: 1px solid #222244; border-radius: 8px; padding: 24px; font-family: 'Courier New', monospace; font-size: 0.9rem; line-height: 1.8; overflow-x: auto; margin: 16px 0 24px; }
+        .guide-code .comment { color: #6272a4; font-style: italic; }
+        .guide-code .fn { color: #50fa7b; }
+        .guide-code .str { color: #f1fa8c; }
+        .guide-code .kw { color: #ff79c6; font-weight: 600; }
+        .guide-code .num { color: #bd93f9; }
+        .guide-code .type { color: #8be9fd; }
+        .guide-note { background: var(--bg-secondary); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; color: var(--text-secondary); font-size: 0.95rem; }
+        .guide-note strong { color: var(--accent-bright); }
+        .guide-toc { background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 32px; max-width: 600px; margin: 0 auto 48px; }
+        .guide-toc h3 { color: var(--text-primary); margin-bottom: 16px; font-size: 1.2rem; }
+        .guide-toc ol { list-style: none; counter-reset: toc; }
+        .guide-toc li { counter-increment: toc; padding: 8px 0; border-bottom: 1px solid #222244; }
+        .guide-toc li:last-child { border-bottom: none; }
+        .guide-toc li::before { content: counter(toc) ". "; color: var(--accent-bright); font-weight: 700; }
+        .guide-toc a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .guide-toc a:hover { color: var(--accent-bright); }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    🎮 GDC 2026 Open Beta — Pro features FREE through June 30, 2026 | <a href="https://github.com/RakuXR/raku-public/discussions">Give Feedback →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../sdk.html">SDK</a>
+            <a href="../docs.html">Docs</a>
+            <a href="../spatial-engine.html">Spatial</a>
+            <a href="../xr-features.html">XR</a>
+            <a href="../ai-systems.html">AI</a>
+            <a href="../templates.html">Templates</a>
+            <a href="../llm-guide.html">LLM Guide</a>
+            <a href="../pricing.html">Pricing</a>
+            <a href="../pro-features.html">Pro</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">Download Runtime</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <div style="display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 16px;">ADVANCED TUTORIAL</div>
+        <h1>Building Mixed Reality Experiences</h1>
+        <p class="subtitle">Scene understanding, surface placement, passthrough portals, spatial anchors, and cloud-shared MR. Build a virtual pet on your real desk.</p>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;"><a href="index.html" style="color: var(--accent-bright);">&larr; All Tutorials</a></p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="guide-toc">
+            <h3>In This Tutorial</h3>
+            <ol>
+                <li><a href="#mr-vs-vr">Understanding MR vs VR vs Passthrough</a></li>
+                <li><a href="#scene-understanding">Scanning the Room with Scene Understanding</a></li>
+                <li><a href="#surface-placement">Placing Virtual Objects on Real Surfaces</a></li>
+                <li><a href="#portals">Creating Passthrough Portals</a></li>
+                <li><a href="#spatial-anchors">Using Spatial Anchors for Persistent Placement</a></li>
+                <li><a href="#cloud-anchors">Cloud Anchors for Shared MR Experiences</a></li>
+                <li><a href="#complete-example">Complete Example: Virtual Pet on Your Real Desk</a></li>
+            </ol>
+        </div>
+
+        <!-- MR vs VR -->
+        <div class="guide-section" id="mr-vs-vr">
+            <div class="guide-badge">CONCEPTS</div>
+            <h3>Understanding MR vs VR vs Passthrough</h3>
+            <p>Raku supports three XR modes through OpenXR, each serving different use cases:</p>
+
+            <ul>
+                <li><strong style="color: var(--text-primary);">VR (Virtual Reality)</strong> &mdash; Fully immersive, opaque background. The user sees only your virtual world. Use for games, simulations, and cinematic experiences.</li>
+                <li><strong style="color: var(--text-primary);">MR (Mixed Reality)</strong> &mdash; Camera passthrough with virtual objects overlaid on the real world. Uses scene understanding to anchor content to real surfaces.</li>
+                <li><strong style="color: var(--text-primary);">Passthrough</strong> &mdash; Camera feed displayed as the background, but without scene understanding. Lighter weight than full MR. Good for HUDs and simple overlays.</li>
+            </ul>
+
+            <div class="guide-code">
+<span class="comment">// Initialize in different modes</span>
+<span class="fn">raku_xr_init</span>(<span class="str">"vr"</span>);    <span class="comment">// Full VR, opaque background</span>
+<span class="fn">raku_xr_init</span>(<span class="str">"mr"</span>);    <span class="comment">// Mixed reality with scene understanding</span>
+
+<span class="comment">// Switch modes at runtime</span>
+<span class="fn">raku_xr_set_mode</span>(<span class="str">"mr"</span>);
+
+<span class="comment">// Check current mode</span>
+<span class="kw">const char</span>* mode = <span class="fn">raku_xr_get_mode</span>();
+<span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Current XR mode: %s"</span>, mode);
+</div>
+        </div>
+
+        <!-- Scene Understanding -->
+        <div class="guide-section" id="scene-understanding">
+            <div class="guide-badge">SPATIAL AWARENESS</div>
+            <h3>Scanning the Room with Scene Understanding</h3>
+            <p>Scene understanding uses the headset's depth sensors to build a 3D model of the real world. This gives you planes (floors, walls, tables), meshes, and semantic labels.</p>
+
+            <div class="guide-code">
+<span class="comment">// Start scene understanding (requires MR mode)</span>
+<span class="fn">raku_xr_scene_understanding_start</span>();
+
+<span class="comment">// Configure what to detect</span>
+<span class="fn">raku_xr_scene_understanding_set_detect_planes</span>(<span class="kw">true</span>);
+<span class="fn">raku_xr_scene_understanding_set_detect_meshes</span>(<span class="kw">true</span>);
+<span class="fn">raku_xr_scene_understanding_set_detect_semantic</span>(<span class="kw">true</span>);
+
+<span class="comment">// Wait for initial scan to complete</span>
+<span class="fn">raku_xr_scene_understanding_set_callback</span>(on_scene_ready);
+</div>
+
+            <p>Query detected surfaces and objects:</p>
+            <div class="guide-code">
+<span class="kw">void</span> <span class="fn">on_scene_ready</span>() {
+    <span class="comment">// Get all detected planes</span>
+    <span class="type">RakuScenePlane</span> planes[<span class="num">64</span>];
+    <span class="type">int</span> count = <span class="fn">raku_xr_scene_get_planes</span>(planes, <span class="num">64</span>);
+
+    <span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; count; i++) {
+        <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Plane %d: type=%s, size=%.1fx%.1fm, pos=(%.1f, %.1f, %.1f)"</span>,
+            i, planes[i].semantic_label,  <span class="comment">// "floor", "wall", "table", "ceiling"</span>
+            planes[i].width, planes[i].height,
+            planes[i].position[<span class="num">0</span>], planes[i].position[<span class="num">1</span>], planes[i].position[<span class="num">2</span>]);
+    }
+
+    <span class="comment">// Find a specific surface type</span>
+    <span class="type">RakuScenePlane</span> table;
+    <span class="kw">if</span> (<span class="fn">raku_xr_scene_find_plane_by_label</span>(<span class="str">"table"</span>, &amp;table)) {
+        <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Found a table at (%.1f, %.1f, %.1f)"</span>,
+            table.position[<span class="num">0</span>], table.position[<span class="num">1</span>], table.position[<span class="num">2</span>]);
+    }
+
+    <span class="comment">// Get the room mesh for physics collision</span>
+    <span class="fn">raku_xr_scene_get_mesh</span>(<span class="str">"room_mesh"</span>);
+    <span class="fn">raku_physics_add_static_collider</span>(<span class="str">"room_mesh"</span>, <span class="str">"mesh"</span>);
+}
+</div>
+        </div>
+
+        <!-- Surface Placement -->
+        <div class="guide-section" id="surface-placement">
+            <div class="guide-badge">PLACEMENT</div>
+            <h3>Placing Virtual Objects on Real Surfaces</h3>
+            <p>Once you have detected planes, you can place virtual objects on them. Use hit-testing to find the exact position on a surface where the user is pointing or looking.</p>
+
+            <div class="guide-code">
+<span class="comment">// Hit-test against real-world surfaces using a ray</span>
+<span class="type">float</span> ray_origin[<span class="num">3</span>], ray_dir[<span class="num">3</span>];
+<span class="fn">raku_xr_get_controller_ray</span>(RAKU_HAND_RIGHT, ray_origin, ray_dir);
+
+<span class="type">RakuSceneHit</span> hit;
+<span class="kw">if</span> (<span class="fn">raku_xr_scene_hit_test</span>(ray_origin, ray_dir, &amp;hit)) {
+    <span class="comment">// Place a virtual object at the hit point</span>
+    <span class="fn">raku_scene_add_model</span>(<span class="str">"vase.glb"</span>,
+        hit.position[<span class="num">0</span>], hit.position[<span class="num">1</span>], hit.position[<span class="num">2</span>]);
+
+    <span class="comment">// Align the object with the surface normal</span>
+    <span class="fn">raku_scene_set_up_vector</span>(<span class="str">"vase.glb"</span>,
+        hit.normal[<span class="num">0</span>], hit.normal[<span class="num">1</span>], hit.normal[<span class="num">2</span>]);
+
+    <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Placed vase on %s"</span>, hit.plane_label);
+}
+</div>
+
+            <p>Constrain placement to specific surface types:</p>
+            <div class="guide-code">
+<span class="comment">// Only place on horizontal surfaces (tables, floors)</span>
+<span class="kw">if</span> (<span class="fn">raku_xr_scene_hit_test_filtered</span>(ray_origin, ray_dir, <span class="str">"horizontal"</span>, &amp;hit)) {
+    <span class="fn">raku_scene_add_model</span>(<span class="str">"pet.glb"</span>,
+        hit.position[<span class="num">0</span>], hit.position[<span class="num">1</span>], hit.position[<span class="num">2</span>]);
+}
+
+<span class="comment">// Only place on walls (vertical surfaces)</span>
+<span class="kw">if</span> (<span class="fn">raku_xr_scene_hit_test_filtered</span>(ray_origin, ray_dir, <span class="str">"vertical"</span>, &amp;hit)) {
+    <span class="fn">raku_scene_add_model</span>(<span class="str">"painting.glb"</span>,
+        hit.position[<span class="num">0</span>], hit.position[<span class="num">1</span>], hit.position[<span class="num">2</span>]);
+}
+
+<span class="comment">// Snap to the nearest detected surface within a radius</span>
+<span class="type">float</span> pos[] = { <span class="num">0.0f</span>, <span class="num">1.0f</span>, <span class="num">-1.0f</span> };
+<span class="type">RakuSceneHit</span> snap;
+<span class="kw">if</span> (<span class="fn">raku_xr_scene_snap_to_surface</span>(pos, <span class="num">0.5f</span>, &amp;snap)) {
+    <span class="comment">// Object snapped to the nearest surface within 0.5m</span>
+}
+</div>
+        </div>
+
+        <!-- Portals -->
+        <div class="guide-section" id="portals">
+            <div class="guide-badge">EFFECTS</div>
+            <h3>Creating Passthrough Portals</h3>
+            <p>Passthrough portals are windows into the real world placed inside a virtual environment (or vice versa). They create a dramatic "looking through a window" effect.</p>
+
+            <div class="guide-code">
+<span class="comment">// In VR mode, create a portal that shows the real world</span>
+<span class="fn">raku_xr_init</span>(<span class="str">"vr"</span>);
+
+<span class="comment">// Create a circular portal on a wall</span>
+<span class="fn">raku_xr_passthrough_create_portal</span>(
+    <span class="num">0.0f</span>, <span class="num">1.5f</span>, <span class="num">-3.0f</span>,  <span class="comment">// world position</span>
+    <span class="num">0.8f</span>,                    <span class="comment">// radius (meters)</span>
+    <span class="str">"wall_portal"</span>            <span class="comment">// tag</span>
+);
+
+<span class="comment">// Create a rectangular portal (width, height)</span>
+<span class="fn">raku_xr_passthrough_create_rect_portal</span>(
+    <span class="num">3.0f</span>, <span class="num">1.5f</span>, <span class="num">-3.0f</span>,    <span class="comment">// position</span>
+    <span class="num">1.2f</span>, <span class="num">2.0f</span>,             <span class="comment">// width, height</span>
+    <span class="str">"door_portal"</span>            <span class="comment">// tag</span>
+);
+</div>
+
+            <p>Animate and control portals:</p>
+            <div class="guide-code">
+<span class="comment">// Animate portal opening (0 = closed, 1 = fully open)</span>
+<span class="type">float</span> portal_open = <span class="num">0.0f</span>;
+
+<span class="kw">void</span> <span class="fn">on_update</span>(<span class="type">float</span> dt) {
+    <span class="kw">if</span> (opening) {
+        portal_open += dt * <span class="num">0.5f</span>;  <span class="comment">// open over 2 seconds</span>
+        <span class="kw">if</span> (portal_open &gt; <span class="num">1.0f</span>) portal_open = <span class="num">1.0f</span>;
+        <span class="fn">raku_xr_passthrough_set_portal_scale</span>(<span class="str">"wall_portal"</span>, portal_open);
+    }
+}
+
+<span class="comment">// Set portal edge softness (feathering)</span>
+<span class="fn">raku_xr_passthrough_set_portal_edge_softness</span>(<span class="str">"wall_portal"</span>, <span class="num">0.05f</span>);
+
+<span class="comment">// Apply color correction to the passthrough feed</span>
+<span class="fn">raku_xr_passthrough_set_brightness</span>(<span class="num">1.1f</span>);
+<span class="fn">raku_xr_passthrough_set_contrast</span>(<span class="num">1.2f</span>);
+<span class="fn">raku_xr_passthrough_set_saturation</span>(<span class="num">0.8f</span>);  <span class="comment">// desaturate for stylized look</span>
+</div>
+
+            <div class="guide-note">
+                <strong>Creative use:</strong> In VR, place portals on dungeon walls to let players peek at the real world. In MR, use "inverse portals" to create virtual windows into fantasy worlds on your real walls.
+            </div>
+        </div>
+
+        <!-- Spatial Anchors -->
+        <div class="guide-section" id="spatial-anchors">
+            <div class="guide-badge">PERSISTENCE</div>
+            <h3>Using Spatial Anchors for Persistent Placement</h3>
+            <p>Spatial anchors lock virtual objects to a physical location so they stay in place across sessions. When the user restarts the app, anchored objects reappear exactly where they were left.</p>
+
+            <div class="guide-code">
+<span class="comment">// Create a spatial anchor at a world position</span>
+<span class="type">handle</span> anchor = <span class="fn">raku_anchor_create</span>(<span class="num">1.2f</span>, <span class="num">0.75f</span>, <span class="num">-0.8f</span>);
+
+<span class="comment">// Attach a virtual object to the anchor</span>
+<span class="fn">raku_anchor_attach</span>(anchor, <span class="str">"pet.glb"</span>);
+
+<span class="comment">// Save the anchor to persistent storage (survives app restarts)</span>
+<span class="fn">raku_anchor_save</span>(anchor, <span class="str">"my_pet_anchor"</span>);
+</div>
+
+            <p>Restore anchors when the app launches again:</p>
+            <div class="guide-code">
+<span class="comment">// On app start, try to restore saved anchors</span>
+<span class="type">handle</span> anchor = <span class="fn">raku_anchor_load</span>(<span class="str">"my_pet_anchor"</span>);
+
+<span class="kw">if</span> (anchor != RAKU_INVALID_HANDLE) {
+    <span class="comment">// Anchor restored! Get its current position</span>
+    <span class="type">float</span> pos[<span class="num">3</span>];
+    <span class="fn">raku_anchor_get_position</span>(anchor, pos);
+    <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Pet anchor restored at (%.2f, %.2f, %.2f)"</span>,
+        pos[<span class="num">0</span>], pos[<span class="num">1</span>], pos[<span class="num">2</span>]);
+
+    <span class="comment">// Re-attach the pet model</span>
+    <span class="fn">raku_scene_add_model</span>(<span class="str">"pet.glb"</span>, pos[<span class="num">0</span>], pos[<span class="num">1</span>], pos[<span class="num">2</span>]);
+    <span class="fn">raku_anchor_attach</span>(anchor, <span class="str">"pet.glb"</span>);
+} <span class="kw">else</span> {
+    <span class="fn">raku_log</span>(<span class="num">1</span>, <span class="str">"No saved anchor found, place pet manually"</span>);
+}
+
+<span class="comment">// List all saved anchors</span>
+<span class="type">char</span> anchor_names[<span class="num">32</span>][<span class="num">64</span>];
+<span class="type">int</span> count = <span class="fn">raku_anchor_list_saved</span>(anchor_names, <span class="num">32</span>);
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; count; i++) {
+    <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Saved anchor: %s"</span>, anchor_names[i]);
+}
+
+<span class="comment">// Delete a saved anchor</span>
+<span class="fn">raku_anchor_delete_saved</span>(<span class="str">"my_pet_anchor"</span>);
+</div>
+        </div>
+
+        <!-- Cloud Anchors -->
+        <div class="guide-section" id="cloud-anchors">
+            <div class="guide-badge">MULTIPLAYER MR</div>
+            <h3>Cloud Anchors for Shared MR Experiences</h3>
+            <p>Cloud anchors allow multiple headsets to see the same virtual objects in the same physical locations. User A places an object, and User B sees it in the exact same spot in the real room.</p>
+
+            <div class="guide-code">
+<span class="comment">// Host: share an anchor to the cloud</span>
+<span class="type">handle</span> anchor = <span class="fn">raku_anchor_create</span>(<span class="num">1.2f</span>, <span class="num">0.75f</span>, <span class="num">-0.8f</span>);
+
+<span class="fn">raku_anchor_cloud_share</span>(anchor, <span class="fn">on_cloud_share_complete</span>);
+
+<span class="kw">void</span> <span class="fn">on_cloud_share_complete</span>(<span class="kw">const char</span>* cloud_id, <span class="type">bool</span> success) {
+    <span class="kw">if</span> (success) {
+        <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Anchor shared! Cloud ID: %s"</span>, cloud_id);
+        <span class="comment">// Send cloud_id to other users via networking</span>
+    }
+}
+</div>
+
+            <p>Resolve a cloud anchor on another device:</p>
+            <div class="guide-code">
+<span class="comment">// Guest: resolve a cloud anchor by ID</span>
+<span class="fn">raku_anchor_cloud_resolve</span>(<span class="str">"cloud-anchor-abc123"</span>, on_cloud_resolve);
+
+<span class="kw">void</span> <span class="fn">on_cloud_resolve</span>(<span class="type">handle</span> anchor, <span class="type">bool</span> success) {
+    <span class="kw">if</span> (success) {
+        <span class="type">float</span> pos[<span class="num">3</span>];
+        <span class="fn">raku_anchor_get_position</span>(anchor, pos);
+
+        <span class="comment">// Place the same virtual object at the shared location</span>
+        <span class="fn">raku_scene_add_model</span>(<span class="str">"shared_object.glb"</span>,
+            pos[<span class="num">0</span>], pos[<span class="num">1</span>], pos[<span class="num">2</span>]);
+        <span class="fn">raku_anchor_attach</span>(anchor, <span class="str">"shared_object.glb"</span>);
+
+        <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Shared anchor resolved at (%.2f, %.2f, %.2f)"</span>,
+            pos[<span class="num">0</span>], pos[<span class="num">1</span>], pos[<span class="num">2</span>]);
+    } <span class="kw">else</span> {
+        <span class="fn">raku_log</span>(<span class="num">1</span>, <span class="str">"Failed to resolve cloud anchor - ensure both devices see the same area"</span>);
+    }
+}
+</div>
+
+            <div class="guide-note">
+                <strong>Requirements:</strong> Cloud anchors require network access and the Raku Network subsystem. Both devices must be able to see some overlapping physical features (walls, furniture) for the spatial alignment to work.
+            </div>
+        </div>
+
+        <!-- Complete Example -->
+        <div class="guide-section" id="complete-example">
+            <div class="guide-badge">COMPLETE EXAMPLE</div>
+            <h3>Complete Example: Virtual Pet on Your Real Desk</h3>
+            <p>A mixed reality app where a virtual pet sits on your real desk. The pet responds to hand gestures, is anchored persistently, and can be shared with others via cloud anchors.</p>
+
+            <div class="guide-code">
+<span class="comment">// === Virtual Pet on Your Desk ===</span>
+
+<span class="fn">raku_init</span>();
+<span class="fn">raku_xr_init</span>(<span class="str">"mr"</span>);  <span class="comment">// Mixed reality mode</span>
+<span class="fn">raku_renderer_create_window</span>(<span class="num">1280</span>, <span class="num">720</span>, <span class="str">"MR Pet"</span>, <span class="kw">true</span>);
+<span class="fn">raku_renderer_create_camera</span>(<span class="str">"main"</span>, <span class="num">90.0f</span>, <span class="num">0.01f</span>, <span class="num">100.0f</span>);
+
+<span class="comment">// Transparent background for MR</span>
+<span class="type">float</span> clear[] = { <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span> };
+<span class="fn">raku_renderer_set_clear_color</span>(clear);
+
+<span class="comment">// Physics (for pet walking on surfaces)</span>
+<span class="type">float</span> gravity[] = { <span class="num">0</span>, <span class="num">-9.81f</span>, <span class="num">0</span> };
+<span class="fn">raku_physics_create_world</span>(gravity);
+
+<span class="comment">// Audio (for pet sounds)</span>
+<span class="fn">raku_audio_init</span>(<span class="num">16</span>, <span class="kw">true</span>);  <span class="comment">// HRTF enabled for spatial audio</span>
+<span class="fn">raku_audio_load</span>(<span class="str">"sounds/purr.wav"</span>, <span class="str">"purr"</span>);
+<span class="fn">raku_audio_load</span>(<span class="str">"sounds/meow.wav"</span>, <span class="str">"meow"</span>);
+<span class="fn">raku_audio_load</span>(<span class="str">"sounds/happy.wav"</span>, <span class="str">"happy"</span>);
+
+<span class="comment">// Hand tracking</span>
+<span class="fn">raku_xr_hand_tracking_enable</span>(<span class="kw">true</span>);
+
+<span class="comment">// Scene setup</span>
+<span class="fn">raku_scene_create</span>(<span class="str">"pet_world"</span>);
+
+<span class="comment">// --- Step 1: Scan the room ---</span>
+<span class="fn">raku_xr_scene_understanding_start</span>();
+<span class="fn">raku_xr_scene_understanding_set_detect_planes</span>(<span class="kw">true</span>);
+<span class="fn">raku_xr_scene_understanding_set_detect_semantic</span>(<span class="kw">true</span>);
+
+<span class="type">bool</span> pet_placed = <span class="kw">false</span>;
+<span class="type">handle</span> pet_anchor = RAKU_INVALID_HANDLE;
+
+<span class="comment">// --- Step 2: Try to restore a saved anchor ---</span>
+pet_anchor = <span class="fn">raku_anchor_load</span>(<span class="str">"pet_desk_anchor"</span>);
+<span class="kw">if</span> (pet_anchor != RAKU_INVALID_HANDLE) {
+    <span class="type">float</span> pos[<span class="num">3</span>];
+    <span class="fn">raku_anchor_get_position</span>(pet_anchor, pos);
+    <span class="fn">raku_scene_add_model</span>(<span class="str">"cat.glb"</span>, pos[<span class="num">0</span>], pos[<span class="num">1</span>], pos[<span class="num">2</span>]);
+    <span class="fn">raku_anchor_attach</span>(pet_anchor, <span class="str">"cat.glb"</span>);
+    <span class="fn">raku_animation_load</span>(<span class="str">"cat.glb"</span>, <span class="str">"anims/idle.glb"</span>, <span class="str">"idle"</span>);
+    <span class="fn">raku_animation_play</span>(<span class="str">"idle"</span>, <span class="kw">true</span>);
+    pet_placed = <span class="kw">true</span>;
+    <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Pet restored from saved anchor"</span>);
+}
+
+<span class="comment">// --- Step 3: Place pet on table tap if not restored ---</span>
+<span class="kw">void</span> <span class="fn">on_pinch</span>(<span class="type">RakuHandEvent</span>* event) {
+    <span class="kw">if</span> (pet_placed) <span class="kw">return</span>;
+    <span class="kw">if</span> (event-&gt;phase != RAKU_GESTURE_BEGIN) <span class="kw">return</span>;
+
+    <span class="type">float</span> origin[<span class="num">3</span>], dir[<span class="num">3</span>];
+    <span class="fn">raku_xr_hand_get_joint_position</span>(event-&gt;hand, RAKU_JOINT_INDEX_TIP, origin);
+    dir[<span class="num">0</span>] = <span class="num">0</span>; dir[<span class="num">1</span>] = <span class="num">-1</span>; dir[<span class="num">2</span>] = <span class="num">0</span>;  <span class="comment">// point down</span>
+
+    <span class="type">RakuSceneHit</span> hit;
+    <span class="kw">if</span> (<span class="fn">raku_xr_scene_hit_test_filtered</span>(origin, dir, <span class="str">"horizontal"</span>, &amp;hit)) {
+        <span class="comment">// Place the pet on the surface</span>
+        <span class="fn">raku_scene_add_model</span>(<span class="str">"cat.glb"</span>,
+            hit.position[<span class="num">0</span>], hit.position[<span class="num">1</span>], hit.position[<span class="num">2</span>]);
+
+        <span class="comment">// Create and save a persistent anchor</span>
+        pet_anchor = <span class="fn">raku_anchor_create</span>(
+            hit.position[<span class="num">0</span>], hit.position[<span class="num">1</span>], hit.position[<span class="num">2</span>]);
+        <span class="fn">raku_anchor_attach</span>(pet_anchor, <span class="str">"cat.glb"</span>);
+        <span class="fn">raku_anchor_save</span>(pet_anchor, <span class="str">"pet_desk_anchor"</span>);
+
+        <span class="comment">// Start idle animation and purring</span>
+        <span class="fn">raku_animation_load</span>(<span class="str">"cat.glb"</span>, <span class="str">"anims/idle.glb"</span>, <span class="str">"idle"</span>);
+        <span class="fn">raku_animation_play</span>(<span class="str">"idle"</span>, <span class="kw">true</span>);
+        <span class="fn">raku_audio_play_spatial</span>(<span class="str">"meow"</span>,
+            hit.position[<span class="num">0</span>], hit.position[<span class="num">1</span>], hit.position[<span class="num">2</span>]);
+
+        pet_placed = <span class="kw">true</span>;
+        <span class="fn">raku_xr_haptic_pulse</span>(event-&gt;hand, <span class="num">0.4f</span>, <span class="num">0.1f</span>);
+    }
+}
+<span class="fn">raku_xr_hand_gesture_register</span>(<span class="str">"pinch"</span>, on_pinch);
+
+<span class="comment">// --- Step 4: Pet reacts to being petted (open palm near it) ---</span>
+<span class="kw">void</span> <span class="fn">on_open_palm</span>(<span class="type">RakuHandEvent</span>* event) {
+    <span class="kw">if</span> (!pet_placed) <span class="kw">return</span>;
+
+    <span class="type">float</span> hand_pos[<span class="num">3</span>], pet_pos[<span class="num">3</span>];
+    <span class="fn">raku_xr_hand_get_joint_position</span>(event-&gt;hand, RAKU_JOINT_PALM, hand_pos);
+    <span class="fn">raku_anchor_get_position</span>(pet_anchor, pet_pos);
+
+    <span class="type">float</span> dist = <span class="fn">raku_math_distance_3d</span>(hand_pos, pet_pos);
+    <span class="kw">if</span> (dist &lt; <span class="num">0.3f</span>) {
+        <span class="comment">// Pet is being petted!</span>
+        <span class="fn">raku_animation_load</span>(<span class="str">"cat.glb"</span>, <span class="str">"anims/happy.glb"</span>, <span class="str">"happy"</span>);
+        <span class="fn">raku_animation_play</span>(<span class="str">"happy"</span>, <span class="kw">false</span>);
+        <span class="fn">raku_audio_play_spatial</span>(<span class="str">"purr"</span>, pet_pos[<span class="num">0</span>], pet_pos[<span class="num">1</span>], pet_pos[<span class="num">2</span>]);
+        <span class="fn">raku_xr_haptic_pulse</span>(event-&gt;hand, <span class="num">0.15f</span>, <span class="num">0.3f</span>);
+    }
+}
+<span class="fn">raku_xr_hand_gesture_register</span>(<span class="str">"open_palm"</span>, on_open_palm);
+
+<span class="comment">// --- Step 5: Run ---</span>
+<span class="fn">raku_scene_start_loop</span>();
+<span class="fn">raku_xr_shutdown</span>();
+<span class="fn">raku_shutdown</span>();
+</div>
+
+            <div class="guide-note">
+                <strong>Next steps:</strong> Add the <a href="ai-npc-tutorial.html" style="color: var(--accent-bright);">AI system</a> to give your pet autonomous behavior, or use <a href="spatial-audio-tutorial.html" style="color: var(--accent-bright);">spatial audio</a> to make the purring sound come from the pet's exact position.
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+        <h2>Ready for More?</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
+            Explore the full XR API (151 functions) in the documentation, or continue with another tutorial.
+        </p>
+        <div class="cta-group">
+            <a href="index.html" class="btn btn-secondary">All Tutorials</a>
+            <a href="../docs.html" class="btn btn-primary">API Reference</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="../docs.html">Documentation</a>
+            <a href="../privacy.html">Privacy</a>
+            <a href="../terms.html">Terms</a>
+            <a href="mailto:hello@rakuai.com">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Protected by 5 granted patents (priority July 2012).</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. &#x697D;AI and &#x697D;XR are stylized marks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+</body>
+</html>

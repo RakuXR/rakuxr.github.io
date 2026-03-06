@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started with XR Development - RakuAI Tutorials</title>
+    <meta name="description" content="Learn how to set up XR development in Raku: hand tracking, eye tracking, haptic feedback, passthrough mode, and your first hand-tracked interaction.">
+    <meta property="og:title" content="Getting Started with XR Development - RakuAI">
+    <meta property="og:description" content="Set up your first XR project with hand tracking, eye tracking, haptics, and passthrough mode in the Raku engine.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://rakuai.com/tutorials/getting-started-xr">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/tutorials/getting-started-xr.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .guide-section {
+            padding: 48px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .guide-section:last-of-type {
+            border-bottom: none;
+        }
+        .guide-section h3 {
+            color: var(--accent-bright);
+            font-size: 1.6rem;
+            margin-bottom: 16px;
+        }
+        .guide-section > p, .guide-section > ul {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 24px;
+            max-width: 800px;
+        }
+        .guide-section ul {
+            padding-left: 24px;
+        }
+        .guide-section li {
+            margin-bottom: 8px;
+        }
+        .guide-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+        .guide-code {
+            background: #0d0d1f;
+            border: 1px solid #222244;
+            border-radius: 8px;
+            padding: 24px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            overflow-x: auto;
+            margin: 16px 0 24px;
+        }
+        .guide-code .comment { color: #6272a4; font-style: italic; }
+        .guide-code .fn { color: #50fa7b; }
+        .guide-code .str { color: #f1fa8c; }
+        .guide-code .kw { color: #ff79c6; font-weight: 600; }
+        .guide-code .num { color: #bd93f9; }
+        .guide-code .type { color: #8be9fd; }
+        .guide-note {
+            background: var(--bg-secondary);
+            border-left: 4px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 16px 20px;
+            margin: 16px 0;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        .guide-note strong {
+            color: var(--accent-bright);
+        }
+        .guide-toc {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 600px;
+            margin: 0 auto 48px;
+        }
+        .guide-toc h3 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: 1.2rem;
+        }
+        .guide-toc ol {
+            list-style: none;
+            counter-reset: toc;
+        }
+        .guide-toc li {
+            counter-increment: toc;
+            padding: 8px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .guide-toc li:last-child {
+            border-bottom: none;
+        }
+        .guide-toc li::before {
+            content: counter(toc) ". ";
+            color: var(--accent-bright);
+            font-weight: 700;
+        }
+        .guide-toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .guide-toc a:hover {
+            color: var(--accent-bright);
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    🎮 GDC 2026 Open Beta — Pro features FREE through June 30, 2026 | <a href="https://github.com/RakuXR/raku-public/discussions">Give Feedback →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../sdk.html">SDK</a>
+            <a href="../docs.html">Docs</a>
+            <a href="../spatial-engine.html">Spatial</a>
+            <a href="../xr-features.html">XR</a>
+            <a href="../ai-systems.html">AI</a>
+            <a href="../templates.html">Templates</a>
+            <a href="../llm-guide.html">LLM Guide</a>
+            <a href="../pricing.html">Pricing</a>
+            <a href="../pro-features.html">Pro</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">Download Runtime</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <div style="display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 16px;">BEGINNER TUTORIAL</div>
+        <h1>Getting Started with XR Development in Raku</h1>
+        <p class="subtitle">Set up hand tracking, eye tracking, haptic feedback, and passthrough mode. Build your first hand-tracked interaction from scratch.</p>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;"><a href="index.html" style="color: var(--accent-bright);">&larr; All Tutorials</a></p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="guide-toc">
+            <h3>In This Tutorial</h3>
+            <ol>
+                <li><a href="#prerequisites">Prerequisites and Setup</a></li>
+                <li><a href="#hand-tracking">Enabling Hand Tracking and Configuring Gestures</a></li>
+                <li><a href="#eye-tracking">Setting Up Eye Tracking with Permissions</a></li>
+                <li><a href="#haptics">Adding Haptic Feedback to Interactions</a></li>
+                <li><a href="#passthrough">Enabling Passthrough / Mixed Reality Mode</a></li>
+                <li><a href="#first-interaction">Your First Hand-Tracked Interaction</a></li>
+            </ol>
+        </div>
+
+        <!-- Prerequisites -->
+        <div class="guide-section" id="prerequisites">
+            <div class="guide-badge">SETUP</div>
+            <h3>Prerequisites and Setup</h3>
+            <p>Before you begin building XR experiences with Raku, make sure your development environment is ready.</p>
+
+            <p><strong style="color: var(--text-primary);">What you need:</strong></p>
+            <ul>
+                <li><strong style="color: var(--text-primary);">Raku Runtime</strong> &mdash; <a href="https://github.com/RakuXR/raku-public/releases/latest" style="color: var(--accent-bright);">Download the latest release</a> (19 MB)</li>
+                <li><strong style="color: var(--text-primary);">An XR headset</strong> &mdash; Any OpenXR 1.1 compatible device (Meta Quest 3, Quest Pro, Pico 4, HTC Vive XR Elite, etc.)</li>
+                <li><strong style="color: var(--text-primary);">C compiler</strong> &mdash; MSVC, GCC, or Clang for building your game</li>
+                <li><strong style="color: var(--text-primary);">OpenXR runtime</strong> &mdash; Installed on your target device (ships with most headsets)</li>
+            </ul>
+
+            <p>Initialize the engine and the XR subsystem:</p>
+            <div class="guide-code">
+<span class="comment">// Initialize the Raku engine</span>
+<span class="fn">raku_init</span>();
+
+<span class="comment">// Initialize XR in immersive VR mode</span>
+<span class="comment">// Supported modes: "vr", "mr", "ar", "overlay"</span>
+<span class="fn">raku_xr_init</span>(<span class="str">"vr"</span>);
+
+<span class="comment">// Create a renderer window (used as mirror display on desktop)</span>
+<span class="fn">raku_renderer_create_window</span>(<span class="num">1280</span>, <span class="num">720</span>, <span class="str">"My XR App"</span>, <span class="kw">true</span>);
+
+<span class="comment">// Create a camera (the XR runtime overrides pose each frame)</span>
+<span class="fn">raku_renderer_create_camera</span>(<span class="str">"main"</span>, <span class="num">90.0f</span>, <span class="num">0.01f</span>, <span class="num">1000.0f</span>);
+</div>
+
+            <div class="guide-note">
+                <strong>Note:</strong> <code>raku_xr_init()</code> is a privileged call. The engine will prompt the user for confirmation before activating XR hardware. This is a safety measure defined in the API manifest.
+            </div>
+        </div>
+
+        <!-- Hand Tracking -->
+        <div class="guide-section" id="hand-tracking">
+            <div class="guide-badge">XR INPUT</div>
+            <h3>Enabling Hand Tracking and Configuring Gestures</h3>
+            <p>Raku supports articulated hand tracking through OpenXR. Once enabled, you get access to 26 joint positions per hand, plus built-in gesture recognition.</p>
+
+            <div class="guide-code">
+<span class="comment">// Enable hand tracking (requires OpenXR hand tracking extension)</span>
+<span class="fn">raku_xr_hand_tracking_enable</span>(<span class="kw">true</span>);
+
+<span class="comment">// Register built-in gesture callbacks</span>
+<span class="fn">raku_xr_hand_gesture_register</span>(<span class="str">"pinch"</span>, on_pinch);
+<span class="fn">raku_xr_hand_gesture_register</span>(<span class="str">"grab"</span>, on_grab);
+<span class="fn">raku_xr_hand_gesture_register</span>(<span class="str">"point"</span>, on_point);
+<span class="fn">raku_xr_hand_gesture_register</span>(<span class="str">"open_palm"</span>, on_open_palm);
+
+<span class="comment">// Configure gesture sensitivity (0.0 = very sensitive, 1.0 = firm)</span>
+<span class="fn">raku_xr_hand_gesture_set_threshold</span>(<span class="str">"pinch"</span>, <span class="num">0.7f</span>);
+<span class="fn">raku_xr_hand_gesture_set_threshold</span>(<span class="str">"grab"</span>, <span class="num">0.8f</span>);
+</div>
+
+            <p>You can also query individual joint positions for custom gesture logic:</p>
+            <div class="guide-code">
+<span class="comment">// Get the position of the right index finger tip</span>
+<span class="type">float</span> pos[<span class="num">3</span>];
+<span class="fn">raku_xr_hand_get_joint_position</span>(RAKU_HAND_RIGHT, RAKU_JOINT_INDEX_TIP, pos);
+
+<span class="comment">// Get the distance between thumb and index tip (pinch detection)</span>
+<span class="type">float</span> thumb[<span class="num">3</span>], index_tip[<span class="num">3</span>];
+<span class="fn">raku_xr_hand_get_joint_position</span>(RAKU_HAND_RIGHT, RAKU_JOINT_THUMB_TIP, thumb);
+<span class="fn">raku_xr_hand_get_joint_position</span>(RAKU_HAND_RIGHT, RAKU_JOINT_INDEX_TIP, index_tip);
+
+<span class="type">float</span> dist = <span class="fn">raku_math_distance_3d</span>(thumb, index_tip);
+<span class="kw">if</span> (dist &lt; <span class="num">0.02f</span>) {
+    <span class="comment">// Custom pinch detected!</span>
+    <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Custom pinch detected"</span>);
+}
+</div>
+        </div>
+
+        <!-- Eye Tracking -->
+        <div class="guide-section" id="eye-tracking">
+            <div class="guide-badge">XR INPUT</div>
+            <h3>Setting Up Eye Tracking with Permissions</h3>
+            <p>Eye tracking requires explicit user permission on most headsets. Raku handles the permission flow and gives you gaze direction and fixation data.</p>
+
+            <div class="guide-code">
+<span class="comment">// Request eye tracking permission (shows OS permission dialog)</span>
+<span class="type">bool</span> granted = <span class="fn">raku_xr_eye_tracking_request_permission</span>();
+
+<span class="kw">if</span> (granted) {
+    <span class="comment">// Enable eye tracking</span>
+    <span class="fn">raku_xr_eye_tracking_enable</span>(<span class="kw">true</span>);
+
+    <span class="comment">// Set gaze smoothing (0.0 = raw, 1.0 = heavily smoothed)</span>
+    <span class="fn">raku_xr_eye_tracking_set_smoothing</span>(<span class="num">0.3f</span>);
+} <span class="kw">else</span> {
+    <span class="fn">raku_log</span>(<span class="num">1</span>, <span class="str">"Eye tracking permission denied - using head gaze fallback"</span>);
+}
+</div>
+
+            <p>Read gaze data in your update loop:</p>
+            <div class="guide-code">
+<span class="comment">// In your per-frame update callback</span>
+<span class="kw">void</span> <span class="fn">on_update</span>(<span class="type">float</span> dt) {
+    <span class="type">float</span> gaze_origin[<span class="num">3</span>], gaze_dir[<span class="num">3</span>];
+    <span class="fn">raku_xr_eye_tracking_get_gaze</span>(gaze_origin, gaze_dir);
+
+    <span class="comment">// Raycast from gaze to find what the user is looking at</span>
+    <span class="type">RakuRayHit</span> hit;
+    <span class="kw">if</span> (<span class="fn">raku_physics_raycast</span>(gaze_origin, gaze_dir, <span class="num">100.0f</span>, &amp;hit)) {
+        <span class="comment">// Highlight the object the user is looking at</span>
+        <span class="fn">raku_scene_set_outline</span>(hit.tag, <span class="kw">true</span>);
+    }
+
+    <span class="comment">// Check if user is fixating (staring at one spot)</span>
+    <span class="type">bool</span> fixating = <span class="fn">raku_xr_eye_tracking_is_fixating</span>();
+    <span class="kw">if</span> (fixating) {
+        <span class="comment">// Trigger dwell-based selection after 1.5 seconds</span>
+        <span class="fn">raku_xr_eye_tracking_dwell_select</span>(<span class="num">1.5f</span>, on_dwell_select);
+    }
+}
+</div>
+
+            <div class="guide-note">
+                <strong>Privacy:</strong> Eye tracking data never leaves the device. Raku processes all gaze data on-device and does not transmit it to any server. See the <a href="../privacy.html" style="color: var(--accent-bright);">privacy policy</a> for details.
+            </div>
+        </div>
+
+        <!-- Haptic Feedback -->
+        <div class="guide-section" id="haptics">
+            <div class="guide-badge">XR FEEDBACK</div>
+            <h3>Adding Haptic Feedback to Interactions</h3>
+            <p>Haptic feedback makes XR interactions feel tangible. Raku supports controller vibration, hand haptics, and custom haptic patterns.</p>
+
+            <div class="guide-code">
+<span class="comment">// Simple vibration on the right controller (intensity 0.0-1.0, duration in seconds)</span>
+<span class="fn">raku_xr_haptic_pulse</span>(RAKU_HAND_RIGHT, <span class="num">0.5f</span>, <span class="num">0.1f</span>);
+
+<span class="comment">// Different intensities for different interactions</span>
+<span class="fn">raku_xr_haptic_pulse</span>(RAKU_HAND_LEFT, <span class="num">0.2f</span>, <span class="num">0.05f</span>);  <span class="comment">// Light tap</span>
+<span class="fn">raku_xr_haptic_pulse</span>(RAKU_HAND_RIGHT, <span class="num">0.8f</span>, <span class="num">0.3f</span>); <span class="comment">// Strong buzz</span>
+<span class="fn">raku_xr_haptic_pulse</span>(RAKU_HAND_RIGHT, <span class="num">1.0f</span>, <span class="num">0.5f</span>); <span class="comment">// Impact</span>
+</div>
+
+            <p>Create custom haptic patterns for richer feedback:</p>
+            <div class="guide-code">
+<span class="comment">// Define a haptic pattern: pairs of (intensity, duration)</span>
+<span class="type">RakuHapticSegment</span> pattern[] = {
+    { <span class="num">0.3f</span>, <span class="num">0.05f</span> },  <span class="comment">// light</span>
+    { <span class="num">0.0f</span>, <span class="num">0.03f</span> },  <span class="comment">// pause</span>
+    { <span class="num">0.6f</span>, <span class="num">0.05f</span> },  <span class="comment">// medium</span>
+    { <span class="num">0.0f</span>, <span class="num">0.03f</span> },  <span class="comment">// pause</span>
+    { <span class="num">1.0f</span>, <span class="num">0.1f</span>  },  <span class="comment">// strong</span>
+};
+
+<span class="comment">// Play the pattern on the right hand</span>
+<span class="fn">raku_xr_haptic_play_pattern</span>(RAKU_HAND_RIGHT, pattern, <span class="num">5</span>);
+
+<span class="comment">// Register a named haptic effect for reuse</span>
+<span class="fn">raku_xr_haptic_register_effect</span>(<span class="str">"grab_object"</span>, pattern, <span class="num">5</span>);
+
+<span class="comment">// Later, play by name</span>
+<span class="fn">raku_xr_haptic_play_effect</span>(RAKU_HAND_RIGHT, <span class="str">"grab_object"</span>);
+</div>
+        </div>
+
+        <!-- Passthrough -->
+        <div class="guide-section" id="passthrough">
+            <div class="guide-badge">MIXED REALITY</div>
+            <h3>Enabling Passthrough / Mixed Reality Mode</h3>
+            <p>Passthrough lets users see the real world through their headset cameras, with virtual content overlaid on top. This is the foundation of mixed reality in Raku.</p>
+
+            <div class="guide-code">
+<span class="comment">// Switch to mixed reality mode (enables passthrough)</span>
+<span class="fn">raku_xr_set_mode</span>(<span class="str">"mr"</span>);
+
+<span class="comment">// Configure passthrough blend (0.0 = fully virtual, 1.0 = fully real)</span>
+<span class="fn">raku_xr_passthrough_set_opacity</span>(<span class="num">1.0f</span>);
+
+<span class="comment">// Set the background to passthrough (transparent clear color)</span>
+<span class="type">float</span> clear_color[] = { <span class="num">0.0f</span>, <span class="num">0.0f</span>, <span class="num">0.0f</span>, <span class="num">0.0f</span> };
+<span class="fn">raku_renderer_set_clear_color</span>(clear_color);
+</div>
+
+            <p>You can also create a passthrough window or portal rather than full passthrough:</p>
+            <div class="guide-code">
+<span class="comment">// Create a circular passthrough portal at a world position</span>
+<span class="fn">raku_xr_passthrough_create_portal</span>(
+    <span class="num">0.0f</span>, <span class="num">1.5f</span>, <span class="num">-2.0f</span>,  <span class="comment">// position (x, y, z)</span>
+    <span class="num">1.0f</span>,                    <span class="comment">// radius in meters</span>
+    <span class="str">"portal_1"</span>              <span class="comment">// tag for later reference</span>
+);
+
+<span class="comment">// Toggle passthrough on/off at runtime</span>
+<span class="fn">raku_xr_passthrough_set_enabled</span>(<span class="kw">true</span>);
+</div>
+
+            <div class="guide-note">
+                <strong>Compatibility:</strong> Passthrough requires a headset with camera passthrough capability (Meta Quest 3, Quest Pro, Pico 4, etc.). On devices without passthrough, <code>raku_xr_set_mode("mr")</code> falls back to VR mode gracefully.
+            </div>
+        </div>
+
+        <!-- First Interaction -->
+        <div class="guide-section" id="first-interaction">
+            <div class="guide-badge">STEP-BY-STEP</div>
+            <h3>Your First Hand-Tracked Interaction</h3>
+            <p>Let's put it all together and build a complete hand-tracked interaction: picking up a virtual cube with your hand, getting haptic feedback, and placing it on a surface.</p>
+
+            <p><strong style="color: var(--text-primary);">Step 1: Initialize everything</strong></p>
+            <div class="guide-code">
+<span class="fn">raku_init</span>();
+<span class="fn">raku_xr_init</span>(<span class="str">"vr"</span>);
+<span class="fn">raku_renderer_create_window</span>(<span class="num">1280</span>, <span class="num">720</span>, <span class="str">"Hand Tracking Demo"</span>, <span class="kw">true</span>);
+<span class="fn">raku_renderer_create_camera</span>(<span class="str">"main"</span>, <span class="num">90.0f</span>, <span class="num">0.01f</span>, <span class="num">100.0f</span>);
+
+<span class="comment">// Set up physics for grabbable objects</span>
+<span class="type">float</span> gravity[] = { <span class="num">0.0f</span>, <span class="num">-9.81f</span>, <span class="num">0.0f</span> };
+<span class="fn">raku_physics_create_world</span>(gravity);
+
+<span class="comment">// Enable hand tracking</span>
+<span class="fn">raku_xr_hand_tracking_enable</span>(<span class="kw">true</span>);
+</div>
+
+            <p><strong style="color: var(--text-primary);">Step 2: Create a grabbable cube</strong></p>
+            <div class="guide-code">
+<span class="comment">// Create a scene and add a cube</span>
+<span class="fn">raku_scene_create</span>(<span class="str">"main_scene"</span>);
+<span class="fn">raku_scene_add_model</span>(<span class="str">"cube.glb"</span>, <span class="num">0.0f</span>, <span class="num">1.0f</span>, <span class="num">-0.5f</span>);
+
+<span class="comment">// Make it a rigid body so it can be grabbed and dropped</span>
+<span class="fn">raku_physics_add_rigidbody</span>(<span class="str">"cube.glb"</span>, <span class="num">0.5f</span>);
+<span class="fn">raku_physics_add_collider</span>(<span class="str">"cube.glb"</span>, <span class="str">"box"</span>);
+
+<span class="comment">// Add a floor so the cube doesn't fall forever</span>
+<span class="fn">raku_scene_add_model</span>(<span class="str">"floor.glb"</span>, <span class="num">0.0f</span>, <span class="num">0.0f</span>, <span class="num">0.0f</span>);
+<span class="fn">raku_physics_add_static_collider</span>(<span class="str">"floor.glb"</span>, <span class="str">"box"</span>);
+</div>
+
+            <p><strong style="color: var(--text-primary);">Step 3: Register the grab gesture</strong></p>
+            <div class="guide-code">
+<span class="type">bool</span> is_grabbing = <span class="kw">false</span>;
+<span class="type">const char</span>* grabbed_object = <span class="kw">NULL</span>;
+
+<span class="kw">void</span> <span class="fn">on_grab</span>(<span class="type">RakuHandEvent</span>* event) {
+    <span class="kw">if</span> (event-&gt;phase == RAKU_GESTURE_BEGIN) {
+        <span class="comment">// Raycast from the palm to see if we're near an object</span>
+        <span class="type">float</span> palm_pos[<span class="num">3</span>];
+        <span class="fn">raku_xr_hand_get_joint_position</span>(event-&gt;hand, RAKU_JOINT_PALM, palm_pos);
+
+        <span class="type">RakuRayHit</span> hit;
+        <span class="type">float</span> down[] = { <span class="num">0</span>, <span class="num">-1</span>, <span class="num">0</span> };
+        <span class="kw">if</span> (<span class="fn">raku_physics_raycast</span>(palm_pos, down, <span class="num">0.15f</span>, &amp;hit)) {
+            grabbed_object = hit.tag;
+            is_grabbing = <span class="kw">true</span>;
+
+            <span class="comment">// Make object kinematic while held</span>
+            <span class="fn">raku_physics_set_kinematic</span>(grabbed_object, <span class="kw">true</span>);
+
+            <span class="comment">// Haptic feedback on grab</span>
+            <span class="fn">raku_xr_haptic_pulse</span>(event-&gt;hand, <span class="num">0.6f</span>, <span class="num">0.1f</span>);
+        }
+    }
+    <span class="kw">else if</span> (event-&gt;phase == RAKU_GESTURE_END &amp;&amp; is_grabbing) {
+        <span class="comment">// Release the object</span>
+        <span class="fn">raku_physics_set_kinematic</span>(grabbed_object, <span class="kw">false</span>);
+
+        <span class="comment">// Light haptic tap on release</span>
+        <span class="fn">raku_xr_haptic_pulse</span>(event-&gt;hand, <span class="num">0.2f</span>, <span class="num">0.05f</span>);
+
+        is_grabbing = <span class="kw">false</span>;
+        grabbed_object = <span class="kw">NULL</span>;
+    }
+}
+
+<span class="fn">raku_xr_hand_gesture_register</span>(<span class="str">"grab"</span>, on_grab);
+</div>
+
+            <p><strong style="color: var(--text-primary);">Step 4: Update grabbed object position each frame</strong></p>
+            <div class="guide-code">
+<span class="kw">void</span> <span class="fn">on_update</span>(<span class="type">float</span> dt) {
+    <span class="kw">if</span> (is_grabbing &amp;&amp; grabbed_object) {
+        <span class="comment">// Move the object to follow the hand</span>
+        <span class="type">float</span> palm_pos[<span class="num">3</span>];
+        <span class="fn">raku_xr_hand_get_joint_position</span>(RAKU_HAND_RIGHT, RAKU_JOINT_PALM, palm_pos);
+        <span class="fn">raku_physics_set_position</span>(grabbed_object, palm_pos[<span class="num">0</span>], palm_pos[<span class="num">1</span>], palm_pos[<span class="num">2</span>]);
+    }
+}
+</div>
+
+            <p><strong style="color: var(--text-primary);">Step 5: Start the game loop</strong></p>
+            <div class="guide-code">
+<span class="comment">// Register the update callback and start</span>
+<span class="fn">raku_scene_set_update_callback</span>(on_update);
+<span class="fn">raku_scene_start_loop</span>();
+
+<span class="comment">// Cleanup on exit</span>
+<span class="fn">raku_xr_shutdown</span>();
+<span class="fn">raku_shutdown</span>();
+</div>
+
+            <div class="guide-note">
+                <strong>Next steps:</strong> Now that you have basic hand tracking working, explore the <a href="mixed-reality-tutorial.html" style="color: var(--accent-bright);">Mixed Reality tutorial</a> to place objects on real surfaces, or the <a href="physics-tutorial.html" style="color: var(--accent-bright);">Physics tutorial</a> to add more realistic object behavior.
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+        <h2>Ready for More?</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
+            Explore the full XR API reference or check out more tutorials on physics, AI, and spatial audio.
+        </p>
+        <div class="cta-group">
+            <a href="index.html" class="btn btn-secondary">All Tutorials</a>
+            <a href="../docs.html" class="btn btn-primary">API Reference</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="../docs.html">Documentation</a>
+            <a href="../privacy.html">Privacy</a>
+            <a href="../terms.html">Terms</a>
+            <a href="mailto:hello@rakuai.com">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Protected by 5 granted patents (priority July 2012).</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. &#x697D;AI and &#x697D;XR are stylized marks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+</body>
+</html>
