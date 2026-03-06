@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Building Interactive Physics Worlds - RakuAI Tutorials</title>
+    <meta name="description" content="Learn to build physics-driven worlds in Raku: rigid bodies, collisions, raycasting, joints, and performance optimization.">
+    <meta property="og:title" content="Building Interactive Physics Worlds - RakuAI">
+    <meta property="og:description" content="Create rigid bodies, collision shapes, raycasts, and joints. Build a complete physics-based puzzle room.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://rakuai.com/tutorials/physics-tutorial">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/tutorials/physics-tutorial.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .guide-section { padding: 48px 0; border-bottom: 1px solid #222244; }
+        .guide-section:last-of-type { border-bottom: none; }
+        .guide-section h3 { color: var(--accent-bright); font-size: 1.6rem; margin-bottom: 16px; }
+        .guide-section > p, .guide-section > ul { color: var(--text-secondary); font-size: 1.05rem; line-height: 1.7; margin-bottom: 24px; max-width: 800px; }
+        .guide-section ul { padding-left: 24px; }
+        .guide-section li { margin-bottom: 8px; }
+        .guide-badge { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 12px; }
+        .guide-code { background: #0d0d1f; border: 1px solid #222244; border-radius: 8px; padding: 24px; font-family: 'Courier New', monospace; font-size: 0.9rem; line-height: 1.8; overflow-x: auto; margin: 16px 0 24px; }
+        .guide-code .comment { color: #6272a4; font-style: italic; }
+        .guide-code .fn { color: #50fa7b; }
+        .guide-code .str { color: #f1fa8c; }
+        .guide-code .kw { color: #ff79c6; font-weight: 600; }
+        .guide-code .num { color: #bd93f9; }
+        .guide-code .type { color: #8be9fd; }
+        .guide-note { background: var(--bg-secondary); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; color: var(--text-secondary); font-size: 0.95rem; }
+        .guide-note strong { color: var(--accent-bright); }
+        .guide-toc { background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 32px; max-width: 600px; margin: 0 auto 48px; }
+        .guide-toc h3 { color: var(--text-primary); margin-bottom: 16px; font-size: 1.2rem; }
+        .guide-toc ol { list-style: none; counter-reset: toc; }
+        .guide-toc li { counter-increment: toc; padding: 8px 0; border-bottom: 1px solid #222244; }
+        .guide-toc li:last-child { border-bottom: none; }
+        .guide-toc li::before { content: counter(toc) ". "; color: var(--accent-bright); font-weight: 700; }
+        .guide-toc a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .guide-toc a:hover { color: var(--accent-bright); }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../sdk.html">SDK</a>
+            <a href="../docs.html">Docs</a>
+            <a href="../spatial-engine.html">Spatial</a>
+            <a href="../xr-features.html">XR</a>
+            <a href="../ai-systems.html">AI</a>
+            <a href="../templates.html">Templates</a>
+            <a href="../llm-guide.html">LLM Guide</a>
+            <a href="../pricing.html">Pricing</a>
+            <a href="../pro-features.html">Pro</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">Download Runtime</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <div style="display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 16px;">INTERMEDIATE TUTORIAL</div>
+        <h1>Building Interactive Physics Worlds</h1>
+        <p class="subtitle">Rigid bodies, collisions, raycasting, joints, and optimization. Build a physics-based puzzle room from scratch.</p>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;"><a href="index.html" style="color: var(--accent-bright);">&larr; All Tutorials</a></p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="guide-toc">
+            <h3>In This Tutorial</h3>
+            <ol>
+                <li><a href="#physics-world">Setting Up the Physics World</a></li>
+                <li><a href="#rigidbody">Creating Your First Rigidbody</a></li>
+                <li><a href="#collisions">Adding Collision Shapes and Responses</a></li>
+                <li><a href="#raycasting">Raycasting for Object Picking</a></li>
+                <li><a href="#joints">Creating Joints (Hinges, Springs, and More)</a></li>
+                <li><a href="#optimization">Performance Optimization Tips</a></li>
+                <li><a href="#complete-example">Complete Example: Physics-Based Puzzle Room</a></li>
+            </ol>
+        </div>
+
+        <!-- Physics World -->
+        <div class="guide-section" id="physics-world">
+            <div class="guide-badge">FUNDAMENTALS</div>
+            <h3>Setting Up the Physics World</h3>
+            <p>Every physics simulation starts with a world. The physics world manages gravity, collision detection, and constraint solving for all physics objects in your scene.</p>
+
+            <div class="guide-code">
+<span class="fn">raku_init</span>();
+<span class="fn">raku_renderer_create_window</span>(<span class="num">1280</span>, <span class="num">720</span>, <span class="str">"Physics World"</span>, <span class="kw">true</span>);
+<span class="fn">raku_renderer_create_camera</span>(<span class="str">"main"</span>, <span class="num">60.0f</span>, <span class="num">0.1f</span>, <span class="num">500.0f</span>);
+
+<span class="comment">// Create physics world with Earth gravity</span>
+<span class="type">float</span> gravity[] = { <span class="num">0.0f</span>, <span class="num">-9.81f</span>, <span class="num">0.0f</span> };
+<span class="fn">raku_physics_create_world</span>(gravity);
+
+<span class="comment">// Configure physics timestep (default: 1/60s fixed step)</span>
+<span class="fn">raku_physics_set_fixed_timestep</span>(<span class="num">1.0f</span> / <span class="num">60.0f</span>);
+
+<span class="comment">// Set maximum substeps per frame (prevents spiral of death)</span>
+<span class="fn">raku_physics_set_max_substeps</span>(<span class="num">4</span>);
+</div>
+
+            <div class="guide-note">
+                <strong>Tip:</strong> For XR applications, use a fixed timestep of 1/90s to match common headset refresh rates. This prevents physics jitter in VR.
+            </div>
+        </div>
+
+        <!-- Rigidbody -->
+        <div class="guide-section" id="rigidbody">
+            <div class="guide-badge">CORE CONCEPTS</div>
+            <h3>Creating Your First Rigidbody</h3>
+            <p>A rigidbody is any object that responds to physics forces: gravity, collisions, impulses. You control its mass, friction, and bounciness.</p>
+
+            <div class="guide-code">
+<span class="comment">// Add a 3D model to the scene</span>
+<span class="fn">raku_scene_create</span>(<span class="str">"physics_demo"</span>);
+<span class="fn">raku_scene_add_model</span>(<span class="str">"crate.glb"</span>, <span class="num">0.0f</span>, <span class="num">5.0f</span>, <span class="num">0.0f</span>);
+
+<span class="comment">// Make it a dynamic rigid body (mass in kg)</span>
+<span class="fn">raku_physics_add_rigidbody</span>(<span class="str">"crate.glb"</span>, <span class="num">2.0f</span>);
+
+<span class="comment">// Set material properties</span>
+<span class="fn">raku_physics_set_friction</span>(<span class="str">"crate.glb"</span>, <span class="num">0.6f</span>);       <span class="comment">// 0 = ice, 1 = sandpaper</span>
+<span class="fn">raku_physics_set_restitution</span>(<span class="str">"crate.glb"</span>, <span class="num">0.3f</span>);   <span class="comment">// 0 = no bounce, 1 = superball</span>
+
+<span class="comment">// Set linear and angular damping (simulates air resistance)</span>
+<span class="fn">raku_physics_set_damping</span>(<span class="str">"crate.glb"</span>, <span class="num">0.1f</span>, <span class="num">0.05f</span>);
+</div>
+
+            <p>Apply forces and impulses to move objects:</p>
+            <div class="guide-code">
+<span class="comment">// Apply a continuous force (call every frame for sustained push)</span>
+<span class="type">float</span> force[] = { <span class="num">0.0f</span>, <span class="num">0.0f</span>, <span class="num">-10.0f</span> };
+<span class="fn">raku_physics_apply_force</span>(<span class="str">"crate.glb"</span>, force);
+
+<span class="comment">// Apply an impulse (one-time kick, like an explosion)</span>
+<span class="type">float</span> impulse[] = { <span class="num">0.0f</span>, <span class="num">50.0f</span>, <span class="num">0.0f</span> };
+<span class="fn">raku_physics_apply_impulse</span>(<span class="str">"crate.glb"</span>, impulse);
+
+<span class="comment">// Apply torque for rotation</span>
+<span class="type">float</span> torque[] = { <span class="num">0.0f</span>, <span class="num">5.0f</span>, <span class="num">0.0f</span> };
+<span class="fn">raku_physics_apply_torque</span>(<span class="str">"crate.glb"</span>, torque);
+</div>
+        </div>
+
+        <!-- Collisions -->
+        <div class="guide-section" id="collisions">
+            <div class="guide-badge">COLLISION</div>
+            <h3>Adding Collision Shapes and Responses</h3>
+            <p>Every physics object needs a collider shape. Raku supports boxes, spheres, capsules, convex hulls, and triangle meshes.</p>
+
+            <div class="guide-code">
+<span class="comment">// Box collider (best for crates, walls, platforms)</span>
+<span class="fn">raku_physics_add_collider</span>(<span class="str">"crate.glb"</span>, <span class="str">"box"</span>);
+
+<span class="comment">// Sphere collider (best for balls, round objects)</span>
+<span class="fn">raku_physics_add_collider</span>(<span class="str">"ball.glb"</span>, <span class="str">"sphere"</span>);
+
+<span class="comment">// Capsule collider (best for characters, pillars)</span>
+<span class="fn">raku_physics_add_collider</span>(<span class="str">"npc.glb"</span>, <span class="str">"capsule"</span>);
+
+<span class="comment">// Convex hull (auto-generated from mesh, max 256 vertices)</span>
+<span class="fn">raku_physics_add_collider</span>(<span class="str">"rock.glb"</span>, <span class="str">"convex"</span>);
+
+<span class="comment">// Static triangle mesh (for complex level geometry, static only)</span>
+<span class="fn">raku_physics_add_static_collider</span>(<span class="str">"level.glb"</span>, <span class="str">"mesh"</span>);
+</div>
+
+            <p>Register callbacks for collision events:</p>
+            <div class="guide-code">
+<span class="kw">void</span> <span class="fn">on_collision</span>(<span class="type">RakuCollisionEvent</span>* event) {
+    <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Collision: %s hit %s at force %.2f"</span>,
+        event-&gt;tag_a, event-&gt;tag_b, event-&gt;impact_force);
+
+    <span class="comment">// Play a sound based on impact force</span>
+    <span class="kw">if</span> (event-&gt;impact_force &gt; <span class="num">5.0f</span>) {
+        <span class="fn">raku_audio_play_spatial</span>(<span class="str">"impact_hard"</span>,
+            event-&gt;contact_point[<span class="num">0</span>],
+            event-&gt;contact_point[<span class="num">1</span>],
+            event-&gt;contact_point[<span class="num">2</span>]);
+    }
+}
+
+<span class="comment">// Register for collisions on a specific object</span>
+<span class="fn">raku_physics_on_collision</span>(<span class="str">"crate.glb"</span>, on_collision);
+
+<span class="comment">// Or register for all collisions in the world</span>
+<span class="fn">raku_physics_on_collision_global</span>(on_collision);
+</div>
+
+            <p>Use collision layers to control which objects interact:</p>
+            <div class="guide-code">
+<span class="comment">// Define collision layers</span>
+<span class="kw">#define</span> LAYER_DEFAULT  <span class="num">0x01</span>
+<span class="kw">#define</span> LAYER_PLAYER   <span class="num">0x02</span>
+<span class="kw">#define</span> LAYER_PICKUP   <span class="num">0x04</span>
+<span class="kw">#define</span> LAYER_TRIGGER  <span class="num">0x08</span>
+
+<span class="comment">// Set an object's collision layer</span>
+<span class="fn">raku_physics_set_collision_layer</span>(<span class="str">"crate.glb"</span>, LAYER_PICKUP);
+
+<span class="comment">// Set which layers this object collides with</span>
+<span class="fn">raku_physics_set_collision_mask</span>(<span class="str">"crate.glb"</span>, LAYER_DEFAULT | LAYER_PLAYER);
+
+<span class="comment">// Triggers: detect overlap without physical response</span>
+<span class="fn">raku_physics_set_trigger</span>(<span class="str">"zone.glb"</span>, <span class="kw">true</span>);
+<span class="fn">raku_physics_on_trigger_enter</span>(<span class="str">"zone.glb"</span>, on_zone_enter);
+<span class="fn">raku_physics_on_trigger_exit</span>(<span class="str">"zone.glb"</span>, on_zone_exit);
+</div>
+        </div>
+
+        <!-- Raycasting -->
+        <div class="guide-section" id="raycasting">
+            <div class="guide-badge">QUERIES</div>
+            <h3>Raycasting for Object Picking</h3>
+            <p>Raycasting shoots an invisible ray into the scene and returns what it hits. Essential for mouse picking, laser pointers, line-of-sight checks, and gaze interaction.</p>
+
+            <div class="guide-code">
+<span class="comment">// Simple raycast: origin, direction, max distance</span>
+<span class="type">float</span> origin[] = { <span class="num">0.0f</span>, <span class="num">1.5f</span>, <span class="num">0.0f</span> };
+<span class="type">float</span> direction[] = { <span class="num">0.0f</span>, <span class="num">0.0f</span>, <span class="num">-1.0f</span> };
+
+<span class="type">RakuRayHit</span> hit;
+<span class="kw">if</span> (<span class="fn">raku_physics_raycast</span>(origin, direction, <span class="num">100.0f</span>, &amp;hit)) {
+    <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Hit: %s at distance %.2f"</span>, hit.tag, hit.distance);
+    <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"  Position: (%.2f, %.2f, %.2f)"</span>,
+        hit.point[<span class="num">0</span>], hit.point[<span class="num">1</span>], hit.point[<span class="num">2</span>]);
+    <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"  Normal: (%.2f, %.2f, %.2f)"</span>,
+        hit.normal[<span class="num">0</span>], hit.normal[<span class="num">1</span>], hit.normal[<span class="num">2</span>]);
+}
+</div>
+
+            <p>Cast against specific layers or cast multiple rays:</p>
+            <div class="guide-code">
+<span class="comment">// Raycast against specific layers only</span>
+<span class="kw">if</span> (<span class="fn">raku_physics_raycast_layer</span>(origin, direction, <span class="num">100.0f</span>, LAYER_PICKUP, &amp;hit)) {
+    <span class="comment">// Only hits objects on the PICKUP layer</span>
+    <span class="fn">raku_scene_set_outline</span>(hit.tag, <span class="kw">true</span>);
+}
+
+<span class="comment">// Raycast all: returns every object along the ray</span>
+<span class="type">RakuRayHit</span> hits[<span class="num">16</span>];
+<span class="type">int</span> count = <span class="fn">raku_physics_raycast_all</span>(origin, direction, <span class="num">100.0f</span>, hits, <span class="num">16</span>);
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; count; i++) {
+    <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Hit %d: %s at %.2f"</span>, i, hits[i].tag, hits[i].distance);
+}
+
+<span class="comment">// Sphere cast: thicker ray, useful for character movement</span>
+<span class="kw">if</span> (<span class="fn">raku_physics_spherecast</span>(origin, direction, <span class="num">0.5f</span>, <span class="num">10.0f</span>, &amp;hit)) {
+    <span class="comment">// Detected an obstacle within a 0.5m radius tube</span>
+}
+</div>
+        </div>
+
+        <!-- Joints -->
+        <div class="guide-section" id="joints">
+            <div class="guide-badge">CONSTRAINTS</div>
+            <h3>Creating Joints (Hinges, Springs, and More)</h3>
+            <p>Joints connect two rigid bodies together with constraints. Use them to build doors, swinging platforms, chains, ragdolls, and mechanical contraptions.</p>
+
+            <div class="guide-code">
+<span class="comment">// Hinge joint: a door that swings on an axis</span>
+<span class="fn">raku_scene_add_model</span>(<span class="str">"door.glb"</span>, <span class="num">2.0f</span>, <span class="num">1.5f</span>, <span class="num">0.0f</span>);
+<span class="fn">raku_physics_add_rigidbody</span>(<span class="str">"door.glb"</span>, <span class="num">5.0f</span>);
+<span class="fn">raku_physics_add_collider</span>(<span class="str">"door.glb"</span>, <span class="str">"box"</span>);
+
+<span class="type">RakuJointConfig</span> hinge = {
+    .type = <span class="str">"hinge"</span>,
+    .body_a = <span class="str">"door_frame.glb"</span>,  <span class="comment">// static anchor</span>
+    .body_b = <span class="str">"door.glb"</span>,        <span class="comment">// swinging door</span>
+    .anchor = { <span class="num">2.0f</span>, <span class="num">1.5f</span>, <span class="num">0.5f</span> },
+    .axis = { <span class="num">0.0f</span>, <span class="num">1.0f</span>, <span class="num">0.0f</span> },  <span class="comment">// rotate around Y axis</span>
+    .limit_min = <span class="num">0.0f</span>,               <span class="comment">// degrees</span>
+    .limit_max = <span class="num">90.0f</span>,
+};
+<span class="fn">raku_physics_create_joint</span>(&amp;hinge);
+</div>
+
+            <p>Spring joints for bouncy platforms:</p>
+            <div class="guide-code">
+<span class="comment">// Spring joint: a platform that bounces</span>
+<span class="fn">raku_scene_add_model</span>(<span class="str">"platform.glb"</span>, <span class="num">0.0f</span>, <span class="num">2.0f</span>, <span class="num">-3.0f</span>);
+<span class="fn">raku_physics_add_rigidbody</span>(<span class="str">"platform.glb"</span>, <span class="num">1.0f</span>);
+<span class="fn">raku_physics_add_collider</span>(<span class="str">"platform.glb"</span>, <span class="str">"box"</span>);
+
+<span class="type">RakuJointConfig</span> spring = {
+    .type = <span class="str">"spring"</span>,
+    .body_a = <span class="str">"ceiling.glb"</span>,
+    .body_b = <span class="str">"platform.glb"</span>,
+    .anchor = { <span class="num">0.0f</span>, <span class="num">4.0f</span>, <span class="num">-3.0f</span> },
+    .spring_stiffness = <span class="num">200.0f</span>,  <span class="comment">// N/m</span>
+    .spring_damping = <span class="num">5.0f</span>,      <span class="comment">// damping ratio</span>
+    .spring_rest_length = <span class="num">2.0f</span>,  <span class="comment">// meters</span>
+};
+<span class="fn">raku_physics_create_joint</span>(&amp;spring);
+</div>
+
+            <p>More joint types:</p>
+            <div class="guide-code">
+<span class="comment">// Fixed joint: welds two objects together (breakable)</span>
+<span class="type">RakuJointConfig</span> fixed = {
+    .type = <span class="str">"fixed"</span>,
+    .body_a = <span class="str">"wall.glb"</span>,
+    .body_b = <span class="str">"shelf.glb"</span>,
+    .break_force = <span class="num">500.0f</span>,  <span class="comment">// breaks if force exceeds 500N</span>
+};
+<span class="fn">raku_physics_create_joint</span>(&amp;fixed);
+
+<span class="comment">// Ball-socket joint: free rotation around a point (ragdoll shoulders)</span>
+<span class="type">RakuJointConfig</span> ball = {
+    .type = <span class="str">"ball"</span>,
+    .body_a = <span class="str">"torso.glb"</span>,
+    .body_b = <span class="str">"upper_arm.glb"</span>,
+    .anchor = { <span class="num">0.3f</span>, <span class="num">1.4f</span>, <span class="num">0.0f</span> },
+    .cone_angle = <span class="num">60.0f</span>,  <span class="comment">// limit rotation to a cone</span>
+};
+<span class="fn">raku_physics_create_joint</span>(&amp;ball);
+
+<span class="comment">// Slider joint: movement along one axis (elevator, piston)</span>
+<span class="type">RakuJointConfig</span> slider = {
+    .type = <span class="str">"slider"</span>,
+    .body_a = <span class="str">"rail.glb"</span>,
+    .body_b = <span class="str">"elevator.glb"</span>,
+    .axis = { <span class="num">0.0f</span>, <span class="num">1.0f</span>, <span class="num">0.0f</span> },
+    .limit_min = <span class="num">0.0f</span>,
+    .limit_max = <span class="num">5.0f</span>,  <span class="comment">// 5 meters of travel</span>
+};
+<span class="fn">raku_physics_create_joint</span>(&amp;slider);
+</div>
+        </div>
+
+        <!-- Optimization -->
+        <div class="guide-section" id="optimization">
+            <div class="guide-badge">PERFORMANCE</div>
+            <h3>Performance Optimization Tips</h3>
+            <p>Physics can be expensive. Follow these guidelines to keep your simulation running smoothly, especially on mobile XR headsets.</p>
+
+            <ul>
+                <li><strong style="color: var(--text-primary);">Use simple colliders</strong> &mdash; Prefer boxes and spheres over convex hulls. Triangle meshes should only be used for static geometry.</li>
+                <li><strong style="color: var(--text-primary);">Sleep idle objects</strong> &mdash; The engine automatically sleeps objects that stop moving. Avoid waking them unnecessarily.</li>
+                <li><strong style="color: var(--text-primary);">Limit active rigidbodies</strong> &mdash; Keep under 200 active rigidbodies on Quest-class hardware, under 500 on desktop.</li>
+                <li><strong style="color: var(--text-primary);">Use collision layers</strong> &mdash; Reduce the number of collision pairs by grouping objects into layers.</li>
+                <li><strong style="color: var(--text-primary);">Fixed timestep matters</strong> &mdash; Smaller timesteps are more accurate but more expensive. 1/60s is a good default.</li>
+            </ul>
+
+            <div class="guide-code">
+<span class="comment">// Enable physics sleeping (on by default, shown for reference)</span>
+<span class="fn">raku_physics_set_sleeping_enabled</span>(<span class="kw">true</span>);
+
+<span class="comment">// Configure sleep thresholds</span>
+<span class="fn">raku_physics_set_sleep_threshold_linear</span>(<span class="num">0.05f</span>);   <span class="comment">// m/s</span>
+<span class="fn">raku_physics_set_sleep_threshold_angular</span>(<span class="num">0.05f</span>);  <span class="comment">// rad/s</span>
+<span class="fn">raku_physics_set_sleep_time</span>(<span class="num">0.5f</span>);                  <span class="comment">// seconds idle before sleeping</span>
+
+<span class="comment">// Query physics stats for profiling</span>
+<span class="type">RakuPhysicsStats</span> stats;
+<span class="fn">raku_physics_get_stats</span>(&amp;stats);
+<span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Active bodies: %d, Contacts: %d, Step time: %.2fms"</span>,
+    stats.active_bodies, stats.contact_count, stats.step_time_ms);
+</div>
+        </div>
+
+        <!-- Complete Example -->
+        <div class="guide-section" id="complete-example">
+            <div class="guide-badge">COMPLETE EXAMPLE</div>
+            <h3>Complete Example: Physics-Based Puzzle Room</h3>
+            <p>A self-contained puzzle room where the player must stack crates to reach a button, open a hinge door, and cross a spring bridge. Demonstrates rigidbodies, colliders, joints, triggers, and raycasting all working together.</p>
+
+            <div class="guide-code">
+<span class="comment">// === Physics Puzzle Room ===</span>
+
+<span class="fn">raku_init</span>();
+<span class="fn">raku_renderer_create_window</span>(<span class="num">1280</span>, <span class="num">720</span>, <span class="str">"Puzzle Room"</span>, <span class="kw">true</span>);
+<span class="fn">raku_renderer_create_camera</span>(<span class="str">"main"</span>, <span class="num">60.0f</span>, <span class="num">0.1f</span>, <span class="num">200.0f</span>);
+<span class="fn">raku_renderer_set_camera_position</span>(<span class="str">"main"</span>, <span class="num">0.0f</span>, <span class="num">3.0f</span>, <span class="num">8.0f</span>);
+
+<span class="comment">// Audio for impact sounds</span>
+<span class="fn">raku_audio_init</span>(<span class="num">32</span>, <span class="kw">false</span>);
+<span class="fn">raku_audio_load</span>(<span class="str">"sounds/impact.wav"</span>, <span class="str">"impact"</span>);
+<span class="fn">raku_audio_load</span>(<span class="str">"sounds/door_open.wav"</span>, <span class="str">"door_open"</span>);
+<span class="fn">raku_audio_load</span>(<span class="str">"sounds/win.wav"</span>, <span class="str">"win"</span>);
+
+<span class="comment">// Physics world</span>
+<span class="type">float</span> gravity[] = { <span class="num">0.0f</span>, <span class="num">-9.81f</span>, <span class="num">0.0f</span> };
+<span class="fn">raku_physics_create_world</span>(gravity);
+
+<span class="comment">// Scene setup</span>
+<span class="fn">raku_scene_create</span>(<span class="str">"puzzle"</span>);
+
+<span class="comment">// --- Room shell (static geometry) ---</span>
+<span class="fn">raku_scene_add_model</span>(<span class="str">"room_floor.glb"</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>);
+<span class="fn">raku_physics_add_static_collider</span>(<span class="str">"room_floor.glb"</span>, <span class="str">"box"</span>);
+<span class="fn">raku_scene_add_model</span>(<span class="str">"room_walls.glb"</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>);
+<span class="fn">raku_physics_add_static_collider</span>(<span class="str">"room_walls.glb"</span>, <span class="str">"mesh"</span>);
+
+<span class="comment">// --- Stackable crates ---</span>
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; <span class="num">3</span>; i++) {
+    <span class="type">char</span> tag[<span class="num">32</span>];
+    <span class="fn">sprintf</span>(tag, <span class="str">"crate_%d"</span>, i);
+    <span class="fn">raku_scene_add_model</span>(<span class="str">"crate.glb"</span>, <span class="num">-2.0f</span> + i * <span class="num">1.5f</span>, <span class="num">0.5f</span>, <span class="num">0.0f</span>);
+    <span class="fn">raku_physics_add_rigidbody</span>(tag, <span class="num">3.0f</span>);
+    <span class="fn">raku_physics_add_collider</span>(tag, <span class="str">"box"</span>);
+    <span class="fn">raku_physics_set_friction</span>(tag, <span class="num">0.8f</span>);
+}
+
+<span class="comment">// --- Pressure button (trigger zone at height) ---</span>
+<span class="fn">raku_scene_add_model</span>(<span class="str">"button_platform.glb"</span>, <span class="num">4.0f</span>, <span class="num">3.0f</span>, <span class="num">0.0f</span>);
+<span class="fn">raku_physics_add_static_collider</span>(<span class="str">"button_platform.glb"</span>, <span class="str">"box"</span>);
+<span class="fn">raku_physics_set_trigger</span>(<span class="str">"button_platform.glb"</span>, <span class="kw">true</span>);
+
+<span class="comment">// --- Hinge door (unlocked by button) ---</span>
+<span class="fn">raku_scene_add_model</span>(<span class="str">"heavy_door.glb"</span>, <span class="num">6.0f</span>, <span class="num">1.5f</span>, <span class="num">0.0f</span>);
+<span class="fn">raku_physics_add_rigidbody</span>(<span class="str">"heavy_door.glb"</span>, <span class="num">20.0f</span>);
+<span class="fn">raku_physics_add_collider</span>(<span class="str">"heavy_door.glb"</span>, <span class="str">"box"</span>);
+<span class="fn">raku_physics_set_kinematic</span>(<span class="str">"heavy_door.glb"</span>, <span class="kw">true</span>);  <span class="comment">// locked initially</span>
+
+<span class="type">RakuJointConfig</span> door_hinge = {
+    .type = <span class="str">"hinge"</span>,
+    .body_a = <span class="str">"room_walls.glb"</span>,
+    .body_b = <span class="str">"heavy_door.glb"</span>,
+    .anchor = { <span class="num">6.0f</span>, <span class="num">1.5f</span>, <span class="num">-1.0f</span> },
+    .axis = { <span class="num">0</span>, <span class="num">1</span>, <span class="num">0</span> },
+    .limit_min = <span class="num">0</span>, .limit_max = <span class="num">120</span>,
+};
+<span class="fn">raku_physics_create_joint</span>(&amp;door_hinge);
+
+<span class="comment">// --- Spring bridge ---</span>
+<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; <span class="num">5</span>; i++) {
+    <span class="type">char</span> plank[<span class="num">32</span>];
+    <span class="fn">sprintf</span>(plank, <span class="str">"plank_%d"</span>, i);
+    <span class="fn">raku_scene_add_model</span>(<span class="str">"plank.glb"</span>, <span class="num">8.0f</span> + i * <span class="num">1.0f</span>, <span class="num">2.0f</span>, <span class="num">0.0f</span>);
+    <span class="fn">raku_physics_add_rigidbody</span>(plank, <span class="num">0.5f</span>);
+    <span class="fn">raku_physics_add_collider</span>(plank, <span class="str">"box"</span>);
+
+    <span class="type">RakuJointConfig</span> plank_spring = {
+        .type = <span class="str">"spring"</span>,
+        .body_a = <span class="str">"room_walls.glb"</span>,
+        .body_b = plank,
+        .anchor = { <span class="num">8.0f</span> + i * <span class="num">1.0f</span>, <span class="num">4.0f</span>, <span class="num">0.0f</span> },
+        .spring_stiffness = <span class="num">100.0f</span>,
+        .spring_damping = <span class="num">3.0f</span>,
+        .spring_rest_length = <span class="num">2.0f</span>,
+    };
+    <span class="fn">raku_physics_create_joint</span>(&amp;plank_spring);
+}
+
+<span class="comment">// --- Collision and trigger callbacks ---</span>
+<span class="kw">void</span> <span class="fn">on_button_pressed</span>(<span class="type">RakuTriggerEvent</span>* event) {
+    <span class="comment">// Unlock the door when a crate lands on the button</span>
+    <span class="fn">raku_physics_set_kinematic</span>(<span class="str">"heavy_door.glb"</span>, <span class="kw">false</span>);
+    <span class="type">float</span> push[] = { <span class="num">-15.0f</span>, <span class="num">0.0f</span>, <span class="num">0.0f</span> };
+    <span class="fn">raku_physics_apply_impulse</span>(<span class="str">"heavy_door.glb"</span>, push);
+    <span class="fn">raku_audio_play</span>(<span class="str">"door_open"</span>, <span class="kw">false</span>);
+}
+<span class="fn">raku_physics_on_trigger_enter</span>(<span class="str">"button_platform.glb"</span>, on_button_pressed);
+
+<span class="kw">void</span> <span class="fn">on_impact</span>(<span class="type">RakuCollisionEvent</span>* event) {
+    <span class="kw">if</span> (event-&gt;impact_force &gt; <span class="num">3.0f</span>) {
+        <span class="fn">raku_audio_play_spatial</span>(<span class="str">"impact"</span>,
+            event-&gt;contact_point[<span class="num">0</span>], event-&gt;contact_point[<span class="num">1</span>], event-&gt;contact_point[<span class="num">2</span>]);
+    }
+}
+<span class="fn">raku_physics_on_collision_global</span>(on_impact);
+
+<span class="comment">// --- Start the game loop ---</span>
+<span class="fn">raku_scene_start_loop</span>();
+<span class="fn">raku_shutdown</span>();
+</div>
+
+            <div class="guide-note">
+                <strong>Next steps:</strong> Add hand tracking to grab crates in VR using the <a href="getting-started-xr.html" style="color: var(--accent-bright);">XR tutorial</a>, or add spatial audio with the <a href="spatial-audio-tutorial.html" style="color: var(--accent-bright);">Spatial Audio tutorial</a>.
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+        <h2>Ready for More?</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
+            Explore the full Physics API (108 functions) in the documentation, or continue with another tutorial.
+        </p>
+        <div class="cta-group">
+            <a href="index.html" class="btn btn-secondary">All Tutorials</a>
+            <a href="../docs.html" class="btn btn-primary">API Reference</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="../docs.html">Documentation</a>
+            <a href="../privacy.html">Privacy</a>
+            <a href="../terms.html">Terms</a>
+            <a href="mailto:hello@rakuai.com">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Protected by 5 granted patents (priority July 2012).</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. &#x697D;AI and &#x697D;XR are stylized marks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creating Intelligent NPCs with Behavior Trees - RakuAI Tutorials</title>
+    <meta name="description" content="Build intelligent NPCs in Raku with behavior trees, NavMesh navigation, blackboard state, detection systems, and voice commands.">
+    <meta property="og:title" content="Creating Intelligent NPCs with Behavior Trees - RakuAI">
+    <meta property="og:description" content="Build patrol AI, chase behavior, NavMesh navigation, and voice-controlled NPCs with the Raku AI subsystem.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://rakuai.com/tutorials/ai-npc-tutorial">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/tutorials/ai-npc-tutorial.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .guide-section { padding: 48px 0; border-bottom: 1px solid #222244; }
+        .guide-section:last-of-type { border-bottom: none; }
+        .guide-section h3 { color: var(--accent-bright); font-size: 1.6rem; margin-bottom: 16px; }
+        .guide-section > p, .guide-section > ul { color: var(--text-secondary); font-size: 1.05rem; line-height: 1.7; margin-bottom: 24px; max-width: 800px; }
+        .guide-section ul { padding-left: 24px; }
+        .guide-section li { margin-bottom: 8px; }
+        .guide-badge { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 12px; }
+        .guide-code { background: #0d0d1f; border: 1px solid #222244; border-radius: 8px; padding: 24px; font-family: 'Courier New', monospace; font-size: 0.9rem; line-height: 1.8; overflow-x: auto; margin: 16px 0 24px; }
+        .guide-code .comment { color: #6272a4; font-style: italic; }
+        .guide-code .fn { color: #50fa7b; }
+        .guide-code .str { color: #f1fa8c; }
+        .guide-code .kw { color: #ff79c6; font-weight: 600; }
+        .guide-code .num { color: #bd93f9; }
+        .guide-code .type { color: #8be9fd; }
+        .guide-note { background: var(--bg-secondary); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; color: var(--text-secondary); font-size: 0.95rem; }
+        .guide-note strong { color: var(--accent-bright); }
+        .guide-toc { background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 32px; max-width: 600px; margin: 0 auto 48px; }
+        .guide-toc h3 { color: var(--text-primary); margin-bottom: 16px; font-size: 1.2rem; }
+        .guide-toc ol { list-style: none; counter-reset: toc; }
+        .guide-toc li { counter-increment: toc; padding: 8px 0; border-bottom: 1px solid #222244; }
+        .guide-toc li:last-child { border-bottom: none; }
+        .guide-toc li::before { content: counter(toc) ". "; color: var(--accent-bright); font-weight: 700; }
+        .guide-toc a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .guide-toc a:hover { color: var(--accent-bright); }
+        .btree-diagram { background: #0d0d1f; border: 1px solid #222244; border-radius: 8px; padding: 24px; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; overflow-x: auto; margin: 16px 0 24px; color: var(--text-secondary); white-space: pre; }
+        .btree-diagram .hl { color: var(--accent-bright); font-weight: 700; }
+        .btree-diagram .hl-green { color: #50fa7b; }
+        .btree-diagram .hl-cyan { color: var(--success); }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../sdk.html">SDK</a>
+            <a href="../docs.html">Docs</a>
+            <a href="../spatial-engine.html">Spatial</a>
+            <a href="../xr-features.html">XR</a>
+            <a href="../ai-systems.html">AI</a>
+            <a href="../templates.html">Templates</a>
+            <a href="../llm-guide.html">LLM Guide</a>
+            <a href="../pricing.html">Pricing</a>
+            <a href="../pro-features.html">Pro</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">Download Runtime</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <div style="display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 16px;">ADVANCED TUTORIAL</div>
+        <h1>Creating Intelligent NPCs with Behavior Trees</h1>
+        <p class="subtitle">Build patrol AI, detection and chase, blackboard state, NavMesh navigation, and voice commands. Complete guard NPC example included.</p>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;"><a href="index.html" style="color: var(--accent-bright);">&larr; All Tutorials</a></p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="guide-toc">
+            <h3>In This Tutorial</h3>
+            <ol>
+                <li><a href="#concepts">Understanding Behavior Tree Concepts</a></li>
+                <li><a href="#patrol">Building Your First Patrol AI</a></li>
+                <li><a href="#detection">Adding Detection and Chase Behavior</a></li>
+                <li><a href="#blackboard">Using Blackboard for NPC State</a></li>
+                <li><a href="#navmesh">NavMesh Setup for NPC Navigation</a></li>
+                <li><a href="#voice">Adding Voice Commands for NPC Interaction</a></li>
+                <li><a href="#complete-example">Complete Example: Guard NPC with Full AI</a></li>
+            </ol>
+        </div>
+
+        <!-- Concepts -->
+        <div class="guide-section" id="concepts">
+            <div class="guide-badge">FUNDAMENTALS</div>
+            <h3>Understanding Behavior Tree Concepts</h3>
+            <p>A behavior tree is a hierarchical structure that controls NPC decision-making. Unlike finite state machines, behavior trees are modular, reusable, and easy to extend.</p>
+
+            <p><strong style="color: var(--text-primary);">Core node types:</strong></p>
+            <ul>
+                <li><strong style="color: var(--text-primary);">Selector (Fallback)</strong> &mdash; Tries children left-to-right. Succeeds on the first child that succeeds. Think "OR" logic.</li>
+                <li><strong style="color: var(--text-primary);">Sequence</strong> &mdash; Runs children left-to-right. Fails on the first child that fails. Think "AND" logic.</li>
+                <li><strong style="color: var(--text-primary);">Condition</strong> &mdash; Checks a boolean condition (e.g., "is player visible?").</li>
+                <li><strong style="color: var(--text-primary);">Action</strong> &mdash; Performs an action (e.g., "move to target", "play animation").</li>
+                <li><strong style="color: var(--text-primary);">Decorator</strong> &mdash; Modifies a child node (e.g., "repeat", "invert", "cooldown").</li>
+            </ul>
+
+            <p>Here is how a simple guard AI looks as a tree:</p>
+            <div class="btree-diagram"><span class="hl">Root (Selector)</span>
+├── <span class="hl-cyan">Sequence: "Combat"</span>
+│   ├── Condition: <span class="hl-green">IsPlayerVisible?</span>
+│   ├── Action: <span class="hl-green">ChasePlayer</span>
+│   └── Action: <span class="hl-green">AttackPlayer</span>
+├── <span class="hl-cyan">Sequence: "Investigate"</span>
+│   ├── Condition: <span class="hl-green">HeardNoise?</span>
+│   ├── Action: <span class="hl-green">MoveToNoiseSource</span>
+│   └── Action: <span class="hl-green">LookAround</span>
+└── <span class="hl-cyan">Action: "Patrol"</span>
+    └── Action: <span class="hl-green">PatrolWaypoints</span></div>
+
+            <p>The tree is evaluated from top to bottom each frame. The guard first checks if it should fight, then investigate, and falls back to patrolling.</p>
+        </div>
+
+        <!-- Patrol -->
+        <div class="guide-section" id="patrol">
+            <div class="guide-badge">FIRST AI</div>
+            <h3>Building Your First Patrol AI</h3>
+            <p>Let's create an NPC that walks between waypoints in a loop. This is the foundation for most guard and enemy AI.</p>
+
+            <div class="guide-code">
+<span class="comment">// Initialize AI subsystem</span>
+<span class="fn">raku_ai_init</span>();
+
+<span class="comment">// Create an AI agent tied to a 3D model</span>
+<span class="fn">raku_scene_add_model</span>(<span class="str">"guard.glb"</span>, <span class="num">0.0f</span>, <span class="num">0.0f</span>, <span class="num">0.0f</span>);
+<span class="fn">raku_ai_create_agent</span>(<span class="str">"guard"</span>, <span class="str">"behavior_tree"</span>);
+
+<span class="comment">// Define patrol waypoints</span>
+<span class="type">float</span> waypoints[][<span class="num">3</span>] = {
+    { <span class="num">0.0f</span>,  <span class="num">0.0f</span>,  <span class="num">0.0f</span> },
+    { <span class="num">10.0f</span>, <span class="num">0.0f</span>,  <span class="num">0.0f</span> },
+    { <span class="num">10.0f</span>, <span class="num">0.0f</span>, <span class="num">-8.0f</span> },
+    { <span class="num">0.0f</span>,  <span class="num">0.0f</span>, <span class="num">-8.0f</span> },
+};
+<span class="fn">raku_ai_agent_set_patrol_points</span>(<span class="str">"guard"</span>, waypoints, <span class="num">4</span>);
+
+<span class="comment">// Configure movement</span>
+<span class="fn">raku_ai_agent_set_speed</span>(<span class="str">"guard"</span>, <span class="num">2.0f</span>);         <span class="comment">// walk speed m/s</span>
+<span class="fn">raku_ai_agent_set_turn_speed</span>(<span class="str">"guard"</span>, <span class="num">180.0f</span>);   <span class="comment">// degrees/s</span>
+<span class="fn">raku_ai_agent_set_stop_distance</span>(<span class="str">"guard"</span>, <span class="num">0.3f</span>);  <span class="comment">// meters</span>
+
+<span class="comment">// Build a simple patrol behavior tree</span>
+<span class="type">RakuBTNode</span>* patrol_tree = <span class="fn">raku_btree_create_action</span>(<span class="str">"patrol_waypoints"</span>);
+<span class="fn">raku_ai_agent_set_btree</span>(<span class="str">"guard"</span>, patrol_tree);
+</div>
+
+            <p>Add a wait at each waypoint:</p>
+            <div class="guide-code">
+<span class="comment">// Build a patrol sequence: move to waypoint, wait, then next</span>
+<span class="type">RakuBTNode</span>* move = <span class="fn">raku_btree_create_action</span>(<span class="str">"patrol_waypoints"</span>);
+<span class="type">RakuBTNode</span>* wait = <span class="fn">raku_btree_create_action</span>(<span class="str">"wait"</span>);
+<span class="fn">raku_btree_action_set_param</span>(wait, <span class="str">"duration"</span>, <span class="str">"2.0"</span>);
+
+<span class="type">RakuBTNode</span>* patrol_seq = <span class="fn">raku_btree_create_sequence</span>();
+<span class="fn">raku_btree_add_child</span>(patrol_seq, move);
+<span class="fn">raku_btree_add_child</span>(patrol_seq, wait);
+
+<span class="comment">// Wrap in a repeater so it loops forever</span>
+<span class="type">RakuBTNode</span>* patrol_loop = <span class="fn">raku_btree_create_decorator</span>(<span class="str">"repeat"</span>, patrol_seq);
+<span class="fn">raku_btree_decorator_set_param</span>(patrol_loop, <span class="str">"count"</span>, <span class="str">"-1"</span>); <span class="comment">// -1 = infinite</span>
+
+<span class="fn">raku_ai_agent_set_btree</span>(<span class="str">"guard"</span>, patrol_loop);
+</div>
+        </div>
+
+        <!-- Detection -->
+        <div class="guide-section" id="detection">
+            <div class="guide-badge">PERCEPTION</div>
+            <h3>Adding Detection and Chase Behavior</h3>
+            <p>Guards need to see and hear the player. Raku provides a perception system with vision cones, hearing ranges, and line-of-sight checks.</p>
+
+            <div class="guide-code">
+<span class="comment">// Configure the guard's vision</span>
+<span class="fn">raku_ai_agent_set_vision_range</span>(<span class="str">"guard"</span>, <span class="num">15.0f</span>);    <span class="comment">// meters</span>
+<span class="fn">raku_ai_agent_set_vision_angle</span>(<span class="str">"guard"</span>, <span class="num">120.0f</span>);    <span class="comment">// degrees (field of view)</span>
+<span class="fn">raku_ai_agent_set_hearing_range</span>(<span class="str">"guard"</span>, <span class="num">10.0f</span>);    <span class="comment">// meters</span>
+
+<span class="comment">// Mark the player as detectable</span>
+<span class="fn">raku_ai_agent_set_detectable</span>(<span class="str">"player"</span>, <span class="kw">true</span>);
+</div>
+
+            <p>Build a behavior tree that reacts to detection:</p>
+            <div class="guide-code">
+<span class="comment">// Condition nodes: check perception state</span>
+<span class="type">RakuBTNode</span>* can_see_player = <span class="fn">raku_btree_create_condition</span>(<span class="str">"can_see_target"</span>);
+<span class="fn">raku_btree_condition_set_param</span>(can_see_player, <span class="str">"target"</span>, <span class="str">"player"</span>);
+
+<span class="type">RakuBTNode</span>* heard_noise = <span class="fn">raku_btree_create_condition</span>(<span class="str">"heard_noise"</span>);
+
+<span class="comment">// Action nodes</span>
+<span class="type">RakuBTNode</span>* chase = <span class="fn">raku_btree_create_action</span>(<span class="str">"move_to_target"</span>);
+<span class="fn">raku_btree_action_set_param</span>(chase, <span class="str">"target"</span>, <span class="str">"player"</span>);
+<span class="fn">raku_btree_action_set_param</span>(chase, <span class="str">"speed"</span>, <span class="str">"4.0"</span>); <span class="comment">// run speed</span>
+
+<span class="type">RakuBTNode</span>* investigate = <span class="fn">raku_btree_create_action</span>(<span class="str">"move_to_noise"</span>);
+<span class="type">RakuBTNode</span>* look_around = <span class="fn">raku_btree_create_action</span>(<span class="str">"look_around"</span>);
+<span class="fn">raku_btree_action_set_param</span>(look_around, <span class="str">"duration"</span>, <span class="str">"3.0"</span>);
+
+<span class="comment">// Chase sequence: see player -> chase player</span>
+<span class="type">RakuBTNode</span>* chase_seq = <span class="fn">raku_btree_create_sequence</span>();
+<span class="fn">raku_btree_add_child</span>(chase_seq, can_see_player);
+<span class="fn">raku_btree_add_child</span>(chase_seq, chase);
+
+<span class="comment">// Investigate sequence: heard noise -> go to noise -> look around</span>
+<span class="type">RakuBTNode</span>* investigate_seq = <span class="fn">raku_btree_create_sequence</span>();
+<span class="fn">raku_btree_add_child</span>(investigate_seq, heard_noise);
+<span class="fn">raku_btree_add_child</span>(investigate_seq, investigate);
+<span class="fn">raku_btree_add_child</span>(investigate_seq, look_around);
+
+<span class="comment">// Root selector: try combat, then investigate, then patrol</span>
+<span class="type">RakuBTNode</span>* root = <span class="fn">raku_btree_create_selector</span>();
+<span class="fn">raku_btree_add_child</span>(root, chase_seq);
+<span class="fn">raku_btree_add_child</span>(root, investigate_seq);
+<span class="fn">raku_btree_add_child</span>(root, patrol_loop);
+
+<span class="fn">raku_ai_agent_set_btree</span>(<span class="str">"guard"</span>, root);
+</div>
+        </div>
+
+        <!-- Blackboard -->
+        <div class="guide-section" id="blackboard">
+            <div class="guide-badge">STATE</div>
+            <h3>Using Blackboard for NPC State</h3>
+            <p>The blackboard is a shared key-value store attached to each AI agent. Behavior tree nodes read and write blackboard values to share state across the tree.</p>
+
+            <div class="guide-code">
+<span class="comment">// Set initial blackboard values</span>
+<span class="fn">raku_ai_blackboard_set_float</span>(<span class="str">"guard"</span>, <span class="str">"alert_level"</span>, <span class="num">0.0f</span>);
+<span class="fn">raku_ai_blackboard_set_string</span>(<span class="str">"guard"</span>, <span class="str">"state"</span>, <span class="str">"idle"</span>);
+<span class="fn">raku_ai_blackboard_set_bool</span>(<span class="str">"guard"</span>, <span class="str">"has_weapon"</span>, <span class="kw">true</span>);
+<span class="fn">raku_ai_blackboard_set_int</span>(<span class="str">"guard"</span>, <span class="str">"health"</span>, <span class="num">100</span>);
+
+<span class="comment">// Read blackboard values from anywhere in your code</span>
+<span class="type">float</span> alert = <span class="fn">raku_ai_blackboard_get_float</span>(<span class="str">"guard"</span>, <span class="str">"alert_level"</span>);
+<span class="kw">const char</span>* state = <span class="fn">raku_ai_blackboard_get_string</span>(<span class="str">"guard"</span>, <span class="str">"state"</span>);
+</div>
+
+            <p>Create behavior tree conditions that read the blackboard:</p>
+            <div class="guide-code">
+<span class="comment">// Condition: check if alert level is high enough to chase</span>
+<span class="type">RakuBTNode</span>* is_alert = <span class="fn">raku_btree_create_condition</span>(<span class="str">"blackboard_compare_float"</span>);
+<span class="fn">raku_btree_condition_set_param</span>(is_alert, <span class="str">"key"</span>, <span class="str">"alert_level"</span>);
+<span class="fn">raku_btree_condition_set_param</span>(is_alert, <span class="str">"op"</span>, <span class="str">"greater"</span>);
+<span class="fn">raku_btree_condition_set_param</span>(is_alert, <span class="str">"value"</span>, <span class="str">"0.7"</span>);
+
+<span class="comment">// Action: write to blackboard when entering combat</span>
+<span class="type">RakuBTNode</span>* set_combat = <span class="fn">raku_btree_create_action</span>(<span class="str">"blackboard_set"</span>);
+<span class="fn">raku_btree_action_set_param</span>(set_combat, <span class="str">"key"</span>, <span class="str">"state"</span>);
+<span class="fn">raku_btree_action_set_param</span>(set_combat, <span class="str">"value"</span>, <span class="str">"combat"</span>);
+
+<span class="comment">// Gradually increase alert when player is near</span>
+<span class="kw">void</span> <span class="fn">on_update</span>(<span class="type">float</span> dt) {
+    <span class="type">float</span> alert = <span class="fn">raku_ai_blackboard_get_float</span>(<span class="str">"guard"</span>, <span class="str">"alert_level"</span>);
+
+    <span class="kw">if</span> (<span class="fn">raku_ai_agent_can_see</span>(<span class="str">"guard"</span>, <span class="str">"player"</span>)) {
+        alert += <span class="num">0.5f</span> * dt;  <span class="comment">// ramp up while visible</span>
+    } <span class="kw">else</span> {
+        alert -= <span class="num">0.1f</span> * dt;  <span class="comment">// decay slowly when out of sight</span>
+    }
+
+    alert = alert &lt; <span class="num">0.0f</span> ? <span class="num">0.0f</span> : (alert &gt; <span class="num">1.0f</span> ? <span class="num">1.0f</span> : alert);
+    <span class="fn">raku_ai_blackboard_set_float</span>(<span class="str">"guard"</span>, <span class="str">"alert_level"</span>, alert);
+}
+</div>
+        </div>
+
+        <!-- NavMesh -->
+        <div class="guide-section" id="navmesh">
+            <div class="guide-badge">NAVIGATION</div>
+            <h3>NavMesh Setup for NPC Navigation</h3>
+            <p>A NavMesh (navigation mesh) defines the walkable areas of your level. NPCs use it to find paths around obstacles, through doorways, and up stairs.</p>
+
+            <div class="guide-code">
+<span class="comment">// Generate a NavMesh from the scene geometry</span>
+<span class="fn">raku_ai_navmesh_create</span>(<span class="str">"puzzle"</span>);
+
+<span class="comment">// Configure NavMesh generation parameters</span>
+<span class="fn">raku_ai_navmesh_set_agent_radius</span>(<span class="num">0.4f</span>);    <span class="comment">// NPC body radius</span>
+<span class="fn">raku_ai_navmesh_set_agent_height</span>(<span class="num">1.8f</span>);    <span class="comment">// NPC height</span>
+<span class="fn">raku_ai_navmesh_set_step_height</span>(<span class="num">0.3f</span>);     <span class="comment">// max step (stairs)</span>
+<span class="fn">raku_ai_navmesh_set_slope_angle</span>(<span class="num">45.0f</span>);    <span class="comment">// max walkable slope</span>
+
+<span class="comment">// Build the mesh (can take a moment on complex scenes)</span>
+<span class="fn">raku_ai_navmesh_build</span>();
+</div>
+
+            <p>Use the NavMesh for pathfinding:</p>
+            <div class="guide-code">
+<span class="comment">// Find a path from point A to point B</span>
+<span class="type">float</span> start[] = { <span class="num">0.0f</span>, <span class="num">0.0f</span>, <span class="num">0.0f</span> };
+<span class="type">float</span> end[] = { <span class="num">10.0f</span>, <span class="num">0.0f</span>, <span class="num">-5.0f</span> };
+<span class="type">float</span> path[<span class="num">64</span>][<span class="num">3</span>];
+
+<span class="type">int</span> path_length = <span class="fn">raku_ai_navmesh_find_path</span>(start, end, path, <span class="num">64</span>);
+
+<span class="kw">if</span> (path_length &gt; <span class="num">0</span>) {
+    <span class="fn">raku_log</span>(<span class="num">0</span>, <span class="str">"Found path with %d waypoints"</span>, path_length);
+} <span class="kw">else</span> {
+    <span class="fn">raku_log</span>(<span class="num">1</span>, <span class="str">"No valid path found"</span>);
+}
+
+<span class="comment">// Or let an agent navigate automatically</span>
+<span class="fn">raku_ai_agent_move_to</span>(<span class="str">"guard"</span>, <span class="num">10.0f</span>, <span class="num">0.0f</span>, <span class="num">-5.0f</span>);
+</div>
+
+            <p>Add dynamic obstacles that the NavMesh respects:</p>
+            <div class="guide-code">
+<span class="comment">// Mark an object as a NavMesh obstacle</span>
+<span class="fn">raku_ai_navmesh_add_obstacle</span>(<span class="str">"barrel.glb"</span>, <span class="num">0.5f</span>);  <span class="comment">// radius</span>
+
+<span class="comment">// When the barrel moves, the NavMesh updates locally</span>
+<span class="comment">// (uses dynamic carving, not full rebuild)</span>
+
+<span class="comment">// Add off-mesh connections for jumps, ladders, etc.</span>
+<span class="type">float</span> jump_start[] = { <span class="num">3.0f</span>, <span class="num">0.0f</span>, <span class="num">0.0f</span> };
+<span class="type">float</span> jump_end[] = { <span class="num">3.0f</span>, <span class="num">2.0f</span>, <span class="num">-3.0f</span> };
+<span class="fn">raku_ai_navmesh_add_offmesh_link</span>(jump_start, jump_end, <span class="kw">true</span>); <span class="comment">// bidirectional</span>
+</div>
+        </div>
+
+        <!-- Voice Commands -->
+        <div class="guide-section" id="voice">
+            <div class="guide-badge">VOICE</div>
+            <h3>Adding Voice Commands for NPC Interaction</h3>
+            <p>Use the Raku Voice subsystem to let players talk to NPCs. Combine with the SLM (small language model) for dynamic dialogue responses.</p>
+
+            <div class="guide-code">
+<span class="comment">// Initialize voice and SLM subsystems</span>
+<span class="fn">raku_voice_init</span>();
+<span class="fn">raku_slm_init</span>();
+
+<span class="comment">// Register voice commands the NPC understands</span>
+<span class="fn">raku_voice_register_command</span>(<span class="str">"follow me"</span>, on_follow_command);
+<span class="fn">raku_voice_register_command</span>(<span class="str">"stop"</span>, on_stop_command);
+<span class="fn">raku_voice_register_command</span>(<span class="str">"go to [location]"</span>, on_goto_command);
+<span class="fn">raku_voice_register_command</span>(<span class="str">"what do you see"</span>, on_report_command);
+
+<span class="comment">// Start listening (uses on-device speech recognition)</span>
+<span class="fn">raku_voice_start_listening</span>();
+</div>
+
+            <p>Handle voice commands with NPC actions:</p>
+            <div class="guide-code">
+<span class="kw">void</span> <span class="fn">on_follow_command</span>(<span class="type">RakuVoiceEvent</span>* event) {
+    <span class="fn">raku_ai_blackboard_set_string</span>(<span class="str">"guard"</span>, <span class="str">"state"</span>, <span class="str">"following"</span>);
+    <span class="fn">raku_ai_blackboard_set_string</span>(<span class="str">"guard"</span>, <span class="str">"follow_target"</span>, <span class="str">"player"</span>);
+
+    <span class="comment">// Use SLM for a natural-sounding response</span>
+    <span class="fn">raku_slm_set_context</span>(<span class="str">"You are a medieval guard. The player asked you to follow them."</span>);
+    <span class="kw">const char</span>* response = <span class="fn">raku_slm_generate</span>(<span class="str">"Respond briefly, in character."</span>);
+    <span class="fn">raku_audio_play_tts</span>(response);  <span class="comment">// text-to-speech</span>
+}
+
+<span class="kw">void</span> <span class="fn">on_stop_command</span>(<span class="type">RakuVoiceEvent</span>* event) {
+    <span class="fn">raku_ai_blackboard_set_string</span>(<span class="str">"guard"</span>, <span class="str">"state"</span>, <span class="str">"idle"</span>);
+    <span class="fn">raku_ai_agent_stop</span>(<span class="str">"guard"</span>);
+}
+
+<span class="kw">void</span> <span class="fn">on_report_command</span>(<span class="type">RakuVoiceEvent</span>* event) {
+    <span class="comment">// Ask the AI what it currently perceives</span>
+    <span class="type">int</span> visible_count = <span class="fn">raku_ai_agent_get_visible_count</span>(<span class="str">"guard"</span>);
+    <span class="type">char</span> context[<span class="num">256</span>];
+    <span class="fn">sprintf</span>(context, <span class="str">"You are a guard. You can see %d entities. Alert level: %.0f%%."</span>,
+        visible_count, <span class="fn">raku_ai_blackboard_get_float</span>(<span class="str">"guard"</span>, <span class="str">"alert_level"</span>) * <span class="num">100</span>);
+    <span class="fn">raku_slm_set_context</span>(context);
+    <span class="kw">const char</span>* report = <span class="fn">raku_slm_generate</span>(<span class="str">"Report what you see, in character."</span>);
+    <span class="fn">raku_audio_play_tts</span>(report);
+}
+</div>
+
+            <div class="guide-note">
+                <strong>Privacy:</strong> Voice recognition runs entirely on-device using the Raku Voice subsystem. No audio is sent to the cloud. <code>raku_voice_init()</code> is a privileged call that requires user confirmation.
+            </div>
+        </div>
+
+        <!-- Complete Example -->
+        <div class="guide-section" id="complete-example">
+            <div class="guide-badge">COMPLETE EXAMPLE</div>
+            <h3>Complete Example: Guard NPC with Full AI</h3>
+            <p>A fully functional guard that patrols, detects the player, chases, investigates noises, responds to voice commands, and uses the blackboard for state management.</p>
+
+            <div class="guide-code">
+<span class="comment">// === Guard NPC with Full AI ===</span>
+
+<span class="fn">raku_init</span>();
+<span class="fn">raku_renderer_create_window</span>(<span class="num">1280</span>, <span class="num">720</span>, <span class="str">"Guard AI Demo"</span>, <span class="kw">true</span>);
+<span class="fn">raku_renderer_create_camera</span>(<span class="str">"main"</span>, <span class="num">60.0f</span>, <span class="num">0.1f</span>, <span class="num">200.0f</span>);
+
+<span class="comment">// Physics for the world</span>
+<span class="type">float</span> gravity[] = { <span class="num">0</span>, <span class="num">-9.81f</span>, <span class="num">0</span> };
+<span class="fn">raku_physics_create_world</span>(gravity);
+
+<span class="comment">// AI and voice</span>
+<span class="fn">raku_ai_init</span>();
+<span class="fn">raku_voice_init</span>();
+<span class="fn">raku_slm_init</span>();
+
+<span class="comment">// Audio</span>
+<span class="fn">raku_audio_init</span>(<span class="num">32</span>, <span class="kw">false</span>);
+<span class="fn">raku_audio_load</span>(<span class="str">"sounds/footstep.wav"</span>, <span class="str">"footstep"</span>);
+<span class="fn">raku_audio_load</span>(<span class="str">"sounds/alert.wav"</span>, <span class="str">"alert"</span>);
+
+<span class="comment">// Scene</span>
+<span class="fn">raku_scene_create</span>(<span class="str">"guard_demo"</span>);
+<span class="fn">raku_scene_add_model</span>(<span class="str">"level.glb"</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>);
+<span class="fn">raku_physics_add_static_collider</span>(<span class="str">"level.glb"</span>, <span class="str">"mesh"</span>);
+
+<span class="comment">// NavMesh</span>
+<span class="fn">raku_ai_navmesh_create</span>(<span class="str">"guard_demo"</span>);
+<span class="fn">raku_ai_navmesh_set_agent_radius</span>(<span class="num">0.4f</span>);
+<span class="fn">raku_ai_navmesh_set_agent_height</span>(<span class="num">1.8f</span>);
+<span class="fn">raku_ai_navmesh_build</span>();
+
+<span class="comment">// Player (simple capsule)</span>
+<span class="fn">raku_scene_add_model</span>(<span class="str">"player.glb"</span>, <span class="num">-5.0f</span>, <span class="num">0.0f</span>, <span class="num">3.0f</span>);
+<span class="fn">raku_ai_agent_set_detectable</span>(<span class="str">"player"</span>, <span class="kw">true</span>);
+
+<span class="comment">// Guard NPC</span>
+<span class="fn">raku_scene_add_model</span>(<span class="str">"guard.glb"</span>, <span class="num">0.0f</span>, <span class="num">0.0f</span>, <span class="num">0.0f</span>);
+<span class="fn">raku_ai_create_agent</span>(<span class="str">"guard"</span>, <span class="str">"behavior_tree"</span>);
+<span class="fn">raku_ai_agent_set_speed</span>(<span class="str">"guard"</span>, <span class="num">2.0f</span>);
+<span class="fn">raku_ai_agent_set_turn_speed</span>(<span class="str">"guard"</span>, <span class="num">180.0f</span>);
+<span class="fn">raku_ai_agent_set_vision_range</span>(<span class="str">"guard"</span>, <span class="num">15.0f</span>);
+<span class="fn">raku_ai_agent_set_vision_angle</span>(<span class="str">"guard"</span>, <span class="num">120.0f</span>);
+<span class="fn">raku_ai_agent_set_hearing_range</span>(<span class="str">"guard"</span>, <span class="num">10.0f</span>);
+
+<span class="comment">// Patrol waypoints</span>
+<span class="type">float</span> waypoints[][<span class="num">3</span>] = {
+    { <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span> }, { <span class="num">8</span>, <span class="num">0</span>, <span class="num">0</span> }, { <span class="num">8</span>, <span class="num">0</span>, <span class="num">-6</span> }, { <span class="num">0</span>, <span class="num">0</span>, <span class="num">-6</span> }
+};
+<span class="fn">raku_ai_agent_set_patrol_points</span>(<span class="str">"guard"</span>, waypoints, <span class="num">4</span>);
+
+<span class="comment">// Blackboard</span>
+<span class="fn">raku_ai_blackboard_set_float</span>(<span class="str">"guard"</span>, <span class="str">"alert_level"</span>, <span class="num">0.0f</span>);
+<span class="fn">raku_ai_blackboard_set_string</span>(<span class="str">"guard"</span>, <span class="str">"state"</span>, <span class="str">"patrol"</span>);
+<span class="fn">raku_ai_blackboard_set_int</span>(<span class="str">"guard"</span>, <span class="str">"health"</span>, <span class="num">100</span>);
+
+<span class="comment">// --- Build the full behavior tree ---</span>
+
+<span class="comment">// Chase branch</span>
+<span class="type">RakuBTNode</span>* see_player = <span class="fn">raku_btree_create_condition</span>(<span class="str">"can_see_target"</span>);
+<span class="fn">raku_btree_condition_set_param</span>(see_player, <span class="str">"target"</span>, <span class="str">"player"</span>);
+<span class="type">RakuBTNode</span>* set_alert = <span class="fn">raku_btree_create_action</span>(<span class="str">"blackboard_set"</span>);
+<span class="fn">raku_btree_action_set_param</span>(set_alert, <span class="str">"key"</span>, <span class="str">"state"</span>);
+<span class="fn">raku_btree_action_set_param</span>(set_alert, <span class="str">"value"</span>, <span class="str">"combat"</span>);
+<span class="type">RakuBTNode</span>* play_alert = <span class="fn">raku_btree_create_action</span>(<span class="str">"play_sound"</span>);
+<span class="fn">raku_btree_action_set_param</span>(play_alert, <span class="str">"id"</span>, <span class="str">"alert"</span>);
+<span class="type">RakuBTNode</span>* chase = <span class="fn">raku_btree_create_action</span>(<span class="str">"move_to_target"</span>);
+<span class="fn">raku_btree_action_set_param</span>(chase, <span class="str">"target"</span>, <span class="str">"player"</span>);
+<span class="fn">raku_btree_action_set_param</span>(chase, <span class="str">"speed"</span>, <span class="str">"4.0"</span>);
+
+<span class="type">RakuBTNode</span>* chase_seq = <span class="fn">raku_btree_create_sequence</span>();
+<span class="fn">raku_btree_add_child</span>(chase_seq, see_player);
+<span class="fn">raku_btree_add_child</span>(chase_seq, set_alert);
+<span class="fn">raku_btree_add_child</span>(chase_seq, play_alert);
+<span class="fn">raku_btree_add_child</span>(chase_seq, chase);
+
+<span class="comment">// Investigate branch</span>
+<span class="type">RakuBTNode</span>* heard = <span class="fn">raku_btree_create_condition</span>(<span class="str">"heard_noise"</span>);
+<span class="type">RakuBTNode</span>* go_noise = <span class="fn">raku_btree_create_action</span>(<span class="str">"move_to_noise"</span>);
+<span class="type">RakuBTNode</span>* look = <span class="fn">raku_btree_create_action</span>(<span class="str">"look_around"</span>);
+<span class="fn">raku_btree_action_set_param</span>(look, <span class="str">"duration"</span>, <span class="str">"3.0"</span>);
+
+<span class="type">RakuBTNode</span>* investigate_seq = <span class="fn">raku_btree_create_sequence</span>();
+<span class="fn">raku_btree_add_child</span>(investigate_seq, heard);
+<span class="fn">raku_btree_add_child</span>(investigate_seq, go_noise);
+<span class="fn">raku_btree_add_child</span>(investigate_seq, look);
+
+<span class="comment">// Patrol branch</span>
+<span class="type">RakuBTNode</span>* patrol = <span class="fn">raku_btree_create_action</span>(<span class="str">"patrol_waypoints"</span>);
+<span class="type">RakuBTNode</span>* patrol_wait = <span class="fn">raku_btree_create_action</span>(<span class="str">"wait"</span>);
+<span class="fn">raku_btree_action_set_param</span>(patrol_wait, <span class="str">"duration"</span>, <span class="str">"2.0"</span>);
+<span class="type">RakuBTNode</span>* patrol_seq = <span class="fn">raku_btree_create_sequence</span>();
+<span class="fn">raku_btree_add_child</span>(patrol_seq, patrol);
+<span class="fn">raku_btree_add_child</span>(patrol_seq, patrol_wait);
+<span class="type">RakuBTNode</span>* patrol_loop = <span class="fn">raku_btree_create_decorator</span>(<span class="str">"repeat"</span>, patrol_seq);
+<span class="fn">raku_btree_decorator_set_param</span>(patrol_loop, <span class="str">"count"</span>, <span class="str">"-1"</span>);
+
+<span class="comment">// Root</span>
+<span class="type">RakuBTNode</span>* root = <span class="fn">raku_btree_create_selector</span>();
+<span class="fn">raku_btree_add_child</span>(root, chase_seq);
+<span class="fn">raku_btree_add_child</span>(root, investigate_seq);
+<span class="fn">raku_btree_add_child</span>(root, patrol_loop);
+<span class="fn">raku_ai_agent_set_btree</span>(<span class="str">"guard"</span>, root);
+
+<span class="comment">// --- Voice commands ---</span>
+<span class="fn">raku_voice_register_command</span>(<span class="str">"follow me"</span>, on_follow_command);
+<span class="fn">raku_voice_register_command</span>(<span class="str">"stop"</span>, on_stop_command);
+<span class="fn">raku_voice_start_listening</span>();
+
+<span class="comment">// --- Run ---</span>
+<span class="fn">raku_scene_set_update_callback</span>(on_update);
+<span class="fn">raku_scene_start_loop</span>();
+<span class="fn">raku_shutdown</span>();
+</div>
+
+            <div class="guide-note">
+                <strong>Next steps:</strong> Combine this NPC with <a href="spatial-audio-tutorial.html" style="color: var(--accent-bright);">spatial audio</a> for footstep sounds that the player can hear approaching, or with <a href="mixed-reality-tutorial.html" style="color: var(--accent-bright);">mixed reality</a> to have the guard patrol your real room.
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+        <h2>Ready for More?</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
+            Explore the full AI API (192 functions) and SLM API (95 functions) in the documentation.
+        </p>
+        <div class="cta-group">
+            <a href="index.html" class="btn btn-secondary">All Tutorials</a>
+            <a href="../docs.html" class="btn btn-primary">API Reference</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="../docs.html">Documentation</a>
+            <a href="../privacy.html">Privacy</a>
+            <a href="../terms.html">Terms</a>
+            <a href="mailto:hello@rakuai.com">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Protected by 5 granted patents (priority July 2012).</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. &#x697D;AI and &#x697D;XR are stylized marks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+</body>
+</html>
