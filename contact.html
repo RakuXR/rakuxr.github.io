@@ -316,15 +316,20 @@
             body: formData,
             headers: { 'Accept': 'application/json' }
         }).then(function(response) {
-            if (response.ok) {
-                form.style.display = 'none';
-                successMsg.style.display = 'block';
-            } else {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Send Message';
-                alert('Something went wrong. Please try again.');
-            }
-        }).catch(function() {
+            return response.json().then(function(data) {
+                if (response.ok) {
+                    form.style.display = 'none';
+                    successMsg.style.display = 'block';
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Send Message';
+                    var errorMsg = (data && data.errors)
+                        ? data.errors.map(function(err) { return err.message; }).join(', ')
+                        : (data && data.error) || 'Unknown error';
+                    alert('Form error: ' + errorMsg);
+                }
+            });
+        }).catch(function(err) {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Send Message';
             alert('Network error. Please check your connection and try again.');
