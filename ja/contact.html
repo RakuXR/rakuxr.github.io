@@ -317,15 +317,20 @@
             body: formData,
             headers: { 'Accept': 'application/json' }
         }).then(function(response) {
-            if (response.ok) {
-                form.style.display = 'none';
-                successMsg.style.display = 'block';
-            } else {
-                submitBtn.disabled = false;
-                submitBtn.textContent = '送信する';
-                alert('エラーが発生しました。もう一度お試しください。');
-            }
-        }).catch(function() {
+            return response.json().then(function(data) {
+                if (response.ok) {
+                    form.style.display = 'none';
+                    successMsg.style.display = 'block';
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '送信する';
+                    var errorMsg = (data && data.errors)
+                        ? data.errors.map(function(err) { return err.message; }).join(', ')
+                        : (data && data.error) || 'Unknown error';
+                    alert('フォームエラー: ' + errorMsg);
+                }
+            });
+        }).catch(function(err) {
             submitBtn.disabled = false;
             submitBtn.textContent = '送信する';
             alert('ネットワークエラーです。接続を確認してもう一度お試しください。');
