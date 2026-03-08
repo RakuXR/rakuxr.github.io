@@ -201,25 +201,41 @@
         <h3 style="color: var(--accent-bright); margin-bottom: 12px;">Basic Prompt (any game)</h3>
         <div class="prompt-block" id="prompt-basic">
             <button class="copy-btn" onclick="copyPrompt('prompt-basic')">Copy</button>
-            Using the Raku game engine schema at https://rakuai.com/schema.json &mdash; read that schema first, then create a .raku game file for: [describe your game here]. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.
+            IMPORTANT: Before generating, read these references:<br>
+            1. Schema: https://rakuai.com/schema.json<br>
+            2. LLM reference card (common mistakes): https://github.com/RakuXR/raku-public/blob/main/docs/llm-raku-reference.md<br>
+            3. Working examples: https://github.com/RakuXR/raku-public/tree/main/samples<br><br>
+            Use Standard Format (schema_version: "1.0"). ai_disclosure.systems must use underscores (adaptive_audio NOT adaptive-audio). ai_disclosure.guardrails must be an object with profanity_filter, content_rating, and report_endpoint.<br><br>
+            Create a .raku game file for: [describe your game here]. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.
         </div>
 
         <h3 style="color: var(--accent-bright); margin-bottom: 12px;">Detailed Prompt (survival game example)</h3>
         <div class="prompt-block" id="prompt-survival">
             <button class="copy-btn" onclick="copyPrompt('prompt-survival')">Copy</button>
-            Using the Raku game engine schema at https://rakuai.com/schema.json &mdash; read that schema first, then create a .raku game file for: A zombie survival game with day/night cycles, crafting, and base building. Zombies should get more aggressive at night. The AI should track emotional state and back off if the player is frustrated. Use the "survival" template and genre. Include the ai_disclosure section with appropriate systems. Output only the raw JSON, no markdown code fences.
+            IMPORTANT: Before generating, read these references:<br>
+            1. Schema: https://rakuai.com/schema.json<br>
+            2. LLM reference card: https://github.com/RakuXR/raku-public/blob/main/docs/llm-raku-reference.md<br>
+            3. Working survival example: https://github.com/RakuXR/raku-public/blob/main/samples/zombie-survival.raku<br><br>
+            Use Standard Format (schema_version: "1.0"). ai_disclosure.systems use underscores. ai_disclosure.guardrails must be an object.<br><br>
+            Create a .raku game file for: A zombie survival game with day/night cycles, crafting, and base building. Zombies should get more aggressive at night. The AI should track emotional state and back off if the player is frustrated. Include at least 6 entity types (player, zombie variants, resources, structures). Add 3+ scenes. Use the "survival" template and genre. Include the ai_disclosure section with appropriate systems. Output only the raw JSON, no markdown code fences.
         </div>
 
         <h3 style="color: var(--accent-bright); margin-bottom: 12px;">Strict Prompt (for stubborn LLMs)</h3>
         <div class="prompt-block" id="prompt-strict">
             <button class="copy-btn" onclick="copyPrompt('prompt-strict')">Copy</button>
-            Read the JSON schema at https://rakuai.com/schema.json before generating anything. Create a .raku file for: [describe your game here].<br><br>
+            Read ALL of these before generating:<br>
+            - Schema: https://rakuai.com/schema.json<br>
+            - Reference card: https://github.com/RakuXR/raku-public/blob/main/docs/llm-raku-reference.md<br>
+            - Examples: https://github.com/RakuXR/raku-public/tree/main/samples<br><br>
+            Create a .raku file for: [describe your game here].<br><br>
             RULES:<br>
             - schema_version must be "1.0" (not "1.0.0")<br>
             - Top-level must have: schema_version, game, ai, entities, scenes, rendering, audio, xr, ai_disclosure<br>
-            - The "game" object must contain: title, genre, template<br>
+            - The "game" object must contain: title, genre, template, description, max_players<br>
             - Do NOT invent fields like settings, gameplay, controls, ui, analytics, assets, or levels<br>
-            - ai_disclosure must have: live_generated, pre_generated, description, systems<br>
+            - ai_disclosure must have: live_generated, pre_generated, description, systems (underscores!), guardrails (object!)<br>
+            - ai_disclosure.guardrails = {"profanity_filter": true, "content_rating": "E", "report_endpoint": "https://api.raku.games/v1/reports"}<br>
+            - entities is an ARRAY of objects, each with type, count, health, speed, ai_behavior, properties<br>
             - Output raw JSON only, no markdown fences, no explanation
         </div>
 
