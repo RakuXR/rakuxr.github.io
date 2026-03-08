@@ -205,7 +205,7 @@
             1. Schema: https://rakuai.com/schema.json<br>
             2. LLM reference card (common mistakes): https://github.com/RakuXR/raku-public/blob/main/docs/llm-raku-reference.md<br>
             3. Working examples: https://github.com/RakuXR/raku-public/tree/main/samples<br><br>
-            Use Standard Format (schema_version: "1.0"). ai_disclosure.systems must use underscores (adaptive_audio NOT adaptive-audio). ai_disclosure.guardrails must be an object with profanity_filter, content_rating, and report_endpoint.<br><br>
+            Use Standard Format (schema_version: "1.0"). ai_disclosure.systems must ONLY use these identifiers: dda, adaptive_audio, emotional_state, player_profiling, npc_memory, intent_prediction, behavior_tree_ai, procedural_dialogue, procedural_generation, slm_inference, voice_emotion. Do NOT invent custom names like "difficulty_adjustment" or "adaptive_music". ai_disclosure.guardrails must be an object with profanity_filter, content_rating, and report_endpoint.<br><br>
             Create a .raku game file for: [describe your game here]. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.
         </div>
 
@@ -216,7 +216,7 @@
             1. Schema: https://rakuai.com/schema.json<br>
             2. LLM reference card: https://github.com/RakuXR/raku-public/blob/main/docs/llm-raku-reference.md<br>
             3. Working survival example: https://github.com/RakuXR/raku-public/blob/main/samples/zombie-survival.raku<br><br>
-            Use Standard Format (schema_version: "1.0"). ai_disclosure.systems use underscores. ai_disclosure.guardrails must be an object.<br><br>
+            Use Standard Format (schema_version: "1.0"). ai_disclosure.systems must ONLY use: dda, adaptive_audio, emotional_state, player_profiling, npc_memory, intent_prediction, behavior_tree_ai, procedural_dialogue, procedural_generation, slm_inference, voice_emotion. ai_disclosure.guardrails must be an object.<br><br>
             Create a .raku game file for: A zombie survival game with day/night cycles, crafting, and base building. Zombies should get more aggressive at night. The AI should track emotional state and back off if the player is frustrated. Include at least 6 entity types (player, zombie variants, resources, structures). Add 3+ scenes. Use the "survival" template and genre. Include the ai_disclosure section with appropriate systems. Output only the raw JSON, no markdown code fences.
         </div>
 
@@ -233,7 +233,8 @@
             - Top-level must have: schema_version, game, ai, entities, scenes, rendering, audio, xr, ai_disclosure<br>
             - The "game" object must contain: title, genre, template, description, max_players<br>
             - Do NOT invent fields like settings, gameplay, controls, ui, analytics, assets, or levels<br>
-            - ai_disclosure must have: live_generated, pre_generated, description, systems (underscores!), guardrails (object!)<br>
+            - ai_disclosure must have: live_generated, pre_generated, description, systems, guardrails (object!)<br>
+            - ai_disclosure.systems ONLY from: dda, adaptive_audio, emotional_state, player_profiling, npc_memory, intent_prediction, behavior_tree_ai, procedural_dialogue, procedural_generation, slm_inference, voice_emotion<br>
             - ai_disclosure.guardrails = {"profanity_filter": true, "content_rating": "E", "report_endpoint": "https://api.raku.games/v1/reports"}<br>
             - entities is an ARRAY of objects, each with type, count, health, speed, ai_behavior, properties<br>
             - Output raw JSON only, no markdown fences, no explanation
