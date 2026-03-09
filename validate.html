@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validate .raku File - RakuAI</title>
+    <meta name="description" content="Paste your AI-generated .raku game file to validate function names, parameter types, and structure before running.">
+    <meta property="og:title" content="Validate .raku File - RakuAI">
+    <meta property="og:description" content="Instant validation for AI-generated .raku game files. Catches invalid function names and suggests fixes.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/validate">
+    <link rel="canonical" href="https://rakuai.com/validate.html">
+    <link rel="stylesheet" href="style.css">
+    <script src="raku-exports.js"></script>
+    <style>
+        .validator-container {
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        .validator-textarea {
+            width: 100%;
+            min-height: 320px;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.85rem;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 1rem;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        .validator-textarea:focus {
+            border-color: var(--accent, #6c5ce7);
+            outline: none;
+        }
+        .validate-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 12px 32px;
+            background: var(--accent, #6c5ce7);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .validate-btn:hover { background: #5a4bd1; transform: translateY(-1px); }
+        .validate-btn:active { transform: translateY(0); }
+
+        .results-panel {
+            margin-top: 1.5rem;
+            border-radius: 10px;
+            padding: 1.5rem;
+            display: none;
+        }
+        .results-panel.show { display: block; }
+        .results-pass {
+            background: #0d3320;
+            border: 2px solid #27ae60;
+        }
+        .results-fail {
+            background: #3d1212;
+            border: 2px solid #e74c3c;
+        }
+        .results-warn {
+            background: #3d2e12;
+            border: 2px solid #f39c12;
+        }
+
+        .result-item {
+            padding: 8px 12px;
+            margin: 6px 0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        .result-error { background: rgba(231, 76, 60, 0.15); border-left: 3px solid #e74c3c; }
+        .result-warning { background: rgba(243, 156, 18, 0.15); border-left: 3px solid #f39c12; }
+        .result-ok { background: rgba(39, 174, 96, 0.15); border-left: 3px solid #27ae60; }
+        .result-info { background: rgba(52, 152, 219, 0.15); border-left: 3px solid #3498db; }
+
+        .suggestion { color: #74b9ff; font-style: italic; }
+        .fn-name { color: #ffeaa7; font-weight: bold; }
+        .stats-bar {
+            display: flex;
+            gap: 1.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .stat-chip {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .stat-pass { background: #27ae60; color: white; }
+        .stat-fail { background: #e74c3c; color: white; }
+        .stat-warn { background: #f39c12; color: white; }
+        .stat-info { background: #3498db; color: white; }
+
+        .search-box {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #1a1a2e;
+            border-radius: 10px;
+            border: 1px solid #333;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 1rem;
+            font-family: monospace;
+            background: #0d0d1a;
+            color: #e0e0e0;
+            border: 2px solid #444;
+            border-radius: 8px;
+        }
+        .search-input:focus {
+            border-color: var(--accent, #6c5ce7);
+            outline: none;
+        }
+        .search-results {
+            margin-top: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .search-results div {
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .search-results div:hover { background: rgba(108, 92, 231, 0.2); }
+    </style>
+</head>
+<body>
+
+<nav class="main-nav">
+    <div class="nav-inner">
+        <a href="/" class="nav-logo">RakuAI</a>
+        <div class="nav-links">
+            <a href="/docs.html">Docs</a>
+            <a href="/llm-guide.html">LLM Guide</a>
+            <a href="/validate.html" class="active">Validate</a>
+            <a href="/sdk.html">SDK</a>
+        </div>
+    </div>
+</nav>
+
+<div class="validator-container">
+    <h1>Validate Your .raku File</h1>
+    <p>Having issues with your AI-generated game? Paste the <code>.raku</code> JSON below to check for invalid function names, missing sections, and parameter issues. The validator checks against all <strong>2,912</strong> exported Raku Runtime functions.</p>
+
+    <textarea class="validator-textarea" id="rakuInput" placeholder='Paste your .raku file JSON here...
+
+Example:
+{
+  "raku_format": "1.0.0",
+  "metadata": { "name": "My Game", "genre": "shooter" },
+  "initialization": [
+    {"function": "raku_init", "params": {}},
+    {"function": "raku_renderer_create_window", "params": {"width": 1280, "height": 720}}
+  ],
+  "calls": [
+    {"function": "raku_scene_create", "params": {"name": "main"}}
+  ],
+  "shutdown": [
+    {"function": "raku_shutdown", "params": {}}
+  ]
+}'></textarea>
+
+    <div>
+        <button class="validate-btn" onclick="validateRaku()">Validate</button>
+        <button class="validate-btn" onclick="document.getElementById('rakuInput').value=''; hideResults();" style="background:#555;margin-left:0.5rem;">Clear</button>
+    </div>
+
+    <div class="results-panel" id="resultsPanel">
+        <h2 id="resultsTitle"></h2>
+        <div class="stats-bar" id="statsBar"></div>
+        <div id="resultsBody"></div>
+    </div>
+
+    <div class="search-box">
+        <h3>Search API Functions</h3>
+        <p style="margin-bottom:0.75rem;font-size:0.9rem;opacity:0.7;">Type to search all 2,912 exported functions. Use these exact names in your .raku file.</p>
+        <input type="text" class="search-input" id="searchInput" placeholder="e.g. raku_renderer or camera or audio_play" oninput="searchFunctions()">
+        <div class="search-results" id="searchResults"></div>
+    </div>
+</div>
+
+<script>
+// Build a Set for O(1) lookup
+const EXPORTS_SET = new Set(RAKU_EXPORTS);
+
+function hideResults() {
+    document.getElementById('resultsPanel').classList.remove('show');
+}
+
+function validateRaku() {
+    const input = document.getElementById('rakuInput').value.trim();
+    const panel = document.getElementById('resultsPanel');
+    const title = document.getElementById('resultsTitle');
+    const stats = document.getElementById('statsBar');
+    const body = document.getElementById('resultsBody');
+
+    if (!input) {
+        panel.className = 'results-panel show results-warn';
+        title.textContent = 'No Input';
+        stats.innerHTML = '';
+        body.innerHTML = '<div class="result-warning">Paste your .raku JSON file content above and click Validate.</div>';
+        return;
+    }
+
+    // Try to parse JSON
+    let json;
+    try {
+        json = JSON.parse(input);
+    } catch (e) {
+        panel.className = 'results-panel show results-fail';
+        title.textContent = 'JSON Parse Error';
+        stats.innerHTML = '<span class="stat-chip stat-fail">1 Error</span>';
+        body.innerHTML = '<div class="result-error">Invalid JSON: ' + escapeHtml(e.message) + '</div>' +
+            '<div class="result-info suggestion">Tip: Make sure your JSON is complete and properly formatted. Check for missing commas, brackets, or quotes.</div>';
+        return;
+    }
+
+    const errors = [];
+    const warnings = [];
+    const info = [];
+    let totalCalls = 0;
+    let resolvedCalls = 0;
+
+    // Check structure
+    if (!json.raku_format) {
+        warnings.push('Missing "raku_format" field. Add: "raku_format": "1.0.0"');
+    }
+    if (!json.metadata) {
+        warnings.push('Missing "metadata" section. Add name, genre, and description.');
+    }
+
+    const hasInit = json.initialization && Array.isArray(json.initialization);
+    const hasCalls = json.calls && Array.isArray(json.calls);
+    const hasSetup = json.setup && Array.isArray(json.setup);
+    const hasGameLoop = json.game_loop && Array.isArray(json.game_loop);
+    const hasShutdown = json.shutdown && Array.isArray(json.shutdown);
+
+    if (!hasInit && !hasCalls) {
+        errors.push('Missing required section: need "initialization" and/or "calls" array.');
+    }
+    if (!hasCalls && !hasSetup && !hasGameLoop) {
+        errors.push('Missing "calls" array. This is the main API call sequence for your game.');
+    }
+    if (!hasShutdown) {
+        warnings.push('No "shutdown" section. Consider adding cleanup calls.');
+    }
+
+    // Validate all function calls
+    const sections = [];
+    if (hasInit) sections.push({name: 'initialization', calls: json.initialization});
+    if (hasCalls) sections.push({name: 'calls', calls: json.calls});
+    if (hasSetup) sections.push({name: 'setup', calls: json.setup});
+    if (hasGameLoop) sections.push({name: 'game_loop', calls: json.game_loop});
+    if (hasShutdown) sections.push({name: 'shutdown', calls: json.shutdown});
+
+    for (const section of sections) {
+        for (let i = 0; i < section.calls.length; i++) {
+            const call = section.calls[i];
+            totalCalls++;
+
+            const fnName = call.function || call.function_name || call.fn;
+            if (!fnName) {
+                errors.push(`${section.name}[${i}]: Missing function name. Each call needs a "function" field.`);
+                continue;
+            }
+
+            // Check if function exists
+            if (EXPORTS_SET.has(fnName)) {
+                resolvedCalls++;
+                continue;
+            }
+
+            // Check alias table
+            if (RAKU_ALIASES[fnName]) {
+                const real = RAKU_ALIASES[fnName];
+                if (EXPORTS_SET.has(real)) {
+                    resolvedCalls++;
+                    info.push(`${section.name}[${i}]: <span class="fn-name">${escapeHtml(fnName)}</span> will be auto-resolved to <span class="fn-name">${escapeHtml(real)}</span>`);
+                    continue;
+                }
+            }
+
+            // Not found — find closest match
+            const suggestions = findClosest(fnName, 3);
+            let msg = `${section.name}[${i}]: Unknown function <span class="fn-name">${escapeHtml(fnName)}</span>`;
+            if (suggestions.length > 0) {
+                msg += ` <span class="suggestion">Did you mean: ${suggestions.map(s => '<span class="fn-name">' + escapeHtml(s) + '</span>').join(', ')}?</span>`;
+            }
+            errors.push(msg);
+        }
+    }
+
+    // Check initialization order
+    if (hasInit) {
+        const initFns = json.initialization.map(c => c.function || c.function_name || '');
+        const resolvedInitFns = initFns.map(fn => RAKU_ALIASES[fn] || fn);
+        const hasRakuInit = resolvedInitFns.some(fn => fn === 'raku_core_initialize');
+        if (!hasRakuInit) {
+            warnings.push('Initialization section should start with raku_init (or raku_core_initialize).');
+        } else if (resolvedInitFns[0] !== 'raku_core_initialize') {
+            warnings.push('raku_init / raku_core_initialize should be the FIRST call in initialization.');
+        }
+    }
+
+    // Show results
+    const hasErrors = errors.length > 0;
+    const hasWarnings = warnings.length > 0;
+
+    if (hasErrors) {
+        panel.className = 'results-panel show results-fail';
+        title.textContent = 'Validation Failed';
+    } else if (hasWarnings) {
+        panel.className = 'results-panel show results-warn';
+        title.textContent = 'Validation Passed with Warnings';
+    } else {
+        panel.className = 'results-panel show results-pass';
+        title.textContent = 'Validation Passed';
+    }
+
+    let statsHtml = '';
+    statsHtml += `<span class="stat-chip stat-info">${totalCalls} API calls</span>`;
+    statsHtml += `<span class="stat-chip stat-pass">${resolvedCalls} resolved</span>`;
+    if (errors.length > 0) statsHtml += `<span class="stat-chip stat-fail">${errors.length} errors</span>`;
+    if (warnings.length > 0) statsHtml += `<span class="stat-chip stat-warn">${warnings.length} warnings</span>`;
+    if (info.length > 0) statsHtml += `<span class="stat-chip stat-info">${info.length} auto-aliases</span>`;
+    stats.innerHTML = statsHtml;
+
+    let bodyHtml = '';
+    for (const e of errors) bodyHtml += `<div class="result-item result-error">${e}</div>`;
+    for (const w of warnings) bodyHtml += `<div class="result-item result-warning">${escapeHtml(w)}</div>`;
+    for (const i of info) bodyHtml += `<div class="result-item result-info">${i}</div>`;
+
+    if (!hasErrors && !hasWarnings && info.length === 0) {
+        bodyHtml = '<div class="result-item result-ok">All ' + totalCalls + ' function calls are valid Raku Runtime API exports. Your .raku file is ready to run!</div>';
+    }
+
+    body.innerHTML = bodyHtml;
+}
+
+function findClosest(name, maxResults) {
+    // Simple prefix/substring match + Levenshtein for close matches
+    const results = [];
+    const nameLower = name.toLowerCase();
+    const parts = nameLower.split('_').filter(p => p.length > 2);
+
+    // First try: exact prefix matches
+    for (const fn of RAKU_EXPORTS) {
+        if (fn.startsWith(nameLower.substring(0, Math.min(nameLower.length, 20)))) {
+            results.push(fn);
+            if (results.length >= maxResults) return results;
+        }
+    }
+
+    // Second try: substring match on key parts
+    for (const fn of RAKU_EXPORTS) {
+        if (results.includes(fn)) continue;
+        let matches = 0;
+        for (const part of parts) {
+            if (fn.includes(part)) matches++;
+        }
+        if (matches >= Math.max(1, parts.length - 1)) {
+            results.push(fn);
+            if (results.length >= maxResults) return results;
+        }
+    }
+
+    return results;
+}
+
+function searchFunctions() {
+    const query = document.getElementById('searchInput').value.trim().toLowerCase();
+    const resultsDiv = document.getElementById('searchResults');
+
+    if (query.length < 2) {
+        resultsDiv.innerHTML = '';
+        return;
+    }
+
+    const matches = [];
+    const parts = query.split(/[\s_]+/).filter(p => p.length > 0);
+
+    for (const fn of RAKU_EXPORTS) {
+        let allMatch = true;
+        for (const part of parts) {
+            if (!fn.includes(part)) { allMatch = false; break; }
+        }
+        if (allMatch) {
+            matches.push(fn);
+            if (matches.length >= 50) break;
+        }
+    }
+
+    if (matches.length === 0) {
+        resultsDiv.innerHTML = '<div style="padding:8px;opacity:0.5">No functions match "' + escapeHtml(query) + '"</div>';
+        return;
+    }
+
+    resultsDiv.innerHTML = matches.map(fn =>
+        `<div onclick="navigator.clipboard.writeText('${fn}')" title="Click to copy">${fn}</div>`
+    ).join('');
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+</script>
+
+</body>
+</html>
