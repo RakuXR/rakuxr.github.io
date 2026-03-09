@@ -406,6 +406,104 @@
     </div>
 </section>
 
+<!-- RUNTIME API NAME ALIASES -->
+<section class="section">
+    <div class="container">
+        <h2>Runtime Format: API Name Alias Table</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; max-width: 750px; margin-left: auto; margin-right: auto;">
+            When using the <strong>Runtime Format</strong> (<code>raku_format: "1.0.0"</code>), you must use the actual C API function names exported by the DLLs.
+            LLMs often generate high-level convenience names that don't match the real exports. The runtime v1.3.8+ has an alias system that will map old names,
+            but using the real names is always more reliable.
+        </p>
+
+        <div class="warning-box">
+            <h3>Copy-Paste This Into Your LLM Prompt</h3>
+            <p>When asking ChatGPT, Claude, Gemini, or any AI to generate <strong>runtime format</strong> <code>.raku</code> files, paste this mapping so it uses the correct function names.</p>
+        </div>
+
+        <div class="prompt-block" id="prompt-alias-table">
+            <button class="copy-btn" onclick="copyPrompt('prompt-alias-table')">Copy</button>
+            IMPORTANT: When generating .raku files for the Raku Runtime, use the actual C API function names exported by the DLLs. Do NOT use high-level convenience names.<br><br>
+
+            RENDERER:<br>
+            - raku_renderer_init (NOT raku_renderer_create_window) &mdash; initializes the renderer<br>
+            - raku_camera_create_ex (NOT raku_renderer_create_camera)<br>
+            - raku_light_create_ex (NOT raku_renderer_create_light)<br>
+            - raku_render_pass_set_clear_color (NOT raku_renderer_set_clear_color)<br>
+            - raku_camera_set_position (NOT raku_renderer_set_camera_position)<br>
+            - raku_texture_load (NOT raku_renderer_load_texture)<br>
+            - raku_renderer_begin_frame / raku_renderer_end_frame &mdash; frame loop<br><br>
+
+            PHYSICS:<br>
+            - raku_physics_world_create (NOT raku_physics_create_world)<br>
+            - raku_physics_world_set_gravity<br>
+            - raku_physics_world_step<br>
+            - raku_collider_create_box (NOT raku_physics_add_collider)<br>
+            - raku_rigidbody_create (NOT raku_physics_add_rigidbody)<br><br>
+
+            AUDIO:<br>
+            - raku_audio_init &mdash; initialize audio<br>
+            - raku_audio_clip_load (NOT raku_audio_load)<br>
+            - raku_audio_source_create<br>
+            - raku_audio_source_play (NOT raku_audio_play)<br><br>
+
+            SCENE:<br>
+            - raku_scene_create<br>
+            - raku_scene_add_object (NOT raku_scene_add_model)<br>
+            - raku_node_create (NOT raku_scene_create_sprite)<br><br>
+
+            INPUT:<br>
+            - raku_input_init<br>
+            - raku_action_bind_key (NOT raku_input_bind_key)<br>
+            - raku_action_create<br><br>
+
+            AI:<br>
+            - raku_ai_init<br>
+            - raku_ai_difficulty_create (NOT raku_ai_set_difficulty)<br>
+            - raku_ai_profiler_create<br>
+            - raku_navmesh_create<br><br>
+
+            ANIMATION:<br>
+            - raku_animation_player_create (NOT raku_animation_create)<br>
+            - raku_animation_player_play (NOT raku_animation_play)<br><br>
+
+            UI:<br>
+            - raku_ui_button_create (NOT raku_ui_create_button)<br>
+            - raku_ui_text_create (NOT raku_ui_create_label)<br>
+            - raku_ui_panel_create (NOT raku_ui_create_panel)<br><br>
+
+            ASSETS:<br>
+            - raku_asset_load (NOT raku_assets_load_model)<br><br>
+
+            NETWORK:<br>
+            - raku_network_client_create (NOT raku_network_init)<br>
+            - raku_network_client_connect<br><br>
+
+            SLM:<br>
+            - raku_slm_init<br>
+            - raku_slm_context_create (NOT raku_slm_set_context)<br><br>
+
+            INIT/SHUTDOWN:<br>
+            - raku_core_initialize (first call) or raku_init (alias)<br>
+            - raku_core_shutdown (last call) or raku_shutdown (alias)<br><br>
+
+            When params use JSON object format, include numeric types explicitly:<br>
+            - Integers: use plain numbers like 1280<br>
+            - Floats: use decimals like 0.5<br>
+            - Strings: use quoted strings like "My Game"<br>
+            - Booleans: use true/false<br><br>
+
+            The runtime has an alias system that will map old convenience names, but using real names is always more reliable.
+        </div>
+
+        <div class="success-box">
+            <h3>Backward Compatibility</h3>
+            <p>The runtime v1.3.8+ includes a 55+ entry alias table that maps old convenience names to real DLL exports.
+            Existing <code>.raku</code> files using the old names will still work. But new files should use the real export names for best reliability.</p>
+        </div>
+    </div>
+</section>
+
 <!-- VALID SCHEMA QUICK REFERENCE -->
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container">
