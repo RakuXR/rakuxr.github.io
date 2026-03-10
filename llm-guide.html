@@ -504,6 +504,134 @@
     </div>
 </section>
 
+<!-- RUNTIME FORMAT: RICH GAME DATA -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Runtime Format: Rich Game Data</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px; max-width: 750px; margin-left: auto; margin-right: auto;">
+            Runtime format .raku files can embed full game designs &mdash; campaigns, enemy stats, boss patterns, powerup configs, scoring systems &mdash;
+            all as structured JSON inside <code>raku_scene_create</code> params. The engine's built-in genre-aware game loop reads this data to create full gameplay experiences.
+        </p>
+
+        <div class="platform-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="platform-card">
+                <h3>Visual Style</h3>
+                <p>Define a full color palette for your game entities. The engine uses these for rendering: player, enemies, projectiles, backgrounds, UI accents, particle effects.</p>
+                <div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                    <code>visual_style.palette</code>, <code>visual_style.effects</code>
+                </div>
+            </div>
+            <div class="platform-card">
+                <h3>Campaign Data</h3>
+                <p>Multi-sector campaigns, level progression, wave definitions, region maps. Define enemy spawns per wave, difficulty scaling, and boss encounters.</p>
+                <div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                    <code>campaign.sectors</code>, <code>waves[]</code>, <code>world.regions[]</code>
+                </div>
+            </div>
+            <div class="platform-card">
+                <h3>Enemy Definitions</h3>
+                <p>Full stat blocks: HP, speed, damage, armor, behavior type, special abilities, XP rewards, loot tables. The engine spawns and runs AI for each type.</p>
+                <div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                    <code>enemies.{type}</code>, <code>enemy_definitions.{type}</code>
+                </div>
+            </div>
+            <div class="platform-card">
+                <h3>Boss Fights</h3>
+                <p>Multi-phase boss encounters with unique attack patterns, phase transitions, and special mechanics. Each sector/arena can have its own champion.</p>
+                <div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                    <code>bosses.{id}.phases[]</code>, <code>champion.special</code>
+                </div>
+            </div>
+            <div class="platform-card">
+                <h3>Powerup &amp; Loot Systems</h3>
+                <p>Weapon upgrades, shield pickups, score multipliers, health potions. Define drop rates, durations, and stacking rules.</p>
+                <div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                    <code>powerups.{type}</code>, <code>loot_table.entries[]</code>
+                </div>
+            </div>
+            <div class="platform-card">
+                <h3>Scoring &amp; Economy</h3>
+                <p>Score multipliers, combo systems, gold economies, XP progression, upgrade costs. The HUD displays these automatically.</p>
+                <div style="margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                    <code>game_rules</code>, <code>player_stats</code>, <code>combat_system</code>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="color: var(--accent-bright); margin-top: 40px; margin-bottom: 16px;">Supported Genres with Built-in Game Loops</h3>
+        <div class="platform-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="platform-card">
+                <h3>Space Shooter</h3>
+                <p>Top-down scrolling, WASD movement, auto-fire, 5 enemy types, boss fights, powerups, score multiplier, dash mechanic, lives system.</p>
+            </div>
+            <div class="platform-card">
+                <h3>Platformer</h3>
+                <p>Side-scrolling, wall-jump, double-jump, dash, multi-world campaigns, collectibles, hazards, boss fights per world.</p>
+            </div>
+            <div class="platform-card">
+                <h3>Puzzle</h3>
+                <p>Match-3 and grid-based, special gem types, obstacles, move-limited levels, score targets, 30+ levels across themed worlds.</p>
+            </div>
+            <div class="platform-card">
+                <h3>Tower Defense</h3>
+                <p>Grid-based placement, 6 tower types with 3 upgrade tiers, 20 waves, boss encounters, gold economy with interest.</p>
+            </div>
+            <div class="platform-card">
+                <h3>Arena Combat</h3>
+                <p>Combo system (light/heavy chains), dodge/block/special, stamina management, 5 arenas with champions, environmental hazards.</p>
+            </div>
+            <div class="platform-card">
+                <h3>RPG / Custom</h3>
+                <p>Full 3D with SLM NPC dialogue, quest/inventory/loot/stat systems, behavior trees, navmesh pathfinding, XR overlay support.</p>
+            </div>
+        </div>
+
+        <h3 style="color: var(--accent-bright); margin-top: 40px; margin-bottom: 16px;">Expanded API Coverage (2,663+ Functions)</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 24px;">
+            The runtime exposes far more than rendering and input. Tell your LLM to use these subsystems for richer gameplay:
+        </p>
+        <div class="platform-grid" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="platform-card">
+                <h3>AI &amp; Behavior (200+ functions)</h3>
+                <p>Behavior trees, steering behaviors, GOAP planning, utility AI, crowd simulation, perception system, NPC dialogue with on-device SLM, dynamic difficulty adjustment, player profiling.</p>
+            </div>
+            <div class="platform-card">
+                <h3>Scripting (209 functions)</h3>
+                <p>Inventory management, quest tracking, damage/combat system, crafting recipes, dialogue trees, loot tables with weighted drops, stat systems, ability cooldowns.</p>
+            </div>
+            <div class="platform-card">
+                <h3>Animation (130+ functions)</h3>
+                <p>Blend trees, IK chains, animation state machines, tweens, clips, layers, events, morph targets. Full skeletal and procedural animation support.</p>
+            </div>
+            <div class="platform-card">
+                <h3>UI (150+ functions)</h3>
+                <p>Full widget toolkit: buttons, sliders, dropdowns, toggles, progress bars, panels, layouts, themes, canvas system. HUD elements auto-update from game state.</p>
+            </div>
+        </div>
+
+        <div class="prompt-block" id="prompt-runtime-rich">
+            <button class="copy-btn" onclick="copyPrompt('prompt-runtime-rich')">Copy</button>
+            Generate a runtime-format .raku file (raku_format: "1.0.0") for: [describe your game].<br><br>
+            IMPORTANT: Use real C API export names (not aliases). See the alias table above.<br><br>
+            Structure: initialization[] &rarr; calls[] &rarr; shutdown[]<br><br>
+            In the raku_scene_create params, embed rich game data as JSON:<br>
+            - visual_style.palette: color hex codes for all game entities<br>
+            - campaign/waves: enemy spawn definitions per wave/sector<br>
+            - enemy definitions: hp, speed, damage, armor, behavior, special abilities<br>
+            - boss definitions: multi-phase encounters with unique attack patterns<br>
+            - powerup/loot configs: types, drop rates, durations, effects<br>
+            - game_rules: starting stats, scoring, economy<br>
+            - story: setting, hero, mission context<br><br>
+            Include: raku_action_create + raku_action_bind_key for all controls,<br>
+            raku_audio_clip_load + raku_audio_source_create + raku_audio_source_play for audio,<br>
+            raku_ai_difficulty_create for adaptive difficulty,<br>
+            raku_ui_text_create for HUD elements.<br><br>
+            End calls[] with raku_scene_start_loop to enter the built-in game loop.<br>
+            Output raw JSON only, no markdown fences.
+        </div>
+    </div>
+</section>
+
 <!-- VALID SCHEMA QUICK REFERENCE -->
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container">
@@ -548,7 +676,7 @@
 }
         </div>
         <p style="text-align: center; margin-top: 16px;">
-            <a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">Browse 6 complete sample .raku files on GitHub &rarr;</a>
+            <a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">Browse 7 complete sample .raku files on GitHub &rarr;</a>
         </p>
     </div>
 </section>
