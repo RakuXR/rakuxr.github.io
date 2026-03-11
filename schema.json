@@ -1,4 +1,4 @@
-﻿{
+{
     "$schema":  "https://json-schema.org/draft/2020-12/schema",
     "$id":  "https://rakuai.com/schema/raku-file-v1.json",
     "title":  "Raku Game File",
@@ -70,6 +70,9 @@
                                                                                  "platformer",
                                                                                  "arena_combat",
                                                                                  "racing",
+                                                                                 "rhythm",
+                                                                                 "roguelike",
+                                                                                 "survival",
                                                                                  "rpg",
                                                                                  "sandbox",
                                                                                  "tech_demo",
@@ -114,6 +117,57 @@
                                                                                       "medium",
                                                                                       "high"
                                                                                   ]
+                                                                     },
+                                                      "content_pack":  {
+                                                                           "type":  "object",
+                                                                           "description":  "References a first-party content pack for curated assets.",
+                                                                           "properties":  {
+                                                                               "template":  {
+                                                                                   "type":  "string",
+                                                                                   "description":  "Template family (e.g. space_shooter, platformer)."
+                                                                               },
+                                                                               "mode":  {
+                                                                                   "type":  "string",
+                                                                                   "enum":  ["prototype", "presentation"],
+                                                                                   "description":  "Prototype for fast iteration; presentation for polished demos."
+                                                                               },
+                                                                               "pack_version":  {
+                                                                                   "type":  "string",
+                                                                                   "description":  "Minimum pack version required."
+                                                                               }
+                                                                           },
+                                                                           "required":  ["template", "mode"]
+                                                                       },
+                                                      "audio_plan":  {
+                                                                         "type":  "object",
+                                                                         "description":  "Declares audio asset mapping for adaptive music and SFX.",
+                                                                         "properties":  {
+                                                                             "music":  {
+                                                                                 "type":  "object",
+                                                                                 "properties":  {
+                                                                                     "main_loop":  {"type":  "string"},
+                                                                                     "intensity_layers":  {"type":  "array", "items":  {"type":  "string"}}
+                                                                                 }
+                                                                             },
+                                                                             "sfx":  {
+                                                                                 "type":  "object",
+                                                                                 "properties":  {
+                                                                                     "weapon_fire":  {"type":  "string"},
+                                                                                     "impact":  {"type":  "string"},
+                                                                                     "explosion":  {"type":  "string"},
+                                                                                     "pickup":  {"type":  "string"},
+                                                                                     "warning":  {"type":  "string"}
+                                                                                 }
+                                                                             },
+                                                                             "ui":  {
+                                                                                 "type":  "object",
+                                                                                 "properties":  {
+                                                                                     "click":  {"type":  "string"},
+                                                                                     "confirm":  {"type":  "string"},
+                                                                                     "error":  {"type":  "string"}
+                                                                                 }
+                                                                             }
+                                                                         }
                                                                      }
                                                   }
                                },
@@ -127,7 +181,7 @@
                                                      "function":  {
                                                                       "type":  "string",
                                                                       "pattern":  "^raku_[a-z_]+$",
-                                                                      "description":  "C API function: raku_\u003cmodule\u003e_\u003caction\u003e."
+                                                                      "description":  "C API function: raku_<module>_<action>."
                                                                   },
                                                      "params":  {
                                                                     "type":  "object"
@@ -135,7 +189,7 @@
                                                  }
                               },
                   "SubsystemReference":  {
-                                             "description":  "Engine subsystems",
+                                             "description":  "16 engine subsystems",
                                              "properties":  {
                                                                 "core":  {
                                                                              "description":  "raku_init, raku_shutdown"
@@ -311,8 +365,11 @@
             "initialization must start with raku_init",
             "calls must end with raku_scene_start_loop",
             "shutdown must end with raku_shutdown",
-            "Use engine:// paths for built-in assets",
-            "Function names must match pattern: raku_<module>_<action>"
-        ]
+            "Use engine:// paths for built-in assets — prefer engine://packs/<template>/<mode>/... for first-party content pack assets",
+            "When a content pack is available, set metadata.content_pack with template and mode, and reference pack URIs in asset paths",
+            "Function names must match pattern: raku_<module>_<action>",
+            "Before generating, check api_stability in https://rakuai.com/api-manifest.json — skip 'preview' and 'coming_soon' subsystems"
+        ],
+        "api_stability_note": "Some subsystems are still being finalized. Check the api_stability section in the API manifest at https://rakuai.com/api-manifest.json before generating calls. Prefer stable subsystems. For beta subsystems, note usage in metadata.description. For preview/coming_soon subsystems, skip those calls entirely."
     }
 }
