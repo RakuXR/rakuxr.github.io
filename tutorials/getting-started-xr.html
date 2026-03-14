@@ -156,105 +156,24 @@
 
 <section class="section">
     <div class="container">
-        <div class="guide-toc">
-            <h3>In This Tutorial</h3>
-            <ol>
-                <li><a href="#prerequisites">Prerequisites and Setup</a></li>
-                <li><a href="#hand-tracking">Enabling Hand Tracking and Configuring Gestures</a></li>
-                <li><a href="#eye-tracking">Setting Up Eye Tracking with Permissions</a></li>
-                <li><a href="#haptics">Adding Haptic Feedback to Interactions</a></li>
-                <li><a href="#passthrough">Enabling Passthrough / Mixed Reality Mode</a></li>
-                <li><a href="#first-interaction">Your First Hand-Tracked Interaction</a></li>
-            </ol>
-        </div>
-
-        <!-- Prerequisites -->
-        <div class="guide-section" id="prerequisites">
-            <div class="guide-badge">SETUP</div>
-            <h3>Prerequisites and Setup</h3>
-            <p>Before you begin building XR experiences with Raku, make sure your development environment is ready.</p>
-
-            <p><strong style="color: var(--text-primary);">What you need:</strong></p>
+        <div class="guide-section">
+            <h3>What This Tutorial Covers</h3>
+            <p>This tutorial walks you through setting up a complete XR project in Raku, including:</p>
             <ul>
-                <li><strong style="color: var(--text-primary);">Raku Runtime</strong> &mdash; <a href="../contact.html" style="color: var(--accent-bright);">Request Access</a></li>
-                <li><strong style="color: var(--text-primary);">An XR headset</strong> &mdash; Any OpenXR 1.1 compatible device (Meta Quest 3, Quest Pro, Pico 4, HTC Vive XR Elite, etc.)</li>
-                <li><strong style="color: var(--text-primary);">C compiler</strong> &mdash; MSVC, GCC, or Clang for building your game</li>
-                <li><strong style="color: var(--text-primary);">OpenXR runtime</strong> &mdash; Installed on your target device (ships with most headsets)</li>
+                <li><strong style="color: var(--text-primary);">Hand Tracking</strong> &mdash; Full articulated hand tracking with built-in gesture recognition</li>
+                <li><strong style="color: var(--text-primary);">Eye Tracking</strong> &mdash; Gaze-driven interaction with privacy-first on-device processing</li>
+                <li><strong style="color: var(--text-primary);">Haptic Feedback</strong> &mdash; Rich tactile feedback for immersive interactions</li>
+                <li><strong style="color: var(--text-primary);">Passthrough / Mixed Reality</strong> &mdash; Seamless blending of virtual and real-world content</li>
+                <li><strong style="color: var(--text-primary);">Complete Interaction Example</strong> &mdash; Build a full hand-tracked interaction from scratch</li>
             </ul>
+            <p>Supports all OpenXR 1.1 compatible devices including Meta Quest 3, Quest Pro, Pico 4, and HTC Vive XR Elite.</p>
 
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for engine initialization and XR subsystem setup is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="../contact.html" class="btn btn-primary">Request SDK Access</a>
             </div>
 
-            <div class="guide-note">
-                <strong>Note:</strong> XR initialization is a privileged call. The engine will prompt the user for confirmation before activating XR hardware. This is a safety measure defined in the API manifest.
-            </div>
-        </div>
-
-        <!-- Hand Tracking -->
-        <div class="guide-section" id="hand-tracking">
-            <div class="guide-badge">XR INPUT</div>
-            <h3>Enabling Hand Tracking and Configuring Gestures</h3>
-            <p>Raku supports articulated hand tracking through OpenXR. Once enabled, you get access to 26 joint positions per hand, plus built-in gesture recognition.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for hand tracking, gesture registration, gesture thresholds, and joint position queries is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-        </div>
-
-        <!-- Eye Tracking -->
-        <div class="guide-section" id="eye-tracking">
-            <div class="guide-badge">XR INPUT</div>
-            <h3>Setting Up Eye Tracking with Permissions</h3>
-            <p>Eye tracking requires explicit user permission on most headsets. Raku handles the permission flow and gives you gaze direction and fixation data.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for eye tracking permissions, gaze data, fixation detection, and dwell selection is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-
-            <div class="guide-note">
-                <strong>Privacy:</strong> Eye tracking data never leaves the device. Raku processes all gaze data on-device and does not transmit it to any server. See the <a href="../privacy.html" style="color: var(--accent-bright);">privacy policy</a> for details.
-            </div>
-        </div>
-
-        <!-- Haptic Feedback -->
-        <div class="guide-section" id="haptics">
-            <div class="guide-badge">XR FEEDBACK</div>
-            <h3>Adding Haptic Feedback to Interactions</h3>
-            <p>Haptic feedback makes XR interactions feel tangible. Raku supports controller vibration, hand haptics, and custom haptic patterns.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for haptic feedback, haptic patterns, and named haptic effects is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-        </div>
-
-        <!-- Passthrough -->
-        <div class="guide-section" id="passthrough">
-            <div class="guide-badge">MIXED REALITY</div>
-            <h3>Enabling Passthrough / Mixed Reality Mode</h3>
-            <p>Passthrough lets users see the real world through their headset cameras, with virtual content overlaid on top. This is the foundation of mixed reality in Raku.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for passthrough mode, passthrough portals, and mixed reality configuration is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-
-            <div class="guide-note">
-                <strong>Compatibility:</strong> Passthrough requires a headset with camera passthrough capability (Meta Quest 3, Quest Pro, Pico 4, etc.). On devices without passthrough, the MR mode falls back to VR mode gracefully.
-            </div>
-        </div>
-
-        <!-- First Interaction -->
-        <div class="guide-section" id="first-interaction">
-            <div class="guide-badge">STEP-BY-STEP</div>
-            <h3>Your First Hand-Tracked Interaction</h3>
-            <p>Let's put it all together and build a complete hand-tracked interaction: picking up a virtual cube with your hand, getting haptic feedback, and placing it on a surface.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The complete hand-tracked interaction example (initialization, scene setup, grab gestures, physics integration, haptic feedback, and game loop) is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access to the full C API and sample code.
-            </div>
-
-            <div class="guide-note">
-                <strong>Next steps:</strong> Now that you have basic hand tracking working, explore the <a href="mixed-reality-tutorial.html" style="color: var(--accent-bright);">Mixed Reality tutorial</a> to place objects on real surfaces, or the <a href="physics-tutorial.html" style="color: var(--accent-bright);">Physics tutorial</a> to add more realistic object behavior.
+            <div class="guide-note" style="margin-top: 32px;">
+                <strong>Next steps:</strong> Explore the <a href="mixed-reality-tutorial.html" style="color: var(--accent-bright);">Mixed Reality tutorial</a> to place objects on real surfaces, or the <a href="physics-tutorial.html" style="color: var(--accent-bright);">Physics tutorial</a> to add more realistic object behavior.
             </div>
         </div>
 
@@ -265,11 +184,11 @@
     <div class="container" style="text-align: center;">
         <h2>Ready for More?</h2>
         <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
-            Explore the full XR API reference or check out more tutorials on physics, AI, and spatial audio.
+            Our tutorial library covers physics, spatial audio, mixed reality, and AI-powered NPCs.
         </p>
         <div class="cta-group">
             <a href="index.html" class="btn btn-secondary">All Tutorials</a>
-            <a href="../docs.html" class="btn btn-primary">API Reference</a>
+            <a href="../contact.html" class="btn btn-primary">Request SDK Access</a>
         </div>
     </div>
 </section>

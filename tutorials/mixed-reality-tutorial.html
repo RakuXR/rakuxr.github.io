@@ -77,136 +77,25 @@
 
 <section class="section">
     <div class="container">
-        <div class="guide-toc">
-            <h3>In This Tutorial</h3>
-            <ol>
-                <li><a href="#mr-vs-vr">Understanding MR vs VR vs Passthrough</a></li>
-                <li><a href="#scene-understanding">Scanning the Room with Scene Understanding</a></li>
-                <li><a href="#surface-placement">Placing Virtual Objects on Real Surfaces</a></li>
-                <li><a href="#portals">Creating Passthrough Portals</a></li>
-                <li><a href="#spatial-anchors">Using Spatial Anchors for Persistent Placement</a></li>
-                <li><a href="#cloud-anchors">Cloud Anchors for Shared MR Experiences</a></li>
-                <li><a href="#complete-example">Complete Example: Virtual Pet on Your Real Desk</a></li>
-            </ol>
-        </div>
-
-        <!-- MR vs VR -->
-        <div class="guide-section" id="mr-vs-vr">
-            <div class="guide-badge">CONCEPTS</div>
-            <h3>Understanding MR vs VR vs Passthrough</h3>
-            <p>Raku supports three XR modes through OpenXR, each serving different use cases:</p>
-
+        <div class="guide-section">
+            <h3>What This Tutorial Covers</h3>
+            <p>This tutorial teaches you how to build mixed reality experiences that blend virtual content with the real world, including:</p>
             <ul>
-                <li><strong style="color: var(--text-primary);">VR (Virtual Reality)</strong> &mdash; Fully immersive, opaque background. The user sees only your virtual world. Use for games, simulations, and cinematic experiences.</li>
-                <li><strong style="color: var(--text-primary);">MR (Mixed Reality)</strong> &mdash; Camera passthrough with virtual objects overlaid on the real world. Uses scene understanding to anchor content to real surfaces.</li>
-                <li><strong style="color: var(--text-primary);">Passthrough</strong> &mdash; Camera feed displayed as the background, but without scene understanding. Lighter weight than full MR. Good for HUDs and simple overlays.</li>
+                <li><strong style="color: var(--text-primary);">MR vs VR vs Passthrough</strong> &mdash; Three XR modes for different use cases, from full immersion to lightweight overlays</li>
+                <li><strong style="color: var(--text-primary);">Scene Understanding</strong> &mdash; Depth-sensor room scanning with planes, meshes, and semantic labels</li>
+                <li><strong style="color: var(--text-primary);">Surface Placement</strong> &mdash; Hit-testing to place virtual objects on real tables, floors, and walls</li>
+                <li><strong style="color: var(--text-primary);">Passthrough Portals</strong> &mdash; Windows between real and virtual worlds for dramatic visual effects</li>
+                <li><strong style="color: var(--text-primary);">Spatial Anchors</strong> &mdash; Persistent placement that survives app restarts</li>
+                <li><strong style="color: var(--text-primary);">Cloud Anchors</strong> &mdash; Shared MR experiences across multiple headsets in the same room</li>
+                <li><strong style="color: var(--text-primary);">Complete Example</strong> &mdash; A virtual pet that sits on your real desk, responds to gestures, and can be shared</li>
             </ul>
 
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
-            </div>
-        </div>
-
-        <!-- Scene Understanding -->
-        <div class="guide-section" id="scene-understanding">
-            <div class="guide-badge">SPATIAL AWARENESS</div>
-            <h3>Scanning the Room with Scene Understanding</h3>
-            <p>Scene understanding uses the headset's depth sensors to build a 3D model of the real world. This gives you planes (floors, walls, tables), meshes, and semantic labels.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="../contact.html" class="btn btn-primary">Request SDK Access</a>
             </div>
 
-            <p>Query detected surfaces and objects:</p>
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
-            </div>
-        </div>
-
-        <!-- Surface Placement -->
-        <div class="guide-section" id="surface-placement">
-            <div class="guide-badge">PLACEMENT</div>
-            <h3>Placing Virtual Objects on Real Surfaces</h3>
-            <p>Once you have detected planes, you can place virtual objects on them. Use hit-testing to find the exact position on a surface where the user is pointing or looking.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
-            </div>
-
-            <p>Constrain placement to specific surface types:</p>
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
-            </div>
-        </div>
-
-        <!-- Portals -->
-        <div class="guide-section" id="portals">
-            <div class="guide-badge">EFFECTS</div>
-            <h3>Creating Passthrough Portals</h3>
-            <p>Passthrough portals are windows into the real world placed inside a virtual environment (or vice versa). They create a dramatic "looking through a window" effect.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
-            </div>
-
-            <p>Animate and control portals:</p>
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
-            </div>
-
-            <div class="guide-note">
-                <strong>Creative use:</strong> In VR, place portals on dungeon walls to let players peek at the real world. In MR, use "inverse portals" to create virtual windows into fantasy worlds on your real walls.
-            </div>
-        </div>
-
-        <!-- Spatial Anchors -->
-        <div class="guide-section" id="spatial-anchors">
-            <div class="guide-badge">PERSISTENCE</div>
-            <h3>Using Spatial Anchors for Persistent Placement</h3>
-            <p>Spatial anchors lock virtual objects to a physical location so they stay in place across sessions. When the user restarts the app, anchored objects reappear exactly where they were left.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
-            </div>
-
-            <p>Restore anchors when the app launches again:</p>
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
-            </div>
-        </div>
-
-        <!-- Cloud Anchors -->
-        <div class="guide-section" id="cloud-anchors">
-            <div class="guide-badge">MULTIPLAYER MR</div>
-            <h3>Cloud Anchors for Shared MR Experiences</h3>
-            <p>Cloud anchors allow multiple headsets to see the same virtual objects in the same physical locations. User A places an object, and User B sees it in the exact same spot in the real room.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
-            </div>
-
-            <p>Resolve a cloud anchor on another device:</p>
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
-            </div>
-
-            <div class="guide-note">
-                <strong>Requirements:</strong> Cloud anchors require network access and the Raku Network subsystem. Both devices must be able to see some overlapping physical features (walls, furniture) for the spatial alignment to work.
-            </div>
-        </div>
-
-        <!-- Complete Example -->
-        <div class="guide-section" id="complete-example">
-            <div class="guide-badge">COMPLETE EXAMPLE</div>
-            <h3>Complete Example: Virtual Pet on Your Real Desk</h3>
-            <p>A mixed reality app where a virtual pet sits on your real desk. The pet responds to hand gestures, is anchored persistently, and can be shared with others via cloud anchors.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API code for this section is available under NDA for licensed developers. <a href="../contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
-            </div>
-
-            <div class="guide-note">
-                <strong>Next steps:</strong> Add the <a href="ai-npc-tutorial.html" style="color: var(--accent-bright);">AI system</a> to give your pet autonomous behavior, or use <a href="spatial-audio-tutorial.html" style="color: var(--accent-bright);">spatial audio</a> to make the purring sound come from the pet's exact position.
+            <div class="guide-note" style="margin-top: 32px;">
+                <strong>Next steps:</strong> Add the <a href="ai-npc-tutorial.html" style="color: var(--accent-bright);">AI system</a> to give your pet autonomous behavior, or use <a href="spatial-audio-tutorial.html" style="color: var(--accent-bright);">spatial audio</a> to make sounds come from the pet's exact position.
             </div>
         </div>
 
