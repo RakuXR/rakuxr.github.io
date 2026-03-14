@@ -138,24 +138,7 @@
 <div class="validator-container">
     <textarea class="validator-textarea" id="rakuInput" placeholder='Paste your .raku file JSON here...
 
-Example:
-{
-  "schema_version": "1.0",
-  "game": {
-    "title": "My Game",
-    "genre": "shooter",
-    "template": "space-shooter",
-    "description": "A fast-paced space shooter."
-  },
-  "entities": [...],
-  "scenes": [...],
-  "ai_disclosure": {
-    "live_generated": true,
-    "pre_generated": false,
-    "description": "DDA adjusts difficulty in real-time.",
-    "systems": ["dda"]
-  }
-}'></textarea>
+The validator checks basic structure (schema_version, game object with title/genre/template). For full schema validation, use the SDK validation tools.'></textarea>
 
     <div>
         <button class="validate-btn" onclick="validateRaku()">Validate</button>
@@ -192,23 +175,12 @@ Example:
             <a href="terms.html">Terms</a>
             <a href="contact.html">Contact</a>
         </div>
-        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Protected by 5 granted patents (priority July 2012).</p>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Patent-protected technology.</p>
         <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. &#x697D;AI and &#x697D;XR are stylized marks of RakuAI, LLC.</p>
     </div>
 </footer>
 
 <script>
-const VALID_GENRES = new Set([
-    'shooter', 'platformer', 'puzzle', 'rpg', 'racing',
-    'tower-defense', 'arena-combat', 'survival', 'music-rhythm', 'custom'
-]);
-
-const VALID_SCENE_TYPES = new Set(['menu', 'gameplay', 'cutscene', 'loading']);
-const VALID_TOP_KEYS = new Set([
-    'schema_version', 'game', 'ai', 'entities', 'scenes',
-    'rendering', 'audio', 'xr', 'ai_disclosure'
-]);
-
 function hideResults() {
     document.getElementById('resultsPanel').classList.remove('show');
 }
@@ -240,157 +212,44 @@ function validateRaku() {
         return;
     }
 
+    // Basic structure check only
     const errors = [];
-    const warnings = [];
-    const info = [];
     let checks = 0;
     let passed = 0;
 
-    // Check schema_version
     checks++;
     if (!json.schema_version) {
-        errors.push('Missing required field: <strong>schema_version</strong>. Add: "schema_version": "1.0"');
-    } else if (json.schema_version !== '1.0') {
-        errors.push('Invalid schema_version: "' + escapeHtml(json.schema_version) + '". Must be "1.0".');
-    } else {
-        passed++;
-    }
+        errors.push('Missing required field: <strong>schema_version</strong>.');
+    } else { passed++; }
 
-    // Check game object
     checks++;
     if (!json.game || typeof json.game !== 'object') {
-        errors.push('Missing required section: <strong>game</strong>. Must include title, genre, and template.');
+        errors.push('Missing required section: <strong>game</strong>.');
     } else {
         passed++;
-
         checks++;
-        if (!json.game.title) {
-            errors.push('Missing required field: <strong>game.title</strong>');
-        } else { passed++; }
-
+        if (!json.game.title) { errors.push('Missing: <strong>game.title</strong>'); } else { passed++; }
         checks++;
-        if (!json.game.genre) {
-            errors.push('Missing required field: <strong>game.genre</strong>');
-        } else if (!VALID_GENRES.has(json.game.genre)) {
-            errors.push('Invalid genre: "' + escapeHtml(json.game.genre) + '". Valid genres: ' + Array.from(VALID_GENRES).join(', '));
-        } else { passed++; }
-
+        if (!json.game.genre) { errors.push('Missing: <strong>game.genre</strong>'); } else { passed++; }
         checks++;
-        if (!json.game.template) {
-            errors.push('Missing required field: <strong>game.template</strong>');
-        } else { passed++; }
-
-        if (json.game.max_players !== undefined) {
-            checks++;
-            if (typeof json.game.max_players !== 'number' || json.game.max_players < 1 || json.game.max_players > 16) {
-                warnings.push('game.max_players should be between 1 and 16.');
-            } else { passed++; }
-        }
+        if (!json.game.template) { errors.push('Missing: <strong>game.template</strong>'); } else { passed++; }
     }
 
-    // Check entities
-    if (json.entities !== undefined) {
-        checks++;
-        if (!Array.isArray(json.entities)) {
-            errors.push('<strong>entities</strong> must be an array.');
-        } else if (json.entities.length === 0) {
-            warnings.push('entities array is empty. Your game has no entities defined.');
-            passed++;
-        } else {
-            passed++;
-            for (let i = 0; i < json.entities.length; i++) {
-                const e = json.entities[i];
-                if (!e.type) {
-                    warnings.push('entities[' + i + ']: Missing "type" field.');
-                }
-            }
-        }
-    } else {
-        warnings.push('No <strong>entities</strong> section. Consider adding game entities (players, NPCs, enemies).');
-    }
-
-    // Check scenes
-    if (json.scenes !== undefined) {
-        checks++;
-        if (!Array.isArray(json.scenes)) {
-            errors.push('<strong>scenes</strong> must be an array.');
-        } else if (json.scenes.length === 0) {
-            warnings.push('scenes array is empty. Your game has no scenes defined.');
-            passed++;
-        } else {
-            passed++;
-            for (let i = 0; i < json.scenes.length; i++) {
-                const s = json.scenes[i];
-                if (!s.name) warnings.push('scenes[' + i + ']: Missing "name" field.');
-                if (!s.type) warnings.push('scenes[' + i + ']: Missing "type" field.');
-                else if (!VALID_SCENE_TYPES.has(s.type)) {
-                    warnings.push('scenes[' + i + ']: Unknown scene type "' + escapeHtml(s.type) + '". Valid: menu, gameplay, cutscene, loading.');
-                }
-            }
-        }
-    } else {
-        warnings.push('No <strong>scenes</strong> section. Consider adding game scenes/levels.');
-    }
-
-    // Check ai_disclosure
-    checks++;
-    if (!json.ai_disclosure || typeof json.ai_disclosure !== 'object') {
-        warnings.push('Missing <strong>ai_disclosure</strong> section. This is required for platform compliance (ESRB, PEGI, Steam).');
-    } else {
-        passed++;
-        const ad = json.ai_disclosure;
-        if (ad.live_generated === undefined) warnings.push('ai_disclosure: Missing "live_generated" (boolean).');
-        if (ad.pre_generated === undefined) warnings.push('ai_disclosure: Missing "pre_generated" (boolean).');
-        if (!ad.description) warnings.push('ai_disclosure: Missing "description" (string explaining AI usage).');
-        if (!ad.systems || !Array.isArray(ad.systems)) warnings.push('ai_disclosure: Missing "systems" array (e.g., ["dda", "procedural_dialogue"]).');
-    }
-
-    // Check for unknown top-level keys
-    for (const key of Object.keys(json)) {
-        if (!VALID_TOP_KEYS.has(key)) {
-            warnings.push('Unknown top-level key: "' + escapeHtml(key) + '". Valid keys: ' + Array.from(VALID_TOP_KEYS).join(', '));
-        }
-    }
-
-    // Optional section info
-    if (json.ai) info.push('AI subsystem configured (DDA, NPC personality, etc.)');
-    if (json.rendering) info.push('Custom rendering settings detected.');
-    if (json.audio) info.push('Audio configuration detected.');
-    if (json.xr) {
-        info.push('XR configuration detected.' + (json.xr.openxr_enabled ? ' OpenXR enabled.' : ''));
-    }
-
-    // Show results
     const hasErrors = errors.length > 0;
-    const hasWarnings = warnings.length > 0;
+    panel.className = hasErrors ? 'results-panel show results-fail' : 'results-panel show results-pass';
+    title.textContent = hasErrors ? 'Basic Validation Failed' : 'Basic Validation Passed';
 
-    if (hasErrors) {
-        panel.className = 'results-panel show results-fail';
-        title.textContent = 'Validation Failed';
-    } else if (hasWarnings) {
-        panel.className = 'results-panel show results-warn';
-        title.textContent = 'Validation Passed with Warnings';
-    } else {
-        panel.className = 'results-panel show results-pass';
-        title.textContent = 'Validation Passed';
-    }
-
-    let statsHtml = '';
-    statsHtml += '<span class="stat-chip stat-info">' + checks + ' checks</span>';
+    let statsHtml = '<span class="stat-chip stat-info">' + checks + ' checks</span>';
     statsHtml += '<span class="stat-chip stat-pass">' + passed + ' passed</span>';
     if (errors.length > 0) statsHtml += '<span class="stat-chip stat-fail">' + errors.length + ' errors</span>';
-    if (warnings.length > 0) statsHtml += '<span class="stat-chip stat-warn">' + warnings.length + ' warnings</span>';
     stats.innerHTML = statsHtml;
 
     let bodyHtml = '';
     for (const e of errors) bodyHtml += '<div class="result-item result-error">' + e + '</div>';
-    for (const w of warnings) bodyHtml += '<div class="result-item result-warning">' + w + '</div>';
-    for (const i of info) bodyHtml += '<div class="result-item result-info">' + i + '</div>';
-
-    if (!hasErrors && !hasWarnings && info.length === 0) {
-        bodyHtml = '<div class="result-item result-ok">All checks passed. Your .raku file structure is valid and ready to run!</div>';
+    if (!hasErrors) {
+        bodyHtml = '<div class="result-item result-ok">Basic structure looks good! For full validation including schema compliance, genre checking, and entity validation, use the SDK validation tools.</div>' +
+            '<div class="result-item result-info"><a href="contact.html" style="color: var(--accent-bright);">Request SDK access</a> for complete validation with auto-fix capabilities.</div>';
     }
-
     body.innerHTML = bodyHtml;
 }
 

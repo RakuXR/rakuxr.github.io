@@ -2,97 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://rakuai.com/schemas/content-pack-manifest.schema.json",
   "title": "Raku Content Pack Manifest",
-  "description": "Schema for content pack manifest files. Each pack provides curated assets (visuals, VFX, UI, audio) for a specific template and mode (prototype or presentation).",
+  "description": "Schema for content pack manifest files. Full specification available with SDK access. Contact https://rakuai.com/contact.html",
   "type": "object",
-  "required": [
-    "pack_id",
-    "template",
-    "mode",
-    "version",
-    "engine_version_min",
-    "mount_root",
-    "assets",
-    "audio",
-    "fallbacks"
-  ],
+  "required": ["pack_id", "template", "mode", "version"],
   "properties": {
-    "pack_id": {
-      "type": "string",
-      "description": "Unique identifier for the pack, e.g. 'space_shooter_presentation'."
-    },
-    "template": {
-      "type": "string",
-      "description": "Template family this pack belongs to.",
-      "enum": [
-        "space_shooter",
-        "tower_defense",
-        "puzzle",
-        "platformer",
-        "arena_combat",
-        "racing",
-        "rhythm",
-        "roguelike",
-        "survival",
-        "custom"
-      ]
-    },
-    "mode": {
-      "type": "string",
-      "enum": ["prototype", "presentation"],
-      "description": "Prototype packs are lightweight for fast iteration; presentation packs are polished for demos/trailers."
-    },
-    "version": {
-      "type": "string",
-      "description": "Semantic version for the pack (e.g. '0.1.0')."
-    },
-    "engine_version_min": {
-      "type": "string",
-      "description": "Minimum Raku engine version required (e.g. '2026.1.0')."
-    },
-    "mount_root": {
-      "type": "string",
-      "pattern": "^engine://packs/.+",
-      "description": "URI mount point, e.g. 'engine://packs/space_shooter/presentation'."
-    },
-    "description": {
-      "type": "string",
-      "description": "Human-readable pack description."
-    },
-    "assets": {
-      "type": "object",
-      "description": "Visual asset arrays grouped by category.",
-      "properties": {
-        "textures": {"type": "array", "items": {"type": "string"}},
-        "sprites": {"type": "array", "items": {"type": "string"}},
-        "materials": {"type": "array", "items": {"type": "string"}},
-        "models": {"type": "array", "items": {"type": "string"}},
-        "vfx": {"type": "array", "items": {"type": "string"}},
-        "ui": {"type": "array", "items": {"type": "string"}}
-      },
-      "additionalProperties": false
-    },
-    "audio": {
-      "type": "object",
-      "description": "Audio asset arrays grouped by category.",
-      "properties": {
-        "music": {"type": "array", "items": {"type": "string"}},
-        "stems": {"type": "array", "items": {"type": "string"}},
-        "sfx": {"type": "array", "items": {"type": "string"}},
-        "ui": {"type": "array", "items": {"type": "string"}},
-        "voice_hooks": {"type": "array", "items": {"type": "string"}}
-      },
-      "additionalProperties": false
-    },
-    "fallbacks": {
-      "type": "object",
-      "description": "Fallback URIs for missing assets.",
-      "required": ["missing_texture", "missing_audio"],
-      "properties": {
-        "missing_texture": {"type": "string"},
-        "missing_audio": {"type": "string"},
-        "missing_model": {"type": "string"}
-      }
-    }
+    "pack_id": {"type": "string", "description": "Unique pack identifier."},
+    "template": {"type": "string", "description": "Template family. See SDK docs for available templates."},
+    "mode": {"type": "string", "enum": ["prototype", "presentation"]},
+    "version": {"type": "string", "description": "Semantic version for the pack."}
   },
-  "additionalProperties": false
+  "additionalProperties": true
 }
