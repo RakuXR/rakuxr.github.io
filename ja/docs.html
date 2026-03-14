@@ -55,12 +55,12 @@
             <div class="step">
                 <div class="step-number">1</div>
                 <h3>スキーマを取得</h3>
-                <p><a href="schema.json" style="color: var(--accent-bright);">.rakuファイルスキーマ</a>がゲームフォーマットを定義します。任意のAIにスキーマを読み込ませるか、<a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">GitHub上のサンプルゲーム</a>を参照して実際のフォーマットをご確認ください。</p>
+                <p>.rakuファイルスキーマがゲームフォーマットを定義します。<a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">GitHub上のサンプルゲーム</a>を参照するか、完全なスキーマについては<a href="contact.html" style="color: var(--accent-bright);">SDKアクセスをリクエスト</a>してください。</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
                 <h3>AIにゲームを説明する</h3>
-                <p>任意のAIアシスタントを開いて次のように伝えてください：<em>「rakuai.com/schema.jsonにあるRakuゲームエンジンスキーマを使って、適応型難易度付きのスペースシューターを作成してください。」</em> AIが完全な.rakuファイルを生成します。</p>
+                <p>任意のAIアシスタントを開いてゲームコンセプトを説明してください。SDKにはプロンプトテンプレートとリファレンスカードが含まれており、ゲームが一発で動作します。詳細は<a href="llm-guide.html" style="color: var(--accent-bright);">LLMガイド</a>をご覧ください。</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
@@ -75,11 +75,8 @@
     <div class="container">
         <h2>AI統合</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            AIプラットフォームは公開スキーマを使用して.rakuファイルを生成します。完全な.rakuファイル仕様については任意のLLMに
-            <a href="schema.json" style="color: var(--accent-bright);">rakuai.com/schema.json</a>
-            を読み込ませるか、キュレーションされたAPIリファレンスには
-            <a href="api-manifest.json" style="color: var(--accent-bright);">rakuai.com/api-manifest.json</a>
-            をご利用ください。
+            AIプラットフォームはスキーマを使用して.rakuファイルを生成します。完全なスキーマ仕様とAPIリファレンスはSDKアクセスで利用可能です。
+            <a href="contact.html" style="color: var(--accent-bright);">SDKアクセスをリクエスト</a>して始めましょう。
         </p>
         <h2>対応AIプラットフォーム</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; margin-top: -32px;">
@@ -89,7 +86,7 @@
         <div class="features">
             <div class="feature">
                 <h3>ChatGPT (OpenAI)</h3>
-                <p>GPT-4およびGPT-4oは.rakuファイル生成に完全対応。ハルシネーションされたフィールドを避けるため、必ず最初に<a href="schema.json" style="color: var(--accent-bright);">rakuai.com/schema.json</a>を読み込ませてください。</p>
+                <p>GPT-4およびGPT-4oは.rakuファイル生成に完全対応。最良の結果を得るために、SDK付属のプロンプトテンプレートをご使用ください。</p>
             </div>
             <div class="feature">
                 <h3>Claude (Anthropic)</h3>
@@ -101,7 +98,7 @@
             </div>
             <div class="feature">
                 <h3>GitHub Copilot</h3>
-                <p>VS CodeおよびVisual Studio拡張機能が.rakuファイルの補完と検証を提供。オートコンプリートのために隣接タブでschema.jsonを開いてください。</p>
+                <p>VS CodeおよびVisual Studio拡張機能が.rakuファイルの補完と検証をSDKインストール時に提供します。</p>
             </div>
         </div>
     </div>
@@ -109,38 +106,16 @@
 
 <section class="section">
     <div class="container">
-        <h2>.rakuファイルの例</h2>
+        <h2>.rakuファイル形式</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            ゲームを説明するとAIが生成するファイルの例です。すべてのフィールドはスキーマにドキュメント化されています。
+            ゲームは.rakuファイルとして定義されます &mdash; ランタイムが即座に実行する構造化されたJSONです。AIアシスタントにゲームを説明すると、プレイ可能な完全な.rakuファイルが生成されます。
         </p>
-        <div class="code-block">
-{<br>
-  <span class="code-string">"schema_version"</span>: <span class="code-string">"1.0"</span>,<br>
-  <span class="code-string">"game"</span>: {<br>
-    <span class="code-string">"title"</span>: <span class="code-string">"Space Defender"</span>,<br>
-    <span class="code-string">"genre"</span>: <span class="code-string">"shooter"</span>,<br>
-    <span class="code-string">"template"</span>: <span class="code-string">"space-shooter"</span><br>
-  },<br>
-  <span class="code-string">"ai"</span>: {<br>
-    <span class="code-string">"dda_enabled"</span>: <span class="code-keyword">true</span>,<br>
-    <span class="code-string">"target_flow_state"</span>: 0.7,<br>
-    <span class="code-string">"profiler_mode"</span>: <span class="code-string">"adaptive"</span>,<br>
-    <span class="code-string">"emotional_tracking"</span>: <span class="code-keyword">true</span><br>
-  },<br>
-  <span class="code-string">"entities"</span>: [<br>
-    { <span class="code-string">"type"</span>: <span class="code-string">"player_ship"</span>, <span class="code-string">"health"</span>: 100 },<br>
-    { <span class="code-string">"type"</span>: <span class="code-string">"enemy_wave"</span>, <span class="code-string">"count"</span>: 10 }<br>
-  ],<br>
-  <span class="code-string">"ai_disclosure"</span>: {<br>
-    <span class="code-string">"live_generated"</span>: <span class="code-keyword">true</span>,<br>
-    <span class="code-string">"pre_generated"</span>: <span class="code-keyword">true</span>,<br>
-    <span class="code-string">"description"</span>: <span class="code-string">"AI adjusts difficulty based on player performance."</span>,<br>
-    <span class="code-string">"systems"</span>: [<span class="code-string">"dda"</span>, <span class="code-string">"adaptive-audio"</span>, <span class="code-string">"emotional-tracking"</span>]<br>
-  }<br>
-}
-        </div>
         <p style="text-align: center; color: var(--text-secondary); margin-top: 16px;">
-            <a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">GitHubでその他のサンプルを見る &rarr;</a>
+            完全なスキーマドキュメントとサンプルファイルはSDKアクセスで利用可能です。
+            <a href="contact.html" style="color: var(--accent-bright);">SDKアクセスをリクエスト &rarr;</a>
+        </p>
+        <p style="text-align: center; color: var(--text-secondary); margin-top: 16px;">
+            <a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">GitHubでサンプルゲームを見る &rarr;</a>
         </p>
     </div>
 </section>
