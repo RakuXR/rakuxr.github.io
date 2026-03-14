@@ -153,7 +153,7 @@
             <a href="pro-features.html">Pro</a>
             <a href="pro-features.html">Pro</a>
             <a href="https://github.com/RakuXR">GitHub</a>
-            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">ランタイムをダウンロード</a>
+            <a href="contact.html" class="nav-cta">アクセスをリクエスト</a>
             <a href="ai-systems.html" class="lang-toggle">EN</a>
         </div>
     </div>
@@ -172,7 +172,6 @@
 
         <!-- Navigation -->
         <div class="ai-section" id="navigation">
-            <div class="ai-grid">
                 <div class="ai-content">
                     <div class="ai-badge">ナビゲーション</div>
                     <h3>ナビゲーション</h3>
@@ -188,32 +187,10 @@
                         <strong>主なメリット：</strong> NPCが複雑な環境を自然にナビゲートし、互いや動的障害物をリアルタイムで回避します。
                     </div>
                 </div>
-                <div class="ai-code">
-<span class="cmt">// Generate NavMesh from scene</span>
-<span class="fn">raku_nav_mesh_bake</span>(scene, &amp;nav_config);
-
-<span class="cmt">// Create a nav agent</span>
-RakuNavAgent agent = <span class="fn">raku_nav_agent_create</span>(entity);
-<span class="fn">raku_nav_agent_set_radius</span>(agent, <span class="num">0.5f</span>);
-<span class="fn">raku_nav_agent_set_speed</span>(agent, <span class="num">3.5f</span>);
-
-<span class="cmt">// Pathfind to target</span>
-<span class="fn">raku_nav_agent_set_destination</span>(agent, target_pos);
-
-<span class="cmt">// Crowd simulation with avoidance</span>
-RakuCrowd crowd = <span class="fn">raku_nav_crowd_create</span>(<span class="num">64</span>);
-<span class="fn">raku_nav_crowd_add_agent</span>(crowd, agent);
-
-<span class="cmt">// Formation movement</span>
-<span class="fn">raku_nav_formation_create</span>(squad, <span class="str">RAKU_FORM_WEDGE</span>);
-<span class="fn">raku_nav_formation_move_to</span>(squad, rally_point);
-                </div>
-            </div>
         </div>
 
         <!-- Behavior Trees -->
         <div class="ai-section" id="behavior-trees">
-            <div class="ai-grid">
                 <div class="ai-content">
                     <div class="ai-badge">ビヘイビア</div>
                     <h3>ビヘイビアツリー</h3>
@@ -229,34 +206,10 @@ RakuCrowd crowd = <span class="fn">raku_nav_crowd_create</span>(<span class="num
                         <strong>主なメリット：</strong> ステートマシンのスパゲッティコードを書かずに高度な敵AIを設計。ビヘイビアツリーはモジュール式でデバッグ可能、再利用可能です。
                     </div>
                 </div>
-                <div class="ai-code">
-<span class="cmt">// Create behavior tree</span>
-RakuBT bt = <span class="fn">raku_bt_create</span>();
-
-<span class="cmt">// Build tree structure</span>
-RakuBTNode root = <span class="fn">raku_bt_selector</span>(bt);
-RakuBTNode combat = <span class="fn">raku_bt_sequence</span>(bt);
-  <span class="fn">raku_bt_add_child</span>(combat, <span class="fn">raku_bt_condition</span>(<span class="str">"enemy_visible"</span>));
-  <span class="fn">raku_bt_add_child</span>(combat, <span class="fn">raku_bt_action</span>(<span class="str">"attack"</span>, attack_fn));
-RakuBTNode patrol = <span class="fn">raku_bt_action</span>(<span class="str">"patrol"</span>, patrol_fn);
-
-<span class="fn">raku_bt_add_child</span>(root, combat);
-<span class="fn">raku_bt_add_child</span>(root, patrol);
-
-<span class="cmt">// Blackboard data</span>
-<span class="fn">raku_bt_blackboard_set_float</span>(bt, <span class="str">"aggro_range"</span>, <span class="num">15.0f</span>);
-<span class="fn">raku_bt_blackboard_set_entity</span>(bt, <span class="str">"target"</span>, player);
-
-<span class="cmt">// Serialize / deserialize</span>
-<span class="fn">raku_bt_save_json</span>(bt, <span class="str">"guard_ai.json"</span>);
-RakuBT loaded = <span class="fn">raku_bt_load_json</span>(<span class="str">"guard_ai.json"</span>);
-                </div>
-            </div>
         </div>
 
         <!-- Voice Commands -->
         <div class="ai-section" id="voice-commands">
-            <div class="ai-grid">
                 <div class="ai-content">
                     <div class="ai-badge">音声</div>
                     <h3>音声コマンド</h3>
@@ -272,33 +225,10 @@ RakuBT loaded = <span class="fn">raku_bt_load_json</span>(<span class="str">"gua
                         <strong>主なメリット：</strong> ゲームに話しかけましょう。「インベントリを開いて」や「ドラゴンを攻撃して」と言えば実行されます。NPCは同期されたリップアニメーションで応答します。
                     </div>
                 </div>
-                <div class="ai-code">
-<span class="cmt">// Register voice commands</span>
-<span class="fn">raku_voice_register_command</span>(<span class="str">"open inventory"</span>, open_inv_cb);
-<span class="fn">raku_voice_register_command</span>(<span class="str">"cast fireball"</span>, cast_fire_cb);
-
-<span class="cmt">// Intent parsing with parameters</span>
-<span class="fn">raku_voice_register_intent</span>(<span class="str">"attack {target}"</span>, attack_cb);
-<span class="cmt">// "attack the goblin" -> target = "goblin"</span>
-
-<span class="cmt">// Set wake word</span>
-<span class="fn">raku_voice_set_wake_word</span>(<span class="str">"hey raku"</span>);
-<span class="fn">raku_voice_on_wake</span>(on_wake_cb);
-
-<span class="cmt">// Text-to-speech with lip sync</span>
-<span class="fn">raku_tts_speak</span>(npc_entity, <span class="str">"Welcome, traveler."</span>);
-<span class="fn">raku_tts_set_voice</span>(npc_entity, <span class="str">RAKU_VOICE_DEEP_MALE</span>);
-<span class="fn">raku_tts_set_emotion</span>(npc_entity, <span class="str">RAKU_EMO_FRIENDLY</span>);
-
-<span class="cmt">// Lip sync auto-binds to character mesh</span>
-<span class="fn">raku_tts_enable_lipsync</span>(npc_entity, <span class="num">true</span>);
-                </div>
-            </div>
         </div>
 
         <!-- NPC Intelligence -->
         <div class="ai-section" id="npc-intelligence">
-            <div class="ai-grid">
                 <div class="ai-content">
                     <div class="ai-badge">NPC</div>
                     <h3>NPCインテリジェンス</h3>
@@ -314,29 +244,6 @@ RakuBT loaded = <span class="fn">raku_bt_load_json</span>(<span class="str">"gua
                         <strong>主なメリット：</strong> 会話を記憶し、プレイヤーの口調に反応し、ユニークなクエストを生成するNPC。毎回のプレイが異なる体験になります。
                     </div>
                 </div>
-                <div class="ai-code">
-<span class="cmt">// Create NPC with personality</span>
-RakuNPC npc = <span class="fn">raku_npc_create</span>(entity);
-<span class="fn">raku_npc_set_personality</span>(npc, <span class="str">"gruff but kind blacksmith"</span>);
-<span class="fn">raku_npc_set_knowledge</span>(npc, <span class="str">"knows about the dragon attack"</span>);
-
-<span class="cmt">// Dynamic dialogue</span>
-<span class="kw">const char</span>* response = <span class="fn">raku_npc_dialogue</span>(
-    npc, <span class="str">"Do you have any quests for me?"</span>
-);
-
-<span class="cmt">// Sentiment analysis on player input</span>
-RakuSentiment s = <span class="fn">raku_npc_analyze_sentiment</span>(player_text);
-<span class="cmt">// s.valence, s.arousal, s.dominance</span>
-
-<span class="cmt">// Generate quest from world state</span>
-RakuQuest quest = <span class="fn">raku_npc_generate_quest</span>(npc, world_state);
-<span class="fn">raku_quest_activate</span>(quest);
-
-<span class="cmt">// Relationship tracking</span>
-<span class="fn">raku_npc_modify_affinity</span>(npc, player, <span class="num">+10</span>);
-                </div>
-            </div>
         </div>
 
         <!-- Powered by AI Callout -->

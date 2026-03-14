@@ -23,7 +23,7 @@
         }
         .engine-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 48px;
             align-items: start;
         }
@@ -147,7 +147,7 @@
             <a href="pricing.html">Pricing</a>
             <a href="pro-features.html">Pro</a>
             <a href="https://github.com/RakuXR">GitHub</a>
-            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">Download Runtime</a>
+            <a href="contact.html" class="nav-cta">Request Access</a>
             <a href="ja/spatial-engine.html" class="lang-toggle">楽AI<sup class="tm">™</sup></a>
         </div>
     </div>
@@ -200,25 +200,6 @@
                         <strong>Key benefit:</strong> Deterministic physics at 60 Hz. Objects interact naturally in both VR and desktop modes.
                     </div>
                 </div>
-                <div class="engine-code">
-<span class="cmt">// Create a dynamic rigidbody</span>
-<span class="fn">raku_physics_body_create</span>(entity, <span class="str">RAKU_BODY_DYNAMIC</span>);
-<span class="fn">raku_physics_body_set_mass</span>(entity, <span class="num">2.5f</span>);
-
-<span class="cmt">// Add collision shape</span>
-<span class="fn">raku_physics_shape_add_box</span>(entity, <span class="num">1.0f</span>, <span class="num">1.0f</span>, <span class="num">1.0f</span>);
-<span class="fn">raku_physics_set_layer</span>(entity, <span class="str">RAKU_LAYER_PROPS</span>);
-
-<span class="cmt">// Raycast with layer mask</span>
-RakuHit hit;
-<span class="kw">if</span> (<span class="fn">raku_physics_raycast</span>(origin, dir, <span class="num">100.0f</span>, mask, &amp;hit)) {
-    <span class="fn">apply_damage</span>(hit.entity, <span class="num">10</span>);
-}
-
-<span class="cmt">// Create a hinge joint</span>
-<span class="fn">raku_physics_joint_hinge</span>(door, frame, anchor, axis);
-<span class="fn">raku_physics_joint_set_limits</span>(joint, <span class="num">0.0f</span>, <span class="num">1.57f</span>);
-                </div>
             </div>
         </div>
 
@@ -239,28 +220,6 @@ RakuHit hit;
                     <div class="engine-benefit">
                         <strong>Key benefit:</strong> Cinematic VFX at XR frame rates. Fire, smoke, magic, rain, and explosions without frame drops.
                     </div>
-                </div>
-                <div class="engine-code">
-<span class="cmt">// Create GPU particle emitter</span>
-RakuEmitter em = <span class="fn">raku_vfx_emitter_create</span>(<span class="str">RAKU_VFX_GPU</span>);
-<span class="fn">raku_vfx_emitter_set_rate</span>(em, <span class="num">50000</span>);
-<span class="fn">raku_vfx_emitter_set_shape</span>(em, <span class="str">RAKU_SHAPE_CONE</span>, <span class="num">30.0f</span>);
-
-<span class="cmt">// Lifetime, size, color over life</span>
-<span class="fn">raku_vfx_set_lifetime</span>(em, <span class="num">1.0f</span>, <span class="num">3.0f</span>);
-<span class="fn">raku_vfx_set_color_gradient</span>(em, fire_gradient);
-<span class="fn">raku_vfx_set_size_curve</span>(em, grow_then_shrink);
-
-<span class="cmt">// Add force fields</span>
-<span class="fn">raku_vfx_force_add</span>(em, <span class="str">RAKU_FORCE_TURBULENCE</span>, <span class="num">2.5f</span>);
-<span class="fn">raku_vfx_force_add</span>(em, <span class="str">RAKU_FORCE_GRAVITY</span>, <span class="num">-9.8f</span>);
-
-<span class="cmt">// Enable trails</span>
-<span class="fn">raku_vfx_trail_enable</span>(em, <span class="num">0.3f</span>); <span class="cmt">// trail time</span>
-<span class="fn">raku_vfx_trail_set_width</span>(em, width_curve);
-
-<span class="cmt">// Sub-emitter on particle death</span>
-<span class="fn">raku_vfx_sub_emitter</span>(em, <span class="str">RAKU_ON_DEATH</span>, spark_em);
                 </div>
             </div>
         </div>
@@ -283,27 +242,6 @@ RakuEmitter em = <span class="fn">raku_vfx_emitter_create</span>(<span class="st
                         <strong>Key benefit:</strong> Animate any character naturally. IK makes hands reach doorknobs and feet match terrain automatically.
                     </div>
                 </div>
-                <div class="engine-code">
-<span class="cmt">// Create animation state machine</span>
-RakuAnimFSM fsm = <span class="fn">raku_anim_fsm_create</span>(entity);
-<span class="fn">raku_anim_fsm_add_state</span>(fsm, <span class="str">"idle"</span>, idle_clip);
-<span class="fn">raku_anim_fsm_add_state</span>(fsm, <span class="str">"walk"</span>, walk_blend_tree);
-<span class="fn">raku_anim_fsm_add_state</span>(fsm, <span class="str">"run"</span>, run_clip);
-
-<span class="cmt">// Transition: idle -> walk when speed > 0.1</span>
-<span class="fn">raku_anim_fsm_transition</span>(fsm, <span class="str">"idle"</span>, <span class="str">"walk"</span>,
-    <span class="str">"speed"</span>, <span class="str">RAKU_GT</span>, <span class="num">0.1f</span>, <span class="num">0.2f</span>);
-
-<span class="cmt">// TwoBoneIK for hand placement</span>
-<span class="fn">raku_anim_ik_two_bone</span>(entity, <span class="str">"UpperArm_R"</span>,
-    <span class="str">"LowerArm_R"</span>, <span class="str">"Hand_R"</span>, target_pos);
-
-<span class="cmt">// FABRIK chain for tentacle/tail</span>
-<span class="fn">raku_anim_ik_fabrik</span>(entity, chain_bones, <span class="num">6</span>, target);
-
-<span class="cmt">// Retarget animation to different skeleton</span>
-<span class="fn">raku_anim_retarget</span>(src_skeleton, dst_skeleton, clip);
-                </div>
             </div>
         </div>
 
@@ -324,29 +262,6 @@ RakuAnimFSM fsm = <span class="fn">raku_anim_fsm_create</span>(entity);
                     <div class="engine-benefit">
                         <strong>Key benefit:</strong> Sound you can locate with your ears. Players hear enemies behind them, echoes in caves, muffled voices through doors.
                     </div>
-                </div>
-                <div class="engine-code">
-<span class="cmt">// Create spatialized audio source</span>
-RakuAudioSrc src = <span class="fn">raku_audio_source_create</span>(entity);
-<span class="fn">raku_audio_source_set_clip</span>(src, footstep_clip);
-<span class="fn">raku_audio_source_set_spatial</span>(src, <span class="num">true</span>);
-
-<span class="cmt">// Enable HRTF</span>
-<span class="fn">raku_audio_set_hrtf_enabled</span>(<span class="num">true</span>);
-<span class="fn">raku_audio_set_hrtf_profile</span>(<span class="str">RAKU_HRTF_DEFAULT</span>);
-
-<span class="cmt">// Add reverb zone</span>
-RakuReverb rev = <span class="fn">raku_audio_reverb_create</span>();
-<span class="fn">raku_audio_reverb_set_preset</span>(rev, <span class="str">RAKU_REVERB_CAVE</span>);
-<span class="fn">raku_audio_reverb_set_bounds</span>(rev, cave_box);
-
-<span class="cmt">// Occlusion: sound through walls</span>
-<span class="fn">raku_audio_source_set_occlusion</span>(src, <span class="num">true</span>);
-<span class="fn">raku_audio_occlusion_set_layers</span>(<span class="str">RAKU_LAYER_WALLS</span>);
-
-<span class="cmt">// Mixer group routing</span>
-<span class="fn">raku_audio_mixer_set_group</span>(src, <span class="str">"SFX"</span>);
-<span class="fn">raku_audio_mixer_set_send</span>(<span class="str">"SFX"</span>, <span class="str">"Reverb"</span>, <span class="num">0.4f</span>);
                 </div>
             </div>
         </div>

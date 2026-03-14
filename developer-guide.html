@@ -134,7 +134,7 @@
             <a href="pricing.html">Pricing</a>
             <a href="pro-features.html">Pro</a>
             <a href="https://github.com/RakuXR">GitHub</a>
-            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">Download Runtime</a>
+            <a href="contact.html" class="nav-cta">Request Access</a>
             <a href="ja/developer-guide.html" class="lang-toggle">楽AI<sup class="tm">™</sup></a>
         </div>
     </div>
@@ -171,30 +171,17 @@
             </p>
 
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">1. Activate your Pro license</h4>
-            <p>After subscribing, call <code style="color: var(--accent-bright);">raku_license_activate()</code> with your license key at startup. This enables all Pro subsystems.</p>
+            <p>After subscribing, activate your license key at startup. This enables all Pro subsystems.</p>
 
-            <div class="guide-code">
-<span class="comment">// Initialize the engine, then activate Pro</span>
-<span class="fn">raku_engine_init</span>();
-
-<span class="type">RakuLicenseResult</span> result = <span class="fn">raku_license_activate</span>(<span class="str">"YOUR-LICENSE-KEY"</span>);
-<span class="kw">if</span> (result == <span class="num">RAKU_LICENSE_OK</span>) {
-    <span class="comment">// All Pro APIs are now available</span>
-    <span class="fn">raku_log_info</span>(<span class="str">"Pro license activated"</span>);
-}
+            <div class="guide-note">
+                <strong>Code examples available with SDK access.</strong> <a href="contact.html" style="color: var(--accent-bright);">Contact us</a> to learn more.
             </div>
 
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">2. Check feature availability</h4>
             <p>You can query whether specific Pro features are enabled at runtime. This is useful for games that support both Free and Pro tiers.</p>
 
-            <div class="guide-code">
-<span class="kw">if</span> (<span class="fn">raku_license_has_feature</span>(<span class="str">"cloud_saves"</span>)) {
-    <span class="fn">raku_cloud_save_init</span>();
-}
-
-<span class="kw">if</span> (<span class="fn">raku_license_has_feature</span>(<span class="str">"multiplayer"</span>)) {
-    <span class="fn">raku_lobby_init</span>();
-}
+            <div class="guide-note">
+                <strong>Code examples available with SDK access.</strong> <a href="contact.html" style="color: var(--accent-bright);">Contact us</a> to learn more.
             </div>
 
             <div class="guide-note">
@@ -205,15 +192,8 @@
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">3. Using Pro features in .raku files</h4>
             <p>Pro features can also be enabled declaratively in your .raku game files. Add the relevant sections to your JSON and the runtime handles initialization automatically.</p>
 
-            <div class="guide-code">
-{
-  <span class="str">"pro"</span>: {
-    <span class="str">"auto_update"</span>: { <span class="str">"enabled"</span>: <span class="kw">true</span>, <span class="str">"channel"</span>: <span class="str">"stable"</span> },
-    <span class="str">"cloud_saves"</span>: { <span class="str">"enabled"</span>: <span class="kw">true</span>, <span class="str">"max_slots"</span>: <span class="num">5</span> },
-    <span class="str">"achievements"</span>: { <span class="str">"enabled"</span>: <span class="kw">true</span> },
-    <span class="str">"multiplayer"</span>: { <span class="str">"enabled"</span>: <span class="kw">true</span>, <span class="str">"max_players"</span>: <span class="num">8</span> }
-  }
-}
+            <div class="guide-note">
+                <strong>Code examples available with SDK access.</strong> <a href="contact.html" style="color: var(--accent-bright);">Contact us</a> to learn more.
             </div>
         </div>
 
@@ -229,43 +209,15 @@
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">Initialize the updater</h4>
             <p>Point the updater at your update server URL. The engine handles version comparison and download management.</p>
 
-            <div class="guide-code">
-<span class="comment">// Initialize auto-updater with your update endpoint</span>
-<span class="fn">raku_updater_init</span>(<span class="str">"https://updates.yourgame.com/manifest.json"</span>);
-
-<span class="comment">// Set the current version (usually read from your build)</span>
-<span class="fn">raku_updater_set_current_version</span>(<span class="str">"1.2.0"</span>);
-
-<span class="comment">// Choose update channel</span>
-<span class="fn">raku_updater_set_channel</span>(<span class="str">"stable"</span>);  <span class="comment">// or "beta"</span>
-            </div>
-
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">Check for updates</h4>
             <p>The check is asynchronous. Register a callback to handle the result without blocking your game loop.</p>
 
-            <div class="guide-code">
-<span class="kw">void</span> <span class="fn">on_update_check</span>(<span class="type">RakuUpdateInfo</span>* info) {
-    <span class="kw">if</span> (info->available) {
-        <span class="fn">raku_log_info</span>(<span class="str">"Update available: v%s"</span>, info->new_version);
-
-        <span class="kw">if</span> (info->mandatory) {
-            <span class="comment">// Force update &mdash; show blocking dialog</span>
-            <span class="fn">raku_updater_download_and_install</span>();
-        } <span class="kw">else</span> {
-            <span class="comment">// Optional &mdash; show prompt, let player decide</span>
-            <span class="fn">raku_updater_show_prompt</span>(
-                <span class="str">"A new version is available. Update now?"</span>
-            );
-        }
-    }
-}
-
-<span class="comment">// Trigger the check (non-blocking)</span>
-<span class="fn">raku_updater_check_async</span>(on_update_check);
+            <div class="guide-note">
+                <strong>Code examples available with SDK access.</strong> <a href="contact.html" style="color: var(--accent-bright);">Contact us</a> to learn more.
             </div>
 
             <div class="guide-note">
-                <strong>Tip:</strong> Call <code>raku_updater_check_async()</code> at game startup or from a settings menu.
+                <strong>Tip:</strong> Trigger update checks at game startup or from a settings menu.
                 Avoid checking during gameplay to prevent network latency spikes.
             </div>
         </div>
@@ -282,62 +234,14 @@
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">Define achievements</h4>
             <p>Register your achievements at startup with an ID, display name, description, and optional icon.</p>
 
-            <div class="guide-code">
-<span class="comment">// Initialize the achievement system</span>
-<span class="fn">raku_achievements_init</span>();
-
-<span class="comment">// Define achievements</span>
-<span class="fn">raku_achievement_define</span>(<span class="str">"first_kill"</span>,
-    <span class="str">"First Blood"</span>,            <span class="comment">// display name</span>
-    <span class="str">"Defeat your first enemy"</span>, <span class="comment">// description</span>
-    <span class="str">"icons/first_blood.png"</span>    <span class="comment">// icon path</span>
-);
-
-<span class="fn">raku_achievement_define</span>(<span class="str">"collect_100"</span>,
-    <span class="str">"Hoarder"</span>,
-    <span class="str">"Collect 100 items"</span>,
-    <span class="str">"icons/hoarder.png"</span>
-);
-
-<span class="comment">// For progress-based achievements, set a target</span>
-<span class="fn">raku_achievement_set_target</span>(<span class="str">"collect_100"</span>, <span class="num">100</span>);
-            </div>
-
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">Unlock and track progress</h4>
             <p>Unlock one-shot achievements directly, or increment progress for cumulative ones.</p>
-
-            <div class="guide-code">
-<span class="comment">// Unlock a one-shot achievement</span>
-<span class="fn">raku_achievement_unlock</span>(<span class="str">"first_kill"</span>);
-<span class="comment">// Shows a notification popup automatically</span>
-
-<span class="comment">// Increment progress on a cumulative achievement</span>
-<span class="fn">raku_achievement_add_progress</span>(<span class="str">"collect_100"</span>, <span class="num">1</span>);
-<span class="comment">// Automatically unlocks when progress reaches the target</span>
-
-<span class="comment">// Query current progress</span>
-<span class="type">int</span> progress = <span class="fn">raku_achievement_get_progress</span>(<span class="str">"collect_100"</span>);
-<span class="type">bool</span> unlocked = <span class="fn">raku_achievement_is_unlocked</span>(<span class="str">"collect_100"</span>);
-            </div>
 
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">Leaderboards</h4>
             <p>Submit scores and query rankings with the built-in leaderboard system.</p>
 
-            <div class="guide-code">
-<span class="comment">// Create a leaderboard</span>
-<span class="fn">raku_leaderboard_create</span>(<span class="str">"high_scores"</span>,
-    <span class="num">RAKU_LEADERBOARD_DESCENDING</span>  <span class="comment">// highest score first</span>
-);
-
-<span class="comment">// Submit a score</span>
-<span class="fn">raku_leaderboard_submit</span>(<span class="str">"high_scores"</span>, <span class="num">42500</span>);
-
-<span class="comment">// Query top 10</span>
-<span class="type">RakuLeaderboardEntry</span> entries[<span class="num">10</span>];
-<span class="type">int</span> count = <span class="fn">raku_leaderboard_get_top</span>(<span class="str">"high_scores"</span>, entries, <span class="num">10</span>);
-<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; count; i++) {
-    <span class="fn">raku_log_info</span>(<span class="str">"#%d: %s - %d"</span>, i+<span class="num">1</span>, entries[i].player_name, entries[i].score);
-}
+            <div class="guide-note">
+                <strong>Code examples available with SDK access.</strong> <a href="contact.html" style="color: var(--accent-bright);">Contact us</a> to learn more.
             </div>
         </div>
 
@@ -353,65 +257,19 @@
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">Create a lobby</h4>
             <p>The host creates a lobby with a game mode, player cap, and visibility setting. A shareable room code is generated automatically.</p>
 
-            <div class="guide-code">
-<span class="comment">// Initialize multiplayer subsystem</span>
-<span class="fn">raku_lobby_init</span>();
-
-<span class="comment">// Create a new lobby</span>
-<span class="type">RakuLobbyConfig</span> config = {
-    .game_mode   = <span class="str">"deathmatch"</span>,
-    .max_players = <span class="num">8</span>,
-    .visibility  = <span class="num">RAKU_LOBBY_PUBLIC</span>,  <span class="comment">// or PRIVATE, FRIENDS_ONLY</span>
-    .region      = <span class="str">"auto"</span>
-};
-
-<span class="type">RakuLobby</span>* lobby = <span class="fn">raku_lobby_create</span>(&amp;config);
-
-<span class="comment">// Get the room code for sharing</span>
-<span class="kw">const char</span>* code = <span class="fn">raku_lobby_get_code</span>(lobby);
-<span class="fn">raku_log_info</span>(<span class="str">"Room code: %s"</span>, code);  <span class="comment">// e.g. "XKCD-42"</span>
-            </div>
-
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">Join a lobby</h4>
             <p>Players join by room code or through the matchmaking system.</p>
-
-            <div class="guide-code">
-<span class="comment">// Join by room code</span>
-<span class="type">RakuLobby</span>* lobby = <span class="fn">raku_lobby_join_code</span>(<span class="str">"XKCD-42"</span>);
-
-<span class="comment">// Or use matchmaking to find a public lobby</span>
-<span class="fn">raku_lobby_find_match</span>(<span class="str">"deathmatch"</span>, on_match_found);
-
-<span class="comment">// Listen for player join/leave events</span>
-<span class="fn">raku_lobby_on_player_joined</span>(lobby, on_player_joined);
-<span class="fn">raku_lobby_on_player_left</span>(lobby, on_player_left);
-            </div>
 
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">Send and receive game state</h4>
             <p>Use reliable or unreliable channels depending on whether data must arrive in order.</p>
 
-            <div class="guide-code">
-<span class="comment">// Send state to all players (reliable, ordered)</span>
-<span class="fn">raku_lobby_broadcast</span>(lobby, game_state_data, data_size,
-    <span class="num">RAKU_CHANNEL_RELIABLE</span>
-);
-
-<span class="comment">// Send position updates (unreliable, fast)</span>
-<span class="fn">raku_lobby_broadcast</span>(lobby, position_data, pos_size,
-    <span class="num">RAKU_CHANNEL_UNRELIABLE</span>
-);
-
-<span class="comment">// Handle incoming data</span>
-<span class="kw">void</span> <span class="fn">on_data_received</span>(<span class="type">RakuPeer</span>* peer, <span class="kw">const void</span>* data, <span class="type">size_t</span> size) {
-    <span class="comment">// Process incoming game state from peer</span>
-    <span class="fn">apply_remote_state</span>(peer->player_id, data, size);
-}
-<span class="fn">raku_lobby_on_data</span>(lobby, on_data_received);
+            <div class="guide-note">
+                <strong>Code examples available with SDK access.</strong> <a href="contact.html" style="color: var(--accent-bright);">Contact us</a> to learn more.
             </div>
 
             <div class="guide-note">
-                <strong>Tip:</strong> Use <code>RAKU_CHANNEL_RELIABLE</code> for game events (damage, pickups, chat) and
-                <code>RAKU_CHANNEL_UNRELIABLE</code> for frequent position/rotation updates to minimize latency.
+                <strong>Tip:</strong> Use reliable channels for game events (damage, pickups, chat) and
+                unreliable channels for frequent position/rotation updates to minimize latency.
             </div>
         </div>
 
@@ -427,58 +285,19 @@
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">Initialize and save</h4>
             <p>Save arbitrary data to named slots. Each slot is versioned and encrypted at rest.</p>
 
-            <div class="guide-code">
-<span class="comment">// Initialize cloud save system</span>
-<span class="fn">raku_cloud_save_init</span>();
-
-<span class="comment">// Save game state to a named slot</span>
-<span class="type">RakuSaveData</span> save = {
-    .slot_name = <span class="str">"slot_1"</span>,
-    .data      = game_state_buffer,
-    .size      = game_state_size
-};
-
-<span class="type">RakuSaveResult</span> result = <span class="fn">raku_cloud_save_write</span>(&amp;save);
-<span class="kw">if</span> (result == <span class="num">RAKU_SAVE_OK</span>) {
-    <span class="fn">raku_log_info</span>(<span class="str">"Game saved to cloud"</span>);
-}
-            </div>
-
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">Load a save</h4>
             <p>Load data from any slot. The system syncs with the cloud first, falling back to a local cache if offline.</p>
-
-            <div class="guide-code">
-<span class="comment">// Load game state from a slot</span>
-<span class="type">RakuSaveData</span> loaded;
-<span class="type">RakuSaveResult</span> result = <span class="fn">raku_cloud_save_read</span>(<span class="str">"slot_1"</span>, &amp;loaded);
-
-<span class="kw">if</span> (result == <span class="num">RAKU_SAVE_OK</span>) {
-    <span class="fn">restore_game_state</span>(loaded.data, loaded.size);
-    <span class="fn">raku_cloud_save_free</span>(&amp;loaded);
-}
-            </div>
 
             <h4 style="color: var(--text-primary); margin-bottom: 12px;">List and manage slots</h4>
             <p>Query available save slots with metadata like timestamps and size.</p>
 
-            <div class="guide-code">
-<span class="comment">// List all save slots</span>
-<span class="type">RakuSaveSlotInfo</span> slots[<span class="num">10</span>];
-<span class="type">int</span> count = <span class="fn">raku_cloud_save_list</span>(slots, <span class="num">10</span>);
-
-<span class="kw">for</span> (<span class="type">int</span> i = <span class="num">0</span>; i &lt; count; i++) {
-    <span class="fn">raku_log_info</span>(<span class="str">"Slot: %s | Size: %zu bytes | Last saved: %s"</span>,
-        slots[i].name, slots[i].size, slots[i].timestamp);
-}
-
-<span class="comment">// Delete a save slot</span>
-<span class="fn">raku_cloud_save_delete</span>(<span class="str">"slot_1"</span>);
+            <div class="guide-note">
+                <strong>Code examples available with SDK access.</strong> <a href="contact.html" style="color: var(--accent-bright);">Contact us</a> to learn more.
             </div>
 
             <div class="guide-note">
                 <strong>Conflict resolution:</strong> When the same slot is modified on two devices, the engine uses
-                last-write-wins by default. Override this with <code>raku_cloud_save_set_conflict_handler()</code>
-                to implement custom merge logic.
+                last-write-wins by default. You can implement custom merge logic with the conflict handler API.
             </div>
         </div>
 

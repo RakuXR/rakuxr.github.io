@@ -61,7 +61,7 @@
             <a href="../pricing.html">Pricing</a>
             <a href="../pro-features.html">Pro</a>
             <a href="https://github.com/RakuXR">GitHub</a>
-            <a href="https://github.com/RakuXR/raku-public/releases/latest" class="nav-cta">Download Runtime</a>
+            <a href="contact.html" class="nav-cta">Request Access</a>
         </div>
     </div>
 </nav>
@@ -96,29 +96,9 @@
             <h3>Audio Engine Setup and Listener</h3>
             <p>The Raku audio engine supports up to 256 simultaneous channels with hardware-accelerated spatial processing. The listener represents the player's ears in the 3D world.</p>
 
-            <div class="guide-code">
-<span class="comment">// Initialize audio with 64 channels and HRTF enabled</span>
-<span class="fn">raku_audio_init</span>(<span class="num">64</span>, <span class="kw">true</span>);
-
-<span class="comment">// Load audio assets</span>
-<span class="fn">raku_audio_load</span>(<span class="str">"sounds/ambient_wind.wav"</span>, <span class="str">"wind"</span>);
-<span class="fn">raku_audio_load</span>(<span class="str">"sounds/footstep.wav"</span>, <span class="str">"footstep"</span>);
-<span class="fn">raku_audio_load</span>(<span class="str">"sounds/waterfall.ogg"</span>, <span class="str">"waterfall"</span>);
-<span class="fn">raku_audio_load</span>(<span class="str">"music/exploration.ogg"</span>, <span class="str">"music_explore"</span>);
-</div>
-
-            <p>The audio listener automatically tracks the camera (or XR headset) position. You can also set it manually:</p>
-            <div class="guide-code">
-<span class="comment">// In XR mode, the listener auto-tracks the headset. No setup needed.</span>
-<span class="comment">// For desktop mode, set the listener position manually:</span>
-
-<span class="fn">raku_audio_set_listener_position</span>(<span class="num">0.0f</span>, <span class="num">1.7f</span>, <span class="num">0.0f</span>);
-<span class="fn">raku_audio_set_listener_forward</span>(<span class="num">0.0f</span>, <span class="num">0.0f</span>, <span class="num">-1.0f</span>);
-<span class="fn">raku_audio_set_listener_up</span>(<span class="num">0.0f</span>, <span class="num">1.0f</span>, <span class="num">0.0f</span>);
-
-<span class="comment">// Set master volume (0.0 = silent, 1.0 = full)</span>
-<span class="fn">raku_audio_set_master_volume</span>(<span class="num">0.8f</span>);
-</div>
+            <div class="guide-note">
+                <strong>C API:</strong> The C API for audio engine initialization, asset loading, and listener configuration is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
+            </div>
         </div>
 
         <!-- Spatial Audio -->
@@ -127,33 +107,9 @@
             <h3>3D Positioned Audio Sources</h3>
             <p>Spatial audio sources exist at a specific point in 3D space. As the listener moves, the volume, panning, and distance attenuation update automatically.</p>
 
-            <div class="guide-code">
-<span class="comment">// Play a sound at a 3D position</span>
-<span class="fn">raku_audio_play_spatial</span>(<span class="str">"waterfall"</span>, <span class="num">10.0f</span>, <span class="num">2.0f</span>, <span class="num">-5.0f</span>);
-
-<span class="comment">// Create a persistent spatial source (for looping ambient sounds)</span>
-<span class="type">handle</span> src = <span class="fn">raku_audio_create_source</span>(<span class="str">"waterfall"</span>);
-<span class="fn">raku_audio_source_set_position</span>(src, <span class="num">10.0f</span>, <span class="num">2.0f</span>, <span class="num">-5.0f</span>);
-<span class="fn">raku_audio_source_set_loop</span>(src, <span class="kw">true</span>);
-<span class="fn">raku_audio_source_set_volume</span>(src, <span class="num">0.7f</span>);
-<span class="fn">raku_audio_source_play</span>(src);
-</div>
-
-            <p>Configure distance attenuation:</p>
-            <div class="guide-code">
-<span class="comment">// Set distance attenuation model</span>
-<span class="fn">raku_audio_source_set_min_distance</span>(src, <span class="num">1.0f</span>);   <span class="comment">// full volume within 1m</span>
-<span class="fn">raku_audio_source_set_max_distance</span>(src, <span class="num">50.0f</span>);  <span class="comment">// inaudible beyond 50m</span>
-<span class="fn">raku_audio_source_set_rolloff</span>(src, <span class="str">"inverse"</span>);    <span class="comment">// "inverse", "linear", "exponential"</span>
-
-<span class="comment">// Set the attenuation curve factor (higher = faster falloff)</span>
-<span class="fn">raku_audio_source_set_rolloff_factor</span>(src, <span class="num">2.0f</span>);
-
-<span class="comment">// Directional audio (e.g., a speaker pointing in one direction)</span>
-<span class="fn">raku_audio_source_set_cone_angles</span>(src, <span class="num">60.0f</span>, <span class="num">120.0f</span>);  <span class="comment">// inner, outer</span>
-<span class="fn">raku_audio_source_set_cone_outer_volume</span>(src, <span class="num">0.2f</span>);       <span class="comment">// volume outside cone</span>
-<span class="fn">raku_audio_source_set_direction</span>(src, <span class="num">0.0f</span>, <span class="num">0.0f</span>, <span class="num">-1.0f</span>);
-</div>
+            <div class="guide-note">
+                <strong>C API:</strong> The C API for 3D positioned audio sources, distance attenuation, and directional audio is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
+            </div>
         </div>
 
         <!-- HRTF -->
@@ -162,29 +118,9 @@
             <h3>HRTF for Realistic VR Audio</h3>
             <p>Head-Related Transfer Function (HRTF) simulates how sounds are perceived differently based on their direction relative to your head. It enables true "above", "below", and "behind" audio in headphones &mdash; essential for VR immersion.</p>
 
-            <div class="guide-code">
-<span class="comment">// HRTF is enabled during raku_audio_init(channels, hrtf=true)</span>
-<span class="comment">// You can also toggle it at runtime:</span>
-<span class="fn">raku_audio_set_hrtf_enabled</span>(<span class="kw">true</span>);
-
-<span class="comment">// Choose an HRTF profile (affects how sounds are spatialized)</span>
-<span class="fn">raku_audio_set_hrtf_profile</span>(<span class="str">"default"</span>);    <span class="comment">// generic, works for most people</span>
-<span class="fn">raku_audio_set_hrtf_profile</span>(<span class="str">"small_head"</span>); <span class="comment">// smaller inter-aural distance</span>
-<span class="fn">raku_audio_set_hrtf_profile</span>(<span class="str">"large_head"</span>); <span class="comment">// larger inter-aural distance</span>
-</div>
-
-            <p>HRTF works best with headphones (which all VR headsets use). For non-VR contexts:</p>
-            <div class="guide-code">
-<span class="comment">// Check if the user is in XR (headphones) or desktop (speakers)</span>
-<span class="kw">const char</span>* mode = <span class="fn">raku_xr_get_mode</span>();
-<span class="kw">if</span> (mode != <span class="kw">NULL</span>) {
-    <span class="comment">// XR mode: HRTF works great with headphones</span>
-    <span class="fn">raku_audio_set_hrtf_enabled</span>(<span class="kw">true</span>);
-} <span class="kw">else</span> {
-    <span class="comment">// Desktop mode: stereo panning is often better for speakers</span>
-    <span class="fn">raku_audio_set_hrtf_enabled</span>(<span class="kw">false</span>);
-}
-</div>
+            <div class="guide-note">
+                <strong>C API:</strong> The C API for HRTF configuration and runtime toggling is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
+            </div>
 
             <div class="guide-note">
                 <strong>Why HRTF matters in VR:</strong> Without HRTF, spatial audio only supports left/right panning. With HRTF, a bird chirping above your head actually sounds like it's above you, and footsteps behind you sound like they're behind you. This dramatically improves presence and immersion.
@@ -197,48 +133,9 @@
             <h3>Reverb Zones for Environment Acoustics</h3>
             <p>Reverb zones make different areas of your game sound acoustically distinct. A cathedral should echo, a cave should reverberate, and an outdoor field should be dry.</p>
 
-            <div class="guide-code">
-<span class="comment">// Create a reverb zone for a cathedral interior</span>
-<span class="type">RakuReverbConfig</span> cathedral = {
-    .preset = <span class="str">"cathedral"</span>,      <span class="comment">// built-in preset</span>
-    .position = { <span class="num">0</span>, <span class="num">5</span>, <span class="num">0</span> },
-    .radius = <span class="num">20.0f</span>,              <span class="comment">// zone radius in meters</span>
-    .mix = <span class="num">0.8f</span>,                  <span class="comment">// wet/dry mix (0 = dry, 1 = fully wet)</span>
-};
-<span class="fn">raku_audio_create_reverb_zone</span>(&amp;cathedral, <span class="str">"cathedral_zone"</span>);
-
-<span class="comment">// Create a custom reverb for a small cave</span>
-<span class="type">RakuReverbConfig</span> cave = {
-    .preset = <span class="str">"custom"</span>,
-    .position = { <span class="num">30</span>, <span class="num">-2</span>, <span class="num">10</span> },
-    .radius = <span class="num">8.0f</span>,
-    .mix = <span class="num">0.9f</span>,
-    .decay_time = <span class="num">3.5f</span>,          <span class="comment">// seconds</span>
-    .early_reflections = <span class="num">0.6f</span>,   <span class="comment">// strength of early reflections</span>
-    .late_reverb = <span class="num">0.8f</span>,          <span class="comment">// strength of late reverb tail</span>
-    .diffusion = <span class="num">0.7f</span>,            <span class="comment">// 0 = distinct echoes, 1 = smooth reverb</span>
-    .density = <span class="num">0.9f</span>,              <span class="comment">// reverb density</span>
-    .hf_damping = <span class="num">0.4f</span>,           <span class="comment">// high-frequency absorption</span>
-};
-<span class="fn">raku_audio_create_reverb_zone</span>(&amp;cave, <span class="str">"cave_zone"</span>);
-</div>
-
-            <p>Built-in reverb presets:</p>
-            <div class="guide-code">
-<span class="comment">// Available presets:</span>
-<span class="comment">// "room"        - small room (bedroom, office)</span>
-<span class="comment">// "hall"        - medium hall (conference room)</span>
-<span class="comment">// "cathedral"   - large reverberant space</span>
-<span class="comment">// "cave"        - natural cave with long decay</span>
-<span class="comment">// "bathroom"    - small, highly reflective</span>
-<span class="comment">// "forest"      - outdoor with subtle early reflections</span>
-<span class="comment">// "underwater"  - muffled, low-pass filtered</span>
-<span class="comment">// "arena"       - large open space with slap-back echo</span>
-<span class="comment">// "custom"      - fully user-defined parameters</span>
-
-<span class="comment">// Crossfade between zones as the listener moves</span>
-<span class="fn">raku_audio_set_reverb_crossfade</span>(<span class="num">1.5f</span>);  <span class="comment">// blend over 1.5 seconds</span>
-</div>
+            <div class="guide-note">
+                <strong>C API:</strong> The C API for reverb zones, custom reverb parameters, built-in presets, and zone crossfading is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
+            </div>
         </div>
 
         <!-- Occlusion -->
@@ -247,38 +144,12 @@
             <h3>Sound Occlusion Through Geometry</h3>
             <p>Sound occlusion simulates how walls and objects block or muffle audio. When a wall is between the listener and a sound source, the sound should be quieter and lose its high frequencies &mdash; just like in real life.</p>
 
-            <div class="guide-code">
-<span class="comment">// Enable audio occlusion (uses physics raycasting internally)</span>
-<span class="fn">raku_audio_set_occlusion_enabled</span>(<span class="kw">true</span>);
-
-<span class="comment">// Set how many rays to cast per source (more = smoother, more expensive)</span>
-<span class="fn">raku_audio_set_occlusion_ray_count</span>(<span class="num">4</span>);  <span class="comment">// 1-8, default 4</span>
-
-<span class="comment">// Configure occlusion per material</span>
-<span class="fn">raku_audio_set_material_occlusion</span>(<span class="str">"concrete"</span>, <span class="num">0.9f</span>);  <span class="comment">// heavy blocking</span>
-<span class="fn">raku_audio_set_material_occlusion</span>(<span class="str">"wood"</span>, <span class="num">0.5f</span>);      <span class="comment">// moderate blocking</span>
-<span class="fn">raku_audio_set_material_occlusion</span>(<span class="str">"glass"</span>, <span class="num">0.3f</span>);     <span class="comment">// light blocking</span>
-<span class="fn">raku_audio_set_material_occlusion</span>(<span class="str">"curtain"</span>, <span class="num">0.15f</span>);  <span class="comment">// minimal blocking</span>
-</div>
-
-            <p>Per-source occlusion control:</p>
-            <div class="guide-code">
-<span class="comment">// Enable occlusion on a specific source</span>
-<span class="type">handle</span> enemy_voice = <span class="fn">raku_audio_create_source</span>(<span class="str">"guard_voice"</span>);
-<span class="fn">raku_audio_source_set_position</span>(enemy_voice, <span class="num">5.0f</span>, <span class="num">1.5f</span>, <span class="num">-3.0f</span>);
-<span class="fn">raku_audio_source_set_occlusion_enabled</span>(enemy_voice, <span class="kw">true</span>);
-
-<span class="comment">// Configure low-pass filter when occluded</span>
-<span class="fn">raku_audio_source_set_occlusion_lp_frequency</span>(enemy_voice, <span class="num">800.0f</span>);
-<span class="comment">// When fully occluded, frequencies above 800 Hz are attenuated</span>
-
-<span class="comment">// Volume reduction when fully occluded</span>
-<span class="fn">raku_audio_source_set_occlusion_volume_factor</span>(enemy_voice, <span class="num">0.3f</span>);
-<span class="comment">// At full occlusion, volume drops to 30%</span>
-</div>
+            <div class="guide-note">
+                <strong>C API:</strong> The C API for sound occlusion, material-based occlusion, per-source occlusion controls, and low-pass filtering is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
+            </div>
 
             <div class="guide-note">
-                <strong>Performance:</strong> Occlusion raycasting uses the physics system. Ensure your scene has colliders on walls and doors. Keep ray counts low (2-4) on mobile XR hardware. Use <code>raku_audio_set_occlusion_update_rate()</code> to reduce how often raycasts are performed.
+                <strong>Performance:</strong> Occlusion raycasting uses the physics system. Ensure your scene has colliders on walls and doors. Keep ray counts low (2-4) on mobile XR hardware. Use the occlusion update rate API to reduce how often raycasts are performed.
             </div>
         </div>
 
@@ -288,47 +159,9 @@
             <h3>Mixer Groups for Dynamic Audio Control</h3>
             <p>Mixer groups let you control categories of sounds together: lower all SFX during dialogue, duck music during combat, or mute ambient sounds in a menu.</p>
 
-            <div class="guide-code">
-<span class="comment">// Create mixer groups</span>
-<span class="fn">raku_audio_create_mixer_group</span>(<span class="str">"master"</span>);
-<span class="fn">raku_audio_create_mixer_group</span>(<span class="str">"music"</span>);
-<span class="fn">raku_audio_create_mixer_group</span>(<span class="str">"sfx"</span>);
-<span class="fn">raku_audio_create_mixer_group</span>(<span class="str">"voice"</span>);
-<span class="fn">raku_audio_create_mixer_group</span>(<span class="str">"ambient"</span>);
-
-<span class="comment">// Set up hierarchy (all groups route through master)</span>
-<span class="fn">raku_audio_mixer_set_parent</span>(<span class="str">"music"</span>, <span class="str">"master"</span>);
-<span class="fn">raku_audio_mixer_set_parent</span>(<span class="str">"sfx"</span>, <span class="str">"master"</span>);
-<span class="fn">raku_audio_mixer_set_parent</span>(<span class="str">"voice"</span>, <span class="str">"master"</span>);
-<span class="fn">raku_audio_mixer_set_parent</span>(<span class="str">"ambient"</span>, <span class="str">"master"</span>);
-
-<span class="comment">// Assign sounds to groups</span>
-<span class="fn">raku_audio_source_set_mixer_group</span>(waterfall_src, <span class="str">"ambient"</span>);
-<span class="fn">raku_audio_source_set_mixer_group</span>(music_src, <span class="str">"music"</span>);
-<span class="fn">raku_audio_source_set_mixer_group</span>(footstep_src, <span class="str">"sfx"</span>);
-</div>
-
-            <p>Control groups dynamically:</p>
-            <div class="guide-code">
-<span class="comment">// Set group volume</span>
-<span class="fn">raku_audio_mixer_set_volume</span>(<span class="str">"music"</span>, <span class="num">0.6f</span>);
-<span class="fn">raku_audio_mixer_set_volume</span>(<span class="str">"sfx"</span>, <span class="num">1.0f</span>);
-
-<span class="comment">// Fade a group over time</span>
-<span class="fn">raku_audio_mixer_fade_volume</span>(<span class="str">"music"</span>, <span class="num">0.2f</span>, <span class="num">2.0f</span>);  <span class="comment">// to 0.2 over 2 seconds</span>
-
-<span class="comment">// Duck music when voice is playing (sidechain compression)</span>
-<span class="fn">raku_audio_mixer_set_duck</span>(<span class="str">"music"</span>, <span class="str">"voice"</span>, <span class="num">0.3f</span>, <span class="num">0.5f</span>);
-<span class="comment">// When "voice" group is active, "music" ducks to 30% over 0.5 seconds</span>
-
-<span class="comment">// Mute/unmute groups</span>
-<span class="fn">raku_audio_mixer_set_muted</span>(<span class="str">"ambient"</span>, <span class="kw">true</span>);   <span class="comment">// mute ambient in menus</span>
-<span class="fn">raku_audio_mixer_set_muted</span>(<span class="str">"ambient"</span>, <span class="kw">false</span>);  <span class="comment">// unmute on return to game</span>
-
-<span class="comment">// Pause/resume groups (preserves playback position)</span>
-<span class="fn">raku_audio_mixer_pause</span>(<span class="str">"sfx"</span>);
-<span class="fn">raku_audio_mixer_resume</span>(<span class="str">"sfx"</span>);
-</div>
+            <div class="guide-note">
+                <strong>C API:</strong> The C API for mixer groups, group hierarchy, ducking, fading, and dynamic audio control is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
+            </div>
         </div>
 
         <!-- Complete Example -->
@@ -337,161 +170,9 @@
             <h3>Complete Example: Immersive Audio Tour</h3>
             <p>A virtual museum tour with spatial audio at each exhibit, reverb that changes as you enter different rooms, voice narration that ducks the music, and occlusion through walls. Designed for VR with HRTF.</p>
 
-            <div class="guide-code">
-<span class="comment">// === Immersive Audio Tour ===</span>
-
-<span class="fn">raku_init</span>();
-<span class="fn">raku_xr_init</span>(<span class="str">"vr"</span>);
-<span class="fn">raku_renderer_create_window</span>(<span class="num">1280</span>, <span class="num">720</span>, <span class="str">"Audio Tour"</span>, <span class="kw">true</span>);
-<span class="fn">raku_renderer_create_camera</span>(<span class="str">"main"</span>, <span class="num">90.0f</span>, <span class="num">0.01f</span>, <span class="num">100.0f</span>);
-
-<span class="comment">// Physics (for audio occlusion raycasts)</span>
-<span class="type">float</span> gravity[] = { <span class="num">0</span>, <span class="num">-9.81f</span>, <span class="num">0</span> };
-<span class="fn">raku_physics_create_world</span>(gravity);
-
-<span class="comment">// Scene</span>
-<span class="fn">raku_scene_create</span>(<span class="str">"museum"</span>);
-<span class="fn">raku_scene_add_model</span>(<span class="str">"museum.glb"</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>);
-<span class="fn">raku_physics_add_static_collider</span>(<span class="str">"museum.glb"</span>, <span class="str">"mesh"</span>);
-
-<span class="comment">// --- Audio Engine ---</span>
-<span class="fn">raku_audio_init</span>(<span class="num">64</span>, <span class="kw">true</span>);  <span class="comment">// HRTF on</span>
-<span class="fn">raku_audio_set_occlusion_enabled</span>(<span class="kw">true</span>);
-<span class="fn">raku_audio_set_occlusion_ray_count</span>(<span class="num">4</span>);
-<span class="fn">raku_audio_set_material_occlusion</span>(<span class="str">"concrete"</span>, <span class="num">0.85f</span>);
-<span class="fn">raku_audio_set_material_occlusion</span>(<span class="str">"glass"</span>, <span class="num">0.25f</span>);
-
-<span class="comment">// --- Mixer Groups ---</span>
-<span class="fn">raku_audio_create_mixer_group</span>(<span class="str">"master"</span>);
-<span class="fn">raku_audio_create_mixer_group</span>(<span class="str">"music"</span>);
-<span class="fn">raku_audio_create_mixer_group</span>(<span class="str">"narration"</span>);
-<span class="fn">raku_audio_create_mixer_group</span>(<span class="str">"exhibits"</span>);
-<span class="fn">raku_audio_create_mixer_group</span>(<span class="str">"ambient"</span>);
-<span class="fn">raku_audio_mixer_set_parent</span>(<span class="str">"music"</span>, <span class="str">"master"</span>);
-<span class="fn">raku_audio_mixer_set_parent</span>(<span class="str">"narration"</span>, <span class="str">"master"</span>);
-<span class="fn">raku_audio_mixer_set_parent</span>(<span class="str">"exhibits"</span>, <span class="str">"master"</span>);
-<span class="fn">raku_audio_mixer_set_parent</span>(<span class="str">"ambient"</span>, <span class="str">"master"</span>);
-
-<span class="comment">// Duck music and exhibits when narration plays</span>
-<span class="fn">raku_audio_mixer_set_duck</span>(<span class="str">"music"</span>, <span class="str">"narration"</span>, <span class="num">0.2f</span>, <span class="num">0.8f</span>);
-<span class="fn">raku_audio_mixer_set_duck</span>(<span class="str">"exhibits"</span>, <span class="str">"narration"</span>, <span class="num">0.4f</span>, <span class="num">0.5f</span>);
-
-<span class="comment">// --- Load Audio Assets ---</span>
-<span class="fn">raku_audio_load</span>(<span class="str">"music/ambient_museum.ogg"</span>, <span class="str">"bg_music"</span>);
-<span class="fn">raku_audio_load</span>(<span class="str">"sounds/fountain.wav"</span>, <span class="str">"fountain"</span>);
-<span class="fn">raku_audio_load</span>(<span class="str">"sounds/clock_tick.wav"</span>, <span class="str">"clock"</span>);
-<span class="fn">raku_audio_load</span>(<span class="str">"sounds/wind_outside.wav"</span>, <span class="str">"wind"</span>);
-<span class="fn">raku_audio_load</span>(<span class="str">"narration/welcome.ogg"</span>, <span class="str">"narr_welcome"</span>);
-<span class="fn">raku_audio_load</span>(<span class="str">"narration/painting_room.ogg"</span>, <span class="str">"narr_paintings"</span>);
-<span class="fn">raku_audio_load</span>(<span class="str">"narration/sculpture_hall.ogg"</span>, <span class="str">"narr_sculpture"</span>);
-
-<span class="comment">// --- Background Music (non-spatial) ---</span>
-<span class="type">handle</span> music = <span class="fn">raku_audio_create_source</span>(<span class="str">"bg_music"</span>);
-<span class="fn">raku_audio_source_set_loop</span>(music, <span class="kw">true</span>);
-<span class="fn">raku_audio_source_set_volume</span>(music, <span class="num">0.4f</span>);
-<span class="fn">raku_audio_source_set_mixer_group</span>(music, <span class="str">"music"</span>);
-<span class="fn">raku_audio_source_set_spatial</span>(music, <span class="kw">false</span>);  <span class="comment">// non-spatial (plays everywhere)</span>
-<span class="fn">raku_audio_source_play</span>(music);
-
-<span class="comment">// --- Spatial Exhibit Sounds ---</span>
-
-<span class="comment">// Fountain in the lobby</span>
-<span class="type">handle</span> fountain = <span class="fn">raku_audio_create_source</span>(<span class="str">"fountain"</span>);
-<span class="fn">raku_audio_source_set_position</span>(fountain, <span class="num">0.0f</span>, <span class="num">1.0f</span>, <span class="num">-3.0f</span>);
-<span class="fn">raku_audio_source_set_loop</span>(fountain, <span class="kw">true</span>);
-<span class="fn">raku_audio_source_set_min_distance</span>(fountain, <span class="num">0.5f</span>);
-<span class="fn">raku_audio_source_set_max_distance</span>(fountain, <span class="num">15.0f</span>);
-<span class="fn">raku_audio_source_set_occlusion_enabled</span>(fountain, <span class="kw">true</span>);
-<span class="fn">raku_audio_source_set_mixer_group</span>(fountain, <span class="str">"exhibits"</span>);
-<span class="fn">raku_audio_source_play</span>(fountain);
-
-<span class="comment">// Grandfather clock in the painting room</span>
-<span class="type">handle</span> clock = <span class="fn">raku_audio_create_source</span>(<span class="str">"clock"</span>);
-<span class="fn">raku_audio_source_set_position</span>(clock, <span class="num">12.0f</span>, <span class="num">2.0f</span>, <span class="num">-8.0f</span>);
-<span class="fn">raku_audio_source_set_loop</span>(clock, <span class="kw">true</span>);
-<span class="fn">raku_audio_source_set_min_distance</span>(clock, <span class="num">0.3f</span>);
-<span class="fn">raku_audio_source_set_max_distance</span>(clock, <span class="num">8.0f</span>);
-<span class="fn">raku_audio_source_set_occlusion_enabled</span>(clock, <span class="kw">true</span>);
-<span class="fn">raku_audio_source_set_mixer_group</span>(clock, <span class="str">"exhibits"</span>);
-<span class="fn">raku_audio_source_play</span>(clock);
-
-<span class="comment">// Wind from outside (through windows)</span>
-<span class="type">handle</span> wind = <span class="fn">raku_audio_create_source</span>(<span class="str">"wind"</span>);
-<span class="fn">raku_audio_source_set_position</span>(wind, <span class="num">-5.0f</span>, <span class="num">3.0f</span>, <span class="num">0.0f</span>);
-<span class="fn">raku_audio_source_set_loop</span>(wind, <span class="kw">true</span>);
-<span class="fn">raku_audio_source_set_volume</span>(wind, <span class="num">0.3f</span>);
-<span class="fn">raku_audio_source_set_occlusion_enabled</span>(wind, <span class="kw">true</span>);
-<span class="fn">raku_audio_source_set_mixer_group</span>(wind, <span class="str">"ambient"</span>);
-<span class="fn">raku_audio_source_play</span>(wind);
-
-<span class="comment">// --- Reverb Zones ---</span>
-
-<span class="comment">// Lobby: open with marble floors</span>
-<span class="type">RakuReverbConfig</span> lobby_reverb = {
-    .preset = <span class="str">"hall"</span>,
-    .position = { <span class="num">0</span>, <span class="num">3</span>, <span class="num">-3</span> },
-    .radius = <span class="num">10.0f</span>,
-    .mix = <span class="num">0.5f</span>,
-};
-<span class="fn">raku_audio_create_reverb_zone</span>(&amp;lobby_reverb, <span class="str">"lobby"</span>);
-
-<span class="comment">// Painting room: carpeted, damped</span>
-<span class="type">RakuReverbConfig</span> painting_reverb = {
-    .preset = <span class="str">"room"</span>,
-    .position = { <span class="num">12</span>, <span class="num">2</span>, <span class="num">-8</span> },
-    .radius = <span class="num">8.0f</span>,
-    .mix = <span class="num">0.3f</span>,
-};
-<span class="fn">raku_audio_create_reverb_zone</span>(&amp;painting_reverb, <span class="str">"painting_room"</span>);
-
-<span class="comment">// Sculpture hall: large and echoey</span>
-<span class="type">RakuReverbConfig</span> sculpture_reverb = {
-    .preset = <span class="str">"cathedral"</span>,
-    .position = { <span class="num">-10</span>, <span class="num">5</span>, <span class="num">-15</span> },
-    .radius = <span class="num">15.0f</span>,
-    .mix = <span class="num">0.7f</span>,
-};
-<span class="fn">raku_audio_create_reverb_zone</span>(&amp;sculpture_reverb, <span class="str">"sculpture_hall"</span>);
-
-<span class="fn">raku_audio_set_reverb_crossfade</span>(<span class="num">2.0f</span>);  <span class="comment">// smooth zone transitions</span>
-
-<span class="comment">// --- Narration Triggers ---</span>
-
-<span class="comment">// Play narration when entering a room (using physics triggers)</span>
-<span class="kw">void</span> <span class="fn">on_enter_lobby</span>(<span class="type">RakuTriggerEvent</span>* event) {
-    <span class="type">handle</span> narr = <span class="fn">raku_audio_create_source</span>(<span class="str">"narr_welcome"</span>);
-    <span class="fn">raku_audio_source_set_spatial</span>(narr, <span class="kw">false</span>);
-    <span class="fn">raku_audio_source_set_mixer_group</span>(narr, <span class="str">"narration"</span>);
-    <span class="fn">raku_audio_source_play</span>(narr);
-}
-
-<span class="kw">void</span> <span class="fn">on_enter_painting_room</span>(<span class="type">RakuTriggerEvent</span>* event) {
-    <span class="type">handle</span> narr = <span class="fn">raku_audio_create_source</span>(<span class="str">"narr_paintings"</span>);
-    <span class="fn">raku_audio_source_set_spatial</span>(narr, <span class="kw">false</span>);
-    <span class="fn">raku_audio_source_set_mixer_group</span>(narr, <span class="str">"narration"</span>);
-    <span class="fn">raku_audio_source_play</span>(narr);
-}
-
-<span class="kw">void</span> <span class="fn">on_enter_sculpture_hall</span>(<span class="type">RakuTriggerEvent</span>* event) {
-    <span class="type">handle</span> narr = <span class="fn">raku_audio_create_source</span>(<span class="str">"narr_sculpture"</span>);
-    <span class="fn">raku_audio_source_set_spatial</span>(narr, <span class="kw">false</span>);
-    <span class="fn">raku_audio_source_set_mixer_group</span>(narr, <span class="str">"narration"</span>);
-    <span class="fn">raku_audio_source_play</span>(narr);
-}
-
-<span class="comment">// Create trigger zones at room entrances</span>
-<span class="fn">raku_physics_on_trigger_enter</span>(<span class="str">"lobby_trigger"</span>, on_enter_lobby);
-<span class="fn">raku_physics_on_trigger_enter</span>(<span class="str">"painting_trigger"</span>, on_enter_painting_room);
-<span class="fn">raku_physics_on_trigger_enter</span>(<span class="str">"sculpture_trigger"</span>, on_enter_sculpture_hall);
-
-<span class="comment">// --- Hand tracking for XR navigation ---</span>
-<span class="fn">raku_xr_hand_tracking_enable</span>(<span class="kw">true</span>);
-
-<span class="comment">// --- Run ---</span>
-<span class="fn">raku_scene_start_loop</span>();
-<span class="fn">raku_xr_shutdown</span>();
-<span class="fn">raku_shutdown</span>();
-</div>
+            <div class="guide-note">
+                <strong>C API:</strong> The complete Immersive Audio Tour example (spatial sources, HRTF, reverb zones, occlusion, mixer groups, narration triggers, and game loop) is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access to the full C API and sample code.
+            </div>
 
             <div class="guide-note">
                 <strong>Next steps:</strong> Combine this audio tour with <a href="mixed-reality-tutorial.html" style="color: var(--accent-bright);">mixed reality</a> to create an audio tour of your real space, or add <a href="ai-npc-tutorial.html" style="color: var(--accent-bright);">AI NPCs</a> as museum guides that respond to voice commands.

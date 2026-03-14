@@ -156,7 +156,7 @@
 
 <div class="validator-container">
     <h1>Validate Your .raku File</h1>
-    <p>Having issues with your AI-generated game? Paste the <code>.raku</code> JSON below to check for invalid function names, missing sections, and parameter issues. The validator checks against all <strong>2,912</strong> exported Raku Runtime functions.</p>
+    <p>Having issues with your AI-generated game? Paste the <code>.raku</code> JSON below to check for missing sections and structural issues.</p>
 
     <textarea class="validator-textarea" id="rakuInput" placeholder='Paste your .raku file JSON here...
 
@@ -188,10 +188,8 @@ Example:
     </div>
 
     <div class="search-box">
-        <h3>Search API Functions</h3>
-        <p style="margin-bottom:0.75rem;font-size:0.9rem;opacity:0.7;">Type to search all 2,912 exported functions. Use these exact names in your .raku file.</p>
-        <input type="text" class="search-input" id="searchInput" placeholder="e.g. raku_renderer or camera or audio_play" oninput="searchFunctions()">
-        <div class="search-results" id="searchResults"></div>
+        <h3>API Function Reference</h3>
+        <p style="margin-bottom:0.75rem;font-size:0.9rem;opacity:0.7;">Full API function reference is available under NDA for licensed developers. <a href="contact.html" style="color: var(--accent-bright);">Request access &rarr;</a></p>
     </div>
 </div>
 
@@ -310,11 +308,9 @@ function validateRaku() {
     if (hasInit) {
         const initFns = json.initialization.map(c => c.function || c.function_name || '');
         const resolvedInitFns = initFns.map(fn => RAKU_ALIASES[fn] || fn);
-        const hasRakuInit = resolvedInitFns.some(fn => fn === 'raku_core_initialize');
-        if (!hasRakuInit) {
-            warnings.push('Initialization section should start with raku_init (or raku_core_initialize).');
-        } else if (resolvedInitFns[0] !== 'raku_core_initialize') {
-            warnings.push('raku_init / raku_core_initialize should be the FIRST call in initialization.');
+        const firstFn = resolvedInitFns[0] || '';
+        if (!firstFn.includes('init')) {
+            warnings.push('Initialization section should start with an init call.');
         }
     }
 
