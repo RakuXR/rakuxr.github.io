@@ -1,207 +1,161 @@
 {
-    "$schema":  "https://json-schema.org/draft/2020-12/schema",
-    "$id":  "https://rakuai.com/schema/raku-file-v1.json",
-    "title":  "Raku Game File",
-    "description":  "Schema for .raku game definition files. AI assistants generate these from natural language.",
-    "type":  "object",
-    "required":  [
-                     "raku_format",
-                     "metadata",
-                     "initialization",
-                     "calls",
-                     "shutdown"
-                 ],
-    "properties":  {
-                       "raku_format":  {
-                                           "type":  "string",
-                                           "const":  "1.0.0"
-                                       },
-                       "metadata":  {
-                                        "$ref":  "#/$defs/Metadata"
-                                    },
-                       "initialization":  {
-                                              "type":  "array",
-                                              "description":  "Engine init calls. Must start with raku_init.",
-                                              "items":  {
-                                                            "$ref":  "#/$defs/ApiCall"
-                                                        },
-                                              "minItems":  1
-                                          },
-                       "calls":  {
-                                     "type":  "array",
-                                     "description":  "Gameplay calls. Must end with raku_scene_start_loop.",
-                                     "items":  {
-                                                   "$ref":  "#/$defs/ApiCall"
-                                               },
-                                     "minItems":  1
-                                 },
-                       "shutdown":  {
-                                        "type":  "array",
-                                        "description":  "Cleanup. Must end with raku_shutdown.",
-                                        "items":  {
-                                                      "$ref":  "#/$defs/ApiCall"
-                                                  },
-                                        "minItems":  1
-                                    }
-                   },
-    "$defs":  {
-                  "Metadata":  {
-                                   "type":  "object",
-                                   "required":  [
-                                                    "name",
-                                                    "description",
-                                                    "genre",
-                                                    "creator",
-                                                    "version"
-                                                ],
-                                   "properties":  {
-                                                      "name":  {
-                                                                   "type":  "string"
-                                                               },
-                                                      "description":  {
-                                                                          "type":  "string"
-                                                                      },
-                                                      "genre":  {
-                                                                    "type":  "string",
-                                                                    "enum":  [
-                                                                                 "space_shooter",
-                                                                                 "tower_defense",
-                                                                                 "puzzle",
-                                                                                 "platformer",
-                                                                                 "arena_combat",
-                                                                                 "racing",
-                                                                                 "rhythm",
-                                                                                 "roguelike",
-                                                                                 "survival",
-                                                                                 "rpg",
-                                                                                 "sandbox",
-                                                                                 "tech_demo",
-                                                                                 "custom"
-                                                                             ]
-                                                                },
-                                                      "creator":  {
-                                                                      "type":  "string"
-                                                                  },
-                                                      "created":  {
-                                                                      "type":  "string",
-                                                                      "format":  "date-time"
-                                                                  },
-                                                      "version":  {
-                                                                      "type":  "string"
-                                                                  },
-                                                      "engine_version":  {
-                                                                             "type":  "string"
-                                                                         },
-                                                      "sharing":  {
-                                                                      "type":  "string",
-                                                                      "enum":  [
-                                                                                   "public",
-                                                                                   "private",
-                                                                                   "unlisted"
-                                                                               ],
-                                                                      "default":  "public"
-                                                                  },
-                                                      "tags":  {
-                                                                   "type":  "array",
-                                                                   "items":  {
-                                                                                 "type":  "string"
-                                                                             }
-                                                               },
-                                                      "runtime_version_min":  {
-                                                                                  "type":  "string"
-                                                                              },
-                                                      "complexity":  {
-                                                                         "type":  "string",
-                                                                         "enum":  [
-                                                                                      "low",
-                                                                                      "medium",
-                                                                                      "high"
-                                                                                  ]
-                                                                     },
-                                                      "content_pack":  {
-                                                                           "type":  "object",
-                                                                           "description":  "References a first-party content pack for curated assets.",
-                                                                           "properties":  {
-                                                                               "template":  {
-                                                                                   "type":  "string",
-                                                                                   "description":  "Template family (e.g. space_shooter, platformer)."
-                                                                               },
-                                                                               "mode":  {
-                                                                                   "type":  "string",
-                                                                                   "enum":  ["prototype", "presentation"],
-                                                                                   "description":  "Prototype for fast iteration; presentation for polished demos."
-                                                                               },
-                                                                               "pack_version":  {
-                                                                                   "type":  "string",
-                                                                                   "description":  "Minimum pack version required."
-                                                                               }
-                                                                           },
-                                                                           "required":  ["template", "mode"]
-                                                                       },
-                                                      "audio_plan":  {
-                                                                         "type":  "object",
-                                                                         "description":  "Declares audio asset mapping for adaptive music and SFX.",
-                                                                         "properties":  {
-                                                                             "music":  {
-                                                                                 "type":  "object",
-                                                                                 "properties":  {
-                                                                                     "main_loop":  {"type":  "string"},
-                                                                                     "intensity_layers":  {"type":  "array", "items":  {"type":  "string"}}
-                                                                                 }
-                                                                             },
-                                                                             "sfx":  {
-                                                                                 "type":  "object",
-                                                                                 "properties":  {
-                                                                                     "weapon_fire":  {"type":  "string"},
-                                                                                     "impact":  {"type":  "string"},
-                                                                                     "explosion":  {"type":  "string"},
-                                                                                     "pickup":  {"type":  "string"},
-                                                                                     "warning":  {"type":  "string"}
-                                                                                 }
-                                                                             },
-                                                                             "ui":  {
-                                                                                 "type":  "object",
-                                                                                 "properties":  {
-                                                                                     "click":  {"type":  "string"},
-                                                                                     "confirm":  {"type":  "string"},
-                                                                                     "error":  {"type":  "string"}
-                                                                                 }
-                                                                             }
-                                                                         }
-                                                                     }
-                                                  }
-                               },
-                  "ApiCall":  {
-                                  "type":  "object",
-                                  "required":  [
-                                                   "function",
-                                                   "params"
-                                               ],
-                                  "properties":  {
-                                                     "function":  {
-                                                                      "type":  "string",
-                                                                      "pattern":  "^raku_[a-z_]+$",
-                                                                      "description":  "C API function: raku_<module>_<action>."
-                                                                  },
-                                                     "params":  {
-                                                                    "type":  "object"
-                                                                }
-                                                 }
-                              },
-                  "SubsystemReference":  {
-                                             "description":  "Engine subsystems available for game creation. See NDA documentation for details.",
-                                             "type": "string"
-                                         }
-              },
-    "examples_note": "Runtime Format examples with full API call sequences are available under NDA. Contact https://rakuai.com/contact.html for access. Standard Format examples are available in the samples directory.",
-    "ai_safety": {
-        "description": "Safety guidelines for AI platforms generating .raku files",
-        "requires_user_confirmation": [
-            "Network initialization — enables network access",
-            "XR initialization — activates XR hardware",
-            "Voice initialization — enables microphone access"
-        ],
-        "rate_limiting": "Recommended: max 100 API calls per .raku file for standard game creation workflows",
-        "excluded_apis": "This schema exposes game creation APIs only. Engine internals, memory management, and low-level rendering are intentionally excluded."
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rakuai.com/schema/raku-file-v1.json",
+  "title": "Raku Game File (.raku)",
+  "description": "Schema for .raku game definition files (Standard Format). Generate valid .raku files by following this schema. Every game must have a schema_version, game object, and ai_disclosure for platform compliance.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "game"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Must be '1.0' for the current Standard Format."
+    },
+    "game": {
+      "type": "object",
+      "description": "Core game metadata including title, genre, template selection, and player count.",
+      "required": ["title", "genre", "template"],
+      "properties": {
+        "title": {"type": "string", "description": "Display name of the game."},
+        "genre": {
+          "type": "string",
+          "enum": [
+            "shooter", "platformer", "puzzle", "rpg", "racing",
+            "tower-defense", "arena-combat", "survival",
+            "music-rhythm", "custom"
+          ],
+          "description": "Game genre. Determines which engine template is loaded."
+        },
+        "template": {"type": "string", "description": "Template identifier matching an available game template (e.g., 'rpg-adventure', 'space-shooter', 'tower-defense')."},
+        "description": {"type": "string", "description": "Brief description of the game concept and gameplay."},
+        "max_players": {"type": "integer", "minimum": 1, "maximum": 16, "description": "Maximum number of simultaneous players."},
+        "content_pack": {
+          "type": "object",
+          "description": "References a first-party content pack for curated assets.",
+          "properties": {
+            "template": {"type": "string", "description": "Template family (e.g., space-shooter, platformer)."},
+            "mode": {
+              "type": "string",
+              "enum": ["prototype", "presentation"],
+              "description": "Prototype for fast iteration; presentation for polished demos."
+            },
+            "pack_version": {"type": "string", "description": "Minimum pack version required."}
+          },
+          "required": ["template", "mode"]
+        }
+      }
+    },
+    "ai": {
+      "type": "object",
+      "description": "AI subsystem configuration: dynamic difficulty adjustment (DDA), NPC personality, emotional tracking, and player profiling.",
+      "properties": {
+        "dda_enabled": {"type": "boolean", "description": "Enable dynamic difficulty adjustment."},
+        "target_flow_state": {"type": "number", "minimum": 0, "maximum": 1, "description": "Target flow state for DDA (0=easy, 1=hard). 0.5-0.7 recommended."},
+        "profiler_mode": {"type": "string", "enum": ["learning", "stable", "off"], "description": "Player profiling mode."},
+        "emotional_tracking": {"type": "boolean", "description": "Track player emotional state for adaptive responses."},
+        "npc_personality": {"type": "boolean", "description": "Enable AI-driven NPC personality system."}
+      }
+    },
+    "entities": {
+      "type": "array",
+      "description": "Game entities: players, NPCs, enemies, collectibles, etc. Each entity has a type, properties, and optional AI behavior.",
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {"type": "string", "description": "Entity type: player_character, npc, enemy_wave, collectible, obstacle, projectile, etc."},
+          "count": {"type": "integer", "minimum": 1, "description": "Number of this entity to spawn."},
+          "health": {"type": "number", "description": "Entity health points."},
+          "speed": {"type": "number", "description": "Movement speed multiplier (1.0 = normal)."},
+          "ai_behavior": {"type": "string", "description": "AI behavior preset: friendly, hostile, territorial, patrol, merchant, boss, etc."},
+          "properties": {"type": "object", "description": "Entity-specific properties (name, role, weapons, drop tables, etc.)."}
+        }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "description": "Game scenes/levels. Each scene has a name, type, and associated entities.",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": {"type": "string"},
+          "type": {"type": "string", "enum": ["menu", "gameplay", "cutscene", "loading"], "description": "Scene type."},
+          "entities": {"type": "array", "items": {"type": "string"}, "description": "Entity types present in this scene."},
+          "properties": {"type": "object", "description": "Scene-specific properties (theme, time_of_day, weather, etc.)."}
+        }
+      }
+    },
+    "rendering": {
+      "type": "object",
+      "description": "Rendering configuration.",
+      "properties": {
+        "resolution": {"type": "string", "description": "'auto' or WxH (e.g., '1920x1080')."},
+        "fps_target": {"type": "integer", "enum": [30, 60, 90, 120]},
+        "vrs_enabled": {"type": "boolean", "description": "Variable rate shading for XR performance."},
+        "post_processing": {"type": "array", "items": {"type": "string"}, "description": "Post-processing effects: ssao, bloom, color-grading, fog, motion-blur, etc."}
+      }
+    },
+    "audio": {
+      "type": "object",
+      "description": "Audio configuration including spatial audio and adaptive music.",
+      "properties": {
+        "spatial_audio": {"type": "boolean", "description": "Enable HRTF spatial audio."},
+        "adaptive_music": {"type": "boolean", "description": "Music adapts to gameplay intensity."},
+        "voice_commands": {"type": "boolean", "description": "Enable voice command input."},
+        "audio_plan": {
+          "type": "object",
+          "description": "Declares audio asset mapping for adaptive music and SFX.",
+          "properties": {
+            "music": {
+              "type": "object",
+              "properties": {
+                "main_loop": {"type": "string"},
+                "intensity_layers": {"type": "array", "items": {"type": "string"}}
+              }
+            },
+            "sfx": {"type": "object", "description": "Sound effect mappings (weapon_fire, impact, explosion, pickup, etc.)."},
+            "ui": {"type": "object", "description": "UI sound mappings (click, confirm, error, etc.)."}
+          }
+        }
+      }
+    },
+    "xr": {
+      "type": "object",
+      "description": "XR/VR/MR configuration via OpenXR 1.1.",
+      "properties": {
+        "openxr_enabled": {"type": "boolean", "description": "Enable OpenXR support."},
+        "hand_tracking": {"type": "boolean"},
+        "eye_tracking": {"type": "boolean"},
+        "passthrough": {"type": "boolean", "description": "Enable mixed reality passthrough mode."}
+      }
+    },
+    "ai_disclosure": {
+      "type": "object",
+      "description": "REQUIRED for platform compliance. Declares AI usage in the game for ESRB/PEGI/storefront policies.",
+      "required": ["live_generated", "pre_generated", "description", "systems"],
+      "properties": {
+        "live_generated": {"type": "boolean", "description": "Whether AI generates content at runtime."},
+        "pre_generated": {"type": "boolean", "description": "Whether AI was used to generate static content."},
+        "description": {"type": "string", "description": "Human-readable description of how AI is used in this game."},
+        "systems": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "AI systems used: dda, procedural_dialogue, emotional_state, player_profiling, slm_inference, procedural_generation, adaptive_music, etc."
+        },
+        "guardrails": {
+          "type": "object",
+          "properties": {
+            "profanity_filter": {"type": "boolean"},
+            "content_rating": {"type": "string", "enum": ["E", "E10+", "T", "M"], "description": "ESRB content rating."},
+            "report_endpoint": {"type": "string", "format": "uri"}
+          }
+        }
+      }
     }
+  },
+  "additionalProperties": false
 }
