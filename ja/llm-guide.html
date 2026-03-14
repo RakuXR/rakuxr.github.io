@@ -131,260 +131,108 @@
     <div class="container">
         <h2>2つのフォーマット、1つのエンジン</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px; max-width: 700px; margin-left: auto; margin-right: auto;">
-            Rakuエンジンは2つの.rakuファイル形式をサポートしています。ニーズに合ったものを選択してください。
+            Rakuエンジンは、異なるユースケースに対応する2つの.rakuファイル形式をサポートしています。
         </p>
         <div class="platform-grid" style="grid-template-columns: repeat(2, 1fr);">
             <div class="platform-card" style="border-color: var(--accent);">
                 <h3>標準フォーマット</h3>
                 <div class="rating" style="color: var(--success);">推奨</div>
                 <p>宣言的設定 &mdash; <em>何が</em>欲しいかを記述すれば、エンジンが<em>どのように</em>実現するかを判断します。</p>
-                <p style="margin-top: 12px;"><strong>バージョンキー：</strong> <code>"schema_version": "1.0"</code></p>
-                <p><strong>トップレベル：</strong> <code>game</code>、<code>ai</code>、<code>entities</code>、<code>scenes</code>、<code>rendering</code>、<code>audio</code>、<code>xr</code>、<code>ai_disclosure</code></p>
-                <p style="margin-top: 12px;"><strong>スキーマ：</strong> <a href="../schema.json" style="color: var(--accent-bright);">rakuai.com/schema.json</a></p>
-                <p><strong>サンプル：</strong> <a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">全標準サンプル &rarr;</a></p>
-                <p style="margin-top: 8px; color: var(--text-secondary); font-size: 0.85rem;">最適な用途：素早いゲーム作成、初心者、ほとんどのLLMタスク</p>
+                <p style="margin-top: 12px;">素早いゲーム作成、プロトタイピング、およびほとんどのAI支援ワークフローに最適。</p>
+                <p style="margin-top: 12px;"><a href="contact.html" class="btn btn-primary" style="font-size: 0.85rem; padding: 8px 20px;">スキーマのSDKアクセスをリクエスト</a></p>
             </div>
             <div class="platform-card">
                 <h3>ランタイムフォーマット</h3>
                 <div class="rating">上級者向け</div>
-                <p>明示的なAPI呼び出しシーケンス &mdash; すべてのエンジン関数呼び出しが順番に指定されます。</p>
-                <p style="margin-top: 12px;"><strong>バージョンキー：</strong> <code>"raku_format": "1.0.0"</code></p>
-                <p><strong>トップレベル：</strong> <code>metadata</code>、<code>assets</code>、<code>initialization</code>、<code>setup</code>、<code>game_loop</code>、<code>ai_pipeline</code>、<code>shutdown</code></p>
-                <p style="margin-top: 12px; color: var(--text-secondary);">SDKアクセスで詳細なリファレンスが利用可能です。</p>
-                <p style="margin-top: 8px; color: var(--text-secondary); font-size: 0.85rem;">最適な用途：複雑なゲーム、カスタムビヘイビアツリー、詳細なAIパイプライン制御</p>
+                <p>エンジン動作とAIパイプラインを細かく制御するための明示的なAPI呼び出しシーケンス。</p>
+                <p style="margin-top: 12px;">複雑なゲーム、カスタムビヘイビアツリー、高度なAIパイプライン制御に最適。</p>
+                <p style="margin-top: 12px;"><a href="contact.html" class="btn btn-secondary" style="font-size: 0.85rem; padding: 8px 20px;">SDKアクセスをリクエスト</a></p>
             </div>
         </div>
-        <p style="text-align: center; color: var(--text-secondary); margin-top: 16px;">
-            このページの残りでは<strong>標準フォーマット</strong>について説明します。ランタイムフォーマットについては、SDKアクセスで詳細なリファレンスをご利用いただけます。
-        </p>
     </div>
 </section>
 
-<!-- THE PROBLEM -->
+<!-- AI-POWERED GAME CREATION -->
 <section class="section">
     <div class="container">
-        <h2>問題点</h2>
+        <h2>AIによるゲーム作成</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px; max-width: 700px; margin-left: auto; margin-right: auto;">
-            実際のスキーマを提供しないと、LLMはスキーマをハルシネーション（幻覚生成）します。Rakuの仕様に存在しない
-            <code style="color: #ff6b6b;">settings</code>、<code style="color: #ff6b6b;">gameplay</code>、
-            <code style="color: #ff6b6b;">controls</code>、<code style="color: #ff6b6b;">analytics</code>
-            といったフィールドを作り出します。ファイルは有効なJSONに見えますが、実行できません。
+            RakuAIは最新のAIアシスタントとシームレスに連携するよう設計されています。自然言語でゲームのコンセプトを説明するだけで、AIが完全なプレイ可能なゲームファイルを生成します。
         </p>
-
-        <div class="warning-box">
-            <h3>スキーマなしで起こること</h3>
-            <p>テストしました：ChatGPTに「ゾンビサバイバルゲームの.rakuゲームファイルを作成して」と依頼しました。完全に架空の構造で150行の有効なJSONを生成しました。バリデーターは2つのエラーと2つの警告を検出しました。バージョン形式の誤り（<code>"1.0"</code>ではなく<code>"1.0.0"</code>）、<code>game</code>オブジェクトの欠落、6つのハルシネーションフィールド、<code>ai_disclosure</code>形式の誤りが含まれていました。</p>
-        </div>
 
         <div class="success-box">
-            <h3>解決策はシンプル</h3>
-            <p>常にAIにスキーマURLを指定してください：<strong>https://rakuai.com/schema.json</strong>。
-            LLMが実際の仕様を読めれば、最初の試行で有効なファイルを生成します。
-            プレイする前に必ず検証してください。</p>
+            <h3>仕組み</h3>
+            <p>SDKでは、検証済みスキーマ、プロンプトテンプレート、自動修正ツールにアクセスでき、AI生成のゲームファイルが毎回完璧に動作することを保証します。ChatGPT、Claude、Gemini、その他の主要なAIアシスタントに最適化されたワークフローです。</p>
         </div>
     </div>
 </section>
 
-<!-- COPY-PASTE PROMPTS -->
+<!-- SIMPLE WORKFLOW -->
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container">
-        <h2>コピー＆ペーストプロンプト</h2>
-        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            任意のAIアシスタントでこれらのテスト済みプロンプトを使用してください。スキーマURLが含まれているため、AIが実際の仕様を読み取ります。
-        </p>
+        <h2>シンプルな3ステップワークフロー</h2>
 
-        <h3 style="color: var(--accent-bright); margin-bottom: 12px;">基本プロンプト（あらゆるゲーム向け）</h3>
-        <div class="prompt-block" id="prompt-basic">
-            <button class="copy-btn" onclick="copyPrompt('prompt-basic')">コピー</button>
-            Using the Raku game engine schema at https://rakuai.com/schema.json &mdash; read that schema first, then create a .raku game file for: [describe your game here]. Include the ai_disclosure section. Output only the raw JSON, no markdown code fences.
+        <div class="step-compact">
+            <h3>1. プロンプト &rarr; ゲームを説明</h3>
+            <p>任意のAIアシスタント（ChatGPT、Claude、Gemini、Copilot）をSDK付属のプロンプトテンプレートと共に使用してください。自然言語でゲームのコンセプトを説明すると、AIが有効な.rakuゲームファイルを生成します。</p>
         </div>
 
-        <h3 style="color: var(--accent-bright); margin-bottom: 12px;">詳細プロンプト（サバイバルゲームの例）</h3>
-        <div class="prompt-block" id="prompt-survival">
-            <button class="copy-btn" onclick="copyPrompt('prompt-survival')">コピー</button>
-            Using the Raku game engine schema at https://rakuai.com/schema.json &mdash; read that schema first, then create a .raku game file for: A zombie survival game with day/night cycles, crafting, and base building. Zombies should get more aggressive at night. The AI should track emotional state and back off if the player is frustrated. Use the "survival" template and genre. Include the ai_disclosure section with appropriate systems. Output only the raw JSON, no markdown code fences.
+        <div class="step-compact">
+            <h3>2. 検証 &rarr; 品質を確保</h3>
+            <p>SDKには、AI生成ファイルの一般的な問題を自動的にチェックして修正する検証ツールが含まれています。1つのコマンドでゲームの準備が整います。</p>
         </div>
 
-        <h3 style="color: var(--accent-bright); margin-bottom: 12px;">厳格プロンプト（頑固なLLM向け）</h3>
-        <div class="prompt-block" id="prompt-strict">
-            <button class="copy-btn" onclick="copyPrompt('prompt-strict')">コピー</button>
-            Read the JSON schema at https://rakuai.com/schema.json before generating anything. Create a .raku file for: [describe your game here].<br><br>
-            RULES:<br>
-            - schema_version must be "1.0" (not "1.0.0")<br>
-            - Top-level must have: schema_version, game, ai, entities, scenes, rendering, audio, xr, ai_disclosure<br>
-            - The "game" object must contain: title, genre, template<br>
-            - Do NOT invent fields like settings, gameplay, controls, ui, analytics, assets, or levels<br>
-            - ai_disclosure must have: live_generated, pre_generated, description, systems<br>
-            - Output raw JSON only, no markdown fences, no explanation
+        <div class="step-compact">
+            <h3>3. プレイ &rarr; 即座にゲームプレイ</h3>
+            <p>検証済みの.rakuファイルを開いて、すぐにプレイ。Rakuランタイムがレンダリングからアダプティブゲームプレイまですべてを処理します。</p>
         </div>
 
-        <h3 style="color: var(--accent-bright); margin-bottom: 12px;">修正プロンプト（不正なファイルの修正）</h3>
-        <div class="prompt-block" id="prompt-fix">
-            <button class="copy-btn" onclick="copyPrompt('prompt-fix')">コピー</button>
-            The .raku file you generated has validation errors. Read the correct schema at https://rakuai.com/schema.json and fix these issues:<br><br>
-            [paste your validator output here]<br><br>
-            Output only the corrected raw JSON, no markdown code fences.
+        <div style="text-align: center; margin-top: 32px;">
+            <a href="contact.html" class="btn btn-primary">プロンプト、スキーマ、検証ツールのSDKアクセスをリクエスト</a>
         </div>
     </div>
 </section>
 
-<!-- STEP BY STEP -->
+<!-- AI PLATFORM COMPATIBILITY -->
 <section class="section">
     <div class="container">
-        <h2>ステップバイステップのワークフロー</h2>
-
-        <div class="step-compact">
-            <h3>1. AIで生成</h3>
-            <p>上記のプロンプトのいずれかをChatGPT、Claude、Gemini、または任意のLLMにコピーしてください。ゲームの説明を入力すると、AIがJSONを出力します。</p>
-        </div>
-
-        <div class="step-compact">
-            <h3>2. .rakuファイルとして保存</h3>
-            <p>JSON出力を<code>.raku</code>ファイルとして保存します。重要：<strong>BOMなしのUTF-8</strong>で保存してください。
-            Windowsのメモ帳を使用する場合は、「名前を付けて保存」&rarr; エンコード：「UTF-8」（「UTF-8（BOM付き）」ではなく）を選択してください。
-            AIが<code>```json</code>フェンスで囲んでいた場合は、それらの行を最初に削除してください。</p>
-        </div>
-
-        <div class="step-compact">
-            <h3>3. 検証</h3>
-            <p>SDKに付属のバリデーターツールで.rakuファイルを検証してください。SDKアクセスで利用可能です。<a href="contact.html" style="color: var(--accent-bright);">アクセスをリクエスト &rarr;</a></p>
-        </div>
-
-        <div class="step-compact">
-            <h3>4. 残りのエラーを修正</h3>
-            <p>バリデーターがエラーを報告した場合は、上記の「修正プロンプト」を使用して出力をAIにコピーし直してください。
-            または、<code>--fix</code>モードを使用して最も一般的な問題を自動修復できます。</p>
-        </div>
-
-        <div class="step-compact">
-            <h3>5. プレイ</h3>
-            <p><code>PASS - Valid .raku file</code>と表示されたら、ファイルをダブルクリックしてプレイできます。
-            <a href="contact.html" style="color: var(--accent-bright);">アクセスをリクエスト &rarr;</a></p>
-        </div>
-    </div>
-</section>
-
-<!-- PLATFORM NOTES -->
-<section class="section" style="background: var(--bg-secondary);">
-    <div class="container">
-        <h2>プラットフォーム別の注意事項</h2>
+        <h2>すべての主要AIに対応</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
+            RakuAIはすべての主要AIプラットフォームに最適化されています。お好みのアシスタントをご使用ください。
+        </p>
         <div class="platform-grid">
             <div class="platform-card">
                 <h3>ChatGPT</h3>
-                <div class="rating">精度：良好</div>
-                <p>GPT-4およびGPT-4oはスキーマURLを確実に読み取ります。注意点：出力にMarkdownコードフェンスが含まれること（<code>```json</code>行を削除）、時折余分なフィールドを作り出すこと。プロンプトに常に「output only raw JSON」を含めてください。</p>
+                <div class="rating">対応</div>
+                <p>GPT-4およびGPT-4oに完全対応。プロンプトテンプレートはSDKアクセスに含まれています。</p>
             </div>
             <div class="platform-card">
                 <h3>Claude</h3>
-                <div class="rating">精度：優秀</div>
-                <p>Claude OpusとSonnetはURLが提供されるとスキーマに正確に従います。直接検証のためのMCPサーバー統合をサポート。指示があればMarkdownフェンスを追加することはほとんどありません。</p>
+                <div class="rating">対応</div>
+                <p>優れたスキーマ準拠性。ストリームラインされたワークフローのためのMCPサーバー統合をサポート。</p>
             </div>
             <div class="platform-card">
                 <h3>Gemini</h3>
-                <div class="rating">精度：良好</div>
-                <p>Gemini Proはスキーマをよく読み取ります。マルチターン会話での反復的な設計に最適。schema_versionに<code>"1.0"</code>ではなく<code>"1.0.0"</code>を使用することがあります。</p>
+                <div class="rating">対応</div>
+                <p>マルチターン会話での反復的なゲーム設計に最適。</p>
             </div>
             <div class="platform-card">
                 <h3>GitHub Copilot</h3>
-                <div class="rating">精度：良好</div>
-                <p>VS Codeでスキーマを参照ファイルとして使用すると効果的です。<code>schema.json</code>を隣のタブで開くと、Copilotが<code>.raku</code>ファイルのオートコンプリートに使用します。</p>
+                <div class="rating">対応</div>
+                <p>オートコンプリートサポートによるIDE統合型ゲームファイル作成。</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- TROUBLESHOOTING -->
-<section class="section">
-    <div class="container">
-        <h2>トラブルシューティング</h2>
-        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            一般的なバリデーターエラーとその修正方法。ほとんどは<code>--fix</code>で自動修正できます。
-        </p>
-
-        <div class="trouble-card">
-            <h3>Invalid JSON: Expecting value: line 1 column 1</h3>
-            <p>ファイルが空であるか、BOMが含まれているか、Markdownフェンス（<code>```json</code>）で始まっています。</p>
-            <p class="fix">修正：<code>python tools/validate-raku.py my-game.raku --fix</code>を実行してBOMとフェンスを自動的に削除します。</p>
-        </div>
-
-        <div class="trouble-card">
-            <h3>Unsupported schema version: '1.0.0'. Expected '1.0'</h3>
-            <p>LLMはバージョン番号に余分な桁を追加しがちです。</p>
-            <p class="fix">修正：<code>"schema_version": "1.0.0"</code>を<code>"schema_version": "1.0"</code>に変更します。<code>--fix</code>フラグで自動的に修正されます。</p>
-        </div>
-
-        <div class="trouble-card">
-            <h3>Missing required field 'game'</h3>
-            <p>AIがtitle、genre、templateを<code>"game"</code>オブジェクト内ではなくトップレベルに配置しました。</p>
-            <p class="fix">修正：<code>"game": { "title": "...", "genre": "...", "template": "..." }</code>で囲みます。<code>--fix</code>フラグで自動的に修正されます。</p>
-        </div>
-
-        <div class="trouble-card">
-            <h3>AI-hallucinated fields detected</h3>
-            <p>AIが<code>settings</code>、<code>gameplay</code>、<code>controls</code>、<code>ui</code>、<code>analytics</code>、<code>assets</code>、<code>levels</code>などのフィールドを作り出しました。</p>
-            <p class="fix">修正：これらのフィールドを削除してください。有効なトップレベルフィールドは次のみです：<code>schema_version</code>、<code>game</code>、<code>ai</code>、<code>entities</code>、<code>scenes</code>、<code>rendering</code>、<code>audio</code>、<code>xr</code>、<code>ai_disclosure</code>。<code>--fix</code>フラグで自動的に削除されます。</p>
-        </div>
-
-        <div class="trouble-card">
-            <h3>Wrong ai_disclosure format</h3>
-            <p>AIが正しいスキーマの代わりに<code>compliance</code>、<code>uses_player_data</code>、<code>data_tracked</code>などのフィールドを使用しました。</p>
-            <p class="fix">修正：ai_disclosureセクションを次のように置き換えます：<code>live_generated</code>（bool）、<code>pre_generated</code>（bool）、<code>description</code>（string）、<code>systems</code>（array）。有効なシステム名についてはスキーマを参照してください。</p>
-        </div>
-
-        <div class="trouble-card">
-            <h3>File starts with UTF-8 BOM</h3>
-            <p>Windowsのメモ帳やPowerShellの<code>Set-Content -Encoding UTF8</code>が不可視のBOMバイトを追加します。</p>
-            <p class="fix">修正：<code>--fix</code>を使用するか、PowerShellで：<code>[IO.File]::WriteAllText("$PWD\file.raku", (Get-Content file.raku -Raw), [Text.UTF8Encoding]::new($false))</code></p>
-        </div>
-    </div>
-</section>
-
-<!-- VALID SCHEMA QUICK REFERENCE -->
+<!-- GET STARTED -->
 <section class="section" style="background: var(--bg-secondary);">
-    <div class="container">
-        <h2>スキーマクイックリファレンス</h2>
-        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            有効な.rakuファイルの完全な構造。<a href="../schema.json" style="color: var(--accent-bright);">完全なスキーマ &rarr;</a>
+    <div class="container" style="text-align: center;">
+        <h2>AIでゲームを作る準備はできていますか？</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px; max-width: 600px; margin-left: auto; margin-right: auto;">
+            SDKには必要なすべてが含まれています：検証済みスキーマ、プロンプトテンプレート、自動修正ツール、サンプル.rakuファイル、完全なドキュメント。
         </p>
-        <div class="code-block">
-{<br>
-&nbsp;&nbsp;<span class="code-string">"schema_version"</span>: <span class="code-string">"1.0"</span>,<br>
-&nbsp;&nbsp;<span class="code-string">"game"</span>: {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"title"</span>: <span class="code-string">"string (1-128 chars)"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"genre"</span>: <span class="code-string">"shooter|platformer|puzzle|rpg|racing|tower-defense|arena-combat|survival|music-rhythm|custom"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"template"</span>: <span class="code-string">"space-shooter|tower-defense|puzzle|platformer|arena-combat|custom-advanced|racing|rpg-adventure|survival|music-rhythm"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"description"</span>: <span class="code-string">"optional"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"max_players"</span>: <span class="code-keyword">1</span> <span class="code-comment">// 1-16, multiplayer requires Pro</span><br>
-&nbsp;&nbsp;},<br>
-&nbsp;&nbsp;<span class="code-string">"ai"</span>: {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"dda_enabled"</span>: <span class="code-keyword">true</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"target_flow_state"</span>: <span class="code-keyword">0.7</span>, <span class="code-comment">// 0.0-1.0</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"profiler_mode"</span>: <span class="code-string">"adaptive|fixed|learning"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"emotional_tracking"</span>: <span class="code-keyword">true</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"npc_personality"</span>: <span class="code-keyword">false</span><br>
-&nbsp;&nbsp;},<br>
-&nbsp;&nbsp;<span class="code-string">"entities"</span>: [<br>
-&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"type"</span>: <span class="code-string">"player"</span>, <span class="code-string">"health"</span>: 100, <span class="code-string">"speed"</span>: 1.0, <span class="code-string">"properties"</span>: { } }<br>
-&nbsp;&nbsp;],<br>
-&nbsp;&nbsp;<span class="code-string">"scenes"</span>: [<br>
-&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"name"</span>: <span class="code-string">"Main Menu"</span>, <span class="code-string">"type"</span>: <span class="code-string">"menu"</span> },<br>
-&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"name"</span>: <span class="code-string">"Gameplay"</span>, <span class="code-string">"type"</span>: <span class="code-string">"gameplay"</span>, <span class="code-string">"entities"</span>: [<span class="code-string">"player"</span>] }<br>
-&nbsp;&nbsp;],<br>
-&nbsp;&nbsp;<span class="code-string">"rendering"</span>: { <span class="code-string">"resolution"</span>: <span class="code-string">"auto"</span>, <span class="code-string">"fps_target"</span>: 60, <span class="code-string">"vrs_enabled"</span>: <span class="code-keyword">true</span> },<br>
-&nbsp;&nbsp;<span class="code-string">"audio"</span>: { <span class="code-string">"spatial_audio"</span>: <span class="code-keyword">true</span>, <span class="code-string">"adaptive_music"</span>: <span class="code-keyword">true</span> },<br>
-&nbsp;&nbsp;<span class="code-string">"xr"</span>: { <span class="code-string">"openxr_enabled"</span>: <span class="code-keyword">false</span> },<br>
-&nbsp;&nbsp;<span class="code-string">"ai_disclosure"</span>: {<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"live_generated"</span>: <span class="code-keyword">true</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"pre_generated"</span>: <span class="code-keyword">false</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"description"</span>: <span class="code-string">"What AI does in your game"</span>,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"systems"</span>: [<span class="code-string">"dda"</span>, <span class="code-string">"emotional-tracking"</span>],<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"guardrails"</span>: <span class="code-string">"optional safety bounds"</span><br>
-&nbsp;&nbsp;}<br>
-}
-        </div>
-        <p style="text-align: center; margin-top: 16px;">
-            <a href="https://github.com/RakuXR/raku-public/tree/main/samples" style="color: var(--accent-bright);">GitHubで6つの完全なサンプル.rakuファイルを閲覧 &rarr;</a>
-        </p>
+        <a href="contact.html" class="btn btn-primary">SDKアクセスをリクエスト</a>
     </div>
 </section>
 
