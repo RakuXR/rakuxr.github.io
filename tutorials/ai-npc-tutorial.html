@@ -4,118 +4,51 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creating Intelligent NPCs with Behavior Trees - RakuAI Tutorials</title>
-    <meta name="description" content="Build intelligent NPCs in Raku with behavior trees, intelligent navigation, state management, detection systems, and voice commands.">
-    <meta property="og:title" content="Creating Intelligent NPCs with Behavior Trees - RakuAI">
-    <meta property="og:description" content="Build patrol AI, chase behavior, intelligent navigation, and voice-controlled NPCs with the Raku AI subsystem.">
-    <meta property="og:type" content="article">
-    <meta property="og:url" content="https://rakuai.com/tutorials/ai-npc-tutorial">
+    <title>AI NPC Tutorial - RakuAI</title>
+    <meta name="description" content="Learn to create intelligent NPCs with RakuAI.">
+    <meta property="og:title" content="AI NPC Tutorial - RakuAI">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/tutorials/ai-npc-tutorial.html">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="canonical" href="https://rakuai.com/tutorials/ai-npc-tutorial.html">
     <link rel="stylesheet" href="../style.css">
-    <style>
-        .guide-section { padding: 48px 0; border-bottom: 1px solid #222244; }
-        .guide-section:last-of-type { border-bottom: none; }
-        .guide-section h3 { color: var(--accent-bright); font-size: 1.6rem; margin-bottom: 16px; }
-        .guide-section > p, .guide-section > ul { color: var(--text-secondary); font-size: 1.05rem; line-height: 1.7; margin-bottom: 24px; max-width: 800px; }
-        .guide-section ul { padding-left: 24px; }
-        .guide-section li { margin-bottom: 8px; }
-        .guide-badge { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; padding: 4px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 12px; }
-        .guide-code { background: #0d0d1f; border: 1px solid #222244; border-radius: 8px; padding: 24px; font-family: 'Courier New', monospace; font-size: 0.9rem; line-height: 1.8; overflow-x: auto; margin: 16px 0 24px; }
-        .guide-code .comment { color: #6272a4; font-style: italic; }
-        .guide-code .fn { color: #50fa7b; }
-        .guide-code .str { color: #f1fa8c; }
-        .guide-code .kw { color: #ff79c6; font-weight: 600; }
-        .guide-code .num { color: #bd93f9; }
-        .guide-code .type { color: #8be9fd; }
-        .guide-note { background: var(--bg-secondary); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; color: var(--text-secondary); font-size: 0.95rem; }
-        .guide-note strong { color: var(--accent-bright); }
-        .guide-toc { background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 32px; max-width: 600px; margin: 0 auto 48px; }
-        .guide-toc h3 { color: var(--text-primary); margin-bottom: 16px; font-size: 1.2rem; }
-        .guide-toc ol { list-style: none; counter-reset: toc; }
-        .guide-toc li { counter-increment: toc; padding: 8px 0; border-bottom: 1px solid #222244; }
-        .guide-toc li:last-child { border-bottom: none; }
-        .guide-toc li::before { content: counter(toc) ". "; color: var(--accent-bright); font-weight: 700; }
-        .guide-toc a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
-        .guide-toc a:hover { color: var(--accent-bright); }
-        .btree-diagram { background: #0d0d1f; border: 1px solid #222244; border-radius: 8px; padding: 24px; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; overflow-x: auto; margin: 16px 0 24px; color: var(--text-secondary); white-space: pre; }
-        .btree-diagram .hl { color: var(--accent-bright); font-weight: 700; }
-        .btree-diagram .hl-green { color: #50fa7b; }
-        .btree-diagram .hl-cyan { color: var(--success); }
-    </style>
 </head>
 <body>
 
 <div class="beta-announcement-bar">
-    &#x697D;AI<sup class="tm">™</sup> Now Available — Describe Any Game. Play It Instantly. | <a href="../index.html#quickstart">Try RakuAI Now →</a>
+    &#x697D;AI<sup class="tm">™</sup> Now Available — Describe Any Game. Play It Instantly. | <a href="index.html#quickstart">Try RakuAI Now →</a>
 </div>
 
 <nav>
     <div class="container">
-        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">™</sup></a>
         <div class="nav-links">
             <a href="../index.html">Home</a>
             <a href="../sdk.html">SDK</a>
             <a href="../docs.html">Docs</a>
-            <a href="../spatial-engine.html">Spatial</a>
-            <a href="../xr-features.html">XR</a>
-            <a href="../ai-systems.html">AI</a>
             <a href="../templates.html">Templates</a>
-            <a href="../llm-guide.html">LLM Guide</a>
             <a href="../pricing.html">Pricing</a>
             <a href="../pro-features.html">Pro</a>
             <a href="https://github.com/RakuXR">GitHub</a>
-            <a href="contact.html" class="nav-cta">Request Access</a>
+            <a href="../contact.html" class="nav-cta">Request Access</a>
+            <a href="" class="lang-toggle"></a>
         </div>
     </div>
 </nav>
 
 <section class="hero">
     <div class="container">
-        <div style="display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 16px;">ADVANCED TUTORIAL</div>
-        <h1>Creating Intelligent NPCs with Behavior Trees</h1>
-        <p class="subtitle">Build intelligent NPCs with advanced AI-driven decision making, navigation, and voice interaction.</p>
-        <p style="color: var(--text-secondary); font-size: 0.9rem;"><a href="index.html" style="color: var(--accent-bright);">&larr; All Tutorials</a></p>
+        <h1>AI NPC Tutorial</h1>
+        <p class="subtitle">Learn to create intelligent NPCs with RakuAI.</p>
     </div>
 </section>
 
 <section class="section">
-    <div class="container">
-        <div class="guide-section">
-            <h3>What This Tutorial Covers</h3>
-            <p>This tutorial teaches you how to create intelligent NPCs with behavior trees and the Raku AI subsystem, including:</p>
-            <ul>
-                <li><strong style="color: var(--text-primary);">Behavior Trees</strong> &mdash; Modular, hierarchical NPC decision-making</li>
-                <li><strong style="color: var(--text-primary);">Patrol AI</strong> &mdash; Autonomous NPC movement patterns</li>
-                <li><strong style="color: var(--text-primary);">Detection &amp; Chase</strong> &mdash; AI-driven perception and reactive behavior</li>
-                <li><strong style="color: var(--text-primary);">State Management</strong> &mdash; Intelligent NPC state tracking and decision flow</li>
-                <li><strong style="color: var(--text-primary);">Navigation</strong> &mdash; Intelligent pathfinding around complex environments</li>
-                <li><strong style="color: var(--text-primary);">Voice Commands</strong> &mdash; On-device voice recognition for NPC interaction (privacy-first)</li>
-                <li><strong style="color: var(--text-primary);">Complete Example</strong> &mdash; A fully functional intelligent NPC with complete AI</li>
-            </ul>
-
-            <div style="text-align: center; margin-top: 40px;">
-                <a href="../contact.html" class="btn btn-primary">Request SDK Access</a>
-            </div>
-
-            <div class="guide-note" style="margin-top: 32px;">
-                <strong>Next steps:</strong> Combine this NPC with <a href="spatial-audio-tutorial.html" style="color: var(--accent-bright);">spatial audio</a> for footstep sounds that the player can hear approaching, or with <a href="mixed-reality-tutorial.html" style="color: var(--accent-bright);">mixed reality</a> to have the guard patrol your real room.
-            </div>
-        </div>
-
-    </div>
-</section>
-
-<section class="section" style="background: var(--bg-secondary);">
-    <div class="container" style="text-align: center;">
-        <h2>Ready for More?</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
-            Explore more tutorials on XR development, physics, spatial audio, and mixed reality.
+    <div class="container" style="text-align: center; max-width: 600px; margin: 0 auto;">
+        <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 1.1rem; line-height: 1.7;">
+            This content is available with SDK access. Request access to get full documentation, prompt templates, and validation tools.
         </p>
-        <div class="cta-group">
-            <a href="index.html" class="btn btn-secondary">All Tutorials</a>
-            <a href="../contact.html" class="btn btn-primary">Request SDK Access</a>
-        </div>
+        <a href="../contact.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 14px 32px;">Request SDK Access</a>
     </div>
 </section>
 
