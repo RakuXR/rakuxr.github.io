@@ -131,32 +131,23 @@
 <section class="hero" style="padding: 60px 0 40px;">
     <div class="container">
         <h1>Validate Your .raku File</h1>
-        <p class="subtitle">Paste your AI-generated .raku JSON to check for missing sections, required fields, and structural issues before running.</p>
+        <p class="subtitle">Complete validation tools are available with SDK access.</p>
     </div>
 </section>
 
 <div class="validator-container">
-    <textarea class="validator-textarea" id="rakuInput" placeholder='Paste your .raku file JSON here...
-
-The validator checks basic structure (schema_version, game object with title/genre/template). For full schema validation, use the SDK validation tools.'></textarea>
-
-    <div>
-        <button class="validate-btn" onclick="validateRaku()">Validate</button>
-        <button class="validate-btn" onclick="document.getElementById('rakuInput').value=''; hideResults();" style="background:#555;margin-left:0.5rem;">Clear</button>
-    </div>
-
-    <div class="results-panel" id="resultsPanel">
-        <h2 id="resultsTitle"></h2>
-        <div class="stats-bar" id="statsBar"></div>
-        <div id="resultsBody"></div>
+    <div style="background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(0, 206, 201, 0.1)); border: 2px solid var(--accent); border-radius: 16px; padding: 40px; text-align: center; margin-top: 24px;">
+        <h3 style="font-size: 1.6rem; color: var(--accent-bright); margin-bottom: 16px;">Validation Tools Available with SDK</h3>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 24px;">Complete .raku file validation with auto-fix, schema compliance checking, and detailed error reporting is available with SDK access.</p>
+        <a href="contact.html" class="btn btn-primary">Request SDK Access</a>
     </div>
 </div>
 
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container" style="text-align: center;">
-        <h2>Need Help Generating .raku Files?</h2>
+        <h2>Create Games with AI</h2>
         <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
-            Check the LLM Guide for best practices on generating valid .raku files with any AI assistant.
+            Use any AI assistant to describe your game. The SDK includes prompt templates, validation tools, and everything you need.
         </p>
         <div class="cta-group">
             <a href="llm-guide.html" class="btn btn-primary">LLM Guide</a>
@@ -180,83 +171,6 @@ The validator checks basic structure (schema_version, game object with title/gen
     </div>
 </footer>
 
-<script>
-function hideResults() {
-    document.getElementById('resultsPanel').classList.remove('show');
-}
-
-function validateRaku() {
-    const input = document.getElementById('rakuInput').value.trim();
-    const panel = document.getElementById('resultsPanel');
-    const title = document.getElementById('resultsTitle');
-    const stats = document.getElementById('statsBar');
-    const body = document.getElementById('resultsBody');
-
-    if (!input) {
-        panel.className = 'results-panel show results-warn';
-        title.textContent = 'No Input';
-        stats.innerHTML = '';
-        body.innerHTML = '<div class="result-warning">Paste your .raku JSON file content above and click Validate.</div>';
-        return;
-    }
-
-    let json;
-    try {
-        json = JSON.parse(input);
-    } catch (e) {
-        panel.className = 'results-panel show results-fail';
-        title.textContent = 'JSON Parse Error';
-        stats.innerHTML = '<span class="stat-chip stat-fail">1 Error</span>';
-        body.innerHTML = '<div class="result-item result-error">Invalid JSON: ' + escapeHtml(e.message) + '</div>' +
-            '<div class="result-item result-info">Tip: Make sure your JSON is complete and properly formatted. Check for missing commas, brackets, or quotes.</div>';
-        return;
-    }
-
-    // Basic structure check only
-    const errors = [];
-    let checks = 0;
-    let passed = 0;
-
-    checks++;
-    if (!json.schema_version) {
-        errors.push('Missing required field: <strong>schema_version</strong>.');
-    } else { passed++; }
-
-    checks++;
-    if (!json.game || typeof json.game !== 'object') {
-        errors.push('Missing required section: <strong>game</strong>.');
-    } else {
-        passed++;
-        checks++;
-        if (!json.game.title) { errors.push('Missing: <strong>game.title</strong>'); } else { passed++; }
-        checks++;
-        if (!json.game.genre) { errors.push('Missing: <strong>game.genre</strong>'); } else { passed++; }
-        checks++;
-        if (!json.game.template) { errors.push('Missing: <strong>game.template</strong>'); } else { passed++; }
-    }
-
-    const hasErrors = errors.length > 0;
-    panel.className = hasErrors ? 'results-panel show results-fail' : 'results-panel show results-pass';
-    title.textContent = hasErrors ? 'Basic Validation Failed' : 'Basic Validation Passed';
-
-    let statsHtml = '<span class="stat-chip stat-info">' + checks + ' checks</span>';
-    statsHtml += '<span class="stat-chip stat-pass">' + passed + ' passed</span>';
-    if (errors.length > 0) statsHtml += '<span class="stat-chip stat-fail">' + errors.length + ' errors</span>';
-    stats.innerHTML = statsHtml;
-
-    let bodyHtml = '';
-    for (const e of errors) bodyHtml += '<div class="result-item result-error">' + e + '</div>';
-    if (!hasErrors) {
-        bodyHtml = '<div class="result-item result-ok">Basic structure looks good! For full validation including schema compliance, genre checking, and entity validation, use the SDK validation tools.</div>' +
-            '<div class="result-item result-info"><a href="contact.html" style="color: var(--accent-bright);">Request SDK access</a> for complete validation with auto-fix capabilities.</div>';
-    }
-    body.innerHTML = bodyHtml;
-}
-
-function escapeHtml(str) {
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-</script>
 
 </body>
 </html>
