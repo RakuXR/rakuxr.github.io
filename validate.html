@@ -5,14 +5,13 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Validate .raku File - RakuAI</title>
-    <meta name="description" content="Paste your AI-generated .raku game file to validate function names, parameter types, and structure before running.">
+    <meta name="description" content="Paste your AI-generated .raku game file to validate structure, required fields, and schema compliance before running.">
     <meta property="og:title" content="Validate .raku File - RakuAI">
-    <meta property="og:description" content="Instant validation for AI-generated .raku game files. Catches invalid function names and suggests fixes.">
+    <meta property="og:description" content="Instant validation for AI-generated .raku game files. Catches structural issues and suggests fixes.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rakuai.com/validate">
     <link rel="canonical" href="https://rakuai.com/validate.html">
     <link rel="stylesheet" href="style.css">
-    <script src="raku-exports.js"></script>
     <style>
         .validator-container {
             max-width: 960px;
@@ -85,8 +84,6 @@
         .result-ok { background: rgba(39, 174, 96, 0.15); border-left: 3px solid #27ae60; }
         .result-info { background: rgba(52, 152, 219, 0.15); border-left: 3px solid #3498db; }
 
-        .suggestion { color: #74b9ff; font-style: italic; }
-        .fn-name { color: #ffeaa7; font-weight: bold; }
         .stats-bar {
             display: flex;
             gap: 1.5rem;
@@ -103,77 +100,61 @@
         .stat-fail { background: #e74c3c; color: white; }
         .stat-warn { background: #f39c12; color: white; }
         .stat-info { background: #3498db; color: white; }
-
-        .search-box {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: #1a1a2e;
-            border-radius: 10px;
-            border: 1px solid #333;
-        }
-        .search-input {
-            width: 100%;
-            padding: 10px 14px;
-            font-size: 1rem;
-            font-family: monospace;
-            background: #0d0d1a;
-            color: #e0e0e0;
-            border: 2px solid #444;
-            border-radius: 8px;
-        }
-        .search-input:focus {
-            border-color: var(--accent, #6c5ce7);
-            outline: none;
-        }
-        .search-results {
-            margin-top: 0.5rem;
-            max-height: 300px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 0.85rem;
-        }
-        .search-results div {
-            padding: 4px 8px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        .search-results div:hover { background: rgba(108, 92, 231, 0.2); }
     </style>
 </head>
 <body>
 
-<nav class="main-nav">
-    <div class="nav-inner">
-        <a href="/" class="nav-logo">RakuAI</a>
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">&trade;</sup> Now Available &mdash; Describe Any Game. Play It Instantly. | <a href="index.html#quickstart">Try RakuAI Now &rarr;</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
         <div class="nav-links">
-            <a href="/docs.html">Docs</a>
-            <a href="/llm-guide.html">LLM Guide</a>
-            <a href="/validate.html" class="active">Validate</a>
-            <a href="/sdk.html">SDK</a>
+            <a href="index.html">Home</a>
+            <a href="sdk.html">SDK</a>
+            <a href="docs.html">Docs</a>
+            <a href="spatial-engine.html">Spatial</a>
+            <a href="xr-features.html">XR</a>
+            <a href="ai-systems.html">AI</a>
+            <a href="templates.html">Templates</a>
+            <a href="llm-guide.html">LLM Guide</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="pro-features.html">Pro</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="contact.html" class="nav-cta">Request Access</a>
         </div>
     </div>
 </nav>
 
-<div class="validator-container">
-    <h1>Validate Your .raku File</h1>
-    <p>Having issues with your AI-generated game? Paste the <code>.raku</code> JSON below to check for missing sections and structural issues.</p>
+<section class="hero" style="padding: 60px 0 40px;">
+    <div class="container">
+        <h1>Validate Your .raku File</h1>
+        <p class="subtitle">Paste your AI-generated .raku JSON to check for missing sections, required fields, and structural issues before running.</p>
+    </div>
+</section>
 
+<div class="validator-container">
     <textarea class="validator-textarea" id="rakuInput" placeholder='Paste your .raku file JSON here...
 
 Example:
 {
-  "raku_format": "1.0.0",
-  "metadata": { "name": "My Game", "genre": "shooter" },
-  "initialization": [
-    {"function": "raku_init", "params": {}},
-    {"function": "raku_renderer_create_window", "params": {"width": 1280, "height": 720}}
-  ],
-  "calls": [
-    {"function": "raku_scene_create", "params": {"name": "main"}}
-  ],
-  "shutdown": [
-    {"function": "raku_shutdown", "params": {}}
-  ]
+  "schema_version": "1.0",
+  "game": {
+    "title": "My Game",
+    "genre": "shooter",
+    "template": "space-shooter",
+    "description": "A fast-paced space shooter."
+  },
+  "entities": [...],
+  "scenes": [...],
+  "ai_disclosure": {
+    "live_generated": true,
+    "pre_generated": false,
+    "description": "DDA adjusts difficulty in real-time.",
+    "systems": ["dda"]
+  }
 }'></textarea>
 
     <div>
@@ -186,16 +167,47 @@ Example:
         <div class="stats-bar" id="statsBar"></div>
         <div id="resultsBody"></div>
     </div>
-
-    <div class="search-box">
-        <h3>API Function Reference</h3>
-        <p style="margin-bottom:0.75rem;font-size:0.9rem;opacity:0.7;">Full API function reference is available under NDA for licensed developers. <a href="contact.html" style="color: var(--accent-bright);">Request access &rarr;</a></p>
-    </div>
 </div>
 
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+        <h2>Need Help Generating .raku Files?</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
+            Check the LLM Guide for best practices on generating valid .raku files with any AI assistant.
+        </p>
+        <div class="cta-group">
+            <a href="llm-guide.html" class="btn btn-primary">LLM Guide</a>
+            <a href="templates.html" class="btn btn-secondary">Browse Templates</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            <a href="docs.html">Documentation</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Protected by 5 granted patents (priority July 2012).</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. &#x697D;AI and &#x697D;XR are stylized marks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
 <script>
-// Build a Set for O(1) lookup
-const EXPORTS_SET = new Set(RAKU_EXPORTS);
+const VALID_GENRES = new Set([
+    'shooter', 'platformer', 'puzzle', 'rpg', 'racing',
+    'tower-defense', 'arena-combat', 'survival', 'music-rhythm', 'custom'
+]);
+
+const VALID_SCENE_TYPES = new Set(['menu', 'gameplay', 'cutscene', 'loading']);
+const VALID_TOP_KEYS = new Set([
+    'schema_version', 'game', 'ai', 'entities', 'scenes',
+    'rendering', 'audio', 'xr', 'ai_disclosure'
+]);
 
 function hideResults() {
     document.getElementById('resultsPanel').classList.remove('show');
@@ -216,7 +228,6 @@ function validateRaku() {
         return;
     }
 
-    // Try to parse JSON
     let json;
     try {
         json = JSON.parse(input);
@@ -224,94 +235,129 @@ function validateRaku() {
         panel.className = 'results-panel show results-fail';
         title.textContent = 'JSON Parse Error';
         stats.innerHTML = '<span class="stat-chip stat-fail">1 Error</span>';
-        body.innerHTML = '<div class="result-error">Invalid JSON: ' + escapeHtml(e.message) + '</div>' +
-            '<div class="result-info suggestion">Tip: Make sure your JSON is complete and properly formatted. Check for missing commas, brackets, or quotes.</div>';
+        body.innerHTML = '<div class="result-item result-error">Invalid JSON: ' + escapeHtml(e.message) + '</div>' +
+            '<div class="result-item result-info">Tip: Make sure your JSON is complete and properly formatted. Check for missing commas, brackets, or quotes.</div>';
         return;
     }
 
     const errors = [];
     const warnings = [];
     const info = [];
-    let totalCalls = 0;
-    let resolvedCalls = 0;
+    let checks = 0;
+    let passed = 0;
 
-    // Check structure
-    if (!json.raku_format) {
-        warnings.push('Missing "raku_format" field. Add: "raku_format": "1.0.0"');
-    }
-    if (!json.metadata) {
-        warnings.push('Missing "metadata" section. Add name, genre, and description.');
-    }
-
-    const hasInit = json.initialization && Array.isArray(json.initialization);
-    const hasCalls = json.calls && Array.isArray(json.calls);
-    const hasSetup = json.setup && Array.isArray(json.setup);
-    const hasGameLoop = json.game_loop && Array.isArray(json.game_loop);
-    const hasShutdown = json.shutdown && Array.isArray(json.shutdown);
-
-    if (!hasInit && !hasCalls) {
-        errors.push('Missing required section: need "initialization" and/or "calls" array.');
-    }
-    if (!hasCalls && !hasSetup && !hasGameLoop) {
-        errors.push('Missing "calls" array. This is the main API call sequence for your game.');
-    }
-    if (!hasShutdown) {
-        warnings.push('No "shutdown" section. Consider adding cleanup calls.');
+    // Check schema_version
+    checks++;
+    if (!json.schema_version) {
+        errors.push('Missing required field: <strong>schema_version</strong>. Add: "schema_version": "1.0"');
+    } else if (json.schema_version !== '1.0') {
+        errors.push('Invalid schema_version: "' + escapeHtml(json.schema_version) + '". Must be "1.0".');
+    } else {
+        passed++;
     }
 
-    // Validate all function calls
-    const sections = [];
-    if (hasInit) sections.push({name: 'initialization', calls: json.initialization});
-    if (hasCalls) sections.push({name: 'calls', calls: json.calls});
-    if (hasSetup) sections.push({name: 'setup', calls: json.setup});
-    if (hasGameLoop) sections.push({name: 'game_loop', calls: json.game_loop});
-    if (hasShutdown) sections.push({name: 'shutdown', calls: json.shutdown});
+    // Check game object
+    checks++;
+    if (!json.game || typeof json.game !== 'object') {
+        errors.push('Missing required section: <strong>game</strong>. Must include title, genre, and template.');
+    } else {
+        passed++;
 
-    for (const section of sections) {
-        for (let i = 0; i < section.calls.length; i++) {
-            const call = section.calls[i];
-            totalCalls++;
+        checks++;
+        if (!json.game.title) {
+            errors.push('Missing required field: <strong>game.title</strong>');
+        } else { passed++; }
 
-            const fnName = call.function || call.function_name || call.fn;
-            if (!fnName) {
-                errors.push(`${section.name}[${i}]: Missing function name. Each call needs a "function" field.`);
-                continue;
-            }
+        checks++;
+        if (!json.game.genre) {
+            errors.push('Missing required field: <strong>game.genre</strong>');
+        } else if (!VALID_GENRES.has(json.game.genre)) {
+            errors.push('Invalid genre: "' + escapeHtml(json.game.genre) + '". Valid genres: ' + Array.from(VALID_GENRES).join(', '));
+        } else { passed++; }
 
-            // Check if function exists
-            if (EXPORTS_SET.has(fnName)) {
-                resolvedCalls++;
-                continue;
-            }
+        checks++;
+        if (!json.game.template) {
+            errors.push('Missing required field: <strong>game.template</strong>');
+        } else { passed++; }
 
-            // Check alias table
-            if (RAKU_ALIASES[fnName]) {
-                const real = RAKU_ALIASES[fnName];
-                if (EXPORTS_SET.has(real)) {
-                    resolvedCalls++;
-                    info.push(`${section.name}[${i}]: <span class="fn-name">${escapeHtml(fnName)}</span> will be auto-resolved to <span class="fn-name">${escapeHtml(real)}</span>`);
-                    continue;
+        if (json.game.max_players !== undefined) {
+            checks++;
+            if (typeof json.game.max_players !== 'number' || json.game.max_players < 1 || json.game.max_players > 16) {
+                warnings.push('game.max_players should be between 1 and 16.');
+            } else { passed++; }
+        }
+    }
+
+    // Check entities
+    if (json.entities !== undefined) {
+        checks++;
+        if (!Array.isArray(json.entities)) {
+            errors.push('<strong>entities</strong> must be an array.');
+        } else if (json.entities.length === 0) {
+            warnings.push('entities array is empty. Your game has no entities defined.');
+            passed++;
+        } else {
+            passed++;
+            for (let i = 0; i < json.entities.length; i++) {
+                const e = json.entities[i];
+                if (!e.type) {
+                    warnings.push('entities[' + i + ']: Missing "type" field.');
                 }
             }
+        }
+    } else {
+        warnings.push('No <strong>entities</strong> section. Consider adding game entities (players, NPCs, enemies).');
+    }
 
-            // Not found — find closest match
-            const suggestions = findClosest(fnName, 3);
-            let msg = `${section.name}[${i}]: Unknown function <span class="fn-name">${escapeHtml(fnName)}</span>`;
-            if (suggestions.length > 0) {
-                msg += ` <span class="suggestion">Did you mean: ${suggestions.map(s => '<span class="fn-name">' + escapeHtml(s) + '</span>').join(', ')}?</span>`;
+    // Check scenes
+    if (json.scenes !== undefined) {
+        checks++;
+        if (!Array.isArray(json.scenes)) {
+            errors.push('<strong>scenes</strong> must be an array.');
+        } else if (json.scenes.length === 0) {
+            warnings.push('scenes array is empty. Your game has no scenes defined.');
+            passed++;
+        } else {
+            passed++;
+            for (let i = 0; i < json.scenes.length; i++) {
+                const s = json.scenes[i];
+                if (!s.name) warnings.push('scenes[' + i + ']: Missing "name" field.');
+                if (!s.type) warnings.push('scenes[' + i + ']: Missing "type" field.');
+                else if (!VALID_SCENE_TYPES.has(s.type)) {
+                    warnings.push('scenes[' + i + ']: Unknown scene type "' + escapeHtml(s.type) + '". Valid: menu, gameplay, cutscene, loading.');
+                }
             }
-            errors.push(msg);
+        }
+    } else {
+        warnings.push('No <strong>scenes</strong> section. Consider adding game scenes/levels.');
+    }
+
+    // Check ai_disclosure
+    checks++;
+    if (!json.ai_disclosure || typeof json.ai_disclosure !== 'object') {
+        warnings.push('Missing <strong>ai_disclosure</strong> section. This is required for platform compliance (ESRB, PEGI, Steam).');
+    } else {
+        passed++;
+        const ad = json.ai_disclosure;
+        if (ad.live_generated === undefined) warnings.push('ai_disclosure: Missing "live_generated" (boolean).');
+        if (ad.pre_generated === undefined) warnings.push('ai_disclosure: Missing "pre_generated" (boolean).');
+        if (!ad.description) warnings.push('ai_disclosure: Missing "description" (string explaining AI usage).');
+        if (!ad.systems || !Array.isArray(ad.systems)) warnings.push('ai_disclosure: Missing "systems" array (e.g., ["dda", "procedural_dialogue"]).');
+    }
+
+    // Check for unknown top-level keys
+    for (const key of Object.keys(json)) {
+        if (!VALID_TOP_KEYS.has(key)) {
+            warnings.push('Unknown top-level key: "' + escapeHtml(key) + '". Valid keys: ' + Array.from(VALID_TOP_KEYS).join(', '));
         }
     }
 
-    // Check initialization order
-    if (hasInit) {
-        const initFns = json.initialization.map(c => c.function || c.function_name || '');
-        const resolvedInitFns = initFns.map(fn => RAKU_ALIASES[fn] || fn);
-        const firstFn = resolvedInitFns[0] || '';
-        if (!firstFn.includes('init')) {
-            warnings.push('Initialization section should start with an init call.');
-        }
+    // Optional section info
+    if (json.ai) info.push('AI subsystem configured (DDA, NPC personality, etc.)');
+    if (json.rendering) info.push('Custom rendering settings detected.');
+    if (json.audio) info.push('Audio configuration detected.');
+    if (json.xr) {
+        info.push('XR configuration detected.' + (json.xr.openxr_enabled ? ' OpenXR enabled.' : ''));
     }
 
     // Show results
@@ -330,90 +376,26 @@ function validateRaku() {
     }
 
     let statsHtml = '';
-    statsHtml += `<span class="stat-chip stat-info">${totalCalls} API calls</span>`;
-    statsHtml += `<span class="stat-chip stat-pass">${resolvedCalls} resolved</span>`;
-    if (errors.length > 0) statsHtml += `<span class="stat-chip stat-fail">${errors.length} errors</span>`;
-    if (warnings.length > 0) statsHtml += `<span class="stat-chip stat-warn">${warnings.length} warnings</span>`;
-    if (info.length > 0) statsHtml += `<span class="stat-chip stat-info">${info.length} auto-aliases</span>`;
+    statsHtml += '<span class="stat-chip stat-info">' + checks + ' checks</span>';
+    statsHtml += '<span class="stat-chip stat-pass">' + passed + ' passed</span>';
+    if (errors.length > 0) statsHtml += '<span class="stat-chip stat-fail">' + errors.length + ' errors</span>';
+    if (warnings.length > 0) statsHtml += '<span class="stat-chip stat-warn">' + warnings.length + ' warnings</span>';
     stats.innerHTML = statsHtml;
 
     let bodyHtml = '';
-    for (const e of errors) bodyHtml += `<div class="result-item result-error">${e}</div>`;
-    for (const w of warnings) bodyHtml += `<div class="result-item result-warning">${escapeHtml(w)}</div>`;
-    for (const i of info) bodyHtml += `<div class="result-item result-info">${i}</div>`;
+    for (const e of errors) bodyHtml += '<div class="result-item result-error">' + e + '</div>';
+    for (const w of warnings) bodyHtml += '<div class="result-item result-warning">' + w + '</div>';
+    for (const i of info) bodyHtml += '<div class="result-item result-info">' + i + '</div>';
 
     if (!hasErrors && !hasWarnings && info.length === 0) {
-        bodyHtml = '<div class="result-item result-ok">All ' + totalCalls + ' function calls are valid Raku Runtime API exports. Your .raku file is ready to run!</div>';
+        bodyHtml = '<div class="result-item result-ok">All checks passed. Your .raku file structure is valid and ready to run!</div>';
     }
 
     body.innerHTML = bodyHtml;
 }
 
-function findClosest(name, maxResults) {
-    // Simple prefix/substring match + Levenshtein for close matches
-    const results = [];
-    const nameLower = name.toLowerCase();
-    const parts = nameLower.split('_').filter(p => p.length > 2);
-
-    // First try: exact prefix matches
-    for (const fn of RAKU_EXPORTS) {
-        if (fn.startsWith(nameLower.substring(0, Math.min(nameLower.length, 20)))) {
-            results.push(fn);
-            if (results.length >= maxResults) return results;
-        }
-    }
-
-    // Second try: substring match on key parts
-    for (const fn of RAKU_EXPORTS) {
-        if (results.includes(fn)) continue;
-        let matches = 0;
-        for (const part of parts) {
-            if (fn.includes(part)) matches++;
-        }
-        if (matches >= Math.max(1, parts.length - 1)) {
-            results.push(fn);
-            if (results.length >= maxResults) return results;
-        }
-    }
-
-    return results;
-}
-
-function searchFunctions() {
-    const query = document.getElementById('searchInput').value.trim().toLowerCase();
-    const resultsDiv = document.getElementById('searchResults');
-
-    if (query.length < 2) {
-        resultsDiv.innerHTML = '';
-        return;
-    }
-
-    const matches = [];
-    const parts = query.split(/[\s_]+/).filter(p => p.length > 0);
-
-    for (const fn of RAKU_EXPORTS) {
-        let allMatch = true;
-        for (const part of parts) {
-            if (!fn.includes(part)) { allMatch = false; break; }
-        }
-        if (allMatch) {
-            matches.push(fn);
-            if (matches.length >= 50) break;
-        }
-    }
-
-    if (matches.length === 0) {
-        resultsDiv.innerHTML = '<div style="padding:8px;opacity:0.5">No functions match "' + escapeHtml(query) + '"</div>';
-        return;
-    }
-
-    resultsDiv.innerHTML = matches.map(fn =>
-        `<div onclick="navigator.clipboard.writeText('${fn}')" title="Click to copy">${fn}</div>`
-    ).join('');
-}
-
 function escapeHtml(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 </script>
 
