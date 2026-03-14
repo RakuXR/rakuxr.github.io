@@ -77,105 +77,25 @@
 
 <section class="section">
     <div class="container">
-        <div class="guide-toc">
-            <h3>In This Tutorial</h3>
-            <ol>
-                <li><a href="#setup">Audio Engine Setup and Listener</a></li>
-                <li><a href="#spatial">3D Positioned Audio Sources</a></li>
-                <li><a href="#hrtf">HRTF for Realistic VR Audio</a></li>
-                <li><a href="#reverb">Reverb Zones for Environment Acoustics</a></li>
-                <li><a href="#occlusion">Sound Occlusion Through Geometry</a></li>
-                <li><a href="#mixer">Mixer Groups for Dynamic Audio Control</a></li>
-                <li><a href="#complete-example">Complete Example: Immersive Audio Tour</a></li>
-            </ol>
-        </div>
+        <div class="guide-section">
+            <h3>What This Tutorial Covers</h3>
+            <p>This tutorial teaches you how to build immersive spatial audio for XR experiences in Raku, including:</p>
+            <ul>
+                <li><strong style="color: var(--text-primary);">Audio Engine &amp; Listener</strong> &mdash; High-performance spatial audio processing</li>
+                <li><strong style="color: var(--text-primary);">3D Positioned Audio</strong> &mdash; Realistic sound positioning in 3D space</li>
+                <li><strong style="color: var(--text-primary);">HRTF Rendering</strong> &mdash; True directional audio perception for VR</li>
+                <li><strong style="color: var(--text-primary);">Reverb Zones</strong> &mdash; Acoustically distinct environments</li>
+                <li><strong style="color: var(--text-primary);">Sound Occlusion</strong> &mdash; Physics-based audio blocking through geometry</li>
+                <li><strong style="color: var(--text-primary);">Mixer Groups</strong> &mdash; Dynamic audio control and category mixing</li>
+                <li><strong style="color: var(--text-primary);">Complete Example</strong> &mdash; An immersive VR audio tour experience</li>
+            </ul>
 
-        <!-- Setup -->
-        <div class="guide-section" id="setup">
-            <div class="guide-badge">FUNDAMENTALS</div>
-            <h3>Audio Engine Setup and Listener</h3>
-            <p>The Raku audio engine supports up to 256 simultaneous channels with hardware-accelerated spatial processing. The listener represents the player's ears in the 3D world.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for audio engine initialization, asset loading, and listener configuration is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-        </div>
-
-        <!-- Spatial Audio -->
-        <div class="guide-section" id="spatial">
-            <div class="guide-badge">3D AUDIO</div>
-            <h3>3D Positioned Audio Sources</h3>
-            <p>Spatial audio sources exist at a specific point in 3D space. As the listener moves, the volume, panning, and distance attenuation update automatically.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for 3D positioned audio sources, distance attenuation, and directional audio is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-        </div>
-
-        <!-- HRTF -->
-        <div class="guide-section" id="hrtf">
-            <div class="guide-badge">HRTF</div>
-            <h3>HRTF for Realistic VR Audio</h3>
-            <p>Head-Related Transfer Function (HRTF) simulates how sounds are perceived differently based on their direction relative to your head. It enables true "above", "below", and "behind" audio in headphones &mdash; essential for VR immersion.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for HRTF configuration and runtime toggling is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="../contact.html" class="btn btn-primary">Request SDK Access</a>
             </div>
 
-            <div class="guide-note">
-                <strong>Why HRTF matters in VR:</strong> Without HRTF, spatial audio only supports left/right panning. With HRTF, a bird chirping above your head actually sounds like it's above you, and footsteps behind you sound like they're behind you. This dramatically improves presence and immersion.
-            </div>
-        </div>
-
-        <!-- Reverb -->
-        <div class="guide-section" id="reverb">
-            <div class="guide-badge">ENVIRONMENT</div>
-            <h3>Reverb Zones for Environment Acoustics</h3>
-            <p>Reverb zones make different areas of your game sound acoustically distinct. A cathedral should echo, a cave should reverberate, and an outdoor field should be dry.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for reverb zones, custom reverb parameters, built-in presets, and zone crossfading is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-        </div>
-
-        <!-- Occlusion -->
-        <div class="guide-section" id="occlusion">
-            <div class="guide-badge">PHYSICS-BASED</div>
-            <h3>Sound Occlusion Through Geometry</h3>
-            <p>Sound occlusion simulates how walls and objects block or muffle audio. When a wall is between the listener and a sound source, the sound should be quieter and lose its high frequencies &mdash; just like in real life.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for sound occlusion, material-based occlusion, per-source occlusion controls, and low-pass filtering is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-
-            <div class="guide-note">
-                <strong>Performance:</strong> Occlusion raycasting uses the physics system. Ensure your scene has colliders on walls and doors. Keep ray counts low (2-4) on mobile XR hardware. Use the occlusion update rate API to reduce how often raycasts are performed.
-            </div>
-        </div>
-
-        <!-- Mixer Groups -->
-        <div class="guide-section" id="mixer">
-            <div class="guide-badge">MIXING</div>
-            <h3>Mixer Groups for Dynamic Audio Control</h3>
-            <p>Mixer groups let you control categories of sounds together: lower all SFX during dialogue, duck music during combat, or mute ambient sounds in a menu.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for mixer groups, group hierarchy, ducking, fading, and dynamic audio control is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-        </div>
-
-        <!-- Complete Example -->
-        <div class="guide-section" id="complete-example">
-            <div class="guide-badge">COMPLETE EXAMPLE</div>
-            <h3>Complete Example: Immersive Audio Tour</h3>
-            <p>A virtual museum tour with spatial audio at each exhibit, reverb that changes as you enter different rooms, voice narration that ducks the music, and occlusion through walls. Designed for VR with HRTF.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The complete Immersive Audio Tour example (spatial sources, HRTF, reverb zones, occlusion, mixer groups, narration triggers, and game loop) is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access to the full C API and sample code.
-            </div>
-
-            <div class="guide-note">
-                <strong>Next steps:</strong> Combine this audio tour with <a href="mixed-reality-tutorial.html" style="color: var(--accent-bright);">mixed reality</a> to create an audio tour of your real space, or add <a href="ai-npc-tutorial.html" style="color: var(--accent-bright);">AI NPCs</a> as museum guides that respond to voice commands.
+            <div class="guide-note" style="margin-top: 32px;">
+                <strong>Next steps:</strong> Combine spatial audio with <a href="mixed-reality-tutorial.html" style="color: var(--accent-bright);">mixed reality</a> to create an audio tour of your real space, or add <a href="ai-npc-tutorial.html" style="color: var(--accent-bright);">AI NPCs</a> as museum guides that respond to voice commands.
             </div>
         </div>
 
@@ -186,11 +106,11 @@
     <div class="container" style="text-align: center;">
         <h2>Ready for More?</h2>
         <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
-            Explore the full Audio API (228 functions) in the documentation, or continue with another tutorial.
+            Explore more tutorials on XR development, physics, mixed reality, and AI-powered NPCs.
         </p>
         <div class="cta-group">
             <a href="index.html" class="btn btn-secondary">All Tutorials</a>
-            <a href="../docs.html" class="btn btn-primary">API Reference</a>
+            <a href="../contact.html" class="btn btn-primary">Request SDK Access</a>
         </div>
     </div>
 </section>

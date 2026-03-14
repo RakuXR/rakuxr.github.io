@@ -74,127 +74,31 @@
     <div class="container">
         <div style="display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 16px;">ADVANCED TUTORIAL</div>
         <h1>Creating Intelligent NPCs with Behavior Trees</h1>
-        <p class="subtitle">Build patrol AI, detection and chase, blackboard state, NavMesh navigation, and voice commands. Complete guard NPC example included.</p>
+        <p class="subtitle">Build intelligent NPCs with advanced AI-driven decision making, navigation, and voice interaction.</p>
         <p style="color: var(--text-secondary); font-size: 0.9rem;"><a href="index.html" style="color: var(--accent-bright);">&larr; All Tutorials</a></p>
     </div>
 </section>
 
 <section class="section">
     <div class="container">
-        <div class="guide-toc">
-            <h3>In This Tutorial</h3>
-            <ol>
-                <li><a href="#concepts">Understanding Behavior Tree Concepts</a></li>
-                <li><a href="#patrol">Building Your First Patrol AI</a></li>
-                <li><a href="#detection">Adding Detection and Chase Behavior</a></li>
-                <li><a href="#blackboard">Using Blackboard for NPC State</a></li>
-                <li><a href="#navmesh">NavMesh Setup for NPC Navigation</a></li>
-                <li><a href="#voice">Adding Voice Commands for NPC Interaction</a></li>
-                <li><a href="#complete-example">Complete Example: Guard NPC with Full AI</a></li>
-            </ol>
-        </div>
-
-        <!-- Concepts -->
-        <div class="guide-section" id="concepts">
-            <div class="guide-badge">FUNDAMENTALS</div>
-            <h3>Understanding Behavior Tree Concepts</h3>
-            <p>A behavior tree is a hierarchical structure that controls NPC decision-making. Unlike finite state machines, behavior trees are modular, reusable, and easy to extend.</p>
-
-            <p><strong style="color: var(--text-primary);">Core node types:</strong></p>
+        <div class="guide-section">
+            <h3>What This Tutorial Covers</h3>
+            <p>This tutorial teaches you how to create intelligent NPCs with behavior trees and the Raku AI subsystem, including:</p>
             <ul>
-                <li><strong style="color: var(--text-primary);">Selector (Fallback)</strong> &mdash; Tries children left-to-right. Succeeds on the first child that succeeds. Think "OR" logic.</li>
-                <li><strong style="color: var(--text-primary);">Sequence</strong> &mdash; Runs children left-to-right. Fails on the first child that fails. Think "AND" logic.</li>
-                <li><strong style="color: var(--text-primary);">Condition</strong> &mdash; Checks a boolean condition (e.g., "is player visible?").</li>
-                <li><strong style="color: var(--text-primary);">Action</strong> &mdash; Performs an action (e.g., "move to target", "play animation").</li>
-                <li><strong style="color: var(--text-primary);">Decorator</strong> &mdash; Modifies a child node (e.g., "repeat", "invert", "cooldown").</li>
+                <li><strong style="color: var(--text-primary);">Behavior Trees</strong> &mdash; Modular, hierarchical decision-making with selectors, sequences, conditions, and decorators</li>
+                <li><strong style="color: var(--text-primary);">Patrol AI</strong> &mdash; Waypoint-based movement for guard and enemy NPCs</li>
+                <li><strong style="color: var(--text-primary);">Detection &amp; Chase</strong> &mdash; Perception system with vision cones, hearing ranges, and line-of-sight</li>
+                <li><strong style="color: var(--text-primary);">Blackboard State</strong> &mdash; Shared key-value store for NPC state management across the behavior tree</li>
+                <li><strong style="color: var(--text-primary);">NavMesh Navigation</strong> &mdash; Pathfinding around obstacles, through doorways, and up stairs</li>
+                <li><strong style="color: var(--text-primary);">Voice Commands</strong> &mdash; On-device voice recognition with SLM-powered dynamic dialogue (privacy-first, no cloud)</li>
+                <li><strong style="color: var(--text-primary);">Complete Example</strong> &mdash; A fully functional guard NPC that patrols, detects, chases, and responds to voice</li>
             </ul>
 
-            <p>Here is how a simple guard AI looks as a tree:</p>
-            <div class="btree-diagram"><span class="hl">Root (Selector)</span>
-├── <span class="hl-cyan">Sequence: "Combat"</span>
-│   ├── Condition: <span class="hl-green">IsPlayerVisible?</span>
-│   ├── Action: <span class="hl-green">ChasePlayer</span>
-│   └── Action: <span class="hl-green">AttackPlayer</span>
-├── <span class="hl-cyan">Sequence: "Investigate"</span>
-│   ├── Condition: <span class="hl-green">HeardNoise?</span>
-│   ├── Action: <span class="hl-green">MoveToNoiseSource</span>
-│   └── Action: <span class="hl-green">LookAround</span>
-└── <span class="hl-cyan">Action: "Patrol"</span>
-    └── Action: <span class="hl-green">PatrolWaypoints</span></div>
-
-            <p>The tree is evaluated from top to bottom each frame. The guard first checks if it should fight, then investigate, and falls back to patrolling.</p>
-        </div>
-
-        <!-- Patrol -->
-        <div class="guide-section" id="patrol">
-            <div class="guide-badge">FIRST AI</div>
-            <h3>Building Your First Patrol AI</h3>
-            <p>Let's create an NPC that walks between waypoints in a loop. This is the foundation for most guard and enemy AI.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for AI agent creation, patrol waypoints, behavior tree construction, and movement configuration is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-        </div>
-
-        <!-- Detection -->
-        <div class="guide-section" id="detection">
-            <div class="guide-badge">PERCEPTION</div>
-            <h3>Adding Detection and Chase Behavior</h3>
-            <p>Guards need to see and hear the player. Raku provides a perception system with vision cones, hearing ranges, and line-of-sight checks.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for perception systems (vision, hearing, detection) and reactive behavior trees is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-        </div>
-
-        <!-- Blackboard -->
-        <div class="guide-section" id="blackboard">
-            <div class="guide-badge">STATE</div>
-            <h3>Using Blackboard for NPC State</h3>
-            <p>The blackboard is a shared key-value store attached to each AI agent. Behavior tree nodes read and write blackboard values to share state across the tree.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for blackboard state management and blackboard-driven behavior tree conditions is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-        </div>
-
-        <!-- NavMesh -->
-        <div class="guide-section" id="navmesh">
-            <div class="guide-badge">NAVIGATION</div>
-            <h3>NavMesh Setup for NPC Navigation</h3>
-            <p>A NavMesh (navigation mesh) defines the walkable areas of your level. NPCs use it to find paths around obstacles, through doorways, and up stairs.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for NavMesh generation, pathfinding, dynamic obstacles, and off-mesh links is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
-            </div>
-        </div>
-
-        <!-- Voice Commands -->
-        <div class="guide-section" id="voice">
-            <div class="guide-badge">VOICE</div>
-            <h3>Adding Voice Commands for NPC Interaction</h3>
-            <p>Use the Raku Voice subsystem to let players talk to NPCs. Combine with the SLM (small language model) for dynamic dialogue responses.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The C API for voice commands, SLM integration, text-to-speech, and voice-driven NPC interactions is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access.
+            <div style="text-align: center; margin-top: 40px;">
+                <a href="../contact.html" class="btn btn-primary">Request SDK Access</a>
             </div>
 
-            <div class="guide-note">
-                <strong>Privacy:</strong> Voice recognition runs entirely on-device using the Raku Voice subsystem. No audio is sent to the cloud. Voice initialization is a privileged call that requires user confirmation.
-            </div>
-        </div>
-
-        <!-- Complete Example -->
-        <div class="guide-section" id="complete-example">
-            <div class="guide-badge">COMPLETE EXAMPLE</div>
-            <h3>Complete Example: Guard NPC with Full AI</h3>
-            <p>A fully functional guard that patrols, detects the player, chases, investigates noises, responds to voice commands, and uses the blackboard for state management.</p>
-
-            <div class="guide-note">
-                <strong>C API:</strong> The complete Guard NPC example (behavior trees, NavMesh, perception, blackboard, voice commands, SLM, and game loop) is available under NDA. Please <a href="../contact.html" style="color: var(--accent-bright);">contact us</a> to request access to the full C API and sample code.
-            </div>
-
-            <div class="guide-note">
+            <div class="guide-note" style="margin-top: 32px;">
                 <strong>Next steps:</strong> Combine this NPC with <a href="spatial-audio-tutorial.html" style="color: var(--accent-bright);">spatial audio</a> for footstep sounds that the player can hear approaching, or with <a href="mixed-reality-tutorial.html" style="color: var(--accent-bright);">mixed reality</a> to have the guard patrol your real room.
             </div>
         </div>
@@ -206,11 +110,11 @@
     <div class="container" style="text-align: center;">
         <h2>Ready for More?</h2>
         <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
-            Explore the full AI API (192 functions) and SLM API (95 functions) in the documentation.
+            Explore more tutorials on XR development, physics, spatial audio, and mixed reality.
         </p>
         <div class="cta-group">
             <a href="index.html" class="btn btn-secondary">All Tutorials</a>
-            <a href="../docs.html" class="btn btn-primary">API Reference</a>
+            <a href="../contact.html" class="btn btn-primary">Request SDK Access</a>
         </div>
     </div>
 </section>
