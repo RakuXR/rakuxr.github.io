@@ -189,187 +189,19 @@
                                                  }
                               },
                   "SubsystemReference":  {
-                                             "description":  "16 engine subsystems",
-                                             "properties":  {
-                                                                "core":  {
-                                                                             "description":  "raku_init, raku_shutdown"
-                                                                         },
-                                                                "renderer":  {
-                                                                                 "description":  "raku_renderer_create_window, raku_renderer_set_clear_color, raku_renderer_create_camera, raku_renderer_create_light, raku_renderer_load_texture"
-                                                                             },
-                                                                "scene":  {
-                                                                              "description":  "raku_scene_create, raku_scene_create_sprite, raku_scene_add_model, raku_scene_start_loop, raku_scene_destroy"
-                                                                          },
-                                                                "physics":  {
-                                                                                "description":  "raku_physics_create_world, raku_physics_add_rigidbody, raku_physics_add_collider"
-                                                                            },
-                                                                "audio":  {
-                                                                              "description":  "raku_audio_init, raku_audio_load, raku_audio_play, raku_audio_play_spatial"
-                                                                          },
-                                                                "input":  {
-                                                                              "description":  "raku_input_bind_key"
-                                                                          },
-                                                                "ai":  {
-                                                                           "description":  "raku_ai_init, raku_ai_set_difficulty, raku_ai_navmesh_create, raku_ai_create_agent"
-                                                                       },
-                                                                "slm":  {
-                                                                            "description":  "raku_slm_init, raku_slm_set_context, raku_slm_shutdown"
-                                                                        },
-                                                                "animation":  {
-                                                                                  "description":  "raku_animation_load, raku_animation_play"
-                                                                              },
-                                                                "network":  {
-                                                                                "description":  "raku_network_init, raku_network_disconnect"
-                                                                            },
-                                                                "xr":  {
-                                                                           "description":  "raku_xr_init, raku_xr_shutdown"
-                                                                       },
-                                                                "ui":  {
-                                                                           "description":  "raku_ui_create_label"
-                                                                       },
-                                                                "assets":  {
-                                                                               "description":  "raku_assets_load_model"
-                                                                           },
-                                                                "voice":  {
-                                                                              "description":  "raku_voice_init"
-                                                                          },
-                                                                "editor":  {
-                                                                               "description":  "raku_editor_init"
-                                                                           },
-                                                                "scripting":  {
-                                                                                  "description":  "raku_scripting_init"
-                                                                              }
-                                                            }
+                                             "description":  "Engine subsystems available for game creation. See NDA documentation for details.",
+                                             "type": "string"
                                          }
               },
-    "examples":  [
-                     {
-                         "raku_format":  "1.0.0",
-                         "metadata":  {
-                                          "name":  "Space Defender",
-                                          "description":  "A space shooter with adaptive difficulty",
-                                          "genre":  "space_shooter",
-                                          "creator":  "ai_generated",
-                                          "version":  "1.0",
-                                          "tags":  [
-                                                       "shooter",
-                                                       "space",
-                                                       "adaptive_ai"
-                                                   ]
-                                      },
-                         "initialization":  [
-                                                {
-                                                    "function":  "raku_init",
-                                                    "params":  {
-
-                                                               }
-                                                },
-                                                {
-                                                    "function":  "raku_renderer_create_window",
-                                                    "params":  {
-                                                                   "width":  1280,
-                                                                   "height":  720,
-                                                                   "title":  "Space Defender",
-                                                                   "vsync":  true
-                                                               }
-                                                },
-                                                {
-                                                    "function":  "raku_physics_create_world",
-                                                    "params":  {
-                                                                   "gravity":  [
-                                                                                   0,
-                                                                                   0,
-                                                                                   0
-                                                                               ]
-                                                               }
-                                                },
-                                                {
-                                                    "function":  "raku_audio_init",
-                                                    "params":  {
-                                                                   "channels":  32
-                                                               }
-                                                },
-                                                {
-                                                    "function":  "raku_ai_init",
-                                                    "params":  {
-
-                                                               }
-                                                }
-                                            ],
-                         "calls":  [
-                                       {
-                                           "function":  "raku_scene_create",
-                                           "params":  {
-                                                          "name":  "main_scene"
-                                                      }
-                                       },
-                                       {
-                                           "function":  "raku_scene_create_sprite",
-                                           "params":  {
-                                                          "texture":  "ship_tex",
-                                                          "x":  640,
-                                                          "y":  600,
-                                                          "tag":  "player"
-                                                      }
-                                       },
-                                       {
-                                           "function":  "raku_input_bind_key",
-                                           "params":  {
-                                                          "key":  "SPACE",
-                                                          "action":  "fire"
-                                                      }
-                                       },
-                                       {
-                                           "function":  "raku_ai_set_difficulty",
-                                           "params":  {
-                                                          "mode":  "adaptive",
-                                                          "initial":  0.5
-                                                      }
-                                       },
-                                       {
-                                           "function":  "raku_scene_start_loop",
-                                           "params":  {
-
-                                                      }
-                                       }
-                                   ],
-                         "shutdown":  [
-                                          {
-                                              "function":  "raku_scene_destroy",
-                                              "params":  {
-                                                             "name":  "main_scene"
-                                                         }
-                                          },
-                                          {
-                                              "function":  "raku_shutdown",
-                                              "params":  {
-
-                                                         }
-                                          }
-                                      ]
-                     }
-                 ]
-,
+    "examples_note": "Runtime Format examples with full API call sequences are available under NDA. Contact https://rakuai.com/contact.html for access. Standard Format examples are available in the samples directory.",
     "ai_safety": {
         "description": "Safety guidelines for AI platforms generating .raku files",
-        "safe_functions": "All functions in the initialization, calls, and shutdown arrays are safe for AI to generate. These are game creation APIs only.",
         "requires_user_confirmation": [
-            "raku_network_init — enables network access",
-            "raku_xr_init — activates XR hardware",
-            "raku_voice_init — enables microphone access"
+            "Network initialization — enables network access",
+            "XR initialization — activates XR hardware",
+            "Voice initialization — enables microphone access"
         ],
         "rate_limiting": "Recommended: max 100 API calls per .raku file for standard game creation workflows",
-        "excluded_apis": "This schema exposes game creation APIs only. Engine internals, memory management, and low-level rendering are intentionally excluded.",
-        "ai_generation_rules": [
-            "Always include all 5 required sections: raku_format, metadata, initialization, calls, shutdown",
-            "initialization must start with raku_init",
-            "calls must end with raku_scene_start_loop",
-            "shutdown must end with raku_shutdown",
-            "Use engine:// paths for built-in assets — prefer engine://packs/<template>/<mode>/... for first-party content pack assets",
-            "When a content pack is available, set metadata.content_pack with template and mode, and reference pack URIs in asset paths",
-            "Function names must match pattern: raku_<module>_<action>",
-            "Before generating, check api_stability in https://rakuai.com/api-manifest.json — skip 'preview' and 'coming_soon' subsystems"
-        ],
-        "api_stability_note": "Some subsystems are still being finalized. Check the api_stability section in the API manifest at https://rakuai.com/api-manifest.json before generating calls. Prefer stable subsystems. For beta subsystems, note usage in metadata.description. For preview/coming_soon subsystems, skip those calls entirely."
+        "excluded_apis": "This schema exposes game creation APIs only. Engine internals, memory management, and low-level rendering are intentionally excluded."
     }
 }
