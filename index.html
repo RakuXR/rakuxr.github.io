@@ -14,6 +14,7 @@
     <meta name="twitter:title" content="RakuAI - Describe Any Game. Play It Instantly.">
     <link rel="canonical" href="https://rakuai.com/">
     <link rel="stylesheet" href="style.css">
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
 </head>
 <body>
 
@@ -59,7 +60,7 @@
             </div>
         </div>
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
-            No account required to start &bull; Powered by 5 granted patents
+            Free to try &bull; Powered by 5 granted patents
         </p>
     </div>
 </section>
@@ -304,12 +305,48 @@
     </div>
 </footer>
 
+<div id="signup-modal" class="modal-overlay" hidden>
+    <div class="modal">
+        <button id="modal-close" class="modal-close" aria-label="Close">&times;</button>
+        <h2 class="modal-title">Almost there!</h2>
+        <p class="modal-subtitle">Sign up to generate your game. We verify humans to keep the service fast.</p>
+        <form id="signup-form" autocomplete="on">
+            <label for="signup-email" class="modal-label">Email</label>
+            <input
+                type="email"
+                id="signup-email"
+                class="modal-input"
+                placeholder="you@example.com"
+                required
+                autocomplete="email"
+            >
+            <div class="hcaptcha-wrapper">
+                <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITE_KEY" data-theme="dark" data-callback="onCaptchaPass" data-expired-callback="onCaptchaExpire"></div>
+            </div>
+            <p id="signup-error" class="modal-error" hidden></p>
+            <button type="submit" id="signup-submit" class="btn btn-primary modal-submit" disabled>
+                Generate My Game
+            </button>
+        </form>
+        <p class="modal-fine-print">
+            By signing up you agree to our <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>.
+        </p>
+    </div>
+</div>
+
 <script>
 (function() {
     var textarea = document.getElementById('prompt-input');
     var charCount = document.getElementById('char-count');
     var playBtn = document.getElementById('play-now-btn');
+    var modal = document.getElementById('signup-modal');
+    var modalClose = document.getElementById('modal-close');
+    var signupForm = document.getElementById('signup-form');
+    var signupSubmit = document.getElementById('signup-submit');
+    var signupError = document.getElementById('signup-error');
+    var captchaPassed = false;
 
+    // --- Prompt textarea auto-expand + counter ---
     function autoExpand() {
         textarea.style.height = 'auto';
         textarea.style.height = textarea.scrollHeight + 'px';
@@ -331,11 +368,95 @@
         updateCounter();
     });
 
+    // --- Modal open/close ---
+    function openModal() {
+        modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        document.getElementById('signup-email').focus();
+    }
+
+    function closeModal() {
+        modal.hidden = true;
+        document.body.style.overflow = '';
+        signupError.hidden = true;
+    }
+
     playBtn.addEventListener('click', function() {
         if (textarea.value.trim().length === 0) return;
-        // Phase 2: will wire to POST /api/v1/generate
-        // For now, scroll to quickstart as a placeholder action
-        document.getElementById('quickstart').scrollIntoView({ behavior: 'smooth' });
+        openModal();
+    });
+
+    modalClose.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !modal.hidden) closeModal();
+    });
+
+    // --- hCaptcha callbacks ---
+    window.onCaptchaPass = function() {
+        captchaPassed = true;
+        updateSubmitState();
+    };
+
+    window.onCaptchaExpire = function() {
+        captchaPassed = false;
+        updateSubmitState();
+    };
+
+    function updateSubmitState() {
+        var email = document.getElementById('signup-email').value.trim();
+        signupSubmit.disabled = !captchaPassed || email.length === 0;
+    }
+
+    document.getElementById('signup-email').addEventListener('input', updateSubmitState);
+
+    // --- Form submit ---
+    signupForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!captchaPassed) return;
+
+        var email = document.getElementById('signup-email').value.trim();
+        var prompt = textarea.value.trim();
+        var captchaToken = document.querySelector('[name="h-captcha-response"]').value;
+
+        if (!email || !prompt || !captchaToken) return;
+
+        signupSubmit.disabled = true;
+        signupSubmit.textContent = 'Generating...';
+        signupError.hidden = true;
+
+        // POST to backend — will be wired to real endpoint in H2
+        // For now, simulate success after a brief delay
+        var API_URL = '/api/v1/generate';
+
+        fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: email,
+                prompt: prompt,
+                captcha_token: captchaToken
+            })
+        })
+        .then(function(res) {
+            if (!res.ok) throw new Error('Request failed (' + res.status + ')');
+            return res.json();
+        })
+        .then(function(data) {
+            closeModal();
+            // Phase 3: redirect to game player
+            document.getElementById('quickstart').scrollIntoView({ behavior: 'smooth' });
+        })
+        .catch(function() {
+            signupError.textContent = 'Something went wrong. Please try again.';
+            signupError.hidden = false;
+            signupSubmit.disabled = false;
+            signupSubmit.textContent = 'Generate My Game';
+        });
     });
 })();
 </script>
