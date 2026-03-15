@@ -1,5 +1,6 @@
-# Deploy static site to GitHub Pages
-name: Deploy to GitHub Pages
+# Deploy production site to GitHub Pages (root)
+# Triggers on push to main branch only
+name: Deploy Production
 
 on:
   push:
@@ -12,7 +13,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: "pages-production"
   cancel-in-progress: false
 
 jobs:
@@ -22,8 +23,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
