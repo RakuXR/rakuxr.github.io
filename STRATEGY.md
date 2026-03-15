@@ -39,11 +39,11 @@ Major IP protection sweep completed:
 | `schema.json` | Stubbed | Returns `{"access": "sdk-required"}` |
 | `api-manifest.json` | Stubbed | Returns `{"access": "nda-required"}` |
 | `content-pack-manifest.schema.json` | Stubbed | Returns `{"access": "sdk-required"}` |
-| `.well-known/ai-plugin.json` | **TODO: Remove** | OpenAI plugin manifest still pointing to schemas |
+| `.well-known/ai-plugin.json` | ✅ Removed (2026-03-15) | OpenAI plugin manifest deleted |
 
 ## Relevant Roadmap Phases
 
-- **Phase 1 (Protect)**: Remove .well-known/ai-plugin.json, complete CTA updates — IN PROGRESS
+- **Phase 1 (Protect)**: ✅ Complete — ai-plugin.json removed, all IP protection done
 - **Phase 2 (Prompt UX)**: Add prompt input page, registration system, backend API integration
 - **Phase 3 (Browser MVP)**: Host WebGL/WASM game player, shareable game links
 - **Phase 4 (Full Browser)**: Discover page, remix system, social features
