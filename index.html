@@ -43,16 +43,23 @@
         <div class="beta-badge">Early Access Program</div>
         <h1>Describe Any Game. Play It Instantly.</h1>
         <p class="subtitle">
-            Tell ChatGPT, Claude, or Gemini what game you want. AI-native game engine with
-            on-device AI personalization, spatial audio, and XR support. Protected by 5 granted patents.
+            Type any game idea. Our AI builds it. No code. No waiting.
         </p>
-        <div class="cta-group">
-            <a href="contact.html" class="btn btn-primary">Request Access</a>
-            <a href="#quickstart" class="btn btn-secondary">See How It Works</a>
+        <div class="prompt-input-wrapper">
+            <textarea
+                id="prompt-input"
+                class="prompt-input"
+                placeholder="Describe your game idea..."
+                maxlength="500"
+                rows="1"
+            ></textarea>
+            <div class="prompt-input-footer">
+                <span class="char-counter"><span id="char-count">0</span> / 500</span>
+                <button id="play-now-btn" class="btn btn-primary btn-play-now" disabled>Play Now!</button>
+            </div>
         </div>
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
-            Windows, macOS, Linux &bull;
-            <a href="contact.html" style="color: var(--accent-bright);">Join the early access program &rarr;</a>
+            No account required to start &bull; Powered by 5 granted patents
         </p>
     </div>
 </section>
@@ -297,5 +304,40 @@
     </div>
 </footer>
 
+<script>
+(function() {
+    var textarea = document.getElementById('prompt-input');
+    var charCount = document.getElementById('char-count');
+    var playBtn = document.getElementById('play-now-btn');
+
+    function autoExpand() {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    function updateCounter() {
+        var len = textarea.value.length;
+        charCount.textContent = len;
+        playBtn.disabled = len === 0;
+        if (len >= 480) {
+            charCount.parentElement.classList.add('char-counter--warn');
+        } else {
+            charCount.parentElement.classList.remove('char-counter--warn');
+        }
+    }
+
+    textarea.addEventListener('input', function() {
+        autoExpand();
+        updateCounter();
+    });
+
+    playBtn.addEventListener('click', function() {
+        if (textarea.value.trim().length === 0) return;
+        // Phase 2: will wire to POST /api/v1/generate
+        // For now, scroll to quickstart as a placeholder action
+        document.getElementById('quickstart').scrollIntoView({ behavior: 'smooth' });
+    });
+})();
+</script>
 </body>
 </html>
