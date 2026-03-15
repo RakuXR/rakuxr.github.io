@@ -1,0 +1,70 @@
+# Promote staging to production
+# Can be triggered by:
+#   1. Manual workflow_dispatch (from GitHub UI)
+#   2. Repository dispatch (from Claude/Copilot via GitHub API)
+#   3. Commenting ".promote" on a staging→main PR
+#
+# This workflow merges the staging branch into main, which triggers
+# the deploy-production workflow automatically.
+name: Promote Staging to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type 'promote' to confirm staging→production deployment"
+        required: true
+        type: string
+  repository_dispatch:
+    types: [promote-staging]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation (manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirmation }}" != "promote" ]; then
+            echo "::error::Confirmation must be 'promote'. Got: '${{ github.event.inputs.confirmation }}'"
+            exit 1
+          fi
+
+  promote:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge staging into main
+        run: |
+          git fetch origin staging
+          git merge origin/staging --no-ff -m "Promote staging to production
+
+          Triggered by: ${{ github.event_name }}
+          Actor: ${{ github.actor }}
+          Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+      - name: Push to main
+        run: git push origin main
+
+      - name: Summary
+        run: |
+          echo "## ✅ Staging promoted to production" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Triggered by**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Method**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deploy workflow**: Will trigger automatically via deploy-production.yml" >> $GITHUB_STEP_SUMMARY

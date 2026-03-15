@@ -1,0 +1,33 @@
+# Deploy staging site to GitHub Pages (/staging/ subdirectory)
+# Triggers on push to staging branch
+# Uses peaceiris/actions-gh-pages with destination_dir for subdirectory deploy
+name: Deploy Staging
+
+on:
+  push:
+    branches: ["staging"]
+  workflow_dispatch:
+
+permissions:
+  contents: write  # needed for peaceiris/actions-gh-pages to push to gh-pages branch
+
+concurrency:
+  group: "pages-staging"
+  cancel-in-progress: true  # staging can be interrupted by newer pushes
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout staging
+        uses: actions/checkout@v4
+        with:
+          ref: staging
+
+      - name: Deploy to /staging/ subdirectory on gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          destination_dir: staging
+          keep_files: true  # preserve production files at root
