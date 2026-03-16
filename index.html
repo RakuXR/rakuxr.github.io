@@ -65,6 +65,58 @@
     </div>
 </section>
 
+<section id="generation-progress" class="generation-progress" hidden>
+    <div class="container">
+        <div class="progress-card">
+            <div class="progress-stages">
+                <div class="progress-stage" id="stage-analyzing">
+                    <div class="stage-icon">
+                        <div class="spinner"></div>
+                    </div>
+                    <div class="stage-content">
+                        <h3 class="stage-title">Analyzing</h3>
+                        <p class="stage-message">Understanding your game idea...</p>
+                    </div>
+                </div>
+                <div class="progress-stage" id="stage-genre">
+                    <div class="stage-icon">
+                        <svg class="checkmark" viewBox="0 0 24 24" width="28" height="28"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                    <div class="stage-content">
+                        <h3 class="stage-title">Genre Detected</h3>
+                        <p class="stage-message">Detected genre: <span id="detected-genre">...</span></p>
+                    </div>
+                </div>
+                <div class="progress-stage" id="stage-configuring">
+                    <div class="stage-icon">
+                        <div class="spinner"></div>
+                    </div>
+                    <div class="stage-content">
+                        <h3 class="stage-title">Configuring</h3>
+                        <p class="stage-message">Building your game configuration...</p>
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="progress-stage" id="stage-ready">
+                    <div class="stage-icon">
+                        <svg class="checkmark" viewBox="0 0 24 24" width="28" height="28"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                    <div class="stage-content">
+                        <h3 class="stage-title">Ready</h3>
+                        <p class="stage-message">Your game is ready!</p>
+                    </div>
+                </div>
+            </div>
+            <div id="progress-error" class="progress-error" hidden>
+                <p id="progress-error-msg">Something went wrong. Please try a simpler game description.</p>
+                <button id="progress-retry-btn" class="btn btn-primary" style="margin-top: 12px; padding: 10px 28px; font-size: 1rem;">Try Again</button>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="section" id="quickstart" style="background: var(--bg-secondary); border-top: 2px solid var(--accent);">
     <div class="container">
         <h2>Try It in 60 Seconds</h2>
@@ -371,6 +423,245 @@
     var signupError = document.getElementById('signup-error');
     var captchaPassed = false;
 
+    // --- Progress UI elements ---
+    var progressSection = document.getElementById('generation-progress');
+    var progressError = document.getElementById('progress-error');
+    var progressErrorMsg = document.getElementById('progress-error-msg');
+    var progressRetryBtn = document.getElementById('progress-retry-btn');
+    var progressCard = progressSection.querySelector('.progress-card');
+    var stageAnalyzing = document.getElementById('stage-analyzing');
+    var stageGenre = document.getElementById('stage-genre');
+    var stageConfiguring = document.getElementById('stage-configuring');
+    var stageReady = document.getElementById('stage-ready');
+    var detectedGenre = document.getElementById('detected-genre');
+    var allStages = [stageAnalyzing, stageGenre, stageConfiguring, stageReady];
+    var currentEventSource = null;
+    var currentPollTimer = null;
+    var lastGenerationPrompt = '';
+
+    // --- Progress UI controller ---
+    function resetProgress() {
+        allStages.forEach(function(s) {
+            s.classList.remove('active', 'completed');
+        });
+        progressError.hidden = true;
+        progressCard.classList.remove('ready-glow');
+        detectedGenre.textContent = '...';
+    }
+
+    function showProgress() {
+        resetProgress();
+        progressSection.hidden = false;
+        progressSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideProgress() {
+        progressSection.hidden = true;
+        if (currentEventSource) {
+            currentEventSource.close();
+            currentEventSource = null;
+        }
+        if (currentPollTimer) {
+            clearTimeout(currentPollTimer);
+            currentPollTimer = null;
+        }
+    }
+
+    function activateStage(stage) {
+        // Mark all previous stages as completed
+        for (var i = 0; i < allStages.length; i++) {
+            if (allStages[i] === stage) break;
+            allStages[i].classList.remove('active');
+            allStages[i].classList.add('completed');
+        }
+        stage.classList.remove('completed');
+        stage.classList.add('active');
+    }
+
+    function showError(message) {
+        progressErrorMsg.textContent = message || 'Something went wrong. Please try a simpler game description.';
+        progressError.hidden = false;
+    }
+
+    function onGenerationComplete(data) {
+        activateStage(stageReady);
+        progressCard.classList.add('ready-glow');
+        // Auto-transition to result after a brief pause (H1.5 will handle the result page)
+        setTimeout(function() {
+            // Store result for the result page (H1.5)
+            if (data && data.raku_config) {
+                sessionStorage.setItem('raku_last_result', JSON.stringify(data));
+            }
+            // For now, scroll to quickstart; H1.5 will add a proper result page
+            document.getElementById('quickstart').scrollIntoView({ behavior: 'smooth' });
+        }, 2000);
+    }
+
+    // --- SSE-based progress tracking ---
+    function connectSSE(generationId, authToken) {
+        var sseUrl = '/api/v1/generate/' + generationId + '/progress';
+        var headers = {};
+        if (authToken) {
+            // SSE doesn't support custom headers; use query param for auth
+            sseUrl += '?token=' + encodeURIComponent(authToken);
+        }
+
+        currentEventSource = new EventSource(sseUrl);
+
+        currentEventSource.addEventListener('stage', function(e) {
+            var payload;
+            try { payload = JSON.parse(e.data); } catch (_) { return; }
+            handleStageUpdate(payload);
+        });
+
+        currentEventSource.addEventListener('complete', function(e) {
+            var payload;
+            try { payload = JSON.parse(e.data); } catch (_) { payload = {}; }
+            currentEventSource.close();
+            currentEventSource = null;
+            onGenerationComplete(payload);
+        });
+
+        currentEventSource.addEventListener('error_event', function(e) {
+            var payload;
+            try { payload = JSON.parse(e.data); } catch (_) { payload = {}; }
+            currentEventSource.close();
+            currentEventSource = null;
+            showError(payload.message);
+        });
+
+        currentEventSource.onerror = function() {
+            // SSE connection lost — fall back to polling
+            currentEventSource.close();
+            currentEventSource = null;
+            startPolling(generationId, authToken);
+        };
+    }
+
+    // --- Polling fallback ---
+    function startPolling(generationId, authToken) {
+        var pollUrl = '/api/v1/generate/' + generationId + '/status';
+        var headers = { 'Content-Type': 'application/json' };
+        if (authToken) {
+            headers['Authorization'] = 'Bearer ' + authToken;
+        }
+
+        function poll() {
+            fetch(pollUrl, { headers: headers })
+                .then(function(res) {
+                    if (!res.ok) throw new Error('Poll failed');
+                    return res.json();
+                })
+                .then(function(data) {
+                    if (data.stage) {
+                        handleStageUpdate(data);
+                    }
+                    if (data.status === 'complete') {
+                        onGenerationComplete(data);
+                    } else if (data.status === 'error') {
+                        showError(data.message);
+                    } else {
+                        currentPollTimer = setTimeout(poll, 1500);
+                    }
+                })
+                .catch(function() {
+                    showError('Lost connection. Please try again.');
+                });
+        }
+
+        poll();
+    }
+
+    function handleStageUpdate(payload) {
+        var stage = payload.stage;
+        if (stage === 'analyzing') {
+            activateStage(stageAnalyzing);
+        } else if (stage === 'genre_detected') {
+            if (payload.genre) {
+                detectedGenre.textContent = payload.genre;
+            }
+            activateStage(stageGenre);
+        } else if (stage === 'configuring') {
+            activateStage(stageConfiguring);
+        } else if (stage === 'ready') {
+            onGenerationComplete(payload);
+        }
+    }
+
+    // --- Start generation flow ---
+    function startGeneration(requestBody, authToken) {
+        showProgress();
+        activateStage(stageAnalyzing);
+
+        var API_URL = '/api/v1/generate';
+        var headers = { 'Content-Type': 'application/json' };
+        if (authToken) {
+            headers['Authorization'] = 'Bearer ' + authToken;
+        }
+
+        fetch(API_URL, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(requestBody)
+        })
+        .then(function(res) {
+            if (res.status === 409) throw new Error('Account already exists. Try logging in.');
+            if (res.status === 429) throw new Error('Rate limit reached. Please try again later.');
+            if (!res.ok) throw new Error('Request failed (' + res.status + ')');
+            return res.json();
+        })
+        .then(function(data) {
+            if (data.generation_id) {
+                // Backend returned a generation ID — track progress via SSE or polling
+                if (typeof EventSource !== 'undefined') {
+                    connectSSE(data.generation_id, authToken || data.token);
+                } else {
+                    startPolling(data.generation_id, authToken || data.token);
+                }
+            } else if (data.stage) {
+                // Synchronous response with inline stage updates (simple backend)
+                handleStageUpdate(data);
+            } else if (data.raku_config) {
+                // Immediate result (no streaming) — animate through stages
+                animateStagesSequentially(data);
+            } else {
+                showError('Unexpected response from server.');
+            }
+        })
+        .catch(function(err) {
+            showError(err.message || 'Something went wrong. Please try again.');
+        });
+    }
+
+    // --- Animated sequential fallback for non-streaming responses ---
+    function animateStagesSequentially(data) {
+        activateStage(stageAnalyzing);
+
+        setTimeout(function() {
+            var genre = (data.raku_config && data.raku_config.genre) || data.genre || 'Custom';
+            detectedGenre.textContent = genre;
+            activateStage(stageGenre);
+        }, 1500);
+
+        setTimeout(function() {
+            activateStage(stageConfiguring);
+        }, 2500);
+
+        setTimeout(function() {
+            onGenerationComplete(data);
+        }, 4500);
+    }
+
+    // --- Retry button ---
+    progressRetryBtn.addEventListener('click', function() {
+        if (lastGenerationPrompt) {
+            textarea.value = lastGenerationPrompt;
+            updateCounter();
+        }
+        hideProgress();
+        textarea.focus();
+    });
+
     // --- Prompt textarea auto-expand + counter ---
     function autoExpand() {
         textarea.style.height = 'auto';
@@ -444,7 +735,7 @@
     // --- Google OAuth ---
     document.getElementById('google-oauth-btn').addEventListener('click', function() {
         // H2.6: will redirect to POST /api/v1/auth/google
-        // For now, store prompt and redirect to Google OAuth consent
+        // Store prompt for post-OAuth generation
         var prompt = textarea.value.trim();
         if (prompt) {
             sessionStorage.setItem('raku_pending_prompt', prompt);
@@ -477,40 +768,29 @@
             return;
         }
 
-        signupSubmit.disabled = true;
-        signupSubmit.textContent = 'Generating...';
-        signupError.hidden = true;
+        lastGenerationPrompt = prompt;
+        closeModal();
 
-        // POST to backend — register + generate in one call
-        var API_URL = '/api/v1/generate';
-
-        fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email: email,
-                password: password,
-                prompt: prompt,
-                captcha_token: captchaToken
-            })
-        })
-        .then(function(res) {
-            if (res.status === 409) throw new Error('Account already exists. Try logging in.');
-            if (!res.ok) throw new Error('Request failed (' + res.status + ')');
-            return res.json();
-        })
-        .then(function(data) {
-            closeModal();
-            // Phase 3: redirect to game player
-            document.getElementById('quickstart').scrollIntoView({ behavior: 'smooth' });
-        })
-        .catch(function(err) {
-            signupError.textContent = err.message || 'Something went wrong. Please try again.';
-            signupError.hidden = false;
-            signupSubmit.disabled = false;
-            signupSubmit.textContent = 'Generate My Game';
+        // Start generation with progress tracking
+        startGeneration({
+            email: email,
+            password: password,
+            prompt: prompt,
+            captcha_token: captchaToken
         });
     });
+
+    // --- Post-OAuth generation resume ---
+    var pendingPrompt = sessionStorage.getItem('raku_pending_prompt');
+    var authToken = sessionStorage.getItem('raku_auth_token');
+    if (pendingPrompt && authToken) {
+        sessionStorage.removeItem('raku_pending_prompt');
+        lastGenerationPrompt = pendingPrompt;
+        textarea.value = pendingPrompt;
+        updateCounter();
+        autoExpand();
+        startGeneration({ prompt: pendingPrompt }, authToken);
+    }
 })();
 </script>
 </body>
