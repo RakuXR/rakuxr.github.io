@@ -473,6 +473,33 @@
     </div>
 </div>
 
+<div id="chat-sidebar" class="chat-sidebar">
+    <div class="chat-sidebar-header">
+        <h3 class="chat-sidebar-title">Refine Your Game</h3>
+        <button id="chat-sidebar-close" class="chat-sidebar-close" aria-label="Close sidebar">&times;</button>
+    </div>
+    <div id="chat-messages" class="chat-messages">
+        <div class="chat-msg chat-msg--assistant">
+            <div class="chat-msg-content">
+                Your game is ready! Tell me what you'd like to change — mechanics, difficulty, story, visuals, or anything else.
+            </div>
+        </div>
+    </div>
+    <form id="chat-form" class="chat-input-area">
+        <textarea
+            id="chat-input"
+            class="chat-input"
+            placeholder="e.g. Make the enemies faster and add a boss fight..."
+            rows="1"
+            maxlength="1000"
+        ></textarea>
+        <button type="submit" id="chat-send-btn" class="chat-send-btn" disabled aria-label="Send">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+    </form>
+</div>
+<div id="chat-sidebar-overlay" class="chat-sidebar-overlay" hidden></div>
+
 <script>
 (function() {
     var textarea = document.getElementById('prompt-input');
@@ -645,17 +672,228 @@
         URL.revokeObjectURL(url);
     });
 
-    // --- Refine button (H1.6 chat sidebar will expand this) ---
-    resultRefineBtn.addEventListener('click', function() {
-        // For now, scroll back to prompt with the current prompt pre-filled
-        hideResult();
-        if (lastGenerationPrompt) {
-            textarea.value = lastGenerationPrompt;
-            updateCounter();
-            autoExpand();
+    // --- Chat sidebar elements ---
+    var chatSidebar = document.getElementById('chat-sidebar');
+    var chatSidebarClose = document.getElementById('chat-sidebar-close');
+    var chatSidebarOverlay = document.getElementById('chat-sidebar-overlay');
+    var chatMessages = document.getElementById('chat-messages');
+    var chatForm = document.getElementById('chat-form');
+    var chatInput = document.getElementById('chat-input');
+    var chatSendBtn = document.getElementById('chat-send-btn');
+    var chatIterating = false;
+
+    function openChatSidebar() {
+        chatSidebar.classList.add('open');
+        chatSidebarOverlay.hidden = false;
+        requestAnimationFrame(function() {
+            chatSidebarOverlay.classList.add('visible');
+        });
+        document.body.style.overflow = 'hidden';
+        chatInput.focus();
+    }
+
+    function closeChatSidebar() {
+        chatSidebar.classList.remove('open');
+        chatSidebarOverlay.classList.remove('visible');
+        setTimeout(function() {
+            chatSidebarOverlay.hidden = true;
+        }, 300);
+        document.body.style.overflow = '';
+    }
+
+    chatSidebarClose.addEventListener('click', closeChatSidebar);
+    chatSidebarOverlay.addEventListener('click', closeChatSidebar);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && chatSidebar.classList.contains('open')) {
+            closeChatSidebar();
         }
-        textarea.focus();
-        document.querySelector('.hero').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Chat input auto-expand + enable send
+    chatInput.addEventListener('input', function() {
+        chatInput.style.height = 'auto';
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+        chatSendBtn.disabled = chatInput.value.trim().length === 0 || chatIterating;
+    });
+
+    function appendChatMessage(role, html) {
+        var msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-msg chat-msg--' + role;
+        var contentDiv = document.createElement('div');
+        contentDiv.className = 'chat-msg-content';
+        contentDiv.innerHTML = html;
+        msgDiv.appendChild(contentDiv);
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return contentDiv;
+    }
+
+    function showTypingIndicator() {
+        var typing = document.createElement('div');
+        typing.className = 'chat-msg chat-msg--assistant';
+        typing.id = 'chat-typing';
+        typing.innerHTML = '<div class="chat-typing"><div class="chat-typing-dot"></div><div class="chat-typing-dot"></div><div class="chat-typing-dot"></div></div>';
+        chatMessages.appendChild(typing);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+        var el = document.getElementById('chat-typing');
+        if (el) el.remove();
+    }
+
+    // Build a config diff display
+    function buildDiffHtml(oldConfig, newConfig) {
+        var lines = [];
+        var allKeys = {};
+        var key;
+        if (oldConfig) { for (key in oldConfig) { if (oldConfig.hasOwnProperty(key)) allKeys[key] = true; } }
+        if (newConfig) { for (key in newConfig) { if (newConfig.hasOwnProperty(key)) allKeys[key] = true; } }
+
+        var changedKeys = [];
+        for (key in allKeys) {
+            if (!allKeys.hasOwnProperty(key)) continue;
+            var oldVal = oldConfig ? JSON.stringify(oldConfig[key]) : undefined;
+            var newVal = newConfig ? JSON.stringify(newConfig[key]) : undefined;
+            if (oldVal !== newVal) {
+                changedKeys.push(key);
+            }
+        }
+
+        if (changedKeys.length === 0) return '';
+
+        lines.push('<div class="chat-diff">');
+        lines.push('<div class="chat-diff-title">Config Changes</div>');
+        for (var i = 0; i < changedKeys.length; i++) {
+            key = changedKeys[i];
+            var ov = oldConfig ? oldConfig[key] : undefined;
+            var nv = newConfig ? newConfig[key] : undefined;
+            if (ov !== undefined) {
+                lines.push('<div class="chat-diff-line chat-diff-line--removed">- ' + escapeHtml(key) + ': ' + escapeHtml(JSON.stringify(ov)) + '</div>');
+            }
+            if (nv !== undefined) {
+                lines.push('<div class="chat-diff-line chat-diff-line--added">+ ' + escapeHtml(key) + ': ' + escapeHtml(JSON.stringify(nv)) + '</div>');
+            }
+        }
+        lines.push('</div>');
+        return lines.join('');
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    // Send refinement message
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var message = chatInput.value.trim();
+        if (!message || chatIterating) return;
+
+        appendChatMessage('user', escapeHtml(message));
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        chatSendBtn.disabled = true;
+        chatIterating = true;
+
+        showTypingIndicator();
+
+        var data = lastGenerationResult || {};
+        var gameId = data.game_id || data.generation_id;
+        var authToken = sessionStorage.getItem('raku_auth_token');
+        var headers = { 'Content-Type': 'application/json' };
+        if (authToken) {
+            headers['Authorization'] = 'Bearer ' + authToken;
+        }
+
+        var oldConfig = data.raku_config ? JSON.parse(JSON.stringify(data.raku_config)) : null;
+
+        fetch('/api/v1/iterate', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+                game_id: gameId,
+                message: message,
+                current_config: data.raku_config || data
+            })
+        })
+        .then(function(res) {
+            if (res.status === 429) throw new Error('Rate limit reached. Please wait a moment.');
+            if (!res.ok) throw new Error('Request failed (' + res.status + ')');
+            return res.json();
+        })
+        .then(function(response) {
+            removeTypingIndicator();
+            chatIterating = false;
+            chatSendBtn.disabled = chatInput.value.trim().length === 0;
+
+            var assistantText = response.message || response.explanation || 'Updated your game configuration.';
+            var newConfig = response.raku_config || response.updated_config;
+            var diffHtml = '';
+
+            if (newConfig && oldConfig) {
+                diffHtml = buildDiffHtml(oldConfig, newConfig);
+            }
+
+            appendChatMessage('assistant', escapeHtml(assistantText) + diffHtml);
+
+            // Update stored result with new config
+            if (newConfig) {
+                if (lastGenerationResult) {
+                    lastGenerationResult.raku_config = newConfig;
+                } else {
+                    lastGenerationResult = { raku_config: newConfig };
+                }
+                sessionStorage.setItem('raku_last_result', JSON.stringify(lastGenerationResult));
+
+                // Update result page metadata
+                updateResultFromConfig(newConfig);
+            }
+        })
+        .catch(function(err) {
+            removeTypingIndicator();
+            chatIterating = false;
+            chatSendBtn.disabled = chatInput.value.trim().length === 0;
+
+            var errDiv = appendChatMessage('assistant', escapeHtml(err.message || 'Something went wrong.'));
+            errDiv.innerHTML += '<div class="chat-msg-error">Tap to retry</div>';
+            errDiv.style.cursor = 'pointer';
+            errDiv.addEventListener('click', function() {
+                errDiv.parentElement.remove();
+                chatInput.value = message;
+                chatInput.dispatchEvent(new Event('input'));
+            });
+        });
+    });
+
+    // Update result card from new config data
+    function updateResultFromConfig(config) {
+        if (config.title || config.game_title) {
+            resultTitle.textContent = config.title || config.game_title;
+        }
+        if (config.genre) {
+            resultGenreBadge.textContent = config.genre;
+            resultGenre.textContent = config.genre;
+        }
+        if (config.description) {
+            resultDescription.textContent = config.description;
+        }
+        if (config.estimated_play_time || config.play_time) {
+            resultPlaytime.textContent = config.estimated_play_time || config.play_time;
+        }
+        if (config.difficulty) {
+            resultDifficulty.textContent = config.difficulty;
+        }
+        // Bump version
+        var currentVersion = parseInt(resultVersion.textContent.replace('v', ''), 10) || 1;
+        resultVersion.textContent = 'v' + (currentVersion + 1);
+    }
+
+    // --- Refine button opens chat sidebar ---
+    resultRefineBtn.addEventListener('click', function() {
+        openChatSidebar();
     });
 
     // --- Share button ---
