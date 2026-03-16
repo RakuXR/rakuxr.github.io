@@ -34,20 +34,21 @@
             <a href="pro-features.html">Pro</a>
             <a href="https://github.com/RakuXR">GitHub</a>
             <a href="my-games.html">My Games</a>
-            <a href="contact.html" class="nav-cta">Request Access</a>
+            <a href="index.html#create" class="nav-cta">Start Creating</a>
             <a href="ja/index.html" class="lang-toggle">楽AI<sup class="tm">™</sup></a>
         </div>
     </div>
 </nav>
 
-<section class="hero">
+<section class="hero" id="create">
     <div class="container">
         <div class="beta-badge">Early Access Program</div>
         <h1>Describe Any Game. Play It Instantly.</h1>
         <p class="subtitle">
             Type any game idea. Our AI builds it. No code. No waiting.
         </p>
-        <div class="prompt-input-wrapper">
+        <div class="prompt-input-wrapper" id="prompt-wrapper">
+            <div class="prompt-sheet-handle" id="prompt-sheet-handle"></div>
             <textarea
                 id="prompt-input"
                 class="prompt-input"
@@ -190,8 +191,8 @@
         <div class="steps" style="margin-bottom: 40px;">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>Request Access</h3>
-                <p><a href="contact.html" style="color: var(--accent-bright); font-weight: 600;">Request access</a> to the platform. The launcher opens as a full game hub with templates and AI integration.</p>
+                <h3>Describe Your Game</h3>
+                <p><a href="#create" style="color: var(--accent-bright); font-weight: 600;">Type your game idea</a> into the prompt above. The AI analyzes your description and builds a playable game.</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
@@ -221,7 +222,7 @@
         </div>
 
         <p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">
-            Want more control? <a href="contact.html" style="color: var(--accent-bright);">Request SDK access</a> for advanced prompts and template customization.
+            Want more control? <a href="sdk.html" style="color: var(--accent-bright);">Explore the SDK</a> for advanced prompts and template customization.
         </p>
     </div>
 </section>
@@ -373,9 +374,9 @@
 <section class="section" id="download" style="background: var(--bg-secondary);">
     <div class="container" style="text-align: center;">
         <h2>Get Started</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 32px;">Request access to join the early access program.</p>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">Describe any game. Our AI builds it instantly. Free to try.</p>
         <div class="cta-group" style="justify-content: center;">
-            <a href="contact.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 14px 32px;">Request Access</a>
+            <a href="#create" class="btn btn-primary" style="font-size: 1.1rem; padding: 14px 32px;">Create a Game</a>
             <a href="docs.html" class="btn btn-secondary" style="font-size: 1.1rem; padding: 14px 32px;">Learn More</a>
         </div>
         <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 24px;">
@@ -400,7 +401,7 @@
         </div>
         <p style="color: var(--text-secondary); font-size: 0.85rem;">
             Interested in the SDK?
-            <a href="contact.html" style="color: var(--accent-bright);">Contact Us &rarr;</a>
+            <a href="sdk.html" style="color: var(--accent-bright);">Explore the SDK &rarr;</a>
         </p>
     </div>
 </section>
@@ -1125,6 +1126,100 @@
         autoExpand();
         updateCounter();
     });
+
+    // --- Mobile bottom-sheet prompt ---
+    var promptWrapper = document.getElementById('prompt-wrapper');
+    var sheetHandle = document.getElementById('prompt-sheet-handle');
+    var isMobile = function() { return window.innerWidth <= 768; };
+
+    function expandSheet() {
+        promptWrapper.classList.remove('sheet-collapsed');
+    }
+
+    function collapseSheet() {
+        if (isMobile() && document.activeElement !== textarea) {
+            promptWrapper.classList.add('sheet-collapsed');
+        }
+    }
+
+    // On mobile, start collapsed; expand on tap/focus
+    function initMobileSheet() {
+        if (isMobile()) {
+            if (textarea.value.trim().length === 0) {
+                promptWrapper.classList.add('sheet-collapsed');
+            }
+        } else {
+            promptWrapper.classList.remove('sheet-collapsed');
+        }
+    }
+
+    textarea.addEventListener('focus', function() {
+        if (isMobile()) expandSheet();
+    });
+
+    textarea.addEventListener('blur', function() {
+        if (isMobile() && textarea.value.trim().length === 0) {
+            setTimeout(collapseSheet, 200);
+        }
+    });
+
+    if (sheetHandle) {
+        sheetHandle.addEventListener('click', function() {
+            if (promptWrapper.classList.contains('sheet-collapsed')) {
+                expandSheet();
+                textarea.focus();
+            } else {
+                textarea.blur();
+                collapseSheet();
+            }
+        });
+
+        // Touch drag to expand/collapse
+        var touchStartY = 0;
+        sheetHandle.addEventListener('touchstart', function(e) {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        sheetHandle.addEventListener('touchend', function(e) {
+            var delta = touchStartY - e.changedTouches[0].clientY;
+            if (delta > 30) {
+                expandSheet();
+                textarea.focus();
+            } else if (delta < -30) {
+                textarea.blur();
+                collapseSheet();
+            }
+        }, { passive: true });
+    }
+
+    window.addEventListener('resize', initMobileSheet);
+    initMobileSheet();
+
+    // Hide bottom-sheet when generation starts or result shows
+    var origShowProgress = showProgress;
+    showProgress = function() {
+        if (isMobile()) promptWrapper.style.display = 'none';
+        origShowProgress();
+    };
+
+    var origHideProgress = hideProgress;
+    hideProgress = function() {
+        promptWrapper.style.display = '';
+        origHideProgress();
+    };
+
+    var origShowResult = showResult;
+    showResult = function(data) {
+        if (isMobile()) promptWrapper.style.display = 'none';
+        origShowResult(data);
+    };
+
+    var origHideResult = hideResult;
+    hideResult = function() {
+        promptWrapper.style.display = '';
+        if (isMobile()) initMobileSheet();
+        origHideResult();
+    };
 
     // --- Modal open/close ---
     function openModal() {

@@ -1658,8 +1658,8 @@ footer p {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .hero h1 { font-size: 2.5rem; }
-    .hero .subtitle { font-size: 1.1rem; }
+    .hero h1 { font-size: 2rem; }
+    .hero .subtitle { font-size: 1rem; }
     nav .nav-links { gap: 16px; font-size: 0.9rem; }
     .section h2 { font-size: 1.8rem; }
     .steps { grid-template-columns: 1fr; }
@@ -1667,20 +1667,189 @@ footer p {
     .template-grid { grid-template-columns: 1fr; }
     .pricing-grid { grid-template-columns: 1fr; }
     .pricing-card.featured { transform: scale(1); }
+
+    /* Mobile bottom-sheet prompt */
+    .hero {
+        padding-bottom: 180px;
+    }
+
+    .prompt-input-wrapper {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 9000;
+        background: var(--bg-secondary);
+        border-top: 2px solid #333355;
+        border-radius: 16px 16px 0 0;
+        padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+        max-width: 100%;
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
+        transition: transform 0.3s ease;
+    }
+
+    .prompt-input-wrapper.sheet-collapsed {
+        transform: translateY(calc(100% - 60px));
+    }
+
+    .prompt-input-wrapper .prompt-sheet-handle {
+        display: block;
+    }
+
+    .prompt-input {
+        font-size: 16px;
+        min-height: 44px;
+        border-radius: 12px;
+        padding: 12px 14px;
+    }
+
+    .prompt-input-footer {
+        margin-top: 10px;
+    }
+
+    .btn-play-now {
+        padding: 14px 28px;
+        font-size: 1rem;
+        min-height: 48px;
+    }
+
+    .char-counter {
+        font-size: 0.8rem;
+    }
+
+    /* Progress UI mobile */
     .progress-card { padding: 24px 20px; }
     .progress-stage { gap: 12px; padding: 12px 0; }
     .stage-title { font-size: 1rem; }
     .stage-message { font-size: 0.85rem; }
     .generation-progress { padding: 40px 0 24px; }
+
+    /* Result page mobile — touch-friendly */
+    .game-result { padding: 40px 0 24px; }
     .result-card { padding: 24px 20px; }
     .result-title { font-size: 1.5rem; }
-    .result-meta { grid-template-columns: repeat(2, 1fr); }
-    .result-actions { flex-direction: column; }
-    .result-action-btn { width: 100%; justify-content: center; }
-    .game-result { padding: 40px 0 24px; }
-    .chat-sidebar { width: 100%; max-width: 100%; }
+    .result-description { font-size: 0.95rem; }
+    .result-meta { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .result-meta-item { padding: 8px 0; }
+    .result-meta-value { font-size: 0.95rem; }
+    .result-actions { flex-direction: column; gap: 10px; }
+    .result-action-btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 48px;
+        font-size: 1rem;
+        padding: 14px 20px;
+    }
+    .result-prompt-echo { padding: 14px; }
+    .result-prompt-text { font-size: 0.85rem; }
+    .result-share-toast { font-size: 0.9rem; padding: 10px 16px; }
+    .result-new-game-link {
+        min-height: 48px;
+        font-size: 1rem;
+        padding: 12px 20px;
+    }
+
+    /* Chat sidebar mobile — full screen, touch-friendly */
+    .chat-sidebar {
+        width: 100%;
+        max-width: 100%;
+        border-left: none;
+        border-radius: 0;
+    }
+
+    .chat-sidebar-header {
+        padding: 14px 16px;
+        padding-top: calc(14px + env(safe-area-inset-top, 0px));
+    }
+
+    .chat-sidebar-title { font-size: 1.05rem; }
+
+    .chat-sidebar-close {
+        font-size: 1.8rem;
+        padding: 4px 8px;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chat-messages { padding: 12px 16px; }
+
+    .chat-msg-content {
+        max-width: 90%;
+        font-size: 0.95rem;
+        padding: 12px 16px;
+    }
+
+    .chat-input-area {
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .chat-input {
+        font-size: 16px;
+        min-height: 44px;
+        padding: 12px 14px;
+    }
+
+    .chat-send-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .chat-diff {
+        font-size: 0.75rem;
+        padding: 8px 10px;
+    }
+
+    /* My Games dashboard mobile */
     .mygames-header h1 { font-size: 1.5rem; }
     .mygames-toolbar { flex-direction: column; align-items: stretch; }
     .mygames-grid { grid-template-columns: 1fr; }
     .mygames-select { min-width: 0; width: 100%; }
+    .mygames-card-btn {
+        min-height: 44px;
+        font-size: 0.85rem;
+    }
+
+    /* Modal mobile */
+    .modal {
+        padding: 28px 20px;
+        border-radius: 12px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-overlay {
+        padding: 16px;
+        align-items: flex-end;
+    }
+
+    .modal-input {
+        font-size: 16px;
+        min-height: 44px;
+    }
+
+    .modal-submit {
+        min-height: 48px;
+        font-size: 1rem;
+    }
+}
+
+/* Bottom-sheet handle (mobile only) */
+.prompt-sheet-handle {
+    display: none;
+    width: 36px;
+    height: 4px;
+    background: #555577;
+    border-radius: 2px;
+    margin: 0 auto 12px;
+    cursor: grab;
+}
+
+/* Prevent iOS zoom on input focus */
+@media (max-width: 768px) {
+    input, textarea, select {
+        font-size: 16px !important;
+    }
 }
