@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Games - RakuAI</title>
+    <meta name="description" content="View and manage your AI-generated games. Filter by genre, sort by date or name, download or refine any game.">
+    <meta property="og:title" content="My Games - RakuAI">
+    <meta property="og:description" content="Your personal library of AI-generated games on RakuAI.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/my-games">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/my-games.html">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">&#8482;</sup> Now Available &mdash; Describe Any Game. Play It Instantly. | <a href="index.html#quickstart">Try RakuAI Now &rarr;</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&#8482;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="sdk.html">SDK</a>
+            <a href="docs.html">Docs</a>
+            <a href="templates.html">Templates</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="pro-features.html">Pro</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="my-games.html" class="nav-cta">My Games</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Auth gate: shown when user is not logged in -->
+<section id="mygames-auth-gate" class="section mygames-auth-gate">
+    <div class="container" style="text-align: center; max-width: 500px;">
+        <svg viewBox="0 0 24 24" width="64" height="64" fill="var(--accent-bright)" style="margin-bottom: 24px; opacity: 0.8;">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+        </svg>
+        <h2>Sign In to View Your Games</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">
+            Your generated games are saved to your account. Sign in to access your library.
+        </p>
+        <a href="index.html" class="btn btn-primary" style="padding: 14px 32px; font-size: 1.1rem;">
+            Go to Home &amp; Sign In
+        </a>
+    </div>
+</section>
+
+<!-- Dashboard: shown when user is logged in -->
+<section id="mygames-dashboard" class="section mygames-dashboard" hidden>
+    <div class="container">
+        <div class="mygames-header">
+            <h1>My Games</h1>
+            <a href="index.html" class="btn btn-primary mygames-create-btn">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                Create New Game
+            </a>
+        </div>
+
+        <div class="mygames-toolbar">
+            <div class="mygames-filters">
+                <div class="mygames-filter-group">
+                    <label class="mygames-filter-label" for="filter-genre">Genre</label>
+                    <select id="filter-genre" class="mygames-select">
+                        <option value="">All Genres</option>
+                        <option value="Platformer">Platformer</option>
+                        <option value="RPG">RPG</option>
+                        <option value="Puzzle">Puzzle</option>
+                        <option value="Visual Novel">Visual Novel</option>
+                        <option value="Tower Defense">Tower Defense</option>
+                        <option value="Endless Runner">Endless Runner</option>
+                        <option value="Card Game">Card Game</option>
+                        <option value="Simulation">Simulation</option>
+                        <option value="Sandbox">Sandbox</option>
+                        <option value="Racing">Racing</option>
+                        <option value="Rhythm">Rhythm</option>
+                        <option value="Roguelike">Roguelike</option>
+                        <option value="Space Shooter">Space Shooter</option>
+                    </select>
+                </div>
+                <div class="mygames-filter-group">
+                    <label class="mygames-filter-label" for="filter-date">Date</label>
+                    <select id="filter-date" class="mygames-select">
+                        <option value="">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mygames-sort">
+                <label class="mygames-filter-label" for="sort-by">Sort</label>
+                <select id="sort-by" class="mygames-select">
+                    <option value="recent">Most Recent</option>
+                    <option value="name">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="genre">Genre</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mygames-stats" id="mygames-stats">
+            <span id="mygames-count">0 games</span>
+        </div>
+
+        <!-- Game grid -->
+        <div id="mygames-grid" class="mygames-grid"></div>
+
+        <!-- Empty state -->
+        <div id="mygames-empty" class="mygames-empty" hidden>
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="var(--text-secondary)" style="opacity: 0.4; margin-bottom: 16px;">
+                <path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3 .35 0 .69.07 1 .18.31-.11.65-.18 1-.18 1.66 0 3 1.34 3 3s-1.34 3-3 3c-.35 0-.69-.07-1-.18-.31.11-.65.18-1 .18-1.66 0-3-1.34-3-3z"/>
+            </svg>
+            <h3 id="mygames-empty-title">No games yet</h3>
+            <p id="mygames-empty-text" style="color: var(--text-secondary); margin-bottom: 24px;">
+                Create your first AI-generated game to see it here.
+            </p>
+            <a href="index.html" class="btn btn-primary">Create Your First Game</a>
+        </div>
+
+        <!-- Loading state -->
+        <div id="mygames-loading" class="mygames-loading" hidden>
+            <div class="spinner" style="width: 32px; height: 32px; margin: 0 auto 16px;"></div>
+            <p style="color: var(--text-secondary);">Loading your games...</p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            <a href="docs.html">Documentation</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Patent-protected technology.</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. &#x697D;AI and &#x697D;XR are stylized marks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+<script>
+(function() {
+    var authGate = document.getElementById('mygames-auth-gate');
+    var dashboard = document.getElementById('mygames-dashboard');
+    var grid = document.getElementById('mygames-grid');
+    var emptyState = document.getElementById('mygames-empty');
+    var emptyTitle = document.getElementById('mygames-empty-title');
+    var emptyText = document.getElementById('mygames-empty-text');
+    var loadingState = document.getElementById('mygames-loading');
+    var countEl = document.getElementById('mygames-count');
+    var filterGenre = document.getElementById('filter-genre');
+    var filterDate = document.getElementById('filter-date');
+    var sortBy = document.getElementById('sort-by');
+
+    var allGames = [];
+    var authToken = sessionStorage.getItem('raku_auth_token');
+
+    // Check auth
+    if (!authToken) {
+        authGate.hidden = false;
+        dashboard.hidden = true;
+        return;
+    }
+
+    authGate.hidden = true;
+    dashboard.hidden = false;
+    loadGames();
+
+    // Load games from API
+    function loadGames() {
+        loadingState.hidden = false;
+        grid.innerHTML = '';
+        emptyState.hidden = true;
+
+        fetch('/api/v1/games', {
+            headers: {
+                'Authorization': 'Bearer ' + authToken,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(function(res) {
+            if (res.status === 401) {
+                // Token expired — show auth gate
+                sessionStorage.removeItem('raku_auth_token');
+                authGate.hidden = false;
+                dashboard.hidden = true;
+                loadingState.hidden = true;
+                return null;
+            }
+            if (!res.ok) throw new Error('Failed to load games');
+            return res.json();
+        })
+        .then(function(data) {
+            loadingState.hidden = true;
+            if (!data) return;
+
+            allGames = (data.games || data || []).map(function(g) {
+                return {
+                    id: g.id || g.game_id || g.generation_id,
+                    title: (g.raku_config && g.raku_config.title) || g.title || g.game_title || 'Untitled Game',
+                    genre: (g.raku_config && g.raku_config.genre) || g.genre || 'Custom',
+                    description: (g.raku_config && g.raku_config.description) || g.description || '',
+                    created_at: g.created_at || g.timestamp || new Date().toISOString(),
+                    play_time: (g.raku_config && (g.raku_config.estimated_play_time || g.raku_config.play_time)) || '',
+                    difficulty: (g.raku_config && g.raku_config.difficulty) || g.difficulty || '',
+                    version: g.version || 1,
+                    raw: g
+                };
+            });
+
+            renderGames();
+        })
+        .catch(function(err) {
+            loadingState.hidden = true;
+            emptyState.hidden = false;
+            emptyTitle.textContent = 'Could not load games';
+            emptyText.textContent = err.message || 'Something went wrong. Please try again later.';
+        });
+    }
+
+    // Filter + sort + render
+    function renderGames() {
+        var filtered = filterGamesList(allGames);
+        filtered = sortGamesList(filtered);
+
+        grid.innerHTML = '';
+
+        if (filtered.length === 0) {
+            emptyState.hidden = false;
+            if (allGames.length > 0) {
+                emptyTitle.textContent = 'No matches';
+                emptyText.textContent = 'Try adjusting your filters.';
+            } else {
+                emptyTitle.textContent = 'No games yet';
+                emptyText.textContent = 'Create your first AI-generated game to see it here.';
+            }
+            countEl.textContent = '0 games';
+            return;
+        }
+
+        emptyState.hidden = true;
+        countEl.textContent = filtered.length + (filtered.length === 1 ? ' game' : ' games');
+
+        for (var i = 0; i < filtered.length; i++) {
+            grid.appendChild(createGameCard(filtered[i]));
+        }
+    }
+
+    function filterGamesList(games) {
+        var genre = filterGenre.value;
+        var dateVal = filterDate.value;
+
+        return games.filter(function(g) {
+            if (genre && g.genre !== genre) return false;
+            if (dateVal) {
+                var created = new Date(g.created_at);
+                var now = new Date();
+                if (dateVal === 'today') {
+                    if (created.toDateString() !== now.toDateString()) return false;
+                } else if (dateVal === 'week') {
+                    var weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    if (created < weekAgo) return false;
+                } else if (dateVal === 'month') {
+                    var monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                    if (created < monthAgo) return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    function sortGamesList(games) {
+        var sort = sortBy.value;
+        return games.slice().sort(function(a, b) {
+            if (sort === 'recent') {
+                return new Date(b.created_at) - new Date(a.created_at);
+            } else if (sort === 'name') {
+                return a.title.localeCompare(b.title);
+            } else if (sort === 'name-desc') {
+                return b.title.localeCompare(a.title);
+            } else if (sort === 'genre') {
+                return a.genre.localeCompare(b.genre) || a.title.localeCompare(b.title);
+            }
+            return 0;
+        });
+    }
+
+    function createGameCard(game) {
+        var card = document.createElement('div');
+        card.className = 'mygames-card';
+
+        var dateStr = formatDate(game.created_at);
+
+        card.innerHTML =
+            '<div class="mygames-card-header">' +
+                '<span class="mygames-card-genre">' + escapeHtml(game.genre) + '</span>' +
+                '<span class="mygames-card-version">v' + game.version + '</span>' +
+            '</div>' +
+            '<h3 class="mygames-card-title">' + escapeHtml(game.title) + '</h3>' +
+            '<p class="mygames-card-desc">' + escapeHtml(game.description || 'No description') + '</p>' +
+            '<div class="mygames-card-meta">' +
+                (game.play_time ? '<span>' + escapeHtml(game.play_time) + '</span>' : '') +
+                (game.difficulty ? '<span>' + escapeHtml(game.difficulty) + '</span>' : '') +
+                '<span>' + dateStr + '</span>' +
+            '</div>' +
+            '<div class="mygames-card-actions">' +
+                '<button class="btn btn-primary mygames-card-btn mygames-btn-download" data-id="' + escapeHtml(game.id) + '">Download</button>' +
+                '<button class="btn btn-secondary mygames-card-btn mygames-btn-open" data-id="' + escapeHtml(game.id) + '">Open</button>' +
+            '</div>';
+
+        // Wire download button
+        card.querySelector('.mygames-btn-download').addEventListener('click', function(e) {
+            e.stopPropagation();
+            downloadGame(game);
+        });
+
+        // Wire open button — navigates to index with game loaded
+        card.querySelector('.mygames-btn-open').addEventListener('click', function(e) {
+            e.stopPropagation();
+            sessionStorage.setItem('raku_last_result', JSON.stringify(game.raw));
+            sessionStorage.setItem('raku_last_prompt', game.description || game.title);
+            window.location.href = 'index.html';
+        });
+
+        return card;
+    }
+
+    function downloadGame(game) {
+        var config = (game.raw && game.raw.raku_config) || game.raw || {};
+        var title = game.title || 'game';
+        var filename = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.raku';
+        var blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function formatDate(dateStr) {
+        var d = new Date(dateStr);
+        if (isNaN(d.getTime())) return '';
+        var now = new Date();
+        var diff = now - d;
+        if (diff < 60000) return 'Just now';
+        if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
+        if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+        if (diff < 604800000) return Math.floor(diff / 86400000) + 'd ago';
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    // Wire filter/sort controls
+    filterGenre.addEventListener('change', renderGames);
+    filterDate.addEventListener('change', renderGames);
+    sortBy.addEventListener('change', renderGames);
+})();
+</script>
+</body>
+</html>
