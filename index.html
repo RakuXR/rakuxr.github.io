@@ -47,7 +47,8 @@
         <p class="subtitle">
             Type any game idea. Our AI builds it. No code. No waiting.
         </p>
-        <div class="prompt-input-wrapper">
+        <div class="prompt-input-wrapper" id="prompt-wrapper">
+            <div class="prompt-sheet-handle" id="prompt-sheet-handle"></div>
             <textarea
                 id="prompt-input"
                 class="prompt-input"
@@ -1125,6 +1126,100 @@
         autoExpand();
         updateCounter();
     });
+
+    // --- Mobile bottom-sheet prompt ---
+    var promptWrapper = document.getElementById('prompt-wrapper');
+    var sheetHandle = document.getElementById('prompt-sheet-handle');
+    var isMobile = function() { return window.innerWidth <= 768; };
+
+    function expandSheet() {
+        promptWrapper.classList.remove('sheet-collapsed');
+    }
+
+    function collapseSheet() {
+        if (isMobile() && document.activeElement !== textarea) {
+            promptWrapper.classList.add('sheet-collapsed');
+        }
+    }
+
+    // On mobile, start collapsed; expand on tap/focus
+    function initMobileSheet() {
+        if (isMobile()) {
+            if (textarea.value.trim().length === 0) {
+                promptWrapper.classList.add('sheet-collapsed');
+            }
+        } else {
+            promptWrapper.classList.remove('sheet-collapsed');
+        }
+    }
+
+    textarea.addEventListener('focus', function() {
+        if (isMobile()) expandSheet();
+    });
+
+    textarea.addEventListener('blur', function() {
+        if (isMobile() && textarea.value.trim().length === 0) {
+            setTimeout(collapseSheet, 200);
+        }
+    });
+
+    if (sheetHandle) {
+        sheetHandle.addEventListener('click', function() {
+            if (promptWrapper.classList.contains('sheet-collapsed')) {
+                expandSheet();
+                textarea.focus();
+            } else {
+                textarea.blur();
+                collapseSheet();
+            }
+        });
+
+        // Touch drag to expand/collapse
+        var touchStartY = 0;
+        sheetHandle.addEventListener('touchstart', function(e) {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        sheetHandle.addEventListener('touchend', function(e) {
+            var delta = touchStartY - e.changedTouches[0].clientY;
+            if (delta > 30) {
+                expandSheet();
+                textarea.focus();
+            } else if (delta < -30) {
+                textarea.blur();
+                collapseSheet();
+            }
+        }, { passive: true });
+    }
+
+    window.addEventListener('resize', initMobileSheet);
+    initMobileSheet();
+
+    // Hide bottom-sheet when generation starts or result shows
+    var origShowProgress = showProgress;
+    showProgress = function() {
+        if (isMobile()) promptWrapper.style.display = 'none';
+        origShowProgress();
+    };
+
+    var origHideProgress = hideProgress;
+    hideProgress = function() {
+        promptWrapper.style.display = '';
+        origHideProgress();
+    };
+
+    var origShowResult = showResult;
+    showResult = function(data) {
+        if (isMobile()) promptWrapper.style.display = 'none';
+        origShowResult(data);
+    };
+
+    var origHideResult = hideResult;
+    hideResult = function() {
+        promptWrapper.style.display = '';
+        if (isMobile()) initMobileSheet();
+        origHideResult();
+    };
 
     // --- Modal open/close ---
     function openModal() {
