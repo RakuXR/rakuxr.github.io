@@ -10,8 +10,14 @@
     <meta property="og:description" content="Tell ChatGPT, Claude, or Gemini what game you want. AI-native game engine with on-device AI personalization. Patent-protected technology.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rakuai.com">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="RakuAI - Describe Any Game. Play It Instantly.">
+    <meta name="twitter:description" content="Describe any game to AI. Get a real playable experience in seconds.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
     <link rel="canonical" href="https://rakuai.com/">
     <link rel="stylesheet" href="style.css">
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
@@ -32,21 +38,24 @@
             <a href="templates.html">Templates</a>
             <a href="pricing.html">Pricing</a>
             <a href="pro-features.html">Pro</a>
+            <a href="developers/">Developers</a>
             <a href="https://github.com/RakuXR">GitHub</a>
-            <a href="contact.html" class="nav-cta">Request Access</a>
+            <a href="my-games.html">My Games</a>
+            <a href="index.html#create" class="nav-cta">Start Creating</a>
             <a href="ja/index.html" class="lang-toggle">楽AI<sup class="tm">™</sup></a>
         </div>
     </div>
 </nav>
 
-<section class="hero">
+<section class="hero" id="create">
     <div class="container">
         <div class="beta-badge">Early Access Program</div>
         <h1>Describe Any Game. Play It Instantly.</h1>
         <p class="subtitle">
             Type any game idea. Our AI builds it. No code. No waiting.
         </p>
-        <div class="prompt-input-wrapper">
+        <div class="prompt-input-wrapper" id="prompt-wrapper">
+            <div class="prompt-sheet-handle" id="prompt-sheet-handle"></div>
             <textarea
                 id="prompt-input"
                 class="prompt-input"
@@ -65,6 +74,128 @@
     </div>
 </section>
 
+<section id="generation-progress" class="generation-progress" hidden>
+    <div class="container">
+        <div class="progress-card">
+            <div class="progress-stages">
+                <div class="progress-stage" id="stage-analyzing">
+                    <div class="stage-icon">
+                        <div class="spinner"></div>
+                    </div>
+                    <div class="stage-content">
+                        <h3 class="stage-title">Analyzing</h3>
+                        <p class="stage-message">Understanding your game idea...</p>
+                    </div>
+                </div>
+                <div class="progress-stage" id="stage-genre">
+                    <div class="stage-icon">
+                        <svg class="checkmark" viewBox="0 0 24 24" width="28" height="28"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                    <div class="stage-content">
+                        <h3 class="stage-title">Genre Detected</h3>
+                        <p class="stage-message">Detected genre: <span id="detected-genre">...</span></p>
+                    </div>
+                </div>
+                <div class="progress-stage" id="stage-configuring">
+                    <div class="stage-icon">
+                        <div class="spinner"></div>
+                    </div>
+                    <div class="stage-content">
+                        <h3 class="stage-title">Configuring</h3>
+                        <p class="stage-message">Building your game configuration...</p>
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="progress-stage" id="stage-ready">
+                    <div class="stage-icon">
+                        <svg class="checkmark" viewBox="0 0 24 24" width="28" height="28"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                    <div class="stage-content">
+                        <h3 class="stage-title">Ready</h3>
+                        <p class="stage-message">Your game is ready!</p>
+                    </div>
+                </div>
+            </div>
+            <div id="progress-error" class="progress-error" hidden>
+                <p id="progress-error-msg">Something went wrong. Please try a simpler game description.</p>
+                <button id="progress-retry-btn" class="btn btn-primary" style="margin-top: 12px; padding: 10px 28px; font-size: 1rem;">Try Again</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="game-result" class="game-result" hidden>
+    <div class="container">
+        <div class="result-card">
+            <div class="result-header">
+                <div class="result-genre-badge" id="result-genre-badge">Platformer</div>
+                <h2 class="result-title" id="result-title">Your Game</h2>
+                <p class="result-description" id="result-description">A unique game generated from your idea.</p>
+            </div>
+
+            <div class="result-meta">
+                <div class="result-meta-item">
+                    <span class="result-meta-label">Genre</span>
+                    <span class="result-meta-value" id="result-genre">Platformer</span>
+                </div>
+                <div class="result-meta-item">
+                    <span class="result-meta-label">Est. Play Time</span>
+                    <span class="result-meta-value" id="result-playtime">5-10 min</span>
+                </div>
+                <div class="result-meta-item">
+                    <span class="result-meta-label">Difficulty</span>
+                    <span class="result-meta-value" id="result-difficulty">Medium</span>
+                </div>
+                <div class="result-meta-item">
+                    <span class="result-meta-label">Version</span>
+                    <span class="result-meta-value" id="result-version">1</span>
+                </div>
+            </div>
+
+            <div class="result-prompt-echo">
+                <span class="result-prompt-label">Your prompt</span>
+                <p class="result-prompt-text" id="result-prompt-text"></p>
+            </div>
+
+            <div class="result-actions">
+                <button id="result-download-btn" class="btn btn-primary result-action-btn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    Download .raku
+                </button>
+                <button id="result-refine-btn" class="btn btn-secondary result-action-btn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    Refine
+                </button>
+                <button id="result-share-btn" class="btn btn-secondary result-action-btn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18 16.08a2.91 2.91 0 00-1.96.77L8.91 12.7a3.25 3.25 0 000-1.4l7.05-4.11A2.93 2.93 0 0018 7.92a3 3 0 10-3 3 2.91 2.91 0 00.96-.18l7.13 4.15a3 3 0 00-.09.73 3 3 0 103-3zM18 4a1 1 0 110 2 1 1 0 010-2zM6 13a1 1 0 110-2 1 1 0 010 2zm12 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+                    Share
+                </button>
+                <button id="result-download-card-btn" class="btn btn-secondary result-action-btn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M21 19V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                    Download Card
+                </button>
+            </div>
+
+            <div id="result-share-toast" class="result-share-toast" hidden>
+                Link copied to clipboard!
+            </div>
+
+            <div id="share-card-preview" class="share-card-preview" hidden>
+                <canvas id="share-card-canvas" width="1200" height="630"></canvas>
+            </div>
+        </div>
+
+        <div class="result-next-actions">
+            <button id="result-new-game-btn" class="result-new-game-link">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                Create another game
+            </button>
+        </div>
+    </div>
+</section>
+
 <section class="section" id="quickstart" style="background: var(--bg-secondary); border-top: 2px solid var(--accent);">
     <div class="container">
         <h2>Try It in 60 Seconds</h2>
@@ -75,8 +206,8 @@
         <div class="steps" style="margin-bottom: 40px;">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>Request Access</h3>
-                <p><a href="contact.html" style="color: var(--accent-bright); font-weight: 600;">Request access</a> to the platform. The launcher opens as a full game hub with templates and AI integration.</p>
+                <h3>Describe Your Game</h3>
+                <p><a href="#create" style="color: var(--accent-bright); font-weight: 600;">Type your game idea</a> into the prompt above. The AI analyzes your description and builds a playable game.</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
@@ -106,7 +237,7 @@
         </div>
 
         <p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">
-            Want more control? <a href="contact.html" style="color: var(--accent-bright);">Request SDK access</a> for advanced prompts and template customization.
+            Want more control? <a href="sdk.html" style="color: var(--accent-bright);">Explore the SDK</a> for advanced prompts and template customization.
         </p>
     </div>
 </section>
@@ -258,9 +389,9 @@
 <section class="section" id="download" style="background: var(--bg-secondary);">
     <div class="container" style="text-align: center;">
         <h2>Get Started</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 32px;">Request access to join the early access program.</p>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">Describe any game. Our AI builds it instantly. Free to try.</p>
         <div class="cta-group" style="justify-content: center;">
-            <a href="contact.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 14px 32px;">Request Access</a>
+            <a href="#create" class="btn btn-primary" style="font-size: 1.1rem; padding: 14px 32px;">Create a Game</a>
             <a href="docs.html" class="btn btn-secondary" style="font-size: 1.1rem; padding: 14px 32px;">Learn More</a>
         </div>
         <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 24px;">
@@ -285,7 +416,7 @@
         </div>
         <p style="color: var(--text-secondary); font-size: 0.85rem;">
             Interested in the SDK?
-            <a href="contact.html" style="color: var(--accent-bright);">Contact Us &rarr;</a>
+            <a href="sdk.html" style="color: var(--accent-bright);">Explore the SDK &rarr;</a>
         </p>
     </div>
 </section>
@@ -359,6 +490,33 @@
     </div>
 </div>
 
+<div id="chat-sidebar" class="chat-sidebar">
+    <div class="chat-sidebar-header">
+        <h3 class="chat-sidebar-title">Refine Your Game</h3>
+        <button id="chat-sidebar-close" class="chat-sidebar-close" aria-label="Close sidebar">&times;</button>
+    </div>
+    <div id="chat-messages" class="chat-messages">
+        <div class="chat-msg chat-msg--assistant">
+            <div class="chat-msg-content">
+                Your game is ready! Tell me what you'd like to change — mechanics, difficulty, story, visuals, or anything else.
+            </div>
+        </div>
+    </div>
+    <form id="chat-form" class="chat-input-area">
+        <textarea
+            id="chat-input"
+            class="chat-input"
+            placeholder="e.g. Make the enemies faster and add a boss fight..."
+            rows="1"
+            maxlength="1000"
+        ></textarea>
+        <button type="submit" id="chat-send-btn" class="chat-send-btn" disabled aria-label="Send">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </button>
+    </form>
+</div>
+<div id="chat-sidebar-overlay" class="chat-sidebar-overlay" hidden></div>
+
 <script>
 (function() {
     var textarea = document.getElementById('prompt-input');
@@ -370,6 +528,787 @@
     var signupSubmit = document.getElementById('signup-submit');
     var signupError = document.getElementById('signup-error');
     var captchaPassed = false;
+
+    // --- Progress UI elements ---
+    var progressSection = document.getElementById('generation-progress');
+    var progressError = document.getElementById('progress-error');
+    var progressErrorMsg = document.getElementById('progress-error-msg');
+    var progressRetryBtn = document.getElementById('progress-retry-btn');
+    var progressCard = progressSection.querySelector('.progress-card');
+    var stageAnalyzing = document.getElementById('stage-analyzing');
+    var stageGenre = document.getElementById('stage-genre');
+    var stageConfiguring = document.getElementById('stage-configuring');
+    var stageReady = document.getElementById('stage-ready');
+    var detectedGenre = document.getElementById('detected-genre');
+    var allStages = [stageAnalyzing, stageGenre, stageConfiguring, stageReady];
+    var currentEventSource = null;
+    var currentPollTimer = null;
+    var lastGenerationPrompt = '';
+
+    // --- Result page elements ---
+    var resultSection = document.getElementById('game-result');
+    var resultTitle = document.getElementById('result-title');
+    var resultDescription = document.getElementById('result-description');
+    var resultGenreBadge = document.getElementById('result-genre-badge');
+    var resultGenre = document.getElementById('result-genre');
+    var resultPlaytime = document.getElementById('result-playtime');
+    var resultDifficulty = document.getElementById('result-difficulty');
+    var resultVersion = document.getElementById('result-version');
+    var resultPromptText = document.getElementById('result-prompt-text');
+    var resultDownloadBtn = document.getElementById('result-download-btn');
+    var resultRefineBtn = document.getElementById('result-refine-btn');
+    var resultShareBtn = document.getElementById('result-share-btn');
+    var resultShareToast = document.getElementById('result-share-toast');
+    var resultNewGameBtn = document.getElementById('result-new-game-btn');
+    var resultDownloadCardBtn = document.getElementById('result-download-card-btn');
+    var shareCardCanvas = document.getElementById('share-card-canvas');
+    var shareCardPreview = document.getElementById('share-card-preview');
+    var lastGenerationResult = null;
+
+    // --- Progress UI controller ---
+    function resetProgress() {
+        allStages.forEach(function(s) {
+            s.classList.remove('active', 'completed');
+        });
+        progressError.hidden = true;
+        progressCard.classList.remove('ready-glow');
+        detectedGenre.textContent = '...';
+    }
+
+    function showProgress() {
+        resetProgress();
+        progressSection.hidden = false;
+        progressSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideProgress() {
+        progressSection.hidden = true;
+        if (currentEventSource) {
+            currentEventSource.close();
+            currentEventSource = null;
+        }
+        if (currentPollTimer) {
+            clearTimeout(currentPollTimer);
+            currentPollTimer = null;
+        }
+    }
+
+    function activateStage(stage) {
+        // Mark all previous stages as completed
+        for (var i = 0; i < allStages.length; i++) {
+            if (allStages[i] === stage) break;
+            allStages[i].classList.remove('active');
+            allStages[i].classList.add('completed');
+        }
+        stage.classList.remove('completed');
+        stage.classList.add('active');
+    }
+
+    function showError(message) {
+        progressErrorMsg.textContent = message || 'Something went wrong. Please try a simpler game description.';
+        progressError.hidden = false;
+    }
+
+    function onGenerationComplete(data) {
+        activateStage(stageReady);
+        progressCard.classList.add('ready-glow');
+        // Store result and auto-transition to result page
+        if (data) {
+            sessionStorage.setItem('raku_last_result', JSON.stringify(data));
+            lastGenerationResult = data;
+        }
+        setTimeout(function() {
+            progressSection.hidden = true;
+            showResult(data);
+        }, 1500);
+    }
+
+    // --- Result page ---
+    function showResult(data) {
+        var config = (data && data.raku_config) || data || {};
+        var title = config.title || config.game_title || data.title || 'Untitled Game';
+        var genre = config.genre || data.genre || 'Custom';
+        var description = config.description || data.description || 'A unique game generated from your idea.';
+        var playtime = config.estimated_play_time || config.play_time || estimatePlaytime(genre);
+        var difficulty = config.difficulty || data.difficulty || 'Medium';
+        var version = data.version || config.version || 1;
+
+        resultTitle.textContent = title;
+        resultDescription.textContent = description;
+        resultGenreBadge.textContent = genre;
+        resultGenre.textContent = genre;
+        resultPlaytime.textContent = playtime;
+        resultDifficulty.textContent = difficulty;
+        resultVersion.textContent = 'v' + version;
+        resultPromptText.textContent = lastGenerationPrompt || '(prompt not available)';
+
+        resultSection.hidden = false;
+        resultSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function hideResult() {
+        resultSection.hidden = true;
+    }
+
+    function estimatePlaytime(genre) {
+        var estimates = {
+            'Platformer': '5-15 min',
+            'RPG': '15-30 min',
+            'Puzzle': '5-10 min',
+            'Visual Novel': '10-20 min',
+            'Tower Defense': '10-20 min',
+            'Endless Runner': '3-10 min',
+            'Card Game': '5-15 min',
+            'Simulation': '10-30 min',
+            'Sandbox': '15-30 min',
+            'Racing': '5-10 min',
+            'Rhythm': '3-8 min',
+            'Roguelike': '10-25 min',
+            'Space Shooter': '5-10 min'
+        };
+        return estimates[genre] || '5-15 min';
+    }
+
+    // --- Download .raku file ---
+    resultDownloadBtn.addEventListener('click', function() {
+        var data = lastGenerationResult;
+        if (!data) {
+            var stored = sessionStorage.getItem('raku_last_result');
+            if (stored) { try { data = JSON.parse(stored); } catch (_) {} }
+        }
+        if (!data) return;
+
+        var config = data.raku_config || data;
+        var title = config.title || config.game_title || 'game';
+        var filename = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.raku';
+        var blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    // --- Chat sidebar elements ---
+    var chatSidebar = document.getElementById('chat-sidebar');
+    var chatSidebarClose = document.getElementById('chat-sidebar-close');
+    var chatSidebarOverlay = document.getElementById('chat-sidebar-overlay');
+    var chatMessages = document.getElementById('chat-messages');
+    var chatForm = document.getElementById('chat-form');
+    var chatInput = document.getElementById('chat-input');
+    var chatSendBtn = document.getElementById('chat-send-btn');
+    var chatIterating = false;
+
+    function openChatSidebar() {
+        chatSidebar.classList.add('open');
+        chatSidebarOverlay.hidden = false;
+        requestAnimationFrame(function() {
+            chatSidebarOverlay.classList.add('visible');
+        });
+        document.body.style.overflow = 'hidden';
+        chatInput.focus();
+    }
+
+    function closeChatSidebar() {
+        chatSidebar.classList.remove('open');
+        chatSidebarOverlay.classList.remove('visible');
+        setTimeout(function() {
+            chatSidebarOverlay.hidden = true;
+        }, 300);
+        document.body.style.overflow = '';
+    }
+
+    chatSidebarClose.addEventListener('click', closeChatSidebar);
+    chatSidebarOverlay.addEventListener('click', closeChatSidebar);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && chatSidebar.classList.contains('open')) {
+            closeChatSidebar();
+        }
+    });
+
+    // Chat input auto-expand + enable send
+    chatInput.addEventListener('input', function() {
+        chatInput.style.height = 'auto';
+        chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+        chatSendBtn.disabled = chatInput.value.trim().length === 0 || chatIterating;
+    });
+
+    function appendChatMessage(role, html) {
+        var msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-msg chat-msg--' + role;
+        var contentDiv = document.createElement('div');
+        contentDiv.className = 'chat-msg-content';
+        contentDiv.innerHTML = html;
+        msgDiv.appendChild(contentDiv);
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return contentDiv;
+    }
+
+    function showTypingIndicator() {
+        var typing = document.createElement('div');
+        typing.className = 'chat-msg chat-msg--assistant';
+        typing.id = 'chat-typing';
+        typing.innerHTML = '<div class="chat-typing"><div class="chat-typing-dot"></div><div class="chat-typing-dot"></div><div class="chat-typing-dot"></div></div>';
+        chatMessages.appendChild(typing);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+        var el = document.getElementById('chat-typing');
+        if (el) el.remove();
+    }
+
+    // Build a config diff display
+    function buildDiffHtml(oldConfig, newConfig) {
+        var lines = [];
+        var allKeys = {};
+        var key;
+        if (oldConfig) { for (key in oldConfig) { if (oldConfig.hasOwnProperty(key)) allKeys[key] = true; } }
+        if (newConfig) { for (key in newConfig) { if (newConfig.hasOwnProperty(key)) allKeys[key] = true; } }
+
+        var changedKeys = [];
+        for (key in allKeys) {
+            if (!allKeys.hasOwnProperty(key)) continue;
+            var oldVal = oldConfig ? JSON.stringify(oldConfig[key]) : undefined;
+            var newVal = newConfig ? JSON.stringify(newConfig[key]) : undefined;
+            if (oldVal !== newVal) {
+                changedKeys.push(key);
+            }
+        }
+
+        if (changedKeys.length === 0) return '';
+
+        lines.push('<div class="chat-diff">');
+        lines.push('<div class="chat-diff-title">Config Changes</div>');
+        for (var i = 0; i < changedKeys.length; i++) {
+            key = changedKeys[i];
+            var ov = oldConfig ? oldConfig[key] : undefined;
+            var nv = newConfig ? newConfig[key] : undefined;
+            if (ov !== undefined) {
+                lines.push('<div class="chat-diff-line chat-diff-line--removed">- ' + escapeHtml(key) + ': ' + escapeHtml(JSON.stringify(ov)) + '</div>');
+            }
+            if (nv !== undefined) {
+                lines.push('<div class="chat-diff-line chat-diff-line--added">+ ' + escapeHtml(key) + ': ' + escapeHtml(JSON.stringify(nv)) + '</div>');
+            }
+        }
+        lines.push('</div>');
+        return lines.join('');
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    // Send refinement message
+    chatForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var message = chatInput.value.trim();
+        if (!message || chatIterating) return;
+
+        appendChatMessage('user', escapeHtml(message));
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        chatSendBtn.disabled = true;
+        chatIterating = true;
+
+        showTypingIndicator();
+
+        var data = lastGenerationResult || {};
+        var gameId = data.game_id || data.generation_id;
+        var authToken = sessionStorage.getItem('raku_auth_token');
+        var headers = { 'Content-Type': 'application/json' };
+        if (authToken) {
+            headers['Authorization'] = 'Bearer ' + authToken;
+        }
+
+        var oldConfig = data.raku_config ? JSON.parse(JSON.stringify(data.raku_config)) : null;
+
+        fetch('/api/v1/iterate', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+                game_id: gameId,
+                message: message,
+                current_config: data.raku_config || data
+            })
+        })
+        .then(function(res) {
+            if (res.status === 429) throw new Error('Rate limit reached. Please wait a moment.');
+            if (!res.ok) throw new Error('Request failed (' + res.status + ')');
+            return res.json();
+        })
+        .then(function(response) {
+            removeTypingIndicator();
+            chatIterating = false;
+            chatSendBtn.disabled = chatInput.value.trim().length === 0;
+
+            var assistantText = response.message || response.explanation || 'Updated your game configuration.';
+            var newConfig = response.raku_config || response.updated_config;
+            var diffHtml = '';
+
+            if (newConfig && oldConfig) {
+                diffHtml = buildDiffHtml(oldConfig, newConfig);
+            }
+
+            appendChatMessage('assistant', escapeHtml(assistantText) + diffHtml);
+
+            // Update stored result with new config
+            if (newConfig) {
+                if (lastGenerationResult) {
+                    lastGenerationResult.raku_config = newConfig;
+                } else {
+                    lastGenerationResult = { raku_config: newConfig };
+                }
+                sessionStorage.setItem('raku_last_result', JSON.stringify(lastGenerationResult));
+
+                // Update result page metadata
+                updateResultFromConfig(newConfig);
+            }
+        })
+        .catch(function(err) {
+            removeTypingIndicator();
+            chatIterating = false;
+            chatSendBtn.disabled = chatInput.value.trim().length === 0;
+
+            var errDiv = appendChatMessage('assistant', escapeHtml(err.message || 'Something went wrong.'));
+            errDiv.innerHTML += '<div class="chat-msg-error">Tap to retry</div>';
+            errDiv.style.cursor = 'pointer';
+            errDiv.addEventListener('click', function() {
+                errDiv.parentElement.remove();
+                chatInput.value = message;
+                chatInput.dispatchEvent(new Event('input'));
+            });
+        });
+    });
+
+    // Update result card from new config data
+    function updateResultFromConfig(config) {
+        if (config.title || config.game_title) {
+            resultTitle.textContent = config.title || config.game_title;
+        }
+        if (config.genre) {
+            resultGenreBadge.textContent = config.genre;
+            resultGenre.textContent = config.genre;
+        }
+        if (config.description) {
+            resultDescription.textContent = config.description;
+        }
+        if (config.estimated_play_time || config.play_time) {
+            resultPlaytime.textContent = config.estimated_play_time || config.play_time;
+        }
+        if (config.difficulty) {
+            resultDifficulty.textContent = config.difficulty;
+        }
+        // Bump version
+        var currentVersion = parseInt(resultVersion.textContent.replace('v', ''), 10) || 1;
+        resultVersion.textContent = 'v' + (currentVersion + 1);
+    }
+
+    // --- Refine button opens chat sidebar ---
+    resultRefineBtn.addEventListener('click', function() {
+        openChatSidebar();
+    });
+
+    // --- Share card generator (Canvas API) ---
+    function generateShareCard(title, genre, description, prompt) {
+        var ctx = shareCardCanvas.getContext('2d');
+        var w = 1200, h = 630;
+
+        // Background gradient
+        var grad = ctx.createLinearGradient(0, 0, w, h);
+        grad.addColorStop(0, '#0a0a1a');
+        grad.addColorStop(0.5, '#111128');
+        grad.addColorStop(1, '#0a0a1a');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Accent border top
+        var borderGrad = ctx.createLinearGradient(0, 0, w, 0);
+        borderGrad.addColorStop(0, '#6c5ce7');
+        borderGrad.addColorStop(1, '#00cec9');
+        ctx.fillStyle = borderGrad;
+        ctx.fillRect(0, 0, w, 6);
+
+        // Decorative grid pattern
+        ctx.strokeStyle = 'rgba(108, 92, 231, 0.08)';
+        ctx.lineWidth = 1;
+        for (var gx = 0; gx < w; gx += 60) {
+            ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke();
+        }
+        for (var gy = 0; gy < h; gy += 60) {
+            ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke();
+        }
+
+        // Glow circle behind title area
+        var glowGrad = ctx.createRadialGradient(600, 200, 0, 600, 200, 300);
+        glowGrad.addColorStop(0, 'rgba(108, 92, 231, 0.15)');
+        glowGrad.addColorStop(1, 'rgba(108, 92, 231, 0)');
+        ctx.fillStyle = glowGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Genre badge
+        ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        var badgeText = (genre || 'Game').toUpperCase();
+        var badgeWidth = ctx.measureText(badgeText).width + 32;
+        var badgeX = 80;
+        var badgeY = 80;
+        ctx.fillStyle = 'rgba(108, 92, 231, 0.25)';
+        roundRect(ctx, badgeX, badgeY, badgeWidth, 40, 20);
+        ctx.fill();
+        ctx.fillStyle = '#a388ff';
+        ctx.fillText(badgeText, badgeX + 16, badgeY + 28);
+
+        // Game title
+        ctx.font = 'bold 56px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.fillStyle = '#ffffff';
+        wrapText(ctx, title || 'Untitled Game', 80, 200, w - 160, 64, 2);
+
+        // Description
+        if (description) {
+            ctx.font = '26px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            wrapText(ctx, description, 80, 340, w - 160, 34, 3);
+        }
+
+        // Prompt echo
+        if (prompt) {
+            ctx.font = 'italic 20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+            ctx.fillStyle = 'rgba(163, 136, 255, 0.6)';
+            var promptLine = '"' + (prompt.length > 80 ? prompt.substring(0, 77) + '...' : prompt) + '"';
+            ctx.fillText(promptLine, 80, 470);
+        }
+
+        // Bottom bar
+        ctx.fillStyle = 'rgba(108, 92, 231, 0.12)';
+        ctx.fillRect(0, h - 80, w, 80);
+        ctx.fillStyle = 'rgba(108, 92, 231, 0.3)';
+        ctx.fillRect(0, h - 80, w, 1);
+
+        // Raku logo text
+        ctx.font = 'bold 28px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.fillStyle = '#a388ff';
+        ctx.fillText('\u697D', 80, h - 32);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.fillText('RAKUAI', 116, h - 34);
+
+        // Tagline
+        ctx.font = '20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.fillText('Describe Any Game. Play It Instantly.', 80, h - 10);
+
+        // URL
+        ctx.font = '20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.fillStyle = 'rgba(0, 206, 201, 0.7)';
+        ctx.textAlign = 'right';
+        ctx.fillText('rakuai.com', w - 80, h - 32);
+        ctx.textAlign = 'left';
+
+        return shareCardCanvas;
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+        var words = text.split(' ');
+        var line = '';
+        var lineCount = 0;
+        for (var i = 0; i < words.length; i++) {
+            var testLine = line + words[i] + ' ';
+            var metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && line !== '') {
+                lineCount++;
+                if (lineCount >= maxLines) {
+                    ctx.fillText(line.trim().slice(0, -3) + '...', x, y);
+                    return;
+                }
+                ctx.fillText(line.trim(), x, y);
+                line = words[i] + ' ';
+                y += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line.trim(), x, y);
+    }
+
+    // --- Build share URL with query params ---
+    function buildShareUrl(data) {
+        var config = (data && data.raku_config) || data || {};
+        var gameId = data && data.game_id;
+        var title = config.title || config.game_title || '';
+        var genre = config.genre || '';
+        var desc = config.description || '';
+
+        if (gameId) {
+            return window.location.origin + '/share.html?id=' + encodeURIComponent(gameId);
+        }
+        var params = [];
+        if (title) params.push('title=' + encodeURIComponent(title));
+        if (genre) params.push('genre=' + encodeURIComponent(genre));
+        if (desc) params.push('desc=' + encodeURIComponent(desc.substring(0, 150)));
+        return window.location.origin + '/share.html' + (params.length ? '?' + params.join('&') : '');
+    }
+
+    // --- Share button ---
+    resultShareBtn.addEventListener('click', function() {
+        var data = lastGenerationResult;
+        var config = (data && data.raku_config) || data || {};
+        var title = config.title || config.game_title || 'My Raku Game';
+        var shareUrl = buildShareUrl(data);
+        var shareText = 'Check out "' + title + '" — a game I created with RakuAI!';
+
+        if (navigator.share) {
+            // Generate card for native share
+            var genre = config.genre || '';
+            var desc = config.description || '';
+            generateShareCard(title, genre, desc, lastGenerationPrompt);
+            shareCardCanvas.toBlob(function(blob) {
+                if (blob && navigator.canShare) {
+                    var file = new File([blob], 'raku-game-card.png', { type: 'image/png' });
+                    var shareData = { title: title, text: shareText, url: shareUrl };
+                    if (navigator.canShare({ files: [file] })) {
+                        shareData.files = [file];
+                    }
+                    navigator.share(shareData).catch(function() {});
+                } else {
+                    navigator.share({ title: title, text: shareText, url: shareUrl }).catch(function() {});
+                }
+            }, 'image/png');
+        } else {
+            var temp = document.createElement('textarea');
+            temp.value = shareUrl;
+            temp.style.position = 'fixed';
+            temp.style.opacity = '0';
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+
+            resultShareToast.hidden = false;
+            setTimeout(function() {
+                resultShareToast.hidden = true;
+            }, 2500);
+        }
+    });
+
+    // --- Download Card button ---
+    resultDownloadCardBtn.addEventListener('click', function() {
+        var data = lastGenerationResult;
+        var config = (data && data.raku_config) || data || {};
+        var title = config.title || config.game_title || 'My Raku Game';
+        var genre = config.genre || '';
+        var desc = config.description || '';
+
+        generateShareCard(title, genre, desc, lastGenerationPrompt);
+        shareCardPreview.hidden = false;
+
+        shareCardCanvas.toBlob(function(blob) {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = (title.replace(/[^a-z0-9]/gi, '-').toLowerCase() || 'raku-game') + '-card.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 'image/png');
+    });
+
+    // --- Create another game ---
+    resultNewGameBtn.addEventListener('click', function() {
+        hideResult();
+        textarea.value = '';
+        updateCounter();
+        textarea.focus();
+        document.querySelector('.hero').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // --- SSE-based progress tracking ---
+    function connectSSE(generationId, authToken) {
+        var sseUrl = '/api/v1/generate/' + generationId + '/progress';
+        var headers = {};
+        if (authToken) {
+            // SSE doesn't support custom headers; use query param for auth
+            sseUrl += '?token=' + encodeURIComponent(authToken);
+        }
+
+        currentEventSource = new EventSource(sseUrl);
+
+        currentEventSource.addEventListener('stage', function(e) {
+            var payload;
+            try { payload = JSON.parse(e.data); } catch (_) { return; }
+            handleStageUpdate(payload);
+        });
+
+        currentEventSource.addEventListener('complete', function(e) {
+            var payload;
+            try { payload = JSON.parse(e.data); } catch (_) { payload = {}; }
+            currentEventSource.close();
+            currentEventSource = null;
+            onGenerationComplete(payload);
+        });
+
+        currentEventSource.addEventListener('error_event', function(e) {
+            var payload;
+            try { payload = JSON.parse(e.data); } catch (_) { payload = {}; }
+            currentEventSource.close();
+            currentEventSource = null;
+            showError(payload.message);
+        });
+
+        currentEventSource.onerror = function() {
+            // SSE connection lost — fall back to polling
+            currentEventSource.close();
+            currentEventSource = null;
+            startPolling(generationId, authToken);
+        };
+    }
+
+    // --- Polling fallback ---
+    function startPolling(generationId, authToken) {
+        var pollUrl = '/api/v1/generate/' + generationId + '/status';
+        var headers = { 'Content-Type': 'application/json' };
+        if (authToken) {
+            headers['Authorization'] = 'Bearer ' + authToken;
+        }
+
+        function poll() {
+            fetch(pollUrl, { headers: headers })
+                .then(function(res) {
+                    if (!res.ok) throw new Error('Poll failed');
+                    return res.json();
+                })
+                .then(function(data) {
+                    if (data.stage) {
+                        handleStageUpdate(data);
+                    }
+                    if (data.status === 'complete') {
+                        onGenerationComplete(data);
+                    } else if (data.status === 'error') {
+                        showError(data.message);
+                    } else {
+                        currentPollTimer = setTimeout(poll, 1500);
+                    }
+                })
+                .catch(function() {
+                    showError('Lost connection. Please try again.');
+                });
+        }
+
+        poll();
+    }
+
+    function handleStageUpdate(payload) {
+        var stage = payload.stage;
+        if (stage === 'analyzing') {
+            activateStage(stageAnalyzing);
+        } else if (stage === 'genre_detected') {
+            if (payload.genre) {
+                detectedGenre.textContent = payload.genre;
+            }
+            activateStage(stageGenre);
+        } else if (stage === 'configuring') {
+            activateStage(stageConfiguring);
+        } else if (stage === 'ready') {
+            onGenerationComplete(payload);
+        }
+    }
+
+    // --- Start generation flow ---
+    function startGeneration(requestBody, authToken) {
+        showProgress();
+        activateStage(stageAnalyzing);
+
+        var API_URL = '/api/v1/generate';
+        var headers = { 'Content-Type': 'application/json' };
+        if (authToken) {
+            headers['Authorization'] = 'Bearer ' + authToken;
+        }
+
+        fetch(API_URL, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(requestBody)
+        })
+        .then(function(res) {
+            if (res.status === 409) throw new Error('Account already exists. Try logging in.');
+            if (res.status === 429) throw new Error('Rate limit reached. Please try again later.');
+            if (!res.ok) throw new Error('Request failed (' + res.status + ')');
+            return res.json();
+        })
+        .then(function(data) {
+            if (data.generation_id) {
+                // Backend returned a generation ID — track progress via SSE or polling
+                if (typeof EventSource !== 'undefined') {
+                    connectSSE(data.generation_id, authToken || data.token);
+                } else {
+                    startPolling(data.generation_id, authToken || data.token);
+                }
+            } else if (data.stage) {
+                // Synchronous response with inline stage updates (simple backend)
+                handleStageUpdate(data);
+            } else if (data.raku_config) {
+                // Immediate result (no streaming) — animate through stages
+                animateStagesSequentially(data);
+            } else {
+                showError('Unexpected response from server.');
+            }
+        })
+        .catch(function(err) {
+            showError(err.message || 'Something went wrong. Please try again.');
+        });
+    }
+
+    // --- Animated sequential fallback for non-streaming responses ---
+    function animateStagesSequentially(data) {
+        activateStage(stageAnalyzing);
+
+        setTimeout(function() {
+            var genre = (data.raku_config && data.raku_config.genre) || data.genre || 'Custom';
+            detectedGenre.textContent = genre;
+            activateStage(stageGenre);
+        }, 1500);
+
+        setTimeout(function() {
+            activateStage(stageConfiguring);
+        }, 2500);
+
+        setTimeout(function() {
+            onGenerationComplete(data);
+        }, 4500);
+    }
+
+    // --- Retry button ---
+    progressRetryBtn.addEventListener('click', function() {
+        if (lastGenerationPrompt) {
+            textarea.value = lastGenerationPrompt;
+            updateCounter();
+        }
+        hideProgress();
+        hideResult();
+        textarea.focus();
+        document.querySelector('.hero').scrollIntoView({ behavior: 'smooth' });
+    });
 
     // --- Prompt textarea auto-expand + counter ---
     function autoExpand() {
@@ -392,6 +1331,100 @@
         autoExpand();
         updateCounter();
     });
+
+    // --- Mobile bottom-sheet prompt ---
+    var promptWrapper = document.getElementById('prompt-wrapper');
+    var sheetHandle = document.getElementById('prompt-sheet-handle');
+    var isMobile = function() { return window.innerWidth <= 768; };
+
+    function expandSheet() {
+        promptWrapper.classList.remove('sheet-collapsed');
+    }
+
+    function collapseSheet() {
+        if (isMobile() && document.activeElement !== textarea) {
+            promptWrapper.classList.add('sheet-collapsed');
+        }
+    }
+
+    // On mobile, start collapsed; expand on tap/focus
+    function initMobileSheet() {
+        if (isMobile()) {
+            if (textarea.value.trim().length === 0) {
+                promptWrapper.classList.add('sheet-collapsed');
+            }
+        } else {
+            promptWrapper.classList.remove('sheet-collapsed');
+        }
+    }
+
+    textarea.addEventListener('focus', function() {
+        if (isMobile()) expandSheet();
+    });
+
+    textarea.addEventListener('blur', function() {
+        if (isMobile() && textarea.value.trim().length === 0) {
+            setTimeout(collapseSheet, 200);
+        }
+    });
+
+    if (sheetHandle) {
+        sheetHandle.addEventListener('click', function() {
+            if (promptWrapper.classList.contains('sheet-collapsed')) {
+                expandSheet();
+                textarea.focus();
+            } else {
+                textarea.blur();
+                collapseSheet();
+            }
+        });
+
+        // Touch drag to expand/collapse
+        var touchStartY = 0;
+        sheetHandle.addEventListener('touchstart', function(e) {
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        sheetHandle.addEventListener('touchend', function(e) {
+            var delta = touchStartY - e.changedTouches[0].clientY;
+            if (delta > 30) {
+                expandSheet();
+                textarea.focus();
+            } else if (delta < -30) {
+                textarea.blur();
+                collapseSheet();
+            }
+        }, { passive: true });
+    }
+
+    window.addEventListener('resize', initMobileSheet);
+    initMobileSheet();
+
+    // Hide bottom-sheet when generation starts or result shows
+    var origShowProgress = showProgress;
+    showProgress = function() {
+        if (isMobile()) promptWrapper.style.display = 'none';
+        origShowProgress();
+    };
+
+    var origHideProgress = hideProgress;
+    hideProgress = function() {
+        promptWrapper.style.display = '';
+        origHideProgress();
+    };
+
+    var origShowResult = showResult;
+    showResult = function(data) {
+        if (isMobile()) promptWrapper.style.display = 'none';
+        origShowResult(data);
+    };
+
+    var origHideResult = hideResult;
+    hideResult = function() {
+        promptWrapper.style.display = '';
+        if (isMobile()) initMobileSheet();
+        origHideResult();
+    };
 
     // --- Modal open/close ---
     function openModal() {
@@ -444,7 +1477,7 @@
     // --- Google OAuth ---
     document.getElementById('google-oauth-btn').addEventListener('click', function() {
         // H2.6: will redirect to POST /api/v1/auth/google
-        // For now, store prompt and redirect to Google OAuth consent
+        // Store prompt for post-OAuth generation
         var prompt = textarea.value.trim();
         if (prompt) {
             sessionStorage.setItem('raku_pending_prompt', prompt);
@@ -477,40 +1510,43 @@
             return;
         }
 
-        signupSubmit.disabled = true;
-        signupSubmit.textContent = 'Generating...';
-        signupError.hidden = true;
+        lastGenerationPrompt = prompt;
+        sessionStorage.setItem('raku_last_prompt', prompt);
+        closeModal();
 
-        // POST to backend — register + generate in one call
-        var API_URL = '/api/v1/generate';
-
-        fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email: email,
-                password: password,
-                prompt: prompt,
-                captcha_token: captchaToken
-            })
-        })
-        .then(function(res) {
-            if (res.status === 409) throw new Error('Account already exists. Try logging in.');
-            if (!res.ok) throw new Error('Request failed (' + res.status + ')');
-            return res.json();
-        })
-        .then(function(data) {
-            closeModal();
-            // Phase 3: redirect to game player
-            document.getElementById('quickstart').scrollIntoView({ behavior: 'smooth' });
-        })
-        .catch(function(err) {
-            signupError.textContent = err.message || 'Something went wrong. Please try again.';
-            signupError.hidden = false;
-            signupSubmit.disabled = false;
-            signupSubmit.textContent = 'Generate My Game';
+        // Start generation with progress tracking
+        startGeneration({
+            email: email,
+            password: password,
+            prompt: prompt,
+            captcha_token: captchaToken
         });
     });
+
+    // --- Post-OAuth generation resume ---
+    var pendingPrompt = sessionStorage.getItem('raku_pending_prompt');
+    var authToken = sessionStorage.getItem('raku_auth_token');
+    if (pendingPrompt && authToken) {
+        sessionStorage.removeItem('raku_pending_prompt');
+        lastGenerationPrompt = pendingPrompt;
+        textarea.value = pendingPrompt;
+        updateCounter();
+        autoExpand();
+        startGeneration({ prompt: pendingPrompt }, authToken);
+    }
+
+    // --- Restore result from session (page refresh) ---
+    var storedResult = sessionStorage.getItem('raku_last_result');
+    if (storedResult && !pendingPrompt) {
+        try {
+            var parsed = JSON.parse(storedResult);
+            if (parsed && (parsed.raku_config || parsed.title || parsed.genre)) {
+                lastGenerationResult = parsed;
+                var storedPrompt = sessionStorage.getItem('raku_last_prompt');
+                if (storedPrompt) lastGenerationPrompt = storedPrompt;
+            }
+        } catch (_) {}
+    }
 })();
 </script>
 </body>

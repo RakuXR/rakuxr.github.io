@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Support - RakuAI</title>
+    <meta name="description" content="RakuAI developer support: FAQ, troubleshooting, and contact form.">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .support-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+        .support-container h1 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .support-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+        .support-section {
+            margin-bottom: 48px;
+        }
+        .support-section h2 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: var(--accent-bright);
+        }
+        /* FAQ Accordion */
+        .faq-item {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        .faq-question {
+            padding: 16px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+        .faq-question:hover { background: rgba(108, 92, 231, 0.05); }
+        .faq-question .arrow {
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+            color: var(--accent-bright);
+        }
+        .faq-item.open .faq-question .arrow { transform: rotate(180deg); }
+        .faq-answer {
+            display: none;
+            padding: 0 20px 16px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        .faq-item.open .faq-answer { display: block; }
+        .faq-answer code {
+            background: rgba(108, 92, 231, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 0.85rem;
+            color: var(--accent-bright);
+        }
+        /* Troubleshooting */
+        .troubleshoot-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+        .troubleshoot-card h4 {
+            color: #ff6b6b;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+        .troubleshoot-card .solution {
+            color: var(--success);
+            font-weight: 600;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+        .troubleshoot-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        /* Contact Form */
+        .contact-form {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 12px;
+            padding: 32px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-field {
+            margin-bottom: 16px;
+        }
+        .form-field label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+        .form-field input, .form-field select, .form-field textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-primary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+        .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-field textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .btn-send {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 12px 32px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-send:hover { background: var(--accent-bright); }
+        .community-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .community-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            text-decoration: none;
+            transition: border-color 0.2s;
+        }
+        .community-card:hover { border-color: var(--accent); }
+        .community-card .icon { font-size: 1.8rem; margin-bottom: 8px; }
+        .community-card h4 { font-size: 1rem; margin-bottom: 4px; color: var(--text-primary); }
+        .community-card p { font-size: 0.85rem; color: var(--text-secondary); }
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> Now Available — Describe Any Game. Play It Instantly. | <a href="../index.html#create">Try RakuAI Now →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">™</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../sdk.html">SDK</a>
+            <a href="../docs.html">Docs</a>
+            <a href="../templates.html">Templates</a>
+            <a href="../pricing.html">Pricing</a>
+            <a href="index.html" class="active">Developers</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="../index.html#create" class="nav-cta">Start Creating</a>
+        </div>
+    </div>
+</nav>
+
+<div class="support-container">
+    <h1>Developer Support</h1>
+    <p class="subtitle">Find answers, troubleshoot issues, and get in touch with the RakuAI team.</p>
+
+    <!-- FAQ -->
+    <div class="support-section">
+        <h2>Frequently Asked Questions</h2>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>How do I get an API key?</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                <a href="register.html" style="color: var(--accent-bright);">Accept the developer NDA</a>, then go to the <a href="dashboard.html" style="color: var(--accent-bright);">dashboard</a> to create API keys. You can create up to 5 active keys with different scopes (read, generate, full).
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>What game genres are supported?</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                RakuAI supports 13 genres: Platformer, Space Shooter, RPG (top-down, turn-based, action), Puzzle, Visual Novel, Tower Defense, Endless Runner, Card Game, Fighting, Racing, Simulation, Sandbox, and a Custom fallback for novel concepts.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>What is a .raku config file?</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                A <code>.raku</code> config is a JSON document that fully describes a game: title, genre, entities, scenes, rendering settings, audio, XR configuration, and AI parameters. The Raku runtime engine loads this config to run the game.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>What are the rate limits?</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                Free tier: 10 generations/day, 30 iterations/day. Pro tier: 100 generations/day, 500 iterations/day. Enterprise: unlimited. Exceeded limits return HTTP 429 with a <code>Retry-After</code> header. See <a href="docs.html#rate-limits" style="color: var(--accent-bright);">rate limits documentation</a>.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Can I use RakuAI in a commercial product?</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                Yes, games generated with RakuAI can be used commercially. The generated <code>.raku</code> configs are yours. However, the SDK and API are covered by the developer NDA, and the Raku runtime engine requires a valid license for distribution.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Does generation use AI? How is this disclosed?</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                Yes, game configurations are generated by Claude (Anthropic). Every generated config includes an <code>ai_disclosure</code> section that documents which systems used AI, what guardrails were applied, and whether content was live-generated or pre-generated.
+            </div>
+        </div>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="support-section">
+        <h2>Troubleshooting</h2>
+
+        <div class="troubleshoot-card">
+            <h4>401 Unauthorized</h4>
+            <p>Your API key or JWT token is missing, expired, or invalid.</p>
+            <div class="solution">Check your <code>Authorization: Bearer &lt;token&gt;</code> header. Regenerate a key from the dashboard if needed.</div>
+        </div>
+
+        <div class="troubleshoot-card">
+            <h4>403 Developer Access Required</h4>
+            <p>You're trying to access developer endpoints without NDA acceptance.</p>
+            <div class="solution">Visit <a href="register.html" style="color: var(--success);">the registration page</a> to accept the developer NDA first.</div>
+        </div>
+
+        <div class="troubleshoot-card">
+            <h4>422 Validation Error</h4>
+            <p>The request body is missing required fields or has invalid values.</p>
+            <div class="solution">Check the response <code>detail</code> field for specifics. Ensure <code>prompt</code> is 1-500 chars for /generate.</div>
+        </div>
+
+        <div class="troubleshoot-card">
+            <h4>429 Too Many Requests</h4>
+            <p>You've exceeded your tier's rate limit.</p>
+            <div class="solution">Check the <code>Retry-After</code> header for when to retry. Upgrade your tier for higher limits.</div>
+        </div>
+
+        <div class="troubleshoot-card">
+            <h4>503 Service Unavailable</h4>
+            <p>The LLM service is temporarily unavailable (API timeout or capacity).</p>
+            <div class="solution">Retry after a few seconds. The system has automatic retry logic (3 attempts with backoff).</div>
+        </div>
+    </div>
+
+    <!-- Community -->
+    <div class="support-section">
+        <h2>Community</h2>
+        <div class="community-links">
+            <a href="https://github.com/RakuXR" class="community-card" target="_blank">
+                <div class="icon">&#x1F4BB;</div>
+                <h4>GitHub</h4>
+                <p>Source code, issues, discussions</p>
+            </a>
+            <a href="https://discord.gg/rakuai" class="community-card" target="_blank">
+                <div class="icon">&#x1F4AC;</div>
+                <h4>Discord</h4>
+                <p>Real-time chat with developers</p>
+            </a>
+            <a href="https://www.linkedin.com/company/rakuai" class="community-card" target="_blank">
+                <div class="icon">&#x1F4E2;</div>
+                <h4>LinkedIn</h4>
+                <p>Updates and announcements</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="support-section">
+        <h2>Contact Us</h2>
+        <div class="contact-form">
+            <div class="form-row">
+                <div class="form-field">
+                    <label for="contactName">Name</label>
+                    <input type="text" id="contactName" placeholder="Your name">
+                </div>
+                <div class="form-field">
+                    <label for="contactEmail">Email</label>
+                    <input type="email" id="contactEmail" placeholder="you@example.com">
+                </div>
+            </div>
+            <div class="form-field">
+                <label for="contactCategory">Category</label>
+                <select id="contactCategory">
+                    <option value="bug">Bug Report</option>
+                    <option value="feature">Feature Request</option>
+                    <option value="api">API Question</option>
+                    <option value="account">Account Issue</option>
+                    <option value="showcase">Submit to Showcase</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label for="contactMessage">Message</label>
+                <textarea id="contactMessage" placeholder="Describe your question or issue..."></textarea>
+            </div>
+            <button class="btn-send" onclick="sendContact()">Send Message</button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            <a href="../docs.html">Documentation</a>
+            <a href="../privacy.html">Privacy</a>
+            <a href="../terms.html">Terms</a>
+            <a href="../contact.html">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Patent-protected technology.</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+<script>
+    function toggleFaq(el) {
+        el.parentElement.classList.toggle('open');
+    }
+
+    function sendContact() {
+        const name = document.getElementById('contactName').value.trim();
+        const email = document.getElementById('contactEmail').value.trim();
+        const message = document.getElementById('contactMessage').value.trim();
+
+        if (!name || !email || !message) {
+            alert('Please fill in all required fields.');
+            return;
+        }
+
+        // In production, this would POST to the backend
+        alert('Thank you! Your message has been received. We\'ll get back to you within 24 hours.');
+        document.getElementById('contactName').value = '';
+        document.getElementById('contactEmail').value = '';
+        document.getElementById('contactMessage').value = '';
+    }
+</script>
+
+</body>
+</html>
