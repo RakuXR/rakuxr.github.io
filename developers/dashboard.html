@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Dashboard - RakuAI</title>
+    <meta name="description" content="Manage your API keys, view usage analytics, and download the RakuAI SDK.">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .dash-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            min-height: 70vh;
+        }
+        .dash-sidebar {
+            border-right: 1px solid rgba(108, 92, 231, 0.15);
+            padding-right: 24px;
+        }
+        .dash-sidebar a {
+            display: block;
+            padding: 10px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .dash-sidebar a:hover, .dash-sidebar a.active {
+            background: rgba(108, 92, 231, 0.1);
+            color: var(--accent-bright);
+        }
+        .dash-main { min-width: 0; }
+        .dash-section {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .dash-section h2 {
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+            color: var(--accent-bright);
+        }
+        .dash-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+        .key-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .key-table th {
+            text-align: left;
+            padding: 10px 12px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(108, 92, 231, 0.15);
+        }
+        .key-table td {
+            padding: 12px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .key-prefix {
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            color: var(--text-primary);
+        }
+        .scope-badge {
+            display: inline-block;
+            background: rgba(108, 92, 231, 0.2);
+            color: var(--accent-bright);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+        .status-active {
+            color: var(--success);
+            font-weight: 600;
+        }
+        .status-revoked {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
+        .btn-revoke {
+            background: none;
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+        }
+        .btn-revoke:hover { background: rgba(255, 107, 107, 0.1); }
+        .create-key-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .create-key-form .field {
+            flex: 1;
+            min-width: 150px;
+        }
+        .create-key-form label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .create-key-form input, .create-key-form select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-primary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        .create-key-form input:focus, .create-key-form select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .btn-create {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        .btn-create:hover { background: var(--accent-bright); }
+        .new-key-alert {
+            display: none;
+            background: rgba(0, 206, 201, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .new-key-alert .key-value {
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            background: var(--bg-primary);
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: block;
+            margin: 8px 0;
+            word-break: break-all;
+            color: var(--success);
+        }
+        .new-key-alert .warning {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        /* Analytics */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .analytics-card {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .analytics-card .metric {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-bright);
+        }
+        .analytics-card .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .auth-gate {
+            text-align: center;
+            padding: 80px 24px;
+        }
+        .auth-gate h2 { margin-bottom: 16px; }
+        .auth-gate p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        @media (max-width: 768px) {
+            .dash-layout {
+                grid-template-columns: 1fr;
+            }
+            .dash-sidebar {
+                border-right: none;
+                border-bottom: 1px solid rgba(108, 92, 231, 0.15);
+                padding-right: 0;
+                padding-bottom: 16px;
+                display: flex;
+                gap: 8px;
+                overflow-x: auto;
+            }
+            .dash-sidebar a { white-space: nowrap; }
+            .create-key-form { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> Now Available — Describe Any Game. Play It Instantly. | <a href="../index.html#create">Try RakuAI Now →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">™</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../sdk.html">SDK</a>
+            <a href="../docs.html">Docs</a>
+            <a href="../templates.html">Templates</a>
+            <a href="../pricing.html">Pricing</a>
+            <a href="index.html" class="active">Developers</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="../index.html#create" class="nav-cta">Start Creating</a>
+        </div>
+    </div>
+</nav>
+
+<div id="authGate" class="auth-gate" style="display: none;">
+    <h2>Developer Dashboard</h2>
+    <p>Please log in and accept the developer NDA to access the dashboard.</p>
+    <a href="register.html" class="btn-create" style="display: inline-block; padding: 14px 32px; text-decoration: none;">Request Access</a>
+</div>
+
+<div id="dashboardContent" class="dash-layout">
+    <aside class="dash-sidebar">
+        <a href="#keys" class="active" onclick="showSection('keys')">API Keys</a>
+        <a href="#analytics" onclick="showSection('analytics')">Analytics</a>
+        <a href="sdk.html">SDK Downloads</a>
+        <a href="docs.html">Documentation</a>
+        <a href="showcase.html">Showcase</a>
+        <a href="support.html">Support</a>
+    </aside>
+
+    <main class="dash-main">
+        <!-- API Keys Section -->
+        <div id="section-keys">
+            <div class="dash-section">
+                <h2>Create API Key</h2>
+                <div class="create-key-form">
+                    <div class="field">
+                        <label for="keyLabel">Label</label>
+                        <input type="text" id="keyLabel" placeholder="e.g. Production App" maxlength="100">
+                    </div>
+                    <div class="field">
+                        <label for="keyScope">Scope</label>
+                        <select id="keyScope">
+                            <option value="read">Read Only</option>
+                            <option value="generate" selected>Generate</option>
+                            <option value="full">Full Access</option>
+                        </select>
+                    </div>
+                    <button class="btn-create" onclick="createKey()">Create Key</button>
+                </div>
+
+                <div class="new-key-alert" id="newKeyAlert">
+                    <strong>New API Key Created</strong>
+                    <span class="key-value" id="newKeyValue"></span>
+                    <button class="btn-create" onclick="copyKey()" style="margin-right: 8px;">Copy to Clipboard</button>
+                    <p class="warning">Save this key now. It will not be shown again.</p>
+                </div>
+            </div>
+
+            <div class="dash-section">
+                <h2>Your API Keys</h2>
+                <table class="key-table">
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Label</th>
+                            <th>Scopes</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="keysTableBody">
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 24px;">No API keys yet. Create one above.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div id="section-analytics" style="display: none;">
+            <div class="dash-section">
+                <h2>Usage Analytics</h2>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <div class="metric" id="metricTotalCalls">0</div>
+                        <div class="metric-label">Total Calls</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="metric" id="metricErrorRate">0%</div>
+                        <div class="metric-label">Error Rate</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="metric" id="metricAvgLatency">0ms</div>
+                        <div class="metric-label">Avg Latency</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="metric" id="metricTokensIn">0</div>
+                        <div class="metric-label">Input Tokens</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="metric" id="metricTokensOut">0</div>
+                        <div class="metric-label">Output Tokens</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-section">
+                <h3>Calls by Action</h3>
+                <div id="callsByAction" style="color: var(--text-secondary);">Loading...</div>
+            </div>
+
+            <div class="dash-section">
+                <h3>Daily Activity</h3>
+                <div id="dailyActivity" style="color: var(--text-secondary);">Loading...</div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            <a href="../docs.html">Documentation</a>
+            <a href="../privacy.html">Privacy</a>
+            <a href="../terms.html">Terms</a>
+            <a href="../contact.html">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Patent-protected technology.</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+<script>
+    const API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
+    let currentNewKey = '';
+
+    function getToken() {
+        return localStorage.getItem('raku_access_token');
+    }
+
+    function authHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`,
+        };
+    }
+
+    function showSection(name) {
+        document.getElementById('section-keys').style.display = name === 'keys' ? 'block' : 'none';
+        document.getElementById('section-analytics').style.display = name === 'analytics' ? 'block' : 'none';
+        document.querySelectorAll('.dash-sidebar a').forEach(a => a.classList.remove('active'));
+        document.querySelector(`.dash-sidebar a[href="#${name}"]`).classList.add('active');
+        if (name === 'analytics') loadAnalytics();
+    }
+
+    async function createKey() {
+        const label = document.getElementById('keyLabel').value.trim();
+        const scope = document.getElementById('keyScope').value;
+        if (!label) { alert('Please enter a label for your key.'); return; }
+
+        try {
+            const resp = await fetch(`${API_BASE}/api/v1/developer/keys`, {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ label: label, scopes: [scope] }),
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                currentNewKey = data.raw_key;
+                document.getElementById('newKeyValue').textContent = data.raw_key;
+                document.getElementById('newKeyAlert').style.display = 'block';
+                document.getElementById('keyLabel').value = '';
+                loadKeys();
+            } else {
+                const err = await resp.json();
+                alert(err.detail || 'Failed to create key.');
+            }
+        } catch { alert('Network error. Please try again.'); }
+    }
+
+    function copyKey() {
+        navigator.clipboard.writeText(currentNewKey).then(() => {
+            alert('Key copied to clipboard!');
+        });
+    }
+
+    async function loadKeys() {
+        try {
+            const resp = await fetch(`${API_BASE}/api/v1/developer/keys`, { headers: authHeaders() });
+            if (!resp.ok) return;
+            const keys = await resp.json();
+            const tbody = document.getElementById('keysTableBody');
+            if (keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 24px;">No API keys yet. Create one above.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = keys.map(k => `
+                <tr>
+                    <td><span class="key-prefix">${k.key_prefix}</span></td>
+                    <td>${k.label}</td>
+                    <td>${k.scopes.map(s => `<span class="scope-badge">${s}</span>`).join('')}</td>
+                    <td><span class="${k.is_active ? 'status-active' : 'status-revoked'}">${k.is_active ? 'Active' : 'Revoked'}</span></td>
+                    <td style="font-size:0.85rem;color:var(--text-secondary)">${new Date(k.created_at).toLocaleDateString()}</td>
+                    <td>${k.is_active ? `<button class="btn-revoke" onclick="revokeKey('${k.id}')">Revoke</button>` : ''}</td>
+                </tr>
+            `).join('');
+        } catch {}
+    }
+
+    async function revokeKey(keyId) {
+        if (!confirm('Are you sure you want to revoke this key? This cannot be undone.')) return;
+        try {
+            const resp = await fetch(`${API_BASE}/api/v1/developer/keys/${keyId}`, {
+                method: 'DELETE',
+                headers: authHeaders(),
+            });
+            if (resp.ok) loadKeys();
+            else alert('Failed to revoke key.');
+        } catch { alert('Network error.'); }
+    }
+
+    async function loadAnalytics() {
+        try {
+            const resp = await fetch(`${API_BASE}/api/v1/developer/analytics?days=30`, { headers: authHeaders() });
+            if (!resp.ok) return;
+            const data = await resp.json();
+            document.getElementById('metricTotalCalls').textContent = data.total_calls.toLocaleString();
+            document.getElementById('metricErrorRate').textContent = (data.error_rate * 100).toFixed(1) + '%';
+            document.getElementById('metricAvgLatency').textContent = data.avg_latency_ms + 'ms';
+            document.getElementById('metricTokensIn').textContent = data.total_tokens_in.toLocaleString();
+            document.getElementById('metricTokensOut').textContent = data.total_tokens_out.toLocaleString();
+
+            const actions = data.calls_by_action;
+            const actionsHtml = Object.keys(actions).length > 0
+                ? Object.entries(actions).map(([action, count]) =>
+                    `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+                        <span>${action}</span><span style="color:var(--accent-bright);font-weight:600">${count}</span>
+                    </div>`
+                ).join('')
+                : '<p>No API calls recorded yet.</p>';
+            document.getElementById('callsByAction').innerHTML = actionsHtml;
+
+            const daily = data.daily_calls;
+            const dailyHtml = daily.length > 0
+                ? daily.map(d =>
+                    `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+                        <span>${d.date}</span><span style="color:var(--accent-bright);font-weight:600">${d.count}</span>
+                    </div>`
+                ).join('')
+                : '<p>No activity recorded yet.</p>';
+            document.getElementById('dailyActivity').innerHTML = dailyHtml;
+        } catch {}
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = getToken();
+        if (!token) {
+            document.getElementById('authGate').style.display = 'block';
+            document.getElementById('dashboardContent').style.display = 'none';
+        } else {
+            loadKeys();
+            if (window.location.hash === '#analytics') showSection('analytics');
+        }
+    });
+</script>
+
+</body>
+</html>

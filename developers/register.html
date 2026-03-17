@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Registration - RakuAI</title>
+    <meta name="description" content="Register for RakuAI developer access. Accept the NDA and get your API key.">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .register-container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+        .register-container h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .register-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        .nda-box {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 32px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        .nda-box h3 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+        .nda-box h4 {
+            color: var(--accent-bright);
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+        .nda-box ol, .nda-box ul {
+            padding-left: 24px;
+            margin-bottom: 12px;
+        }
+        .nda-box li {
+            margin-bottom: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+        .checkbox-group label {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+        .btn-register {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-register:hover { background: var(--accent-bright); }
+        .btn-register:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .register-success {
+            display: none;
+            text-align: center;
+            padding: 48px 24px;
+        }
+        .register-success h2 {
+            color: var(--success);
+            font-size: 1.8rem;
+            margin-bottom: 16px;
+        }
+        .register-success p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+        .register-form { display: block; }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .step.active { color: var(--accent-bright); }
+        .step.done { color: var(--success); }
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> Now Available — Describe Any Game. Play It Instantly. | <a href="../index.html#create">Try RakuAI Now →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">™</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../sdk.html">SDK</a>
+            <a href="../docs.html">Docs</a>
+            <a href="../templates.html">Templates</a>
+            <a href="../pricing.html">Pricing</a>
+            <a href="index.html" class="active">Developers</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="../index.html#create" class="nav-cta">Start Creating</a>
+        </div>
+    </div>
+</nav>
+
+<div class="register-container">
+    <div class="step-indicator">
+        <div class="step active" id="step1-indicator"><span class="step-num">1</span> Read NDA</div>
+        <div class="step" id="step2-indicator"><span class="step-num">2</span> Accept & Register</div>
+        <div class="step" id="step3-indicator"><span class="step-num">3</span> Get API Key</div>
+    </div>
+
+    <div class="register-form" id="registerForm">
+        <h1>Developer Access</h1>
+        <p class="subtitle">Review the NDA below, then register to receive your API key.</p>
+
+        <div class="nda-box" id="ndaBox">
+            <h3>RakuAI Developer Non-Disclosure Agreement</h3>
+            <p><strong>Effective Date:</strong> Upon acceptance</p>
+
+            <h4>1. Definitions</h4>
+            <p>"Confidential Information" means any non-public technical information, documentation, API specifications, SDK source code, game configuration schemas (.raku format), and proprietary algorithms provided through the RakuAI Developer Program.</p>
+
+            <h4>2. Obligations</h4>
+            <ol>
+                <li>You agree to keep all Confidential Information strictly confidential.</li>
+                <li>You will not reverse-engineer, decompile, or disassemble any RakuAI software, SDK, or runtime binaries.</li>
+                <li>You will not share API keys, SDK builds, or internal documentation with unauthorized parties.</li>
+                <li>You will use the developer tools solely for developing applications that integrate with the RakuAI platform.</li>
+            </ol>
+
+            <h4>3. Permitted Uses</h4>
+            <ul>
+                <li>Building applications and games using the RakuAI API</li>
+                <li>Sharing publicly available documentation with your development team</li>
+                <li>Publishing games created with RakuAI (with appropriate AI disclosure)</li>
+                <li>Providing feedback and bug reports to the RakuAI team</li>
+            </ul>
+
+            <h4>4. Duration</h4>
+            <p>This agreement remains in effect for the duration of your participation in the Developer Program and for two (2) years following termination.</p>
+
+            <h4>5. Termination</h4>
+            <p>Either party may terminate this agreement with 30 days written notice. Upon termination, you must destroy all Confidential Information in your possession.</p>
+
+            <h4>6. Governing Law</h4>
+            <p>This agreement is governed by the laws of the State of Delaware, United States.</p>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="ndaAccept">
+            <label for="ndaAccept">I have read and agree to the RakuAI Developer Non-Disclosure Agreement. I understand that violation of this agreement may result in revocation of developer access and legal action.</label>
+        </div>
+
+        <button class="btn-register" id="submitBtn" disabled onclick="handleRegister()">Accept NDA & Request Access</button>
+    </div>
+
+    <div class="register-success" id="registerSuccess">
+        <h2>Welcome, Developer!</h2>
+        <p>Your developer access has been provisioned. You can now create API keys and start building with the RakuAI API.</p>
+        <a href="dashboard.html" class="btn-register" style="display: inline-block; width: auto; padding: 14px 36px; text-decoration: none;">Go to Dashboard</a>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            <a href="../docs.html">Documentation</a>
+            <a href="../privacy.html">Privacy</a>
+            <a href="../terms.html">Terms</a>
+            <a href="../contact.html">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Patent-protected technology.</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+<script>
+    const ndaCheckbox = document.getElementById('ndaAccept');
+    const submitBtn = document.getElementById('submitBtn');
+
+    ndaCheckbox.addEventListener('change', function() {
+        submitBtn.disabled = !this.checked;
+    });
+
+    async function handleRegister() {
+        const token = localStorage.getItem('raku_access_token');
+        if (!token) {
+            alert('Please log in first to request developer access.');
+            window.location.href = '../index.html#create';
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
+
+        try {
+            const API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
+            const response = await fetch(`${API_BASE}/api/v1/developer/nda`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ accept: true }),
+            });
+
+            if (response.ok) {
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('registerSuccess').style.display = 'block';
+                document.getElementById('step1-indicator').classList.remove('active');
+                document.getElementById('step1-indicator').classList.add('done');
+                document.getElementById('step2-indicator').classList.remove('active');
+                document.getElementById('step2-indicator').classList.add('done');
+                document.getElementById('step3-indicator').classList.add('active');
+            } else {
+                const data = await response.json();
+                alert(data.detail || 'Registration failed. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Accept NDA & Request Access';
+            }
+        } catch {
+            alert('Network error. Please check your connection and try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Accept NDA & Request Access';
+        }
+    }
+</script>
+
+</body>
+</html>
