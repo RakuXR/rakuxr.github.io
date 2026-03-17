@@ -148,6 +148,18 @@
 </footer>
 
 <script>
+/* RakuAI API base URL config (J.2) */
+var RAKU_API_BASE = (function() {
+    if (typeof window.RAKU_API_BASE === 'string') return window.RAKU_API_BASE;
+    var meta = document.querySelector('meta[name="raku-api-base"]');
+    if (meta && meta.content) return meta.content;
+    var host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8000';
+    if (host === 'staging.rakuai.com') return 'https://raku-backend-staging.fly.dev';
+    if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://raku-backend.fly.dev';
+    return '';
+})();
+
 (function() {
     var authGate = document.getElementById('mygames-auth-gate');
     var dashboard = document.getElementById('mygames-dashboard');
@@ -181,7 +193,7 @@
         grid.innerHTML = '';
         emptyState.hidden = true;
 
-        fetch('/api/v1/games', {
+        fetch(RAKU_API_BASE + '/api/v1/games', {
             headers: {
                 'Authorization': 'Bearer ' + authToken,
                 'Content-Type': 'application/json'

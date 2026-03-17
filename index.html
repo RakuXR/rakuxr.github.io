@@ -518,6 +518,32 @@
 <div id="chat-sidebar-overlay" class="chat-sidebar-overlay" hidden></div>
 
 <script>
+/**
+ * RakuAI Configuration (J.2)
+ * Set RAKU_API_BASE to point to the backend API.
+ * - Production: https://raku-backend.fly.dev
+ * - Staging: https://raku-backend-staging.fly.dev
+ * - Local dev: http://localhost:8000
+ * - Same-origin (default): '' (empty string)
+ *
+ * Override via: <meta name="raku-api-base" content="https://...">
+ * or set window.RAKU_API_BASE before this script loads.
+ */
+var RAKU_API_BASE = (function() {
+    // Priority 1: window global (set by hosting environment)
+    if (typeof window.RAKU_API_BASE === 'string') return window.RAKU_API_BASE;
+    // Priority 2: meta tag
+    var meta = document.querySelector('meta[name="raku-api-base"]');
+    if (meta && meta.content) return meta.content;
+    // Priority 3: detect environment from hostname
+    var host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8000';
+    if (host === 'staging.rakuai.com') return 'https://raku-backend-staging.fly.dev';
+    if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://raku-backend.fly.dev';
+    // Default: same-origin (relative URLs)
+    return '';
+})();
+
 (function() {
     var textarea = document.getElementById('prompt-input');
     var charCount = document.getElementById('char-count');
@@ -830,7 +856,7 @@
 
         var oldConfig = data.raku_config ? JSON.parse(JSON.stringify(data.raku_config)) : null;
 
-        fetch('/api/v1/iterate', {
+        fetch(RAKU_API_BASE + '/api/v1/iterate', {
             method: 'POST',
             headers: headers,
             body: JSON.stringify({
@@ -1145,7 +1171,7 @@
 
     // --- SSE-based progress tracking ---
     function connectSSE(generationId, authToken) {
-        var sseUrl = '/api/v1/generate/' + generationId + '/progress';
+        var sseUrl = RAKU_API_BASE + '/api/v1/generate/' + generationId + '/progress';
         var headers = {};
         if (authToken) {
             // SSE doesn't support custom headers; use query param for auth
@@ -1186,7 +1212,7 @@
 
     // --- Polling fallback ---
     function startPolling(generationId, authToken) {
-        var pollUrl = '/api/v1/generate/' + generationId + '/status';
+        var pollUrl = RAKU_API_BASE + '/api/v1/generate/' + generationId + '/status';
         var headers = { 'Content-Type': 'application/json' };
         if (authToken) {
             headers['Authorization'] = 'Bearer ' + authToken;
@@ -1239,7 +1265,7 @@
         showProgress();
         activateStage(stageAnalyzing);
 
-        var API_URL = '/api/v1/generate';
+        var API_URL = RAKU_API_BASE + '/api/v1/generate';
         var headers = { 'Content-Type': 'application/json' };
         if (authToken) {
             headers['Authorization'] = 'Bearer ' + authToken;
