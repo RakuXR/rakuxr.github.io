@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Showcase - RakuAI Developers</title>
+    <meta name="description" content="Explore sample projects and community creations built with the RakuAI API.">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .showcase-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+        .showcase-container h1 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .showcase-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        .showcase-filters {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+        .filter-btn {
+            background: rgba(108, 92, 231, 0.1);
+            color: var(--text-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+        .showcase-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .showcase-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+        }
+        .showcase-thumb {
+            height: 180px;
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+        .showcase-body {
+            padding: 20px;
+        }
+        .showcase-body h3 {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+        }
+        .showcase-body .genre-tag {
+            display: inline-block;
+            background: rgba(108, 92, 231, 0.2);
+            color: var(--accent-bright);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .showcase-body .lang-tag {
+            display: inline-block;
+            background: rgba(0, 206, 201, 0.15);
+            color: var(--success);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+        .showcase-body p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        .showcase-body .author {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .showcase-body .author strong {
+            color: var(--text-primary);
+        }
+        .showcase-links {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .showcase-links a {
+            color: var(--accent-bright);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .showcase-links a:hover { text-decoration: underline; }
+        .submit-cta {
+            text-align: center;
+            padding: 48px 24px;
+            margin-top: 48px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+        }
+        .submit-cta h2 { margin-bottom: 8px; }
+        .submit-cta p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        .btn-submit {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-submit:hover { background: var(--accent-bright); }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> Now Available — Describe Any Game. Play It Instantly. | <a href="../index.html#create">Try RakuAI Now →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">™</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../sdk.html">SDK</a>
+            <a href="../docs.html">Docs</a>
+            <a href="../templates.html">Templates</a>
+            <a href="../pricing.html">Pricing</a>
+            <a href="index.html" class="active">Developers</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="../index.html#create" class="nav-cta">Start Creating</a>
+        </div>
+    </div>
+</nav>
+
+<div class="showcase-container">
+    <h1>Sample Projects</h1>
+    <p class="subtitle">Explore official examples and community projects built with the RakuAI API.</p>
+
+    <div class="showcase-filters">
+        <button class="filter-btn active" onclick="filterShowcase('all', this)">All</button>
+        <button class="filter-btn" onclick="filterShowcase('platformer', this)">Platformer</button>
+        <button class="filter-btn" onclick="filterShowcase('rpg', this)">RPG</button>
+        <button class="filter-btn" onclick="filterShowcase('puzzle', this)">Puzzle</button>
+        <button class="filter-btn" onclick="filterShowcase('space_shooter', this)">Space Shooter</button>
+        <button class="filter-btn" onclick="filterShowcase('python', this)">Python</button>
+        <button class="filter-btn" onclick="filterShowcase('javascript', this)">JavaScript</button>
+    </div>
+
+    <div class="showcase-grid" id="showcaseGrid">
+        <!-- Official: Quick Start -->
+        <div class="showcase-card" data-genre="platformer" data-lang="python">
+            <div class="showcase-thumb" style="background: linear-gradient(135deg, #6c5ce7 0%, #00cec9 100%);">&#x1F3AE;</div>
+            <div class="showcase-body">
+                <h3>Quick Start — Cloud Jumper</h3>
+                <span class="genre-tag">Platformer</span>
+                <span class="lang-tag">Python</span>
+                <p>The official getting-started example. Generates a platformer, iterates to add power-ups, and saves the .raku config.</p>
+                <div class="author">By <strong>RakuAI Team</strong> (Official)</div>
+                <div class="showcase-links">
+                    <a href="docs.html#quickstart">View Tutorial</a>
+                    <a href="https://github.com/RakuXR/examples/tree/main/quickstart" target="_blank">Source Code</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Official: Batch Generator -->
+        <div class="showcase-card" data-genre="puzzle" data-lang="python">
+            <div class="showcase-thumb" style="background: linear-gradient(135deg, #0d0d2b 0%, #6c5ce7 100%);">&#x1F9E9;</div>
+            <div class="showcase-body">
+                <h3>Batch Game Generator</h3>
+                <span class="genre-tag">Multi-Genre</span>
+                <span class="lang-tag">Python</span>
+                <p>Generate games from a CSV of prompts. Demonstrates async batch processing, error handling, and cost tracking.</p>
+                <div class="author">By <strong>RakuAI Team</strong> (Official)</div>
+                <div class="showcase-links">
+                    <a href="https://github.com/RakuXR/examples/tree/main/batch-generator" target="_blank">Source Code</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Official: Streaming Demo -->
+        <div class="showcase-card" data-genre="rpg" data-lang="javascript">
+            <div class="showcase-thumb" style="background: linear-gradient(135deg, #111128 0%, #a388ff 100%);">&#x2694;&#xFE0F;</div>
+            <div class="showcase-body">
+                <h3>Streaming Progress UI</h3>
+                <span class="genre-tag">RPG</span>
+                <span class="lang-tag">JavaScript</span>
+                <p>React component showing real-time generation progress using SSE. Displays stage transitions and partial config.</p>
+                <div class="author">By <strong>RakuAI Team</strong> (Official)</div>
+                <div class="showcase-links">
+                    <a href="https://github.com/RakuXR/examples/tree/main/streaming-ui" target="_blank">Source Code</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Community: Discord Bot -->
+        <div class="showcase-card" data-genre="space_shooter" data-lang="javascript">
+            <div class="showcase-thumb" style="background: linear-gradient(135deg, #0a0a1a 0%, #00cec9 100%);">&#x1F680;</div>
+            <div class="showcase-body">
+                <h3>Discord Game Bot</h3>
+                <span class="genre-tag">Space Shooter</span>
+                <span class="lang-tag">JavaScript</span>
+                <p>A Discord bot that generates games from slash commands. Users type /create followed by a game description.</p>
+                <div class="author">By <strong>Community</strong></div>
+                <div class="showcase-links">
+                    <a href="https://github.com/RakuXR/examples/tree/main/discord-bot" target="_blank">Source Code</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Community: Config Visualizer -->
+        <div class="showcase-card" data-genre="puzzle" data-lang="javascript">
+            <div class="showcase-thumb" style="background: linear-gradient(135deg, #1a1a3a 0%, #6c5ce7 100%);">&#x1F50D;</div>
+            <div class="showcase-body">
+                <h3>.raku Config Visualizer</h3>
+                <span class="genre-tag">Tool</span>
+                <span class="lang-tag">JavaScript</span>
+                <p>Interactive web tool that renders .raku config files as visual scene graphs with entity relationship diagrams.</p>
+                <div class="author">By <strong>Community</strong></div>
+                <div class="showcase-links">
+                    <a href="https://github.com/RakuXR/examples/tree/main/config-visualizer" target="_blank">Source Code</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Community: Classroom -->
+        <div class="showcase-card" data-genre="rpg" data-lang="python">
+            <div class="showcase-thumb" style="background: linear-gradient(135deg, #111128 0%, #00cec9 100%);">&#x1F4DA;</div>
+            <div class="showcase-body">
+                <h3>Classroom Game Maker</h3>
+                <span class="genre-tag">RPG</span>
+                <span class="lang-tag">Python</span>
+                <p>Educational tool that lets students create games by describing them. Includes content filtering and classroom management.</p>
+                <div class="author">By <strong>Community</strong></div>
+                <div class="showcase-links">
+                    <a href="https://github.com/RakuXR/examples/tree/main/classroom" target="_blank">Source Code</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="submit-cta">
+        <h2>Share Your Project</h2>
+        <p>Built something with the RakuAI API? Submit your project to be featured in the showcase.</p>
+        <a href="support.html" class="btn-submit">Submit Project</a>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            <a href="../docs.html">Documentation</a>
+            <a href="../privacy.html">Privacy</a>
+            <a href="../terms.html">Terms</a>
+            <a href="../contact.html">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Patent-protected technology.</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+<script>
+    function filterShowcase(filter, btn) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.showcase-card').forEach(card => {
+            if (filter === 'all') {
+                card.style.display = 'block';
+            } else {
+                const genre = card.dataset.genre;
+                const lang = card.dataset.lang;
+                card.style.display = (genre === filter || lang === filter) ? 'block' : 'none';
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

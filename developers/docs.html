@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation - RakuAI Developers</title>
+    <meta name="description" content="RakuAI API reference, quickstart guide, and code examples for Python, JavaScript, and cURL.">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .docs-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+        .docs-nav {
+            position: sticky;
+            top: 80px;
+            align-self: start;
+        }
+        .docs-nav h4 {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            margin-top: 20px;
+        }
+        .docs-nav h4:first-child { margin-top: 0; }
+        .docs-nav a {
+            display: block;
+            padding: 6px 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            margin-bottom: 2px;
+            border-left: 2px solid transparent;
+        }
+        .docs-nav a:hover {
+            color: var(--accent-bright);
+            border-left-color: var(--accent);
+        }
+        .docs-content h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        .docs-content h2 {
+            font-size: 1.4rem;
+            margin-top: 48px;
+            margin-bottom: 16px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(108, 92, 231, 0.15);
+            color: var(--accent-bright);
+        }
+        .docs-content h3 {
+            font-size: 1.1rem;
+            margin-top: 24px;
+            margin-bottom: 8px;
+        }
+        .docs-content p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+        .docs-content code {
+            background: rgba(108, 92, 231, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 0.88rem;
+            color: var(--accent-bright);
+        }
+        .code-block {
+            background: #0d0d2b;
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            overflow-x: auto;
+            margin: 16px 0 24px;
+            position: relative;
+        }
+        .code-block .lang-label {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            opacity: 0.6;
+            text-transform: uppercase;
+        }
+        .code-block .kw { color: var(--accent-bright); }
+        .code-block .str { color: var(--success); }
+        .code-block .comment { color: #555580; }
+        .endpoint-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+        }
+        .endpoint-method {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-right: 8px;
+        }
+        .method-get { background: rgba(0, 206, 201, 0.2); color: var(--success); }
+        .method-post { background: rgba(108, 92, 231, 0.2); color: var(--accent-bright); }
+        .method-delete { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
+        .endpoint-path {
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 0.95rem;
+        }
+        .endpoint-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+        .param-table th {
+            text-align: left;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            padding: 8px;
+            border-bottom: 1px solid rgba(108, 92, 231, 0.15);
+        }
+        .param-table td {
+            padding: 8px;
+            font-size: 0.88rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .required-badge {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .interactive-link {
+            display: inline-block;
+            margin: 16px 0;
+            padding: 10px 20px;
+            background: rgba(108, 92, 231, 0.15);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            color: var(--accent-bright);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .interactive-link:hover { background: rgba(108, 92, 231, 0.25); }
+        @media (max-width: 768px) {
+            .docs-layout { grid-template-columns: 1fr; }
+            .docs-nav {
+                position: static;
+                display: flex;
+                gap: 8px;
+                overflow-x: auto;
+                padding-bottom: 16px;
+                border-bottom: 1px solid rgba(108, 92, 231, 0.15);
+            }
+            .docs-nav h4 { display: none; }
+            .docs-nav a { white-space: nowrap; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> Now Available — Describe Any Game. Play It Instantly. | <a href="../index.html#create">Try RakuAI Now →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">™</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../sdk.html">SDK</a>
+            <a href="../docs.html">Docs</a>
+            <a href="../templates.html">Templates</a>
+            <a href="../pricing.html">Pricing</a>
+            <a href="index.html" class="active">Developers</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="../index.html#create" class="nav-cta">Start Creating</a>
+        </div>
+    </div>
+</nav>
+
+<div class="docs-layout">
+    <aside class="docs-nav">
+        <h4>Getting Started</h4>
+        <a href="#quickstart">Quick Start</a>
+        <a href="#authentication">Authentication</a>
+        <h4>Endpoints</h4>
+        <a href="#generate">Generate</a>
+        <a href="#iterate">Iterate</a>
+        <a href="#games">Games</a>
+        <a href="#usage">Usage</a>
+        <h4>Developer</h4>
+        <a href="#api-keys">API Keys</a>
+        <a href="#rate-limits">Rate Limits</a>
+        <h4>Tools</h4>
+        <a href="#interactive">Interactive Docs</a>
+    </aside>
+
+    <main class="docs-content">
+        <h1>API Documentation</h1>
+        <p>Complete reference for the RakuAI API. All endpoints are versioned under <code>/api/v1/</code>.</p>
+
+        <h2 id="quickstart">Quick Start</h2>
+        <p>Generate your first game in three steps:</p>
+
+        <h3>1. Get an API Key</h3>
+        <p>Accept the <a href="register.html" style="color: var(--accent-bright);">developer NDA</a> and create an API key from the <a href="dashboard.html" style="color: var(--accent-bright);">dashboard</a>.</p>
+
+        <h3>2. Make Your First API Call</h3>
+        <div class="code-block">
+            <span class="lang-label">cURL</span>
+            curl -X POST https://api.rakuai.com/api/v1/generate \<br>
+            &nbsp;&nbsp;-H <span class="str">"Content-Type: application/json"</span> \<br>
+            &nbsp;&nbsp;-H <span class="str">"Authorization: Bearer YOUR_API_KEY"</span> \<br>
+            &nbsp;&nbsp;-d <span class="str">'{"prompt": "A platformer where you jump between clouds"}'</span>
+        </div>
+
+        <div class="code-block">
+            <span class="lang-label">Python</span>
+            <span class="kw">import</span> httpx<br><br>
+            resp = httpx.post(<br>
+            &nbsp;&nbsp;<span class="str">"https://api.rakuai.com/api/v1/generate"</span>,<br>
+            &nbsp;&nbsp;headers={<span class="str">"Authorization"</span>: <span class="str">"Bearer YOUR_API_KEY"</span>},<br>
+            &nbsp;&nbsp;json={<span class="str">"prompt"</span>: <span class="str">"A platformer where you jump between clouds"</span>},<br>
+            )<br>
+            game = resp.json()<br>
+            <span class="kw">print</span>(game[<span class="str">"raku_config"</span>][<span class="str">"game"</span>][<span class="str">"title"</span>])
+        </div>
+
+        <div class="code-block">
+            <span class="lang-label">JavaScript</span>
+            <span class="kw">const</span> resp = <span class="kw">await</span> fetch(<span class="str">"https://api.rakuai.com/api/v1/generate"</span>, {<br>
+            &nbsp;&nbsp;method: <span class="str">"POST"</span>,<br>
+            &nbsp;&nbsp;headers: {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Content-Type"</span>: <span class="str">"application/json"</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Authorization"</span>: <span class="str">"Bearer YOUR_API_KEY"</span>,<br>
+            &nbsp;&nbsp;},<br>
+            &nbsp;&nbsp;body: JSON.stringify({ prompt: <span class="str">"A platformer where you jump between clouds"</span> }),<br>
+            });<br>
+            <span class="kw">const</span> game = <span class="kw">await</span> resp.json();<br>
+            console.log(game.raku_config.game.title);
+        </div>
+
+        <h3>3. Use the .raku Config</h3>
+        <p>The response includes a <code>raku_config</code> object — a complete game configuration that the Raku runtime can load and play.</p>
+
+        <h2 id="authentication">Authentication</h2>
+        <p>All API requests require a Bearer token in the <code>Authorization</code> header. You can use either a JWT access token (from login/register) or an API key (from the developer dashboard).</p>
+        <div class="code-block">
+            Authorization: Bearer &lt;your_token_or_api_key&gt;
+        </div>
+
+        <h2 id="generate">POST /api/v1/generate</h2>
+        <div class="endpoint-card">
+            <span class="endpoint-method method-post">POST</span>
+            <span class="endpoint-path">/api/v1/generate</span>
+            <p class="endpoint-desc">Generate a game configuration from a natural language prompt.</p>
+            <table class="param-table">
+                <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><code>prompt</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Game description (1-500 chars)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p><strong>Response:</strong> Returns <code>game_id</code>, <code>raku_config</code>, <code>genre</code>, and generation metadata.</p>
+
+        <h2 id="iterate">POST /api/v1/iterate</h2>
+        <div class="endpoint-card">
+            <span class="endpoint-method method-post">POST</span>
+            <span class="endpoint-path">/api/v1/iterate</span>
+            <p class="endpoint-desc">Refine an existing game configuration with a follow-up instruction.</p>
+            <table class="param-table">
+                <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                <tbody>
+                    <tr><td><code>game_id</code></td><td>string</td><td><span class="required-badge">required</span></td><td>ID of the game to refine</td></tr>
+                    <tr><td><code>message</code></td><td>string</td><td><span class="required-badge">required</span></td><td>Refinement instruction (1-1000 chars)</td></tr>
+                    <tr><td><code>current_config</code></td><td>object</td><td><span class="required-badge">required</span></td><td>Current .raku config to modify</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2 id="games">Games</h2>
+        <div class="endpoint-card">
+            <span class="endpoint-method method-get">GET</span>
+            <span class="endpoint-path">/api/v1/games</span>
+            <p class="endpoint-desc">List your saved games with pagination.</p>
+        </div>
+        <div class="endpoint-card">
+            <span class="endpoint-method method-get">GET</span>
+            <span class="endpoint-path">/api/v1/games/{id}</span>
+            <p class="endpoint-desc">Get a specific game's full configuration.</p>
+        </div>
+        <div class="endpoint-card">
+            <span class="endpoint-method method-delete">DELETE</span>
+            <span class="endpoint-path">/api/v1/games/{id}</span>
+            <p class="endpoint-desc">Delete a saved game permanently.</p>
+        </div>
+
+        <h2 id="usage">GET /api/v1/usage</h2>
+        <div class="endpoint-card">
+            <span class="endpoint-method method-get">GET</span>
+            <span class="endpoint-path">/api/v1/usage</span>
+            <p class="endpoint-desc">Get your generation and iteration counts, tier info, and remaining quota.</p>
+        </div>
+
+        <h2 id="api-keys">API Key Management</h2>
+        <div class="endpoint-card">
+            <span class="endpoint-method method-post">POST</span>
+            <span class="endpoint-path">/api/v1/developer/keys</span>
+            <p class="endpoint-desc">Create a new API key with specified scopes.</p>
+        </div>
+        <div class="endpoint-card">
+            <span class="endpoint-method method-get">GET</span>
+            <span class="endpoint-path">/api/v1/developer/keys</span>
+            <p class="endpoint-desc">List all your API keys (active and revoked).</p>
+        </div>
+        <div class="endpoint-card">
+            <span class="endpoint-method method-delete">DELETE</span>
+            <span class="endpoint-path">/api/v1/developer/keys/{key_id}</span>
+            <p class="endpoint-desc">Revoke an API key. Cannot be undone.</p>
+        </div>
+
+        <h2 id="rate-limits">Rate Limits</h2>
+        <p>API requests are rate-limited per user tier:</p>
+        <table class="param-table">
+            <thead><tr><th>Tier</th><th>Generations/day</th><th>Iterations/day</th><th>Concurrent</th></tr></thead>
+            <tbody>
+                <tr><td>Anonymous</td><td>3</td><td>0</td><td>1</td></tr>
+                <tr><td>Free</td><td>10</td><td>30</td><td>1</td></tr>
+                <tr><td>Pro</td><td>100</td><td>500</td><td>3</td></tr>
+                <tr><td>Enterprise</td><td>Unlimited</td><td>Unlimited</td><td>10</td></tr>
+            </tbody>
+        </table>
+        <p>Exceeded limits return <code>429 Too Many Requests</code> with a <code>Retry-After</code> header.</p>
+
+        <h2 id="interactive">Interactive API Explorer</h2>
+        <p>Explore the full API interactively using the auto-generated documentation:</p>
+        <a href="https://api.rakuai.com/api/docs" class="interactive-link" target="_blank">Swagger UI →</a>
+        <a href="https://api.rakuai.com/api/redoc" class="interactive-link" target="_blank" style="margin-left: 12px;">Redoc →</a>
+    </main>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            <a href="../docs.html">Documentation</a>
+            <a href="../privacy.html">Privacy</a>
+            <a href="../terms.html">Terms</a>
+            <a href="../contact.html">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Patent-protected technology.</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+</body>
+</html>
