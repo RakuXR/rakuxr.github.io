@@ -56,4 +56,4 @@ git push origin main
 - **raku-governance**: Strategy, roadmap, decision log
 - **raku-runtime**: Engine, asset pipeline scripts
 - **raku-sdk**: Developer SDK
-- **raku-public**: Public documentation
+- **raku-api**: Public documentation
