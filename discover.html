@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discover Games - RakuAI</title>
+    <meta name="description" content="Browse and play AI-generated games created by the RakuAI community. Filter by genre, play instantly in your browser.">
+    <meta property="og:title" content="Discover Games - RakuAI">
+    <meta property="og:description" content="Browse and play AI-generated games created by the RakuAI community.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/discover">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/discover.html">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">&#8482;</sup> Now Available &mdash; Describe Any Game. Play It Instantly. | <a href="index.html#quickstart">Try RakuAI Now &rarr;</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&#8482;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="discover.html" class="nav-cta">Discover</a>
+            <a href="sdk.html">SDK</a>
+            <a href="docs.html">Docs</a>
+            <a href="templates.html">Templates</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="my-games.html">My Games</a>
+        </div>
+    </div>
+</nav>
+
+<section class="section" style="padding-top: 48px;">
+    <div class="container">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+            <div>
+                <h1 style="margin-bottom: 4px;">Discover Games</h1>
+                <p style="color: var(--text-secondary); margin: 0;">Browse AI-generated games created by the community</p>
+            </div>
+            <a href="index.html" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                Create Your Own
+            </a>
+        </div>
+
+        <!-- Filters -->
+        <div class="mygames-toolbar" style="margin-bottom: 24px;">
+            <div class="mygames-filters">
+                <div class="mygames-filter-group">
+                    <label class="mygames-filter-label" for="filter-genre">Genre</label>
+                    <select id="filter-genre" class="mygames-select">
+                        <option value="">All Genres</option>
+                        <option value="Platformer">Platformer</option>
+                        <option value="RPG">RPG</option>
+                        <option value="Puzzle">Puzzle</option>
+                        <option value="Visual Novel">Visual Novel</option>
+                        <option value="Tower Defense">Tower Defense</option>
+                        <option value="Endless Runner">Endless Runner</option>
+                        <option value="Card Game">Card Game</option>
+                        <option value="Simulation">Simulation</option>
+                        <option value="Sandbox">Sandbox</option>
+                        <option value="Racing">Racing</option>
+                        <option value="Rhythm">Rhythm</option>
+                        <option value="Roguelike">Roguelike</option>
+                        <option value="Space Shooter">Space Shooter</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mygames-sort">
+                <span id="discover-count" style="color: var(--text-secondary); font-size: 0.9rem;">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Game grid -->
+        <div id="discover-grid" class="mygames-grid"></div>
+
+        <!-- Empty state -->
+        <div id="discover-empty" class="mygames-empty" hidden>
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="var(--text-secondary)" style="opacity: 0.4; margin-bottom: 16px;">
+                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+            </svg>
+            <h3>No published games yet</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 24px;">
+                Be the first to publish a game for the community!
+            </p>
+            <a href="index.html" class="btn btn-primary">Create a Game</a>
+        </div>
+
+        <!-- Loading state -->
+        <div id="discover-loading" class="mygames-loading">
+            <div class="spinner" style="width: 32px; height: 32px; margin: 0 auto 16px;"></div>
+            <p style="color: var(--text-secondary);">Loading games...</p>
+        </div>
+
+        <!-- Load more -->
+        <div id="discover-load-more" style="text-align: center; margin-top: 32px;" hidden>
+            <button id="load-more-btn" class="btn btn-secondary">Load More Games</button>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            <a href="docs.html">Documentation</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Patent-protected technology.</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. &#x697D;AI and &#x697D;XR are stylized marks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+<script>
+(function() {
+    var API_BASE = (new URLSearchParams(window.location.search)).get('api_base')
+        || 'https://raku-api-staging.fly.dev';
+
+    var grid = document.getElementById('discover-grid');
+    var emptyEl = document.getElementById('discover-empty');
+    var loadingEl = document.getElementById('discover-loading');
+    var loadMoreEl = document.getElementById('discover-load-more');
+    var loadMoreBtn = document.getElementById('load-more-btn');
+    var countEl = document.getElementById('discover-count');
+    var genreSelect = document.getElementById('filter-genre');
+
+    var currentOffset = 0;
+    var PAGE_SIZE = 20;
+    var totalGames = 0;
+
+    function createGameCard(game) {
+        var card = document.createElement('div');
+        card.className = 'mygames-card';
+        card.style.cursor = 'pointer';
+
+        var genreBadge = '<span style="display:inline-block;background:var(--accent-bright);color:#000;' +
+            'padding:2px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;">' +
+            escapeHtml(game.genre) + '</span>';
+
+        card.innerHTML =
+            '<div style="padding: 20px;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px;">' +
+                    '<h3 style="margin:0;font-size:1.1rem;">' + escapeHtml(game.title) + '</h3>' +
+                    genreBadge +
+                '</div>' +
+                '<p style="color:var(--text-secondary);font-size:0.9rem;margin:0 0 12px;' +
+                    '-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;">' +
+                    escapeHtml(game.description || 'An AI-generated ' + game.genre + ' game') +
+                '</p>' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                    '<span style="color:var(--text-secondary);font-size:0.8rem;">' +
+                        formatDate(game.created_at) +
+                    '</span>' +
+                    '<span class="btn btn-primary" style="padding:6px 16px;font-size:0.85rem;">Play</span>' +
+                '</div>' +
+            '</div>';
+
+        card.addEventListener('click', function() {
+            window.open('/play/?id=' + encodeURIComponent(game.id) + '&from=discover', '_blank');
+        });
+
+        return card;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    function formatDate(iso) {
+        if (!iso) return '';
+        try {
+            var d = new Date(iso);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch(e) { return ''; }
+    }
+
+    function loadGames(append) {
+        if (!append) {
+            currentOffset = 0;
+            grid.innerHTML = '';
+        }
+        loadingEl.hidden = false;
+        emptyEl.hidden = true;
+        loadMoreEl.hidden = true;
+
+        var genre = genreSelect.value;
+        var url = API_BASE + '/api/v1/games/public?offset=' + currentOffset + '&limit=' + PAGE_SIZE;
+        if (genre) url += '&genre=' + encodeURIComponent(genre);
+
+        fetch(url)
+            .then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
+            .then(function(data) {
+                loadingEl.hidden = true;
+                totalGames = data.total || 0;
+                countEl.textContent = totalGames + ' game' + (totalGames !== 1 ? 's' : '');
+
+                if (data.games && data.games.length > 0) {
+                    data.games.forEach(function(game) {
+                        grid.appendChild(createGameCard(game));
+                    });
+                    currentOffset += data.games.length;
+                    loadMoreEl.hidden = (currentOffset >= totalGames);
+                } else if (currentOffset === 0) {
+                    emptyEl.hidden = false;
+                }
+            })
+            .catch(function(err) {
+                loadingEl.hidden = true;
+                countEl.textContent = 'Failed to load games';
+                console.error('Discover fetch error:', err);
+                if (currentOffset === 0) emptyEl.hidden = false;
+            });
+    }
+
+    genreSelect.addEventListener('change', function() { loadGames(false); });
+    loadMoreBtn.addEventListener('click', function() { loadGames(true); });
+
+    // Initial load
+    loadGames(false);
+})();
+</script>
+
+</body>
+</html>
