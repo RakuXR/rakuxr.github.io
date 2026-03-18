@@ -160,13 +160,40 @@
                     '<span style="color:var(--text-secondary);font-size:0.8rem;">' +
                         formatDate(game.created_at) +
                     '</span>' +
-                    '<span class="btn btn-primary" style="padding:6px 16px;font-size:0.85rem;">Play</span>' +
+                    '<div style="display:flex;gap:6px;">' +
+                        '<span class="discover-share-btn" data-id="' + escapeHtml(game.id) + '" ' +
+                            'data-title="' + escapeHtml(game.title) + '" ' +
+                            'style="padding:6px 12px;font-size:0.8rem;cursor:pointer;color:var(--text-secondary);' +
+                            'border:1px solid var(--border);border-radius:6px;" title="Share">&#8599;</span>' +
+                        '<span class="btn btn-primary" style="padding:6px 16px;font-size:0.85rem;">Play</span>' +
+                    '</div>' +
                 '</div>' +
             '</div>';
 
-        card.addEventListener('click', function() {
+        // Play button click (on the card, but not the share button)
+        card.addEventListener('click', function(e) {
+            if (e.target.classList.contains('discover-share-btn')) return;
+            // Track play event
+            fetch(API_BASE + '/api/v1/analytics/play/' + encodeURIComponent(game.id), { method: 'POST' }).catch(function() {});
             window.open('/play/?id=' + encodeURIComponent(game.id) + '&from=discover', '_blank');
         });
+
+        // Share button
+        var shareBtn = card.querySelector('.discover-share-btn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var shareUrl = window.location.origin + '/share.html?id=' + encodeURIComponent(game.id);
+                if (navigator.share) {
+                    navigator.share({ title: game.title, text: 'Check out this game on RakuAI!', url: shareUrl });
+                } else {
+                    navigator.clipboard.writeText(shareUrl).then(function() {
+                        e.target.textContent = 'Copied!';
+                        setTimeout(function() { e.target.innerHTML = '&#8599;'; }, 1500);
+                    });
+                }
+            });
+        }
 
         return card;
     }
