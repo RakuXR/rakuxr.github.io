@@ -123,6 +123,18 @@
 </footer>
 
 <script>
+/* RakuAI API base URL config (J.2) — same logic as index.html */
+var RAKU_API_BASE = (function() {
+    if (typeof window.RAKU_API_BASE === 'string') return window.RAKU_API_BASE;
+    var meta = document.querySelector('meta[name="raku-api-base"]');
+    if (meta && meta.content) return meta.content;
+    var host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8000';
+    if (host === 'staging.rakuai.com') return 'https://raku-backend-staging.fly.dev';
+    if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://raku-backend.fly.dev';
+    return '';
+})();
+
 (function() {
     var params = new URLSearchParams(window.location.search);
     var gameId = params.get('id');
@@ -139,25 +151,21 @@
     var shareCanvas = document.getElementById('share-canvas-preview');
     var shareDownloadCard = document.getElementById('share-download-card');
 
-    // If game ID present, try to fetch from API
+    // If game ID present, try to fetch from public play API (no auth needed)
     if (gameId) {
         shareTitle.textContent = 'Loading game...';
-        var token = sessionStorage.getItem('raku_token');
-        var headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = 'Bearer ' + token;
 
-        fetch('/api/v1/games/' + encodeURIComponent(gameId), { headers: headers })
+        fetch(RAKU_API_BASE + '/api/v1/play/' + encodeURIComponent(gameId))
             .then(function(res) {
                 if (!res.ok) throw new Error('Not found');
                 return res.json();
             })
             .then(function(data) {
-                var config = data.raku_config || data;
                 renderShareCard(
-                    config.title || config.game_title || 'Untitled Game',
-                    config.genre || '',
-                    config.description || '',
-                    data.prompt_text || ''
+                    data.title || 'Untitled Game',
+                    data.genre || '',
+                    data.description || '',
+                    ''
                 );
             })
             .catch(function() {

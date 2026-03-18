@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise - RakuAI</title>
+    <meta name="description" content="RakuAI enterprise licensing for game studios, console platforms, and OEM partners. Custom builds, dedicated support, and IP licensing.">
+    <meta property="og:title" content="Enterprise Licensing - RakuAI">
+    <meta property="og:description" content="Custom licensing for studios, platforms, and OEMs. Patent-protected AI game engine with 7 renderer backends and 13 genre modules.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/enterprise">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/enterprise.html">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .enterprise-hero {
+            padding: 80px 0 60px;
+            text-align: center;
+        }
+        .enterprise-hero h1 {
+            font-size: 2.8rem;
+            margin-bottom: 16px;
+        }
+        .enterprise-hero .subtitle {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+        .tier-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto 48px;
+        }
+        .tier-card {
+            background: var(--bg-secondary);
+            border: 2px solid #222244;
+            border-radius: 16px;
+            padding: 32px 28px;
+            text-align: center;
+            transition: border-color 0.3s, transform 0.2s;
+            cursor: pointer;
+        }
+        .tier-card:hover, .tier-card.selected {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+        .tier-card.selected {
+            box-shadow: 0 0 24px rgba(108, 92, 231, 0.2);
+        }
+        .tier-card h3 {
+            color: var(--accent-bright);
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+        .tier-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .tier-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 16px 0 0;
+            text-align: left;
+        }
+        .tier-card ul li {
+            padding: 6px 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .tier-card ul li::before {
+            content: "\2713";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .enterprise-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 900px;
+            margin: 0 auto 48px;
+            text-align: center;
+        }
+        .enterprise-stat {
+            padding: 24px;
+        }
+        .enterprise-stat .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-bright);
+        }
+        .enterprise-stat .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+        .enterprise-form {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 2px solid #222244;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .form-group select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .form-submit {
+            display: inline-block;
+            padding: 16px 48px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .form-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
+        }
+        .form-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .form-success {
+            background: rgba(0, 206, 201, 0.15);
+            border: 2px solid var(--success);
+            border-radius: 16px;
+            padding: 48px 32px;
+            text-align: center;
+            display: none;
+        }
+        .form-success h3 {
+            color: var(--success);
+            font-size: 1.6rem;
+            margin-bottom: 12px;
+        }
+        .form-success p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.7;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .hp-field {
+            position: absolute;
+            left: -9999px;
+            opacity: 0;
+            height: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        .trust-section {
+            text-align: center;
+            padding: 48px 0;
+        }
+        .trust-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 48px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+            opacity: 0.6;
+        }
+        .trust-logo {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+        @media (max-width: 768px) {
+            .tier-cards {
+                grid-template-columns: 1fr;
+            }
+            .enterprise-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .enterprise-hero h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">&trade;</sup> Now Available &mdash; Describe Any Game. Play It Instantly. | <a href="index.html#quickstart">Try RakuAI Now &rarr;</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="sdk.html">SDK</a>
+            <a href="docs.html">Docs</a>
+            <a href="templates.html">Templates</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="pro-features.html">Pro</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="index.html#create" class="nav-cta">Start Creating</a>
+        </div>
+    </div>
+</nav>
+
+<section class="enterprise-hero">
+    <div class="container">
+        <h1>Enterprise &amp; Studio Licensing</h1>
+        <p class="subtitle">
+            Custom licensing for game studios, console platforms, XR manufacturers, and OEM partners.
+            Patent-protected technology with dedicated engineering support.
+        </p>
+    </div>
+</section>
+
+<!-- Platform Stats -->
+<section class="section" style="padding-top: 0;">
+    <div class="container">
+        <div class="enterprise-stats">
+            <div class="enterprise-stat">
+                <div class="stat-number">18</div>
+                <div class="stat-label">Active Engine DLLs</div>
+            </div>
+            <div class="enterprise-stat">
+                <div class="stat-number">7</div>
+                <div class="stat-label">Renderer Backends</div>
+            </div>
+            <div class="enterprise-stat">
+                <div class="stat-number">13</div>
+                <div class="stat-label">Genre Modules</div>
+            </div>
+            <div class="enterprise-stat">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Granted Patents</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tier Selection -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 12px;">Choose Your Tier</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+            Select the tier that best fits your needs. We'll tailor a custom proposal for your organization.
+        </p>
+        <div class="tier-cards">
+            <div class="tier-card" id="tier-studio" onclick="selectTier('studio')">
+                <h3>Studio</h3>
+                <p>Game development teams shipping commercial titles.</p>
+                <ul>
+                    <li>Custom engine builds</li>
+                    <li>Dedicated support channel</li>
+                    <li>Early access to features</li>
+                    <li>Source code escrow</li>
+                    <li>Custom genre modules</li>
+                </ul>
+            </div>
+            <div class="tier-card" id="tier-platform" onclick="selectTier('platform')">
+                <h3>Platform</h3>
+                <p>Console manufacturers and XR platform operators.</p>
+                <ul>
+                    <li>Deep platform integration</li>
+                    <li>Co-marketing opportunities</li>
+                    <li>Dedicated engineering team</li>
+                    <li>Launch title support</li>
+                    <li>Performance optimization</li>
+                </ul>
+            </div>
+            <div class="tier-card" id="tier-oem" onclick="selectTier('oem')">
+                <h3>OEM</h3>
+                <p>Hardware manufacturers and device bundlers.</p>
+                <ul>
+                    <li>Pre-install licensing</li>
+                    <li>White-label options</li>
+                    <li>Custom branding</li>
+                    <li>Volume licensing</li>
+                    <li>Hardware optimization</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Form -->
+<section class="section" id="enterprise-contact">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 40px;">Get in Touch</h2>
+
+        <div class="form-success" id="form-success">
+            <h3>Request Received</h3>
+            <p>Thank you for your interest in RakuAI enterprise licensing. Our partnerships team will review your inquiry and respond within 2 business days with a tailored proposal.</p>
+            <p style="margin-top: 16px; font-size: 0.9rem;">Check your email for a confirmation with next steps.</p>
+        </div>
+
+        <form class="enterprise-form" id="enterprise-form" action="https://formspree.io/f/xaqpnyng" method="POST">
+            <input type="hidden" name="_subject" value="Enterprise Licensing Inquiry">
+            <input type="hidden" name="inquiry_type" value="enterprise_licensing">
+            <input type="hidden" id="selected-tier-input" name="licensing_tier" value="">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="ent-name">Your Name *</label>
+                    <input type="text" id="ent-name" name="name" required autocomplete="name" placeholder="Jane Smith">
+                </div>
+                <div class="form-group">
+                    <label for="ent-title">Title / Role</label>
+                    <input type="text" id="ent-title" name="title" placeholder="CTO, Lead Developer, etc.">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="ent-email">Work Email *</label>
+                    <input type="email" id="ent-email" name="email" required autocomplete="email" placeholder="jane@studio.com">
+                </div>
+                <div class="form-group">
+                    <label for="ent-company">Company / Studio *</label>
+                    <input type="text" id="ent-company" name="company" required placeholder="Awesome Games Studio">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="ent-tier">Licensing Tier *</label>
+                    <select id="ent-tier" name="tier_selection" required>
+                        <option value="" disabled selected>Select a tier</option>
+                        <option value="Studio">Studio &mdash; Commercial game teams</option>
+                        <option value="Platform">Platform &mdash; Console / XR platforms</option>
+                        <option value="OEM">OEM &mdash; Hardware bundling</option>
+                        <option value="IP Licensing">IP Licensing &mdash; Character / franchise use</option>
+                        <option value="Other">Other / Not sure yet</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ent-size">Team Size</label>
+                    <select id="ent-size" name="team_size">
+                        <option value="" disabled selected>Select</option>
+                        <option value="1-10">1-10</option>
+                        <option value="11-50">11-50</option>
+                        <option value="51-200">51-200</option>
+                        <option value="201-1000">201-1,000</option>
+                        <option value="1000+">1,000+</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="ent-platforms">Target Platforms</label>
+                <input type="text" id="ent-platforms" name="target_platforms" placeholder="e.g. PC, Xbox, PlayStation, Meta Quest, Web">
+            </div>
+
+            <div class="form-group">
+                <label for="ent-timeline">Expected Timeline</label>
+                <select id="ent-timeline" name="timeline">
+                    <option value="" disabled selected>When do you need this?</option>
+                    <option value="Immediately">Immediately (within 30 days)</option>
+                    <option value="1-3 months">1-3 months</option>
+                    <option value="3-6 months">3-6 months</option>
+                    <option value="6-12 months">6-12 months</option>
+                    <option value="Exploring">Just exploring</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ent-details">Tell Us About Your Project *</label>
+                <textarea id="ent-details" name="project_details" required placeholder="What are you building? How would you use RakuAI? Any specific requirements?"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="ent-nda">NDA Required?</label>
+                <select id="ent-nda" name="nda_required">
+                    <option value="No">No &mdash; General discussion is fine</option>
+                    <option value="Yes">Yes &mdash; We require NDA before technical details</option>
+                </select>
+            </div>
+
+            <!-- Honeypot -->
+            <div class="hp-field" aria-hidden="true">
+                <label for="ent-website">Website</label>
+                <input type="text" id="ent-website" name="_gotcha" tabindex="-1" autocomplete="off">
+            </div>
+
+            <div style="text-align: center; margin-top: 8px;">
+                <button type="submit" class="form-submit" id="submit-btn">Submit Enterprise Inquiry</button>
+                <p style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 12px;">
+                    We typically respond within 2 business days. NDA available on request.
+                </p>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Trust Signals -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <div class="trust-section">
+            <h3 style="color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em;">Partnership Discussions Active With</h3>
+            <div class="trust-logos">
+                <span class="trust-logo">QUALCOMM</span>
+                <span class="trust-logo">NTT QONOQ</span>
+                <span class="trust-logo">ID@XBOX</span>
+                <span class="trust-logo">BANDAI NAMCO</span>
+                <span class="trust-logo">MESHY.AI</span>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 16px;">
+            <p style="color: var(--text-secondary); font-size: 0.85rem;">5 granted patents (priority July 2012) &bull; Patent-protected technology &bull; NDA available</p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            <a href="docs.html">Documentation</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Patent-protected technology.</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. &#x697D;AI and &#x697D;XR are stylized marks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+<script>
+(function() {
+    // Tier selection
+    window.selectTier = function(tier) {
+        document.querySelectorAll('.tier-card').forEach(function(card) {
+            card.classList.remove('selected');
+        });
+        document.getElementById('tier-' + tier).classList.add('selected');
+
+        // Update hidden input and dropdown
+        var tierMap = { studio: 'Studio', platform: 'Platform', oem: 'OEM' };
+        document.getElementById('selected-tier-input').value = tierMap[tier];
+        var dropdown = document.getElementById('ent-tier');
+        dropdown.value = tierMap[tier];
+
+        // Scroll to form
+        document.getElementById('enterprise-contact').scrollIntoView({ behavior: 'smooth' });
+    };
+
+    // Form submission
+    var form = document.getElementById('enterprise-form');
+    var submitBtn = document.getElementById('submit-btn');
+    var successMsg = document.getElementById('form-success');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        var formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'Accept': 'application/json' }
+        }).then(function(response) {
+            return response.json().then(function(data) {
+                if (response.ok) {
+                    form.style.display = 'none';
+                    successMsg.style.display = 'block';
+                    successMsg.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Enterprise Inquiry';
+                    var errorMsg = (data && data.errors)
+                        ? data.errors.map(function(err) { return err.message; }).join(', ')
+                        : 'An error occurred. Please try again.';
+                    alert('Form error: ' + errorMsg);
+                }
+            });
+        }).catch(function() {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Enterprise Inquiry';
+            alert('Network error. Please check your connection and try again.');
+        });
+    });
+})();
+</script>
+
+</body>
+</html>
