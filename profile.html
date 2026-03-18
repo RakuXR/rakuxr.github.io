@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Profile - RakuAI</title>
+    <meta name="description" content="View creator profile and published games on RakuAI.">
+    <meta property="og:title" content="Creator Profile - RakuAI">
+    <meta property="og:description" content="Browse games by this creator on RakuAI.">
+    <meta property="og:type" content="profile">
+    <meta name="twitter:card" content="summary">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> Now Available — Describe Any Game. Play It Instantly. | <a href="index.html#quickstart">Try RakuAI Now →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">™</sup></a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="discover.html">Discover</a>
+            <a href="sdk.html">SDK</a>
+            <a href="docs.html">Docs</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="index.html#create" class="nav-cta">Start Creating</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero" style="padding-bottom: 24px;">
+    <div class="container">
+        <div id="profile-header" style="display: none; text-align: center;">
+            <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--accent-bright, #6c5ce7); display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; color: #fff; margin-bottom: 16px;" id="profile-avatar"></div>
+            <h1 id="profile-name" style="margin-bottom: 4px;"></h1>
+            <p id="profile-stats" style="color: var(--text-secondary); font-size: 0.95rem;"></p>
+        </div>
+        <div id="profile-loading" style="text-align: center; padding: 40px 0; color: var(--text-secondary);">
+            Loading profile...
+        </div>
+        <div id="profile-error" style="text-align: center; padding: 40px 0; display: none;">
+            <h2 style="color: var(--text-secondary);">Creator not found</h2>
+            <a href="discover.html" class="btn btn-primary" style="margin-top: 16px;">Browse Games</a>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 id="games-heading" style="display: none;">Published Games</h2>
+
+        <div id="games-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;"></div>
+
+        <div id="games-empty" style="text-align: center; padding: 40px 0; display: none;">
+            <p style="color: var(--text-secondary);">This creator hasn't published any games yet.</p>
+        </div>
+
+        <div id="pagination" style="display: flex; justify-content: center; gap: 12px; margin-top: 40px;"></div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            <a href="docs.html">Documentation</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Patent-protected technology.</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+<style>
+.game-card {
+    background: var(--bg-secondary, #1a1a2e);
+    border: 1px solid #222244;
+    border-radius: 12px;
+    padding: 24px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+.game-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.15);
+    border-color: var(--accent-bright, #6c5ce7);
+}
+.game-card .game-genre {
+    display: inline-block;
+    background: rgba(108, 92, 231, 0.15);
+    color: var(--accent-bright, #6c5ce7);
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+}
+.game-card h3 { margin: 0 0 8px; font-size: 1.1rem; }
+.game-card .game-desc {
+    color: var(--text-secondary, #aaa);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0 0 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>
+
+<script>
+(function() {
+    var API_BASE = (function() {
+        var meta = document.querySelector('meta[name="raku:api-base"]');
+        if (meta && meta.content) return meta.content;
+        if (window.RAKU_API_BASE) return window.RAKU_API_BASE;
+        var host = window.location.hostname;
+        if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://raku-backend.fly.dev';
+        if (host === 'staging.rakuai.com') return 'https://raku-backend-staging.fly.dev';
+        return 'http://localhost:8000';
+    })();
+
+    var params = new URLSearchParams(window.location.search);
+    var userId = params.get('id');
+
+    if (!userId) {
+        document.getElementById('profile-loading').style.display = 'none';
+        document.getElementById('profile-error').style.display = 'block';
+        return;
+    }
+
+    var currentOffset = 0;
+    var PAGE_SIZE = 20;
+
+    // Load profile
+    fetch(API_BASE + '/api/v1/profiles/' + encodeURIComponent(userId))
+        .then(function(r) {
+            if (!r.ok) throw new Error('Not found');
+            return r.json();
+        })
+        .then(function(profile) {
+            document.getElementById('profile-loading').style.display = 'none';
+            document.getElementById('profile-header').style.display = 'block';
+            document.getElementById('profile-name').textContent = profile.display_name;
+            document.getElementById('profile-avatar').textContent = (profile.display_name || '?')[0].toUpperCase();
+
+            var stats = profile.game_count + ' published game' + (profile.game_count !== 1 ? 's' : '');
+            if (profile.total_plays > 0) stats += ' \u00b7 ' + profile.total_plays + ' plays';
+            document.getElementById('profile-stats').textContent = stats;
+
+            document.title = profile.display_name + ' - RakuAI';
+            loadGames();
+        })
+        .catch(function() {
+            document.getElementById('profile-loading').style.display = 'none';
+            document.getElementById('profile-error').style.display = 'block';
+        });
+
+    function loadGames() {
+        var url = API_BASE + '/api/v1/profiles/' + encodeURIComponent(userId) + '/games?offset=' + currentOffset + '&limit=' + PAGE_SIZE;
+
+        fetch(url)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var games = data.games || [];
+                var grid = document.getElementById('games-grid');
+                grid.innerHTML = '';
+
+                if (games.length === 0) {
+                    document.getElementById('games-empty').style.display = 'block';
+                    return;
+                }
+
+                document.getElementById('games-heading').style.display = 'block';
+
+                games.forEach(function(game) {
+                    var card = document.createElement('div');
+                    card.className = 'game-card';
+                    card.onclick = function() {
+                        window.location.href = 'share.html?id=' + encodeURIComponent(game.id);
+                    };
+                    card.innerHTML =
+                        '<span class="game-genre">' + escapeHtml(game.genre || 'custom') + '</span>' +
+                        '<h3>' + escapeHtml(game.title || 'Untitled') + '</h3>' +
+                        '<p class="game-desc">' + escapeHtml(game.description || 'An AI-generated game.') + '</p>';
+                    grid.appendChild(card);
+                });
+
+                renderPagination(data.total, data.offset, data.limit);
+            })
+            .catch(function() {
+                document.getElementById('games-empty').style.display = 'block';
+                document.getElementById('games-empty').querySelector('p').textContent = 'Unable to load games.';
+            });
+    }
+
+    function renderPagination(total, offset, limit) {
+        var container = document.getElementById('pagination');
+        container.innerHTML = '';
+        if (total <= limit) return;
+
+        var totalPages = Math.ceil(total / limit);
+        var currentPage = Math.floor(offset / limit);
+
+        if (currentPage > 0) {
+            var prev = document.createElement('button');
+            prev.className = 'btn btn-secondary';
+            prev.textContent = '\u2190 Previous';
+            prev.onclick = function() { currentOffset = (currentPage - 1) * PAGE_SIZE; loadGames(); };
+            container.appendChild(prev);
+        }
+
+        var info = document.createElement('span');
+        info.style.cssText = 'display:flex;align-items:center;color:var(--text-secondary);font-size:0.9rem;';
+        info.textContent = 'Page ' + (currentPage + 1) + ' of ' + totalPages;
+        container.appendChild(info);
+
+        if (currentPage < totalPages - 1) {
+            var next = document.createElement('button');
+            next.className = 'btn btn-secondary';
+            next.textContent = 'Next \u2192';
+            next.onclick = function() { currentOffset = (currentPage + 1) * PAGE_SIZE; loadGames(); };
+            container.appendChild(next);
+        }
+    }
+
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+})();
+</script>
+
+</body>
+</html>
