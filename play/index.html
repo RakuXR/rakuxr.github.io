@@ -492,12 +492,22 @@
       const version = params.get('v') || (metaVersion && metaVersion.content) || '1';
       const wasmBase = params.get('wasm_base') || WASM_CDN_BASE;
 
+      // If launched from the generate flow, read the raku_config from sessionStorage
+      let rakuConfig = null;
+      if (params.get('from') === 'generate') {
+        try {
+          const stored = sessionStorage.getItem('raku_play_config');
+          if (stored) rakuConfig = JSON.parse(stored);
+        } catch (_) { /* ignore parse errors */ }
+      }
+
       return {
         gameId: gameId || 'local',
         genre, version,
         title: params.get('title') || 'Raku Game',
         wasmUrl: wasmBase + '/genre_' + genre + '.js',
         wasmBinaryUrl: wasmBase + '/genre_' + genre + '.wasm',
+        rakuConfig,
       };
     }
 
@@ -573,6 +583,22 @@
           printErr: function(t) { console.warn('[Raku]', t); },
           onRuntimeInitialized: function() {
             LoadingUI.updateProgress(90, 'Starting game...');
+            // If we have a raku_config from the generation flow, inject it
+            if (config.rakuConfig) {
+              try {
+                const configJson = JSON.stringify(config.rakuConfig);
+                if (instance._raku_load_config_json) {
+                  const len = instance.lengthBytesUTF8(configJson) + 1;
+                  const ptr = instance._malloc(len);
+                  instance.stringToUTF8(configJson, ptr, len);
+                  instance._raku_load_config_json(ptr);
+                  instance._free(ptr);
+                  console.log('[Raku] Injected raku_config from generation flow');
+                }
+              } catch (e) {
+                console.warn('[Raku] Failed to inject config:', e.message);
+              }
+            }
           },
         });
 

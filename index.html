@@ -160,7 +160,11 @@
             </div>
 
             <div class="result-actions">
-                <button id="result-download-btn" class="btn btn-primary result-action-btn">
+                <button id="result-play-browser-btn" class="btn btn-primary result-action-btn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    Play in Browser
+                </button>
+                <button id="result-download-btn" class="btn btn-secondary result-action-btn">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                     Download .raku
                 </button>
@@ -555,6 +559,12 @@ var RAKU_API_BASE = (function() {
 })();
 
 (function() {
+    // API base URL — points to the backend server.
+    // In production: 'https://raku-api.fly.dev'
+    // Override via ?api_base= query param for local development.
+    var API_BASE = (new URLSearchParams(window.location.search)).get('api_base')
+        || 'https://raku-api-staging.fly.dev';
+
     var textarea = document.getElementById('prompt-input');
     var charCount = document.getElementById('char-count');
     var playBtn = document.getElementById('play-now-btn');
@@ -591,6 +601,7 @@ var RAKU_API_BASE = (function() {
     var resultDifficulty = document.getElementById('result-difficulty');
     var resultVersion = document.getElementById('result-version');
     var resultPromptText = document.getElementById('result-prompt-text');
+    var resultPlayBrowserBtn = document.getElementById('result-play-browser-btn');
     var resultDownloadBtn = document.getElementById('result-download-btn');
     var resultRefineBtn = document.getElementById('result-refine-btn');
     var resultShareBtn = document.getElementById('result-share-btn');
@@ -704,6 +715,26 @@ var RAKU_API_BASE = (function() {
         };
         return estimates[genre] || '5-15 min';
     }
+
+    // --- Play in Browser ---
+    resultPlayBrowserBtn.addEventListener('click', function() {
+        var data = lastGenerationResult;
+        if (!data) {
+            var stored = sessionStorage.getItem('raku_last_result');
+            if (stored) { try { data = JSON.parse(stored); } catch (_) {} }
+        }
+        if (!data) return;
+
+        var config = data.raku_config || data;
+        var genre = (config.genre || data.genre || 'puzzle').toLowerCase().replace(/\s+/g, '_');
+        var title = encodeURIComponent(config.title || data.title || 'Raku Game');
+
+        // Store config in sessionStorage for the player page to read
+        sessionStorage.setItem('raku_play_config', JSON.stringify(config));
+
+        // Navigate to the browser player
+        window.open('/play/?genre=' + genre + '&title=' + title + '&from=generate', '_blank');
+    });
 
     // --- Download .raku file ---
     resultDownloadBtn.addEventListener('click', function() {
@@ -866,7 +897,7 @@ var RAKU_API_BASE = (function() {
 
         var oldConfig = data.raku_config ? JSON.parse(JSON.stringify(data.raku_config)) : null;
 
-        fetch(RAKU_API_BASE + '/api/v1/iterate', {
+        fetch(API_BASE + '/api/v1/iterate', {
             method: 'POST',
             headers: headers,
             body: JSON.stringify({
@@ -1185,7 +1216,7 @@ var RAKU_API_BASE = (function() {
 
     // --- SSE-based progress tracking ---
     function connectSSE(generationId, authToken) {
-        var sseUrl = RAKU_API_BASE + '/api/v1/generate/' + generationId + '/progress';
+        var sseUrl = API_BASE + '/api/v1/generate/' + generationId + '/progress';
         var headers = {};
         if (authToken) {
             // SSE doesn't support custom headers; use query param for auth
@@ -1226,7 +1257,7 @@ var RAKU_API_BASE = (function() {
 
     // --- Polling fallback ---
     function startPolling(generationId, authToken) {
-        var pollUrl = RAKU_API_BASE + '/api/v1/generate/' + generationId + '/status';
+        var pollUrl = API_BASE + '/api/v1/generate/' + generationId + '/status';
         var headers = { 'Content-Type': 'application/json' };
         if (authToken) {
             headers['Authorization'] = 'Bearer ' + authToken;
@@ -1279,7 +1310,7 @@ var RAKU_API_BASE = (function() {
         showProgress();
         activateStage(stageAnalyzing);
 
-        var API_URL = RAKU_API_BASE + '/api/v1/generate';
+        var API_URL = API_BASE + '/api/v1/generate';
         var headers = { 'Content-Type': 'application/json' };
         if (authToken) {
             headers['Authorization'] = 'Bearer ' + authToken;
