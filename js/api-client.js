@@ -162,6 +162,23 @@ const RakuAPI = (function () {
         return data;
     }
 
+    async function googleCodeExchange(code, redirectUri) {
+        const resp = await apiFetch('/api/v1/auth/google/callback', {
+            method: 'POST',
+            body: { code: code, redirect_uri: redirectUri },
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json();
+            throw new Error(err.detail || 'Google code exchange failed');
+        }
+
+        const data = await resp.json();
+        setToken(data.access_token, data.refresh_token);
+        setUser(data.user);
+        return data;
+    }
+
     function logout() {
         clearAuth();
         window.dispatchEvent(new CustomEvent('raku:logged-out'));
@@ -299,6 +316,7 @@ const RakuAPI = (function () {
 
     return {
         API_BASE,
+        apiFetch,
         // Auth
         getToken,
         setToken,
@@ -309,6 +327,7 @@ const RakuAPI = (function () {
         register,
         login,
         googleAuth,
+        googleCodeExchange,
         logout,
         // Generate (J.3)
         generate,
