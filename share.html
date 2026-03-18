@@ -151,25 +151,21 @@ var RAKU_API_BASE = (function() {
     var shareCanvas = document.getElementById('share-canvas-preview');
     var shareDownloadCard = document.getElementById('share-download-card');
 
-    // If game ID present, try to fetch from API
+    // If game ID present, try to fetch from public play API (no auth needed)
     if (gameId) {
         shareTitle.textContent = 'Loading game...';
-        var token = sessionStorage.getItem('raku_token');
-        var headers = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = 'Bearer ' + token;
 
-        fetch(RAKU_API_BASE + '/api/v1/games/' + encodeURIComponent(gameId), { headers: headers })
+        fetch(RAKU_API_BASE + '/api/v1/play/' + encodeURIComponent(gameId))
             .then(function(res) {
                 if (!res.ok) throw new Error('Not found');
                 return res.json();
             })
             .then(function(data) {
-                var config = data.raku_config || data;
                 renderShareCard(
-                    config.title || config.game_title || 'Untitled Game',
-                    config.genre || '',
-                    config.description || '',
-                    data.prompt_text || ''
+                    data.title || 'Untitled Game',
+                    data.genre || '',
+                    data.description || '',
+                    ''
                 );
             })
             .catch(function() {
