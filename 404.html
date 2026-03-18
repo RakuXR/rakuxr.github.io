@@ -6,6 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 - RakuAI</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+      // SPA routing for /play/:gameId paths — redirect to play/index.html
+      // preserving the game ID and query params as URL parameters.
+      (function() {
+        var path = window.location.pathname;
+        var match = path.match(/^\/play\/([a-zA-Z0-9_-]+)\/?$/);
+        if (match) {
+          var gameId = match[1];
+          var search = window.location.search;
+          var sep = search ? search + '&' : '?';
+          window.location.replace('/play/' + sep + 'id=' + gameId);
+          return;
+        }
+      })();
+    </script>
 </head>
 <body>
 
