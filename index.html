@@ -1593,14 +1593,24 @@ var RAKU_API_BASE = (function() {
     });
 
     // --- Post-OAuth generation resume ---
+    // After Google OAuth callback, token may be stored as raku_access_token
     var pendingPrompt = sessionStorage.getItem('raku_pending_prompt');
-    var authToken = sessionStorage.getItem('raku_auth_token');
+    var authToken = sessionStorage.getItem('raku_auth_token') || sessionStorage.getItem('raku_access_token');
+    // Sync token keys so downstream code uses raku_auth_token consistently
+    if (!sessionStorage.getItem('raku_auth_token') && sessionStorage.getItem('raku_access_token')) {
+        sessionStorage.setItem('raku_auth_token', sessionStorage.getItem('raku_access_token'));
+    }
+    var autoGenerate = new URLSearchParams(window.location.search).get('auto_generate');
     if (pendingPrompt && authToken) {
         sessionStorage.removeItem('raku_pending_prompt');
         lastGenerationPrompt = pendingPrompt;
         textarea.value = pendingPrompt;
         updateCounter();
         autoExpand();
+        // Clean up URL param
+        if (autoGenerate) {
+            window.history.replaceState({}, '', window.location.pathname);
+        }
         startGeneration({ prompt: pendingPrompt }, authToken);
     }
 
