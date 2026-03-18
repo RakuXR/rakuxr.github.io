@@ -193,7 +193,18 @@
 <section class="hero">
     <div class="container">
         <h1>Simple, Transparent Pricing</h1>
-        <p class="subtitle">Start free. Upgrade to Pro when you need more power.</p>
+        <p class="subtitle">Start free. Try Pro for 7 days free. Upgrade when you're ready.</p>
+
+        <!-- K.9: Monthly/Annual Toggle -->
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 24px; align-items: center;">
+            <span id="toggle-monthly-label" style="font-weight: 700; color: var(--accent-bright);">Monthly</span>
+            <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                <input type="checkbox" id="billing-toggle" onchange="toggleBillingPeriod()" style="opacity: 0; width: 0; height: 0;">
+                <span style="position: absolute; inset: 0; background: #333; border-radius: 28px; transition: 0.3s;"></span>
+                <span id="toggle-knob" style="position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; background: var(--accent-bright); border-radius: 50%; transition: 0.3s;"></span>
+            </label>
+            <span id="toggle-annual-label" style="font-weight: 400; color: var(--text-secondary);">Annual <span style="color: var(--success); font-size: 0.85rem; font-weight: 700;">Save 17%</span></span>
+        </div>
     </div>
 </section>
 
@@ -220,8 +231,8 @@
             <div class="pricing-card featured" style="overflow: hidden;">
                 <div class="best-value-ribbon">BEST VALUE</div>
                 <h3 style="color: var(--accent-bright);">Pro</h3>
-                <div class="price">$14.99<span class="price-period"> / month</span></div>
-                <p class="price-note">Cancel anytime</p>
+                <div class="price" id="pro-price">$14.99<span class="price-period"> / month</span></div>
+                <p class="price-note" id="pro-price-note">7-day free trial &middot; Cancel anytime</p>
                 <ul>
                     <li>100 game generations per day</li>
                     <li class="pro-only">Priority generation queue</li>
@@ -235,7 +246,7 @@
                     <li>Priority support</li>
                 </ul>
                 <button onclick="handleUpgradeClick()" class="upgrade-btn upgrade-btn-pro" id="upgrade-pro-btn">
-                    Upgrade to Pro
+                    Start 7-Day Free Trial
                 </button>
                 <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
                     <a href="pro-features.html" style="color: var(--accent-bright);">See all Pro features &rarr;</a>
@@ -302,6 +313,14 @@
                 <p>Free uses our fast AI model for quick generation. Pro uses a higher-quality model that produces more creative, detailed game configurations with richer gameplay mechanics.</p>
             </div>
             <div class="faq-item">
+                <h3>How does the free trial work?</h3>
+                <p>Your 7-day Pro trial starts immediately with full access to all Pro features. You won't be charged until the trial ends. Cancel anytime during the trial and you won't be billed.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Is there an annual plan?</h3>
+                <p>Yes! Toggle the "Annual" switch above to see yearly pricing at $149.99/year &mdash; that's 2 months free compared to monthly billing.</p>
+            </div>
+            <div class="faq-item">
                 <h3>Can I cancel anytime?</h3>
                 <p>Yes. Cancel from your account settings or the Stripe customer portal. Your Pro features remain active until the end of your billing period. No refund needed &mdash; just cancel.</p>
             </div>
@@ -313,6 +332,24 @@
                 <h3>Can I sell games I create?</h3>
                 <p>Yes. You own the games you create. Pro tier includes standalone export for commercial distribution on Steam, itch.io, or any platform.</p>
             </div>
+        </div>
+    </div>
+</section>
+
+<!-- K.11: Referral Section -->
+<section class="section" id="referral-section" style="display: none;">
+    <div class="container" style="text-align: center;">
+        <h2>Share RakuAI, Earn Rewards</h2>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: -24px auto 32px;">
+            Share your referral link with friends. When they upgrade to Pro, both of you get rewarded.
+        </p>
+        <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px; max-width: 500px; margin: 0 auto;">
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 8px;">Your referral link:</p>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="referral-link" readonly style="flex: 1; background: var(--bg-primary); border: 1px solid #333; border-radius: 6px; padding: 12px; color: var(--text-primary); font-size: 0.9rem;">
+                <button onclick="copyReferralLink()" class="btn btn-primary" style="padding: 12px 20px; white-space: nowrap;" id="copy-ref-btn">Copy</button>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;" id="referral-stats"></p>
         </div>
     </div>
 </section>
@@ -335,15 +372,48 @@
 <script>
 // --- Stripe Checkout Upgrade Flow ---
 const API_BASE = window.RAKU_API_BASE || 'https://api.raku.games';
+let currentBillingPeriod = 'monthly';
 
 function getAuthToken() {
     return localStorage.getItem('raku_access_token');
 }
 
+// K.9: Monthly/Annual Toggle
+function toggleBillingPeriod() {
+    const toggle = document.getElementById('billing-toggle');
+    const knob = document.getElementById('toggle-knob');
+    const monthlyLabel = document.getElementById('toggle-monthly-label');
+    const annualLabel = document.getElementById('toggle-annual-label');
+    const priceEl = document.getElementById('pro-price');
+    const noteEl = document.getElementById('pro-price-note');
+    const btn = document.getElementById('upgrade-pro-btn');
+
+    if (toggle.checked) {
+        currentBillingPeriod = 'annual';
+        knob.style.left = '27px';
+        monthlyLabel.style.fontWeight = '400';
+        monthlyLabel.style.color = 'var(--text-secondary)';
+        annualLabel.style.fontWeight = '700';
+        annualLabel.querySelector('span') && (annualLabel.style.color = 'var(--accent-bright)');
+        priceEl.innerHTML = '$149.99<span class="price-period"> / year</span>';
+        noteEl.textContent = '7-day free trial \u00B7 Save $29.89/year';
+        btn.textContent = 'Start 7-Day Free Trial';
+    } else {
+        currentBillingPeriod = 'monthly';
+        knob.style.left = '3px';
+        monthlyLabel.style.fontWeight = '700';
+        monthlyLabel.style.color = 'var(--accent-bright)';
+        annualLabel.style.fontWeight = '400';
+        annualLabel.style.color = 'var(--text-secondary)';
+        priceEl.innerHTML = '$14.99<span class="price-period"> / month</span>';
+        noteEl.textContent = '7-day free trial \u00B7 Cancel anytime';
+        btn.textContent = 'Start 7-Day Free Trial';
+    }
+}
+
 async function handleUpgradeClick() {
     const token = getAuthToken();
     if (!token) {
-        // Not logged in — redirect to login with return URL
         window.location.href = 'index.html#create';
         return;
     }
@@ -352,6 +422,10 @@ async function handleUpgradeClick() {
     btn.textContent = 'Redirecting to checkout...';
     btn.disabled = true;
 
+    // K.11: Check for referral code in URL
+    const params = new URLSearchParams(window.location.search);
+    const referralCode = params.get('ref') || null;
+
     try {
         const response = await fetch(`${API_BASE}/api/v1/billing/create-checkout-session`, {
             method: 'POST',
@@ -359,6 +433,11 @@ async function handleUpgradeClick() {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                billing_period: currentBillingPeriod,
+                enable_trial: true,
+                referral_code: referralCode,
+            }),
         });
 
         if (!response.ok) {
@@ -367,18 +446,60 @@ async function handleUpgradeClick() {
         }
 
         const data = await response.json();
-        // Redirect to Stripe Checkout
         window.location.href = data.checkout_url;
     } catch (error) {
         console.error('Upgrade error:', error);
-        btn.textContent = 'Upgrade to Pro';
+        btn.textContent = 'Start 7-Day Free Trial';
         btn.disabled = false;
         alert('Unable to start checkout. Please try again or contact support.');
     }
 }
 
+// K.11: Referral link copy
+function copyReferralLink() {
+    const input = document.getElementById('referral-link');
+    navigator.clipboard.writeText(input.value).then(() => {
+        const btn = document.getElementById('copy-ref-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+    });
+}
+
+// K.11: Load referral section for logged-in users
+async function loadReferralSection() {
+    const token = getAuthToken();
+    if (!token) return;
+
+    try {
+        const resp = await fetch(`${API_BASE}/api/v1/billing/referral`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!resp.ok) return;
+
+        let data = await resp.json();
+
+        // Generate code if none exists
+        if (!data.referral_code) {
+            const genResp = await fetch(`${API_BASE}/api/v1/billing/referral`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (genResp.ok) data = await genResp.json();
+        }
+
+        if (data.referral_code) {
+            document.getElementById('referral-section').style.display = 'block';
+            document.getElementById('referral-link').value = data.referral_url;
+            document.getElementById('referral-stats').textContent =
+                `${data.total_referrals} referral${data.total_referrals !== 1 ? 's' : ''} \u00B7 ${data.successful_conversions} conversion${data.successful_conversions !== 1 ? 's' : ''}`;
+        }
+    } catch (e) {
+        // Referral section just stays hidden
+    }
+}
+
 // Show success banner if redirected from Stripe
-(function checkUpgradeSuccess() {
+(function init() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('session_id')) {
         const banner = document.getElementById('upgrade-success');
@@ -387,6 +508,13 @@ async function handleUpgradeClick() {
             banner.scrollIntoView({ behavior: 'smooth' });
         }
     }
+    // K.11: Show referral link if ref param present
+    if (params.get('ref')) {
+        const noteEl = document.getElementById('pro-price-note');
+        if (noteEl) noteEl.textContent = 'Referred by a friend \u00B7 7-day free trial';
+    }
+    // K.11: Load referral section
+    loadReferralSection();
 })();
 </script>
 
