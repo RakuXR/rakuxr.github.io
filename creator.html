@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Profile - RakuAI</title>
+    <meta name="description" content="View a creator's published games on RakuAI.">
+    <meta property="og:title" content="Creator Profile - RakuAI">
+    <meta property="og:description" content="Browse games by this creator on RakuAI.">
+    <meta property="og:type" content="profile">
+    <meta name="twitter:card" content="summary">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">&#8482;</sup> Now Available &mdash; Describe Any Game. Play It Instantly. | <a href="index.html#quickstart">Try RakuAI Now &rarr;</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&#8482;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="discover.html">Discover</a>
+            <a href="sdk.html">SDK</a>
+            <a href="docs.html">Docs</a>
+            <a href="pricing.html">Pricing</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="my-games.html">My Games</a>
+        </div>
+    </div>
+</nav>
+
+<section class="section" style="padding-top: 48px;">
+    <div class="container" style="max-width: 900px;">
+        <!-- Profile header -->
+        <div id="profile-header" style="text-align:center; margin-bottom:40px;">
+            <div style="width:80px;height:80px;border-radius:50%;background:var(--accent-bright);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#000;font-weight:700;" id="profile-avatar">?</div>
+            <h1 id="profile-name" style="margin-bottom:4px;">Loading...</h1>
+            <div style="display:flex;justify-content:center;gap:24px;color:var(--text-secondary);font-size:0.95rem;">
+                <span><strong id="profile-game-count">0</strong> games</span>
+                <span><strong id="profile-play-count">0</strong> plays</span>
+            </div>
+        </div>
+
+        <!-- Games grid -->
+        <h2 style="margin-bottom:16px;">Published Games</h2>
+        <div id="creator-games" class="mygames-grid"></div>
+
+        <!-- Empty state -->
+        <div id="creator-empty" class="mygames-empty" hidden>
+            <h3>No published games yet</h3>
+            <p style="color:var(--text-secondary);">This creator hasn't published any games.</p>
+        </div>
+
+        <!-- Loading -->
+        <div id="creator-loading" class="mygames-loading">
+            <div class="spinner" style="width:32px;height:32px;margin:0 auto 16px;"></div>
+            <p style="color:var(--text-secondary);">Loading profile...</p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            <a href="docs.html">Documentation</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="contact.html">Contact</a>
+        </div>
+        <p>&copy; 2026 &#x697D;AI (RakuAI), LLC. Patent-protected technology.</p>
+        <p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. &#x697D;AI and &#x697D;XR are stylized marks of RakuAI, LLC.</p>
+    </div>
+</footer>
+
+<script>
+(function() {
+    var API_BASE = (new URLSearchParams(window.location.search)).get('api_base')
+        || 'https://raku-api-staging.fly.dev';
+    var params = new URLSearchParams(window.location.search);
+    var userId = params.get('id');
+
+    var avatar = document.getElementById('profile-avatar');
+    var nameEl = document.getElementById('profile-name');
+    var gameCountEl = document.getElementById('profile-game-count');
+    var playCountEl = document.getElementById('profile-play-count');
+    var gamesGrid = document.getElementById('creator-games');
+    var emptyEl = document.getElementById('creator-empty');
+    var loadingEl = document.getElementById('creator-loading');
+
+    if (!userId) {
+        loadingEl.hidden = true;
+        nameEl.textContent = 'Creator not found';
+        emptyEl.hidden = false;
+        return;
+    }
+
+    // Fetch profile
+    fetch(API_BASE + '/api/v1/creators/' + encodeURIComponent(userId))
+        .then(function(r) { if (!r.ok) throw new Error('Not found'); return r.json(); })
+        .then(function(profile) {
+            nameEl.textContent = profile.display_name;
+            avatar.textContent = profile.display_name.charAt(0).toUpperCase();
+            gameCountEl.textContent = profile.game_count;
+            playCountEl.textContent = profile.total_plays;
+            document.title = profile.display_name + ' - RakuAI Creator';
+        })
+        .catch(function() {
+            nameEl.textContent = 'Creator ' + userId.substring(0, 8);
+            avatar.textContent = userId.charAt(0).toUpperCase();
+        });
+
+    // Fetch games
+    fetch(API_BASE + '/api/v1/creators/' + encodeURIComponent(userId) + '/games')
+        .then(function(r) { if (!r.ok) throw new Error('Not found'); return r.json(); })
+        .then(function(data) {
+            loadingEl.hidden = true;
+            if (!data.games || data.games.length === 0) {
+                emptyEl.hidden = false;
+                return;
+            }
+            data.games.forEach(function(game) {
+                var card = document.createElement('div');
+                card.className = 'mygames-card';
+                card.style.cursor = 'pointer';
+                card.innerHTML =
+                    '<div style="padding:20px;">' +
+                        '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">' +
+                            '<h3 style="margin:0;font-size:1.1rem;">' + esc(game.title) + '</h3>' +
+                            '<span style="display:inline-block;background:var(--accent-bright);color:#000;padding:2px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;">' + esc(game.genre) + '</span>' +
+                        '</div>' +
+                        '<p style="color:var(--text-secondary);font-size:0.9rem;margin:0 0 8px;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;">' +
+                            esc(game.description || 'An AI-generated ' + game.genre + ' game') +
+                        '</p>' +
+                        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                            '<span style="color:var(--text-secondary);font-size:0.8rem;">' + game.play_count + ' plays</span>' +
+                            '<span class="btn btn-primary" style="padding:6px 16px;font-size:0.85rem;">Play</span>' +
+                        '</div>' +
+                    '</div>';
+                card.addEventListener('click', function() {
+                    window.open('/play/?id=' + encodeURIComponent(game.id) + '&from=creator', '_blank');
+                });
+                gamesGrid.appendChild(card);
+            });
+        })
+        .catch(function() {
+            loadingEl.hidden = true;
+            emptyEl.hidden = false;
+        });
+
+    function esc(str) {
+        if (!str) return '';
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(str));
+        return d.innerHTML;
+    }
+})();
+</script>
+
+</body>
+</html>
