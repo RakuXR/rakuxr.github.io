@@ -428,7 +428,18 @@
     'use strict';
 
     // --- Config ---
+    // WASM modules (genre_*.wasm) CDN base
     const WASM_CDN_BASE = '/play/wasm/latest';
+    // Content pack assets (textures, audio, meshes) CDN base
+    // In production: cdn.raku.games/assets/{genre}/
+    const ASSET_CDN_BASE = (function() {
+      const host = window.location.hostname;
+      if (host === 'rakuai.com' || host === 'www.rakuai.com')
+        return 'https://cdn.raku.games/assets';
+      if (host === 'staging.rakuai.com')
+        return 'https://cdn-staging.raku.games/assets';
+      return '/play/assets';
+    })();
 
     const LOADING_TIPS = [
       'Games made with AI adapt to how you play.',
@@ -577,6 +588,11 @@
           wasmBinary: wasmBinary,
           locateFile: function(path) {
             if (path.endsWith('.wasm')) return config.wasmBinaryUrl;
+            // Content pack assets (textures, audio, data) from asset CDN
+            if (path.endsWith('.data') || path.endsWith('.png') || path.endsWith('.jpg') ||
+                path.endsWith('.ogg') || path.endsWith('.mp3') || path.endsWith('.wav') ||
+                path.endsWith('.glb') || path.endsWith('.bin'))
+              return ASSET_CDN_BASE + '/' + config.genre + '/' + path;
             return WASM_CDN_BASE + '/' + path;
           },
           print: function(t) { console.log('[Raku]', t); },
@@ -724,6 +740,138 @@
       if ('wakeLock' in navigator) {
         navigator.wakeLock.request('screen').catch(() => {});
       }
+    }
+
+    // --- Chat sidebar: iterate flow (J.5) ---
+    // API_BASE for backend calls. Override with ?api_base= for local dev.
+    const PLAY_API_BASE = new URLSearchParams(location.search).get('api_base')
+        || 'https://raku-api-staging.fly.dev';
+
+    // WASM instance stored after boot for config hot-reload
+    let wasmInstance = null;
+    let currentConfig = null;
+    let currentGameId = null;
+
+    // Override loadRakuGame to store the WASM instance
+    const _origLoad = loadRakuGame;
+    loadRakuGame = async function() {
+      await _origLoad();
+    };
+
+    // Patch: store instance and config after boot
+    (function patchBoot() {
+      const origSetupHUD = setupHUD;
+      setupHUD = function(canvas, instance) {
+        wasmInstance = instance;
+        const cfg = getGameConfig();
+        currentConfig = cfg.rakuConfig || null;
+        currentGameId = cfg.gameId || 'local-' + Date.now();
+        origSetupHUD(canvas, instance);
+
+        // Wire chat form now that we have the instance
+        wireChatForm(instance);
+      };
+    })();
+
+    function appendChatMessage(role, text) {
+      const container = document.getElementById('chat-messages');
+      if (!container) return;
+      const div = document.createElement('div');
+      div.className = 'message ' + role;
+      div.textContent = text;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function injectConfigToWasm(instance, config) {
+      if (!instance || !config) return;
+      try {
+        const json = JSON.stringify(config);
+        if (instance._raku_load_config_json) {
+          const len = instance.lengthBytesUTF8(json) + 1;
+          const ptr = instance._malloc(len);
+          instance.stringToUTF8(json, ptr, len);
+          instance._raku_load_config_json(ptr);
+          instance._free(ptr);
+          console.log('[Raku] Hot-reloaded config into WASM');
+        }
+      } catch (e) {
+        console.warn('[Raku] Config inject failed:', e.message);
+      }
+    }
+
+    function wireChatForm(instance) {
+      const form = document.getElementById('chat-form');
+      const input = document.getElementById('chat-input');
+      if (!form || !input) return;
+
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const message = input.value.trim();
+        if (!message) return;
+
+        input.value = '';
+        input.disabled = true;
+        appendChatMessage('user', message);
+        appendChatMessage('system', 'Thinking...');
+
+        try {
+          const authToken = sessionStorage.getItem('raku_auth_token');
+          const headers = { 'Content-Type': 'application/json' };
+          if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+
+          const res = await fetch(PLAY_API_BASE + '/api/v1/iterate', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+              game_id: currentGameId,
+              message: message,
+              current_config: currentConfig || {},
+            }),
+          });
+
+          // Remove "Thinking..." message
+          const msgs = document.getElementById('chat-messages');
+          const last = msgs && msgs.lastElementChild;
+          if (last && last.classList.contains('system') && last.textContent === 'Thinking...') {
+            last.remove();
+          }
+
+          if (!res.ok) {
+            const status = res.status;
+            if (status === 429) {
+              appendChatMessage('system', 'Rate limit reached. Please wait a moment.');
+            } else {
+              appendChatMessage('system', 'Error (' + status + '). Try again.');
+            }
+            return;
+          }
+
+          const data = await res.json();
+          const reply = data.message || data.explanation || 'Updated your game.';
+          appendChatMessage('assistant', reply);
+
+          // Hot-reload new config into running WASM
+          const newConfig = data.raku_config || data.updated_config;
+          if (newConfig) {
+            currentConfig = newConfig;
+            sessionStorage.setItem('raku_play_config', JSON.stringify(newConfig));
+            injectConfigToWasm(instance, newConfig);
+          }
+        } catch (err) {
+          // Remove "Thinking..." message
+          const msgs = document.getElementById('chat-messages');
+          const last = msgs && msgs.lastElementChild;
+          if (last && last.classList.contains('system') && last.textContent === 'Thinking...') {
+            last.remove();
+          }
+          appendChatMessage('system', 'Connection error. Check your network.');
+          console.error('[Raku] Iterate error:', err);
+        } finally {
+          input.disabled = false;
+          input.focus();
+        }
+      });
     }
 
     // --- Entry point ---
