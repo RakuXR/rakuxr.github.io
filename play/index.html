@@ -323,6 +323,139 @@
       .hud-overlay { padding: 0.5rem; }
       .hud-btn { width: 40px; height: 40px; }
     }
+
+    /* ---- Community Asset Browser (Track B) ---- */
+    .ca-panel {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 380px; max-width: 100vw;
+      background: var(--bg-overlay); backdrop-filter: blur(12px);
+      border-left: 1px solid var(--border);
+      z-index: 200; display: flex; flex-direction: column;
+      transition: transform 0.3s ease;
+    }
+    .ca-panel-closed { transform: translateX(100%); }
+    .ca-panel-open { transform: translateX(0); }
+    .ca-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem; border-bottom: 1px solid var(--border);
+    }
+    .ca-header h3 { font-size: 1rem; font-weight: 600; }
+    .ca-close-btn {
+      background: none; border: none; color: var(--text-muted); font-size: 1.5rem;
+      cursor: pointer; line-height: 1;
+    }
+    .ca-close-btn:hover { color: var(--text); }
+    .ca-filters { padding: 0.75rem; border-bottom: 1px solid var(--border); }
+    .ca-search {
+      width: 100%; padding: 0.5rem 0.75rem; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      font-size: 0.875rem; margin-bottom: 0.5rem;
+    }
+    .ca-search:focus { outline: none; border-color: var(--accent); }
+    .ca-filter-row { display: flex; gap: 0.375rem; }
+    .ca-select {
+      flex: 1; padding: 0.375rem; border-radius: 4px;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      font-size: 0.75rem;
+    }
+    .ca-grid {
+      flex: 1; overflow-y: auto; padding: 0.75rem;
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;
+      align-content: start;
+    }
+    .ca-card {
+      background: var(--surface); border-radius: 8px; overflow: hidden;
+      cursor: pointer; border: 1px solid transparent; transition: border-color 0.15s;
+    }
+    .ca-card:hover, .ca-card:focus { border-color: var(--accent); outline: none; }
+    .ca-card-img-wrapper {
+      aspect-ratio: 1; overflow: hidden; background: #0d0d1f;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ca-card-img { width: 100%; height: 100%; object-fit: cover; }
+    .ca-card-info { padding: 0.5rem; }
+    .ca-card-name {
+      display: block; font-size: 0.8rem; font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ca-card-meta { font-size: 0.7rem; color: var(--text-muted); }
+    .ca-pagination {
+      display: flex; justify-content: center; align-items: center; gap: 0.75rem;
+      padding: 0.75rem; border-top: 1px solid var(--border);
+    }
+    .ca-page-btn {
+      padding: 0.375rem 0.75rem; border-radius: 4px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font-size: 0.75rem; cursor: pointer;
+    }
+    .ca-page-btn:disabled { opacity: 0.4; cursor: default; }
+    .ca-page-info { font-size: 0.75rem; color: var(--text-muted); }
+    .ca-empty, .ca-loading, .ca-pro-gate {
+      padding: 2rem; text-align: center; color: var(--text-muted);
+    }
+    .ca-spinner {
+      width: 32px; height: 32px; margin: 0 auto 1rem;
+      border: 3px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: ca-spin 0.8s linear infinite;
+    }
+    @keyframes ca-spin { to { transform: rotate(360deg); } }
+    .ca-upgrade-btn {
+      display: inline-block; margin-top: 0.75rem; padding: 0.5rem 1.25rem;
+      background: var(--accent); color: #fff; border-radius: 6px; text-decoration: none;
+      font-size: 0.875rem; font-weight: 500;
+    }
+    .ca-upgrade-btn:hover { background: var(--accent-hover); }
+    .ca-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ca-modal-content {
+      background: var(--surface); border-radius: 12px; width: 90%; max-width: 420px;
+      border: 1px solid var(--border); overflow: hidden;
+    }
+    .ca-modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1rem; border-bottom: 1px solid var(--border);
+    }
+    .ca-modal-header h4 { font-size: 1rem; }
+    .ca-modal-close {
+      background: none; border: none; color: var(--text-muted); font-size: 1.5rem;
+      cursor: pointer; line-height: 1;
+    }
+    .ca-preview-body { padding: 1rem; }
+    .ca-preview-img {
+      width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px;
+      background: #0d0d1f; margin-bottom: 0.75rem;
+    }
+    .ca-preview-info { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+    .ca-modal-actions {
+      display: flex; gap: 0.5rem; padding: 1rem;
+      border-top: 1px solid var(--border); justify-content: flex-end;
+    }
+    .ca-btn {
+      padding: 0.5rem 1rem; border-radius: 6px; border: none;
+      font-size: 0.875rem; cursor: pointer;
+    }
+    .ca-btn-cancel { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+    .ca-btn-use { background: var(--accent); color: #fff; font-weight: 500; }
+    .ca-btn-use:hover { background: var(--accent-hover); }
+    .ca-processing {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 400;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ca-processing-content { text-align: center; color: var(--text); }
+    .ca-progress-bar {
+      width: 200px; height: 4px; background: var(--border); border-radius: 2px;
+      margin: 0.75rem auto 0; overflow: hidden;
+    }
+    .ca-progress-fill {
+      height: 100%; background: var(--accent); border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    @media (max-width: 768px) {
+      .ca-panel { width: 100%; }
+      .ca-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
   </style>
 </head>
 <body>
@@ -386,6 +519,12 @@
             <button class="share-menu-item" data-share="twitter">Post on X</button>
             <button class="share-menu-item" data-share="embed">Copy Embed Code</button>
           </div>
+          <button id="btn-community-assets" class="hud-btn" aria-label="Customize Character" title="Customize Character">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </button>
           <button id="btn-chat-toggle" class="hud-btn" aria-label="Toggle Chat" title="Iterate">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
@@ -618,6 +757,7 @@
           },
         });
 
+        window._rakuInstance = instance; // Expose for community assets (Track B)
         LoadingUI.updateProgress(100, 'Ready!');
         await new Promise(r => setTimeout(r, 200));
         LoadingUI.hide();
@@ -876,6 +1016,45 @@
 
     // --- Entry point ---
     document.addEventListener('DOMContentLoaded', loadRakuGame);
+  </script>
+
+  <!-- Community Asset Browser (Track B) -->
+  <script src="raku_community_assets.js"></script>
+  <script>
+    // Initialize community assets browser after game loads
+    (function() {
+      var origSetupHUD = window.setupHUD;
+      // Hook into the game load flow to init community assets
+      var observer = new MutationObserver(function() {
+        var container = document.getElementById('player-container');
+        if (container && !container.classList.contains('hidden')) {
+          observer.disconnect();
+          // Wait a tick for WASM module to be available
+          setTimeout(function() {
+            var config = (function() {
+              try {
+                var p = new URLSearchParams(window.location.search);
+                return { genre: p.get('genre') || 'platformer' };
+              } catch(e) { return { genre: 'platformer' }; }
+            })();
+
+            if (typeof RakuCommunityAssets !== 'undefined') {
+              RakuCommunityAssets.init({
+                apiBase: (typeof RAKU_API_BASE === 'string') ? RAKU_API_BASE : '',
+                genre: config.genre,
+                module: window._rakuInstance || null
+              });
+
+              var btn = document.getElementById('btn-community-assets');
+              if (btn) btn.addEventListener('click', function() {
+                RakuCommunityAssets.toggle();
+              });
+            }
+          }, 500);
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+    })();
   </script>
 </body>
 </html>
