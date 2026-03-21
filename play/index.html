@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0">
+  <title id="page-title">Play — RakuAI</title>
+
+  <!-- Open Graph / Social Sharing (replaced server-side for shared games) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="RakuAI">
+  <meta property="og:title" content="Play this game on RakuAI">
+  <meta property="og:description" content="A game created with AI — playable instantly in your browser.">
+  <meta property="og:image" content="https://rakuai.com/og-default.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@RakuAI">
+  <meta name="twitter:title" content="Play this game on RakuAI">
+  <meta name="twitter:description" content="A game created with AI — playable instantly in your browser.">
+  <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+
+  <!-- Game metadata (injected server-side, read by loader) -->
+  <meta name="raku:game-id" content="">
+  <meta name="raku:genre" content="">
+  <meta name="raku:version" content="">
+
+  <!-- PWA / Mobile -->
+  <meta name="theme-color" content="#0a0a1a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Prevent iOS text size adjust -->
+  <meta name="format-detection" content="telephone=no">
+
+  <style>
+    /* ================================================================
+       Raku Browser Player — Inline Styles (no external CSS dependency)
+       ================================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a1a;
+      --bg-overlay: rgba(10, 10, 26, 0.95);
+      --accent: #6366f1;
+      --accent-hover: #818cf8;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --surface: #1e1e2e;
+      --border: #334155;
+      --danger: #ef4444;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+    }
+
+    html, body {
+      height: 100%; width: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ---- Overlays ---- */
+    .overlay {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-overlay);
+      z-index: 1000;
+      padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+    }
+    .overlay-content {
+      text-align: center;
+      max-width: 420px; width: 90%;
+    }
+
+    /* Logo pulse */
+    .logo-pulse {
+      font-size: 3rem; font-weight: 800;
+      color: var(--accent);
+      animation: pulse 1.5s ease-in-out infinite;
+      margin-bottom: 1.5rem;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.95); }
+    }
+
+    /* Progress bar */
+    .progress-container { margin: 1.5rem 0; }
+    .progress-bar {
+      height: 6px; border-radius: 3px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; width: 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .progress-text {
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    .loading-tip {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-style: italic;
+      min-height: 1.2em;
+    }
+
+    /* Error overlay */
+    .error-overlay h2 { color: var(--danger); margin-bottom: 0.75rem; }
+    .error-actions { margin-top: 1.5rem; display: flex; gap: 0.75rem; justify-content: center; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0.625rem 1.25rem; border-radius: 0.5rem;
+      font-size: 0.875rem; font-weight: 600;
+      text-decoration: none; cursor: pointer; border: none;
+      min-height: 44px; min-width: 44px; /* touch target */
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+
+    /* ---- Player Layout ---- */
+    .player-container {
+      display: flex; height: 100vh; width: 100vw;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+    }
+    .player-container.chat-open .canvas-wrapper { flex: 1 1 auto; }
+    .player-container.chat-open .chat-sidebar { flex: 0 0 320px; }
+
+    .canvas-wrapper {
+      flex: 1; position: relative;
+      background: #000;
+      overflow: hidden;
+    }
+    canvas {
+      display: block; width: 100%; height: 100%;
+      outline: none;
+      touch-action: manipulation;
+    }
+
+    /* ---- HUD ---- */
+    .hud-overlay {
+      position: absolute; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 0.75rem;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .hud-left, .hud-right { display: flex; gap: 0.5rem; pointer-events: auto; }
+
+    .hud-btn {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 0.5rem;
+      color: #fff; cursor: pointer;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      transition: background 0.15s;
+    }
+    .hud-btn:hover { background: rgba(0,0,0,0.7); }
+
+    .fps-counter {
+      font-size: 0.75rem; font-family: monospace;
+      padding: 0.25rem 0.5rem;
+      background: rgba(0,0,0,0.6);
+      border-radius: 0.25rem;
+      align-self: center;
+    }
+
+    /* ---- Share Menu ---- */
+    .share-menu {
+      position: absolute; top: 44px; right: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      min-width: 180px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 20;
+    }
+    .share-menu-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      width: 100%; padding: 0.625rem 0.75rem;
+      background: none; border: none;
+      color: var(--text); font-size: 0.8125rem;
+      cursor: pointer; text-align: left;
+      min-height: 44px;
+    }
+    .share-menu-item:hover { background: rgba(255,255,255,0.05); }
+
+    /* ---- Chat Sidebar ---- */
+    .chat-sidebar {
+      flex: 0 0 0; width: 0; overflow: hidden;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      transition: flex-basis 0.3s, width 0.3s;
+    }
+    .chat-sidebar:not(.collapsed) { flex: 0 0 320px; width: 320px; }
+
+    .chat-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .chat-header h3 { font-size: 0.875rem; font-weight: 600; }
+    .chat-close-btn {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      background: none; border: none;
+      color: var(--text-muted); font-size: 1.25rem;
+      cursor: pointer;
+    }
+    .chat-close-btn:hover { color: var(--text); }
+
+    .chat-messages {
+      flex: 1; overflow-y: auto;
+      padding: 0.75rem;
+    }
+    .message {
+      margin-bottom: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.8125rem;
+      line-height: 1.4;
+    }
+    .message.system { background: rgba(99,102,241,0.1); color: var(--text-muted); }
+    .message.user { background: var(--accent); color: #fff; margin-left: 2rem; }
+    .message.assistant { background: rgba(255,255,255,0.05); margin-right: 2rem; }
+
+    .chat-input-area {
+      display: flex; gap: 0.5rem;
+      padding: 0.75rem;
+      border-top: 1px solid var(--border);
+      padding-bottom: max(0.75rem, var(--safe-bottom));
+    }
+    .chat-input-area input {
+      flex: 1; padding: 0.625rem;
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--border); border-radius: 0.375rem;
+      font-size: 0.875rem;
+      min-height: 44px;
+    }
+    .chat-input-area input:focus { outline: none; border-color: var(--accent); }
+    .btn-send {
+      width: 44px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 0.375rem;
+      cursor: pointer;
+    }
+    .btn-send:hover { background: var(--accent-hover); }
+
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%;
+      transform: translateX(-50%) translateY(1rem);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 2000;
+    }
+    .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ---- Skeleton UI ---- */
+    .skeleton-overlay {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg);
+      z-index: 5;
+      transition: opacity 0.3s;
+    }
+    .skeleton-shimmer {
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(99,102,241,0.05), transparent);
+      animation: shimmer 2s infinite;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    .skeleton-grid { display: grid; gap: 4px; padding: 2rem; }
+    .puzzle-grid { grid-template-columns: repeat(8, 1fr); max-width: 400px; }
+    .skeleton-cell {
+      aspect-ratio: 1;
+      background: var(--surface);
+      border-radius: 4px;
+    }
+
+    /* ---- Mobile ---- */
+    @media (max-width: 768px) {
+      .player-container.chat-open .chat-sidebar {
+        position: fixed; inset: 0; z-index: 100;
+        flex: none; width: 100%;
+      }
+      .share-menu { right: -3rem; }
+    }
+
+    @media (max-width: 480px) {
+      .hud-overlay { padding: 0.5rem; }
+      .hud-btn { width: 40px; height: 40px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="overlay loading-overlay">
+    <div class="overlay-content">
+      <div class="logo-pulse" aria-hidden="true">R</div>
+      <h2 id="loading-title">Loading Game...</h2>
+      <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"
+             role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <p class="progress-text" id="progress-text">Initializing...</p>
+      </div>
+      <p class="loading-tip" id="loading-tip"></p>
+    </div>
+  </div>
+
+  <!-- Error Overlay -->
+  <div id="error-overlay" class="overlay error-overlay hidden">
+    <div class="overlay-content">
+      <h2 id="error-title">Something went wrong</h2>
+      <p id="error-message">The game failed to load. Please try again.</p>
+      <div class="error-actions">
+        <button id="error-retry" class="btn btn-primary">Try Again</button>
+        <a href="/" class="btn btn-secondary">Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Container -->
+  <div id="player-container" class="player-container hidden">
+    <div id="canvas-wrapper" class="canvas-wrapper">
+      <canvas id="canvas" tabindex="0"></canvas>
+      <div id="hud-overlay" class="hud-overlay">
+        <div class="hud-left">
+          <a href="/" class="hud-btn" aria-label="Home" title="Back to RakuAI">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </a>
+        </div>
+        <div class="hud-right">
+          <span id="fps-counter" class="fps-counter hidden">60</span>
+          <button id="btn-fullscreen" class="hud-btn" aria-label="Fullscreen" title="Fullscreen">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/>
+            </svg>
+          </button>
+          <button id="btn-share" class="hud-btn" aria-label="Share" title="Share">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+          </button>
+          <div id="share-menu" class="share-menu hidden" role="menu">
+            <button class="share-menu-item" data-share="copy">Copy Link</button>
+            <button class="share-menu-item" data-share="twitter">Post on X</button>
+            <button class="share-menu-item" data-share="embed">Copy Embed Code</button>
+          </div>
+          <button id="btn-chat-toggle" class="hud-btn" aria-label="Toggle Chat" title="Iterate">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <aside id="chat-sidebar" class="chat-sidebar collapsed">
+      <div class="chat-header">
+        <h3>Iterate on your game</h3>
+        <button id="btn-chat-close" class="chat-close-btn" aria-label="Close chat">&times;</button>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="message system">
+          Try: "Make it harder", "Change the colors", "Add more enemies"
+        </div>
+      </div>
+      <form id="chat-form" class="chat-input-area" autocomplete="off">
+        <input type="text" id="chat-input" placeholder="Describe a change..."
+               maxlength="500" autocomplete="off">
+        <button type="submit" class="btn-send" aria-label="Send">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </form>
+    </aside>
+  </div>
+
+  <div id="share-toast" class="toast hidden" role="alert">Link copied!</div>
+
+  <script>
+    // ========================================================================
+    // Raku Browser Player — Inline Script
+    // Combines loader, cache, perf, chat, and screenshot functionality
+    // for the GitHub Pages deployment (no external JS file dependencies).
+    // ========================================================================
+    'use strict';
+
+    // --- Config ---
+    // WASM modules (genre_*.wasm) CDN base
+    const WASM_CDN_BASE = '/play/wasm/latest';
+    // Content pack assets (textures, audio, meshes) CDN base
+    // In production: cdn.raku.games/assets/{genre}/
+    const ASSET_CDN_BASE = (function() {
+      const host = window.location.hostname;
+      if (host === 'rakuai.com' || host === 'www.rakuai.com')
+        return 'https://cdn.raku.games/assets';
+      if (host === 'staging.rakuai.com')
+        return 'https://cdn-staging.raku.games/assets';
+      return '/play/assets';
+    })();
+
+    const LOADING_TIPS = [
+      'Games made with AI adapt to how you play.',
+      'You can iterate on any game by opening the chat sidebar.',
+      'Share your game with friends using the share button.',
+      'Every game runs directly in your browser \u2014 no download needed.',
+      'Raku games work on phones, tablets, and desktops.',
+    ];
+
+    // --- Loading UI ---
+    const LoadingUI = {
+      _tipInterval: null,
+      _tipIndex: 0,
+      show() {
+        document.getElementById('loading-overlay').classList.remove('hidden');
+        document.getElementById('error-overlay').classList.add('hidden');
+        document.getElementById('player-container').classList.add('hidden');
+        const tipEl = document.getElementById('loading-tip');
+        if (tipEl) {
+          this._tipIndex = Math.floor(Math.random() * LOADING_TIPS.length);
+          tipEl.textContent = LOADING_TIPS[this._tipIndex];
+          this._tipInterval = setInterval(() => {
+            this._tipIndex = (this._tipIndex + 1) % LOADING_TIPS.length;
+            tipEl.textContent = LOADING_TIPS[this._tipIndex];
+          }, 4000);
+        }
+      },
+      hide() {
+        document.getElementById('loading-overlay').classList.add('hidden');
+        document.getElementById('player-container').classList.remove('hidden');
+        if (this._tipInterval) clearInterval(this._tipInterval);
+        const canvas = document.getElementById('canvas');
+        if (canvas) canvas.focus();
+      },
+      updateProgress(pct, msg) {
+        const fill = document.getElementById('progress-fill');
+        const text = document.getElementById('progress-text');
+        if (fill) fill.style.width = Math.min(100, Math.max(0, pct)) + '%';
+        if (text && msg) text.textContent = msg;
+      },
+      showError(title, message) {
+        document.getElementById('loading-overlay').classList.add('hidden');
+        document.getElementById('error-overlay').classList.remove('hidden');
+        document.getElementById('error-title').textContent = title || 'Something went wrong';
+        document.getElementById('error-message').textContent = message || 'The game failed to load.';
+        if (this._tipInterval) clearInterval(this._tipInterval);
+      }
+    };
+
+    // --- Config from URL ---
+    function getGameConfig() {
+      const path = window.location.pathname;
+      const match = path.match(/\/play\/([^/]+)/);
+      const gameId = match ? match[1] : null;
+
+      const metaGenre = document.querySelector('meta[name="raku:genre"]');
+      const metaVersion = document.querySelector('meta[name="raku:version"]');
+
+      const params = new URLSearchParams(window.location.search);
+      const genre = params.get('genre') || (metaGenre && metaGenre.content) || 'puzzle';
+      const version = params.get('v') || (metaVersion && metaVersion.content) || '1';
+      const wasmBase = params.get('wasm_base') || WASM_CDN_BASE;
+
+      // If launched from the generate flow, read the raku_config from sessionStorage
+      let rakuConfig = null;
+      if (params.get('from') === 'generate') {
+        try {
+          const stored = sessionStorage.getItem('raku_play_config');
+          if (stored) rakuConfig = JSON.parse(stored);
+        } catch (_) { /* ignore parse errors */ }
+      }
+
+      return {
+        gameId: gameId || 'local',
+        genre, version,
+        title: params.get('title') || 'Raku Game',
+        wasmUrl: wasmBase + '/genre_' + genre + '.js',
+        wasmBinaryUrl: wasmBase + '/genre_' + genre + '.wasm',
+        rakuConfig,
+      };
+    }
+
+    // --- Fetch with progress ---
+    async function fetchWithProgress(url, onProgress) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch ' + url + ': ' + response.status);
+      const contentLength = response.headers.get('Content-Length');
+      if (!contentLength || !response.body) {
+        const buffer = await response.arrayBuffer();
+        if (onProgress) onProgress(1.0);
+        return buffer;
+      }
+      const total = parseInt(contentLength, 10);
+      const reader = response.body.getReader();
+      const chunks = [];
+      let received = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        received += value.length;
+        if (onProgress) onProgress(received / total);
+      }
+      const buffer = new Uint8Array(received);
+      let offset = 0;
+      for (const chunk of chunks) { buffer.set(chunk, offset); offset += chunk.length; }
+      return buffer.buffer;
+    }
+
+    // --- Load script ---
+    function loadScript(url) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = url;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('Failed to load: ' + url));
+        document.head.appendChild(s);
+      });
+    }
+
+    // --- Main loader ---
+    async function loadRakuGame() {
+      const config = getGameConfig();
+      LoadingUI.show();
+      LoadingUI.updateProgress(0, 'Starting...');
+
+      try {
+        document.getElementById('page-title').textContent = config.title + ' \u2014 RakuAI';
+
+        LoadingUI.updateProgress(10, 'Downloading game...');
+        const wasmBinary = await fetchWithProgress(config.wasmBinaryUrl, (pct) => {
+          LoadingUI.updateProgress(10 + pct * 50, 'Downloading game...');
+        });
+
+        LoadingUI.updateProgress(65, 'Loading engine...');
+        await loadScript(config.wasmUrl);
+
+        LoadingUI.updateProgress(75, 'Initializing...');
+        const factoryName = 'RakuGenre_' + config.genre;
+        const factory = window[factoryName];
+        if (!factory) throw new Error('Module "' + factoryName + '" not found.');
+
+        const canvas = document.getElementById('canvas');
+        const instance = await factory({
+          canvas: canvas,
+          wasmBinary: wasmBinary,
+          locateFile: function(path) {
+            if (path.endsWith('.wasm')) return config.wasmBinaryUrl;
+            // Content pack assets (textures, audio, data) from asset CDN
+            if (path.endsWith('.data') || path.endsWith('.png') || path.endsWith('.jpg') ||
+                path.endsWith('.ogg') || path.endsWith('.mp3') || path.endsWith('.wav') ||
+                path.endsWith('.glb') || path.endsWith('.bin'))
+              return ASSET_CDN_BASE + '/' + config.genre + '/' + path;
+            return WASM_CDN_BASE + '/' + path;
+          },
+          print: function(t) { console.log('[Raku]', t); },
+          printErr: function(t) { console.warn('[Raku]', t); },
+          onRuntimeInitialized: function() {
+            LoadingUI.updateProgress(90, 'Starting game...');
+            // If we have a raku_config from the generation flow, inject it
+            if (config.rakuConfig) {
+              try {
+                const configJson = JSON.stringify(config.rakuConfig);
+                if (instance._raku_load_config_json) {
+                  const len = instance.lengthBytesUTF8(configJson) + 1;
+                  const ptr = instance._malloc(len);
+                  instance.stringToUTF8(configJson, ptr, len);
+                  instance._raku_load_config_json(ptr);
+                  instance._free(ptr);
+                  console.log('[Raku] Injected raku_config from generation flow');
+                }
+              } catch (e) {
+                console.warn('[Raku] Failed to inject config:', e.message);
+              }
+            }
+          },
+        });
+
+        LoadingUI.updateProgress(100, 'Ready!');
+        await new Promise(r => setTimeout(r, 200));
+        LoadingUI.hide();
+        setupHUD(canvas, instance);
+        setupCanvasResize(canvas);
+        startFPSCounter();
+        applyMobileOptimizations(canvas);
+
+      } catch (err) {
+        console.error('[Raku] Load error:', err);
+        LoadingUI.showError('Failed to load game', err.message);
+      }
+    }
+
+    // --- HUD ---
+    function setupHUD(canvas, instance) {
+      const btnFS = document.getElementById('btn-fullscreen');
+      if (btnFS) btnFS.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          (canvas.parentElement || canvas).requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      });
+
+      const container = document.getElementById('player-container');
+      const sidebar = document.getElementById('chat-sidebar');
+      function toggleChat() {
+        const isOpen = container.classList.contains('chat-open');
+        container.classList.toggle('chat-open', !isOpen);
+        sidebar.classList.toggle('collapsed', isOpen);
+      }
+      const btnChat = document.getElementById('btn-chat-toggle');
+      const btnClose = document.getElementById('btn-chat-close');
+      if (btnChat) btnChat.addEventListener('click', toggleChat);
+      if (btnClose) btnClose.addEventListener('click', toggleChat);
+
+      const btnShare = document.getElementById('btn-share');
+      const shareMenu = document.getElementById('share-menu');
+      if (btnShare) btnShare.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (navigator.share) {
+          navigator.share({ title: document.title, url: location.href }).catch(() => {});
+          return;
+        }
+        if (shareMenu) shareMenu.classList.toggle('hidden');
+      });
+      if (shareMenu) {
+        shareMenu.addEventListener('click', (e) => {
+          const item = e.target.closest('[data-share]');
+          if (!item) return;
+          e.stopPropagation();
+          const url = location.href;
+          if (item.dataset.share === 'copy') {
+            navigator.clipboard.writeText(url).then(() => showToast('Link copied!')).catch(() => {});
+          } else if (item.dataset.share === 'twitter') {
+            window.open('https://x.com/intent/tweet?url=' + encodeURIComponent(url), '_blank');
+          } else if (item.dataset.share === 'embed') {
+            const code = '<iframe src="' + url + '" width="800" height="600" frameborder="0" allowfullscreen></iframe>';
+            navigator.clipboard.writeText(code).then(() => showToast('Embed code copied!')).catch(() => {});
+          }
+          shareMenu.classList.add('hidden');
+        });
+        document.addEventListener('click', () => shareMenu.classList.add('hidden'));
+      }
+
+      const btnRetry = document.getElementById('error-retry');
+      if (btnRetry) btnRetry.addEventListener('click', () => location.reload());
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('share-toast');
+      if (!toast) return;
+      toast.textContent = text;
+      toast.classList.remove('hidden');
+      toast.classList.add('visible');
+      setTimeout(() => {
+        toast.classList.remove('visible');
+        setTimeout(() => toast.classList.add('hidden'), 300);
+      }, 2000);
+    }
+
+    // --- Canvas resize ---
+    function setupCanvasResize(canvas) {
+      function resize() {
+        const wrapper = canvas.parentElement;
+        if (!wrapper) return;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.floor(wrapper.clientWidth * dpr);
+        canvas.height = Math.floor(wrapper.clientHeight * dpr);
+      }
+      window.addEventListener('resize', resize, { passive: true });
+      resize();
+    }
+
+    // --- FPS counter ---
+    function startFPSCounter() {
+      const el = document.getElementById('fps-counter');
+      if (!el) return;
+      if (new URLSearchParams(location.search).has('fps')) el.classList.remove('hidden');
+      let frames = 0, last = performance.now();
+      (function tick() {
+        frames++;
+        const now = performance.now();
+        if (now - last >= 1000) { el.textContent = frames; frames = 0; last = now; }
+        requestAnimationFrame(tick);
+      })();
+    }
+
+    // --- Mobile optimizations ---
+    function applyMobileOptimizations(canvas) {
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+                       ('ontouchstart' in window && navigator.maxTouchPoints > 0);
+      if (!isMobile) return;
+
+      canvas.style.touchAction = 'manipulation';
+      canvas.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
+      // Wake lock
+      if ('wakeLock' in navigator) {
+        navigator.wakeLock.request('screen').catch(() => {});
+      }
+    }
+
+    // --- Chat sidebar: iterate flow (J.5) ---
+    // API_BASE for backend calls. Override with ?api_base= for local dev.
+    const PLAY_API_BASE = new URLSearchParams(location.search).get('api_base')
+        || 'https://raku-api-staging.fly.dev';
+
+    // WASM instance stored after boot for config hot-reload
+    let wasmInstance = null;
+    let currentConfig = null;
+    let currentGameId = null;
+
+    // Override loadRakuGame to store the WASM instance
+    const _origLoad = loadRakuGame;
+    loadRakuGame = async function() {
+      await _origLoad();
+    };
+
+    // Patch: store instance and config after boot
+    (function patchBoot() {
+      const origSetupHUD = setupHUD;
+      setupHUD = function(canvas, instance) {
+        wasmInstance = instance;
+        const cfg = getGameConfig();
+        currentConfig = cfg.rakuConfig || null;
+        currentGameId = cfg.gameId || 'local-' + Date.now();
+        origSetupHUD(canvas, instance);
+
+        // Wire chat form now that we have the instance
+        wireChatForm(instance);
+      };
+    })();
+
+    function appendChatMessage(role, text) {
+      const container = document.getElementById('chat-messages');
+      if (!container) return;
+      const div = document.createElement('div');
+      div.className = 'message ' + role;
+      div.textContent = text;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function injectConfigToWasm(instance, config) {
+      if (!instance || !config) return;
+      try {
+        const json = JSON.stringify(config);
+        if (instance._raku_load_config_json) {
+          const len = instance.lengthBytesUTF8(json) + 1;
+          const ptr = instance._malloc(len);
+          instance.stringToUTF8(json, ptr, len);
+          instance._raku_load_config_json(ptr);
+          instance._free(ptr);
+          console.log('[Raku] Hot-reloaded config into WASM');
+        }
+      } catch (e) {
+        console.warn('[Raku] Config inject failed:', e.message);
+      }
+    }
+
+    function wireChatForm(instance) {
+      const form = document.getElementById('chat-form');
+      const input = document.getElementById('chat-input');
+      if (!form || !input) return;
+
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const message = input.value.trim();
+        if (!message) return;
+
+        input.value = '';
+        input.disabled = true;
+        appendChatMessage('user', message);
+        appendChatMessage('system', 'Thinking...');
+
+        try {
+          const authToken = sessionStorage.getItem('raku_auth_token');
+          const headers = { 'Content-Type': 'application/json' };
+          if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+
+          const res = await fetch(PLAY_API_BASE + '/api/v1/iterate', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+              game_id: currentGameId,
+              message: message,
+              current_config: currentConfig || {},
+            }),
+          });
+
+          // Remove "Thinking..." message
+          const msgs = document.getElementById('chat-messages');
+          const last = msgs && msgs.lastElementChild;
+          if (last && last.classList.contains('system') && last.textContent === 'Thinking...') {
+            last.remove();
+          }
+
+          if (!res.ok) {
+            const status = res.status;
+            if (status === 429) {
+              appendChatMessage('system', 'Rate limit reached. Please wait a moment.');
+            } else {
+              appendChatMessage('system', 'Error (' + status + '). Try again.');
+            }
+            return;
+          }
+
+          const data = await res.json();
+          const reply = data.message || data.explanation || 'Updated your game.';
+          appendChatMessage('assistant', reply);
+
+          // Hot-reload new config into running WASM
+          const newConfig = data.raku_config || data.updated_config;
+          if (newConfig) {
+            currentConfig = newConfig;
+            sessionStorage.setItem('raku_play_config', JSON.stringify(newConfig));
+            injectConfigToWasm(instance, newConfig);
+          }
+        } catch (err) {
+          // Remove "Thinking..." message
+          const msgs = document.getElementById('chat-messages');
+          const last = msgs && msgs.lastElementChild;
+          if (last && last.classList.contains('system') && last.textContent === 'Thinking...') {
+            last.remove();
+          }
+          appendChatMessage('system', 'Connection error. Check your network.');
+          console.error('[Raku] Iterate error:', err);
+        } finally {
+          input.disabled = false;
+          input.focus();
+        }
+      });
+    }
+
+    // --- Entry point ---
+    document.addEventListener('DOMContentLoaded', loadRakuGame);
+  </script>
+</body>
+</html>
