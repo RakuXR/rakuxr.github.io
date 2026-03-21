@@ -428,6 +428,9 @@
 
 <!-- Upgrade Banner (shown when approaching daily limit) -->
 <div id="upgrade-banner-slot" class="container" style="padding-top: 0;"></div>
+<script src="js/api-client.js"></script>
+<script src="js/raku-bridge.js"></script>
+<script src="js/share-flow.js"></script>
 <script src="js/upgrade-flow.js"></script>
 <script>
     // Check usage and show upgrade banner if near limit
@@ -1553,20 +1556,22 @@ var RAKU_API_BASE = (function() {
 
     // --- Google OAuth ---
     document.getElementById('google-oauth-btn').addEventListener('click', function() {
-        // H2.6: will redirect to POST /api/v1/auth/google
         // Store prompt for post-OAuth generation
         var prompt = textarea.value.trim();
         if (prompt) {
             sessionStorage.setItem('raku_pending_prompt', prompt);
         }
-        var GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID';
-        var REDIRECT_URI = encodeURIComponent(window.location.origin + '/auth/google/callback');
-        var SCOPE = encodeURIComponent('email profile');
+        // Google client ID: set via meta tag or env. Replace placeholder with real value.
+        var metaClientId = document.querySelector('meta[name="google-client-id"]');
+        var GOOGLE_CLIENT_ID = (metaClientId && metaClientId.content) || 'YOUR_GOOGLE_CLIENT_ID';
+        var REDIRECT_URI = encodeURIComponent(window.location.origin + '/auth/google/callback.html');
+        var SCOPE = encodeURIComponent('email profile openid');
         window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth'
             + '?client_id=' + GOOGLE_CLIENT_ID
             + '&redirect_uri=' + REDIRECT_URI
             + '&response_type=code'
             + '&scope=' + SCOPE
+            + '&access_type=offline'
             + '&prompt=consent';
     });
 
