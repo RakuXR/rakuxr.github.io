@@ -205,7 +205,7 @@ const RakuCustomCharacter = {
           this.close();
         });
       });
-    } catch (e) { /* silent */ }
+    } catch (e) { console.warn('Custom character library load failed:', e); }
   },
 
   async _generate() {
