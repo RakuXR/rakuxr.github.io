@@ -1118,7 +1118,9 @@ var RAKU_API_BASE = (function() {
 
         var data = lastGenerationResult || {};
         var gameId = data.game_id || data.generation_id;
-        var authToken = sessionStorage.getItem('raku_auth_token');
+        // SECURITY NOTE: Token storage should migrate to HttpOnly cookies.
+        // sessionStorage is used as interim solution; ensure CSP headers mitigate XSS risk.
+        var authToken = (sessionStorage.getItem('raku_auth_token') || '').replace(/[^a-zA-Z0-9._\-]/g, '');
         var headers = { 'Content-Type': 'application/json' };
         if (authToken) {
             headers['Authorization'] = 'Bearer ' + authToken;
@@ -1851,7 +1853,9 @@ var RAKU_API_BASE = (function() {
         })
         .then(function(authData) {
             // Store the JWT token
-            var token = authData.access_token;
+            // SECURITY NOTE: Token storage should migrate to HttpOnly cookies.
+            // sessionStorage is used as interim solution; ensure CSP headers mitigate XSS risk.
+            var token = (authData.access_token || '').replace(/[^a-zA-Z0-9._\-]/g, '');
             sessionStorage.setItem('raku_auth_token', token);
             closeModal();
 
@@ -1866,11 +1870,14 @@ var RAKU_API_BASE = (function() {
 
     // --- Post-OAuth generation resume ---
     // After Google OAuth callback, token may be stored as raku_access_token
+    // SECURITY NOTE: Token storage should migrate to HttpOnly cookies.
+    // sessionStorage is used as interim solution; ensure CSP headers mitigate XSS risk.
+    var sanitizeToken = function(t) { return (t || '').replace(/[^a-zA-Z0-9._\-]/g, ''); };
     var pendingPrompt = sessionStorage.getItem('raku_pending_prompt');
-    var authToken = sessionStorage.getItem('raku_auth_token') || sessionStorage.getItem('raku_access_token');
+    var authToken = sanitizeToken(sessionStorage.getItem('raku_auth_token') || sessionStorage.getItem('raku_access_token'));
     // Sync token keys so downstream code uses raku_auth_token consistently
     if (!sessionStorage.getItem('raku_auth_token') && sessionStorage.getItem('raku_access_token')) {
-        sessionStorage.setItem('raku_auth_token', sessionStorage.getItem('raku_access_token'));
+        sessionStorage.setItem('raku_auth_token', sanitizeToken(sessionStorage.getItem('raku_access_token')));
     }
     var autoGenerate = new URLSearchParams(window.location.search).get('auto_generate');
     if (pendingPrompt && authToken) {
