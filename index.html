@@ -1120,7 +1120,7 @@ var RAKU_API_BASE = (function() {
         var gameId = data.game_id || data.generation_id;
         // SECURITY NOTE: Token storage should migrate to HttpOnly cookies.
         // sessionStorage is used as interim solution; ensure CSP headers mitigate XSS risk.
-        var authToken = (sessionStorage.getItem('raku_auth_token') || '').replace(/[^a-zA-Z0-9._\-]/g, '');
+        var authToken = sanitizeToken(RakuAPI.getToken() || '');
         var headers = { 'Content-Type': 'application/json' };
         if (authToken) {
             headers['Authorization'] = 'Bearer ' + authToken;
@@ -1856,7 +1856,7 @@ var RAKU_API_BASE = (function() {
             // SECURITY NOTE: Token storage should migrate to HttpOnly cookies.
             // sessionStorage is used as interim solution; ensure CSP headers mitigate XSS risk.
             var token = (authData.access_token || '').replace(/[^a-zA-Z0-9._\-]/g, '');
-            sessionStorage.setItem('raku_auth_token', token);
+            RakuAPI.setToken(token, authData.refresh_token);
             closeModal();
 
             // Step 2: Generate with auth token
@@ -1872,9 +1872,9 @@ var RAKU_API_BASE = (function() {
     // After Google OAuth callback, token may be stored as raku_access_token
     // SECURITY NOTE: Token storage should migrate to HttpOnly cookies.
     // sessionStorage is used as interim solution; ensure CSP headers mitigate XSS risk.
-    var sanitizeToken = function(t) { return (t || '').replace(/[^a-zA-Z0-9._\-]/g, ''); };
+    function sanitizeToken(t) { return (t || '').replace(/[^a-zA-Z0-9._\-]/g, ''); }
     var pendingPrompt = sessionStorage.getItem('raku_pending_prompt');
-    var authToken = sanitizeToken(sessionStorage.getItem('raku_auth_token') || sessionStorage.getItem('raku_access_token'));
+    var authToken = sanitizeToken(RakuAPI.getToken() || '');
     // Sync token keys so downstream code uses raku_auth_token consistently
     if (!sessionStorage.getItem('raku_auth_token') && sessionStorage.getItem('raku_access_token')) {
         sessionStorage.setItem('raku_auth_token', sanitizeToken(sessionStorage.getItem('raku_access_token')));
