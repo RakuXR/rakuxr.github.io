@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeLens — Historical AR Experiences | RakuAI</title>
+    <meta name="description" content="Bring history to life with AI-powered AR. White-label AR experiences for museums, tourism boards, and heritage sites.">
+    <link rel="canonical" href="https://rakuai.com/scenarios/timelens.html">
+    <style>
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #111128;
+            --text-primary: #e8e8f0;
+            --text-secondary: #9090b0;
+            --accent: #6c5ce7;
+            --accent-bright: #a388ff;
+            --success: #00cec9;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        nav {
+            background: rgba(10, 10, 26, 0.95);
+            border-bottom: 1px solid rgba(108, 92, 231, 0.2);
+            padding: 16px 0;
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .nav-inner {
+            max-width: 1200px; margin: 0 auto; padding: 0 24px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); text-decoration: none; letter-spacing: 2px; }
+        .logo sup { font-size: 0.5em; vertical-align: super; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; margin-left: 24px; font-size: 0.95rem; }
+        .nav-links a:hover { color: var(--accent-bright); }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        .hero {
+            padding: 100px 0 60px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+        .hero h1 {
+            font-size: 3rem; font-weight: 800; margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 1.2rem; color: var(--text-secondary); max-width: 620px; margin: 0 auto; }
+        .badge { display: inline-block; background: var(--accent); color: #fff; padding: 6px 18px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; margin-bottom: 20px; }
+
+        /* How It Works */
+        .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; padding: 60px 0; }
+        .step { text-align: center; }
+        .step-num { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; font-size: 1.2rem; margin-bottom: 16px; }
+        .step h3 { margin-bottom: 8px; font-size: 1.15rem; }
+        .step p { color: var(--text-secondary); font-size: 0.95rem; }
+
+        /* Section headings */
+        .section-title { text-align: center; font-size: 2rem; font-weight: 800; margin-bottom: 40px; }
+
+        /* Features */
+        .features { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; padding: 0 0 60px; }
+        .feature {
+            background: var(--bg-secondary); border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px; padding: 28px;
+        }
+        .feature h4 { margin-bottom: 8px; font-size: 1.1rem; }
+        .feature p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* Pricing */
+        .pricing { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; padding: 0 0 80px; }
+        .price-card {
+            background: var(--bg-secondary); border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 16px; padding: 36px 28px; text-align: center;
+        }
+        .price-card.featured { border-color: var(--accent); }
+        .price-card h4 { font-size: 1.3rem; margin-bottom: 8px; }
+        .price-card .price { font-size: 1.6rem; font-weight: 800; color: var(--accent-bright); margin-bottom: 8px; }
+        .price-card .desc { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.7; }
+        .price-card ul { list-style: none; text-align: left; margin-bottom: 24px; }
+        .price-card ul li { color: var(--text-secondary); font-size: 0.9rem; padding: 6px 0; border-bottom: 1px solid rgba(108, 92, 231, 0.1); }
+        .price-card ul li::before { content: "\2713 "; color: var(--success); font-weight: 700; margin-right: 6px; }
+
+        .btn {
+            display: inline-block; padding: 14px 36px; border-radius: 8px; font-weight: 700;
+            text-decoration: none; font-size: 1rem; transition: opacity 0.2s;
+        }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { opacity: 0.85; }
+        .btn-outline { border: 2px solid var(--accent); color: var(--accent-bright); background: transparent; }
+        .btn-outline:hover { background: var(--accent); color: #fff; }
+
+        .cta-section { text-align: center; padding: 60px 0 80px; }
+        .cta-section h2 { font-size: 2rem; margin-bottom: 16px; }
+        .cta-section p { color: var(--text-secondary); margin-bottom: 28px; }
+
+        footer { text-align: center; padding: 40px 0; color: var(--text-secondary); font-size: 0.85rem; border-top: 1px solid rgba(108, 92, 231, 0.15); }
+        footer a { color: var(--accent-bright); text-decoration: none; }
+
+        @media (max-width: 700px) {
+            .hero h1 { font-size: 2rem; }
+            .steps { grid-template-columns: 1fr; }
+            .pricing { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-inner">
+        <a href="../index.html" class="logo">RAKUAI<sup>TM</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="./">Scenarios</a>
+            <a href="../developers/">Developers</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <div class="badge">B2B White-Label</div>
+        <h1>Bring History to Life with AI</h1>
+        <p>Turn any landmark, museum, or heritage site into an immersive AR time-travel experience. White-label ready for tourism boards and cultural organizations.</p>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="container">
+    <h2 class="section-title">How It Works</h2>
+    <div class="steps">
+        <div class="step">
+            <div class="step-num">1</div>
+            <h3>Scan the Site</h3>
+            <p>We capture your landmark with LiDAR and photogrammetry to build a precision 3D digital twin.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <h3>Layer the History</h3>
+            <p>AI generates historically accurate characters, architecture, and events anchored to real-world GPS coordinates.</p>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <h3>Visitors Explore</h3>
+            <p>Guests open the app, point their phone, and watch centuries of history unfold right where they stand.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="container">
+    <h2 class="section-title">Features</h2>
+    <div class="features">
+        <div class="feature">
+            <h4>&#x1F9D1;&#x200D;&#x1F3EB; AI Guides</h4>
+            <p>Conversational AI characters from any era answer visitor questions in real-time, available in 30+ languages.</p>
+        </div>
+        <div class="feature">
+            <h4>&#x23F3; Time Shift</h4>
+            <p>Swipe through centuries — watch buildings rise, fall, and transform on a continuous historical timeline.</p>
+        </div>
+        <div class="feature">
+            <h4>&#x1F4EC; Digital Stamps</h4>
+            <p>Collectible AR stamps at each point of interest drive visitor engagement and repeat visits.</p>
+        </div>
+        <div class="feature">
+            <h4>&#x1F3A7; Spatial Audio</h4>
+            <p>3D positional audio brings historical ambience to life — market chatter, battle sounds, period music.</p>
+        </div>
+        <div class="feature">
+            <h4>&#x1F4F8; Photo Mode</h4>
+            <p>Visitors snap photos alongside AI-generated historical scenes and share them on social media.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing -->
+<section class="container">
+    <h2 class="section-title">Pricing</h2>
+    <div class="pricing">
+        <div class="price-card">
+            <h4>Walking Tour</h4>
+            <div class="price">$5K &ndash; $15K</div>
+            <p class="desc">Single-route outdoor experience with up to 10 AR waypoints.</p>
+            <ul>
+                <li>Up to 10 AR waypoints</li>
+                <li>1 historical era</li>
+                <li>GPS-anchored scenes</li>
+                <li>Standard AI guide</li>
+                <li>Basic analytics dashboard</li>
+            </ul>
+            <a href="#contact" class="btn btn-outline">Get a Quote</a>
+        </div>
+        <div class="price-card featured">
+            <h4>Immersive</h4>
+            <div class="price">$25K &ndash; $75K</div>
+            <p class="desc">Multi-era, multi-route experience with custom AI characters and full branding.</p>
+            <ul>
+                <li>Up to 50 AR waypoints</li>
+                <li>3+ historical eras</li>
+                <li>Custom AI guide personas</li>
+                <li>Digital stamp collection</li>
+                <li>White-label branding</li>
+                <li>Multilingual support</li>
+            </ul>
+            <a href="#contact" class="btn btn-primary">Schedule a Demo</a>
+        </div>
+        <div class="price-card">
+            <h4>Signature</h4>
+            <div class="price">$100K &ndash; $250K</div>
+            <p class="desc">Full theme-park-grade experience with custom content, spatial audio, and ongoing support.</p>
+            <ul>
+                <li>Unlimited waypoints</li>
+                <li>Full historical timeline</li>
+                <li>Spatial audio environments</li>
+                <li>Photo mode with branding</li>
+                <li>Dedicated account manager</li>
+                <li>Revenue-share options</li>
+            </ul>
+            <a href="#contact" class="btn btn-outline">Contact Sales</a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+    <div class="container">
+        <h2>Ready to bring your site to life?</h2>
+        <p>Book a 30-minute demo and see TimeLens in action on your landmark.</p>
+        <a href="mailto:hello@rakuai.com?subject=TimeLens%20Demo%20Request" class="btn btn-primary">Schedule a Demo</a>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        &copy; 2026 RakuAI. All rights reserved. &nbsp;|&nbsp; <a href="./">Scenarios</a> &nbsp;|&nbsp; <a href="../index.html">Home</a>
+    </div>
+</footer>
+
+</body>
+</html>

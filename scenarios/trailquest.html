@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrailQuest — GPS Fitness Games | RakuAI</title>
+    <meta name="description" content="Turn your walk into an adventure. GPS-driven quests, step-based combat, and guild leaderboards keep you moving.">
+    <link rel="canonical" href="https://rakuai.com/scenarios/trailquest.html">
+    <style>
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #111128;
+            --text-primary: #e8e8f0;
+            --text-secondary: #9090b0;
+            --accent: #6c5ce7;
+            --accent-bright: #a388ff;
+            --success: #00cec9;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        nav {
+            background: rgba(10, 10, 26, 0.95);
+            border-bottom: 1px solid rgba(108, 92, 231, 0.2);
+            padding: 16px 0;
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .nav-inner {
+            max-width: 1200px; margin: 0 auto; padding: 0 24px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); text-decoration: none; letter-spacing: 2px; }
+        .logo sup { font-size: 0.5em; vertical-align: super; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; margin-left: 24px; font-size: 0.95rem; }
+        .nav-links a:hover { color: var(--accent-bright); }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        .hero {
+            padding: 100px 0 60px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+        .hero h1 {
+            font-size: 3rem; font-weight: 800; margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 1.2rem; color: var(--text-secondary); max-width: 620px; margin: 0 auto; }
+        .badge { display: inline-block; background: var(--accent); color: #fff; padding: 6px 18px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; margin-bottom: 20px; }
+        .section-title { text-align: center; font-size: 2rem; font-weight: 800; margin-bottom: 40px; padding-top: 60px; }
+
+        .features { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; padding: 0 0 60px; }
+        .feature {
+            background: var(--bg-secondary); border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px; padding: 28px;
+        }
+        .feature h4 { margin-bottom: 8px; font-size: 1.1rem; }
+        .feature p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        .pricing { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 28px; padding: 0 0 80px; }
+        .price-card {
+            background: var(--bg-secondary); border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 16px; padding: 36px 28px; text-align: center;
+        }
+        .price-card.featured { border-color: var(--accent); }
+        .price-card h4 { font-size: 1.3rem; margin-bottom: 8px; }
+        .price-card .price { font-size: 1.8rem; font-weight: 800; color: var(--accent-bright); margin-bottom: 4px; }
+        .price-card .price-unit { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px; }
+        .price-card .desc { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.7; }
+        .price-card ul { list-style: none; text-align: left; margin-bottom: 24px; }
+        .price-card ul li { color: var(--text-secondary); font-size: 0.9rem; padding: 6px 0; border-bottom: 1px solid rgba(108, 92, 231, 0.1); }
+        .price-card ul li::before { content: "\2713 "; color: var(--success); font-weight: 700; margin-right: 6px; }
+
+        .btn {
+            display: inline-block; padding: 14px 36px; border-radius: 8px; font-weight: 700;
+            text-decoration: none; font-size: 1rem; transition: opacity 0.2s;
+        }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { opacity: 0.85; }
+        .btn-outline { border: 2px solid var(--accent); color: var(--accent-bright); background: transparent; }
+        .btn-outline:hover { background: var(--accent); color: #fff; }
+        .btn-free { background: var(--success); color: #0a0a1a; font-weight: 800; }
+        .btn-free:hover { opacity: 0.85; }
+
+        .cta-section { text-align: center; padding: 60px 0 80px; }
+        .cta-section h2 { font-size: 2rem; margin-bottom: 16px; }
+        .cta-section p { color: var(--text-secondary); margin-bottom: 28px; max-width: 520px; margin-left: auto; margin-right: auto; }
+
+        footer { text-align: center; padding: 40px 0; color: var(--text-secondary); font-size: 0.85rem; border-top: 1px solid rgba(108, 92, 231, 0.15); }
+        footer a { color: var(--accent-bright); text-decoration: none; }
+
+        @media (max-width: 700px) {
+            .hero h1 { font-size: 2rem; }
+            .pricing { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-inner">
+        <a href="../index.html" class="logo">RAKUAI<sup>TM</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="./">Scenarios</a>
+            <a href="../developers/">Developers</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <div class="badge">B2C Subscription</div>
+        <h1>Turn Your Walk Into an Adventure</h1>
+        <p>GPS-powered fantasy quests that turn every step into progress. Walk to fight monsters, discover loot, build bases, and climb guild leaderboards.</p>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="container">
+    <h2 class="section-title">Features</h2>
+    <div class="features">
+        <div class="feature">
+            <h4>&#x1F5FA; Quest Routes</h4>
+            <p>AI generates unique quest storylines mapped to real trails, parks, and neighborhoods. Every walk is a new chapter.</p>
+        </div>
+        <div class="feature">
+            <h4>&#x2694; Step Combat</h4>
+            <p>Your real-world steps power attacks in turn-based battles. Walk faster for combo multipliers and bonus damage.</p>
+        </div>
+        <div class="feature">
+            <h4>&#x1F3F0; Base Building</h4>
+            <p>Claim real-world locations as your base. Spend resources earned from walks to upgrade defenses and unlock perks.</p>
+        </div>
+        <div class="feature">
+            <h4>&#x1F6E1; Guilds</h4>
+            <p>Join or create guilds with friends. Compete on weekly leaderboards, tackle co-op raid bosses, and earn exclusive gear.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing -->
+<section class="container">
+    <h2 class="section-title">Pricing</h2>
+    <div class="pricing">
+        <div class="price-card">
+            <h4>Free</h4>
+            <div class="price">$0</div>
+            <div class="price-unit">forever</div>
+            <p class="desc">Start questing with no commitment. Core gameplay is always free.</p>
+            <ul>
+                <li>Daily quest generation</li>
+                <li>Step combat system</li>
+                <li>Basic base building</li>
+                <li>Public guild access</li>
+                <li>Ad-supported</li>
+            </ul>
+            <a href="#cta" class="btn btn-free">Play Free</a>
+        </div>
+        <div class="price-card featured">
+            <h4>Premium</h4>
+            <div class="price">$4.99</div>
+            <div class="price-unit">per month</div>
+            <p class="desc">Unlock the full adventure with unlimited quests, exclusive gear, and no ads.</p>
+            <ul>
+                <li>Unlimited quest generation</li>
+                <li>Exclusive legendary gear</li>
+                <li>Advanced base upgrades</li>
+                <li>Private guild creation</li>
+                <li>Ad-free experience</li>
+                <li>Priority matchmaking</li>
+            </ul>
+            <a href="#cta" class="btn btn-primary">Join the Beta</a>
+        </div>
+        <div class="price-card">
+            <h4>Season Pass</h4>
+            <div class="price">$9.99</div>
+            <div class="price-unit">per quarter</div>
+            <p class="desc">Limited-time seasonal storylines with exclusive rewards and cosmetics.</p>
+            <ul>
+                <li>All Premium features</li>
+                <li>Seasonal story campaigns</li>
+                <li>Exclusive cosmetic sets</li>
+                <li>Bonus XP weekends</li>
+                <li>Early access to new features</li>
+                <li>Season leaderboard rewards</li>
+            </ul>
+            <a href="#cta" class="btn btn-outline">Coming Soon</a>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+    <div class="container">
+        <h2>Your next adventure starts outside</h2>
+        <p>Sign up for the beta and be among the first to turn your daily walk into an epic quest.</p>
+        <a href="mailto:hello@rakuai.com?subject=TrailQuest%20Beta%20Signup" class="btn btn-primary">Join the Beta</a>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        &copy; 2026 RakuAI. All rights reserved. &nbsp;|&nbsp; <a href="./">Scenarios</a> &nbsp;|&nbsp; <a href="../index.html">Home</a>
+    </div>
+</footer>
+
+</body>
+</html>
