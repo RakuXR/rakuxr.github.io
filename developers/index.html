@@ -5,8 +5,9 @@
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Developer Portal - RakuAI</title>
-    <meta name="description" content="Build with RakuAI. Access the SDK, API documentation, and tools to create AI-powered games.">
+    <meta name="description" content="Build spatial AI experiences in minutes with the RakuForge API. 21 world model endpoints. 5 scenarios. One API.">
     <meta property="og:title" content="Developer Portal - RakuAI">
+    <meta property="og:description" content="21 world model endpoints. 5 scenarios. One API. Build spatial AI experiences in minutes.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rakuai.com/developers/">
     <meta name="twitter:card" content="summary_large_image">
@@ -14,96 +15,49 @@
     <link rel="stylesheet" href="../style.css">
     <style>
         .dev-hero {
-            padding: 80px 0 60px;
+            padding: 100px 0 80px;
             text-align: center;
             background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
         }
         .dev-hero h1 {
-            font-size: 2.8rem;
+            font-size: 3rem;
+            font-weight: 800;
             margin-bottom: 16px;
             background: linear-gradient(135deg, var(--accent-bright), var(--success));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .dev-hero .subtitle {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             color: var(--text-secondary);
             max-width: 600px;
-            margin: 0 auto 32px;
+            margin: 0 auto 40px;
         }
-        .dev-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            padding: 48px 0;
-        }
-        .dev-feature-card {
-            background: var(--bg-secondary);
-            border: 1px solid rgba(108, 92, 231, 0.2);
-            border-radius: 12px;
-            padding: 32px;
-            transition: border-color 0.2s, transform 0.2s;
-        }
-        .dev-feature-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-2px);
-        }
-        .dev-feature-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 12px;
-            color: var(--accent-bright);
-        }
-        .dev-feature-card p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 16px;
-        }
-        .dev-feature-card .card-link {
-            color: var(--accent-bright);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        .dev-feature-card .card-link:hover {
-            text-decoration: underline;
-        }
-        .code-preview {
+        .code-hero {
             background: #0d0d2b;
             border: 1px solid rgba(108, 92, 231, 0.3);
-            border-radius: 8px;
-            padding: 24px;
-            font-family: 'SFMono-Regular', Consolas, monospace;
-            font-size: 0.85rem;
-            line-height: 1.8;
+            border-radius: 12px;
+            padding: 28px 32px;
+            font-family: 'SFMono-Regular', Consolas, 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 2;
             color: var(--text-secondary);
             overflow-x: auto;
-            margin: 32px 0;
             max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 0 auto 40px;
+            text-align: left;
         }
-        .code-preview .kw { color: var(--accent-bright); }
-        .code-preview .str { color: var(--success); }
-        .code-preview .comment { color: #555580; }
-        .dev-cta-section {
-            text-align: center;
-            padding: 60px 0;
-            background: var(--bg-secondary);
-            border-top: 1px solid rgba(108, 92, 231, 0.1);
+        .code-hero .kw { color: var(--accent-bright); }
+        .code-hero .str { color: var(--success); }
+        .code-hero .comment { color: #555580; }
+        .code-hero .fn { color: #ff79c6; }
+        .dev-cta-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
-        .dev-cta-section h2 {
-            font-size: 2rem;
-            margin-bottom: 16px;
-        }
-        .dev-cta-section p {
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-            max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .btn-dev {
+        .dev-cta-group .btn-dev {
             display: inline-block;
             background: var(--accent);
             color: white;
@@ -112,10 +66,15 @@
             text-decoration: none;
             font-weight: 700;
             font-size: 1.1rem;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.2s;
+            border: none;
+            cursor: pointer;
         }
-        .btn-dev:hover { background: var(--accent-bright); }
-        .btn-dev-outline {
+        .dev-cta-group .btn-dev:hover {
+            background: var(--accent-bright);
+            transform: translateY(-2px);
+        }
+        .dev-cta-group .btn-dev-outline {
             display: inline-block;
             border: 2px solid var(--accent);
             color: var(--accent-bright);
@@ -123,11 +82,140 @@
             border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 1rem;
-            margin-left: 16px;
-            transition: background 0.2s, color 0.2s;
+            font-size: 1.1rem;
+            transition: background 0.2s, color 0.2s, transform 0.2s;
         }
-        .btn-dev-outline:hover {
+        .dev-cta-group .btn-dev-outline:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            padding: 64px 0;
+        }
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+        .feature-card .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+        .feature-card h3 {
+            font-size: 1.2rem;
+            color: var(--accent-bright);
+            margin-bottom: 10px;
+        }
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .pricing-section {
+            padding: 80px 0;
+            background: var(--bg-secondary);
+        }
+        .pricing-section h2 {
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .pricing-section .section-sub {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 48px;
+            font-size: 1.05rem;
+        }
+        .pricing-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .price-card {
+            background: var(--bg-primary);
+            border: 2px solid #222244;
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+        .price-card:hover {
+            transform: translateY(-4px);
+        }
+        .price-card.featured {
+            border-color: var(--accent);
+            box-shadow: 0 0 30px rgba(108, 92, 231, 0.15);
+        }
+        .price-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .price-card .price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-bright);
+            margin-bottom: 4px;
+        }
+        .price-card .price-period {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        .price-card ul {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 24px;
+            padding: 0;
+        }
+        .price-card ul li {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-bottom: 1px solid #1a1a3a;
+        }
+        .price-card ul li::before {
+            content: "\2713";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .price-card .btn-price {
+            display: inline-block;
+            width: 100%;
+            padding: 10px 0;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+        .price-card .btn-price.primary {
+            background: var(--accent);
+            color: white;
+        }
+        .price-card .btn-price.primary:hover {
+            background: var(--accent-bright);
+        }
+        .price-card .btn-price.outline {
+            border: 1px solid var(--accent);
+            color: var(--accent-bright);
+            background: transparent;
+        }
+        .price-card .btn-price.outline:hover {
             background: var(--accent);
             color: white;
         }
@@ -138,9 +226,7 @@
             padding: 40px 0;
             flex-wrap: wrap;
         }
-        .stat-item {
-            text-align: center;
-        }
+        .stat-item { text-align: center; }
         .stat-item .stat-number {
             font-size: 2.4rem;
             font-weight: 700;
@@ -151,24 +237,49 @@
             font-size: 0.9rem;
             margin-top: 4px;
         }
+        .dev-bottom-cta {
+            text-align: center;
+            padding: 80px 0;
+        }
+        .dev-bottom-cta h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+        .dev-bottom-cta p {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 1.05rem;
+        }
+        @media (max-width: 900px) {
+            .pricing-grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .dev-hero h1 { font-size: 2rem; }
+            .pricing-grid-4 {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+            .code-hero { font-size: 0.8rem; padding: 20px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="beta-announcement-bar">
-    &#x697D;AI<sup class="tm">™</sup> — The Universal Runtime for World Models &nbsp;|&nbsp; <a href="../index.html#for-studios">For Studios &amp; Developers →</a> &nbsp;&nbsp; Also: <a href="../index.html#quickstart">Try the Consumer Demo →</a>
+    &#x697D;AI<sup class="tm">TM</sup> Developer Portal &nbsp;|&nbsp; <a href="docs.html">API Reference</a> &nbsp;|&nbsp; <a href="../scenarios/">Scenarios</a>
 </div>
 
 <nav>
     <div class="container">
-        <a href="../index.html" class="logo">RAKUAI<sup class="tm">™</sup></a>
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">TM</sup></a>
         <div class="nav-links">
             <a href="../index.html">Home</a>
-            <a href="../sdk.html">SDK</a>
-            <a href="../docs.html">Docs</a>
-            <a href="../templates.html">Templates</a>
+            <a href="../scenarios/">Scenarios</a>
+            <a href="index.html" class="active" style="color: var(--accent-bright);">Developers</a>
+            <a href="docs.html">API Docs</a>
             <a href="../pricing.html">Pricing</a>
-            <a href="index.html" class="active">Developers</a>
             <a href="https://github.com/RakuXR">GitHub</a>
             <a href="../index.html#create" class="nav-cta">Start Creating</a>
         </div>
@@ -177,90 +288,144 @@
 
 <section class="dev-hero">
     <div class="container">
-        <h1>Build with RakuAI</h1>
-        <p class="subtitle">Access the SDK, API, and tools to create AI-powered games programmatically. Generate game configurations, integrate with your pipeline, and ship faster.</p>
-        <a href="register.html" class="btn-dev">Request Access</a>
-        <a href="docs.html" class="btn-dev-outline">Read the Docs</a>
+        <div class="beta-badge" style="display:inline-block;background:var(--accent);color:white;padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:600;margin-bottom:24px;">RakuForge API</div>
+        <h1>Build Spatial AI Experiences in Minutes</h1>
+        <p class="subtitle">21 world model endpoints. 5 scenarios. One API.</p>
+
+        <div class="code-hero">
+            <span class="kw">import</span> raku<br>
+            world = raku.<span class="fn">create_world</span>(<span class="str">"my_game"</span>, gps={<span class="str">"lat"</span>: <span class="str">37.78</span>, <span class="str">"lng"</span>: <span class="str">-122.41</span>})<br>
+            raku.<span class="fn">create_entity</span>(world, type=<span class="str">"npc"</span>, gps={<span class="str">"lat"</span>: <span class="str">37.7801</span>, <span class="str">"lng"</span>: <span class="str">-122.4102</span>})
+        </div>
+
+        <div class="dev-cta-group">
+            <a href="register.html" class="btn-dev">Get API Key</a>
+            <a href="docs.html" class="btn-dev-outline">Read the Docs</a>
+        </div>
     </div>
 </section>
 
 <section class="section">
     <div class="container">
-        <div class="code-preview">
-            <span class="comment"># Generate a game with one API call</span><br>
-            <span class="kw">import</span> raku<br><br>
-            client = raku.Client(api_key=<span class="str">"raku_your_key_here"</span>)<br>
-            game = client.generate(<span class="str">"A puzzle game where you connect colored gems"</span>)<br><br>
-            <span class="comment"># Download the .raku config</span><br>
-            game.save(<span class="str">"gem_puzzle.raku"</span>)<br>
-            <span class="kw">print</span>(f<span class="str">"Created: {game.title} ({game.genre})"</span>)
-        </div>
-
         <div class="stats-row">
             <div class="stat-item">
-                <div class="stat-number">13</div>
-                <div class="stat-label">Game Genres</div>
+                <div class="stat-number">21</div>
+                <div class="stat-label">API Endpoints</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Scenarios</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number">~300ms</div>
-                <div class="stat-label">Avg Response Time</div>
+                <div class="stat-label">Avg Response</div>
             </div>
             <div class="stat-item">
                 <div class="stat-number">REST</div>
-                <div class="stat-label">API Standard</div>
+                <div class="stat-label">+ SSE Streaming</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-number">SSE</div>
-                <div class="stat-label">Streaming Support</div>
+        </div>
+
+        <div class="feature-cards">
+            <div class="feature-card">
+                <div class="card-icon">&#x1F30D;</div>
+                <h3>World Model</h3>
+                <p>Create, ingest, and manage persistent 3D worlds anchored to real GPS coordinates. Import 3D Tiles, scene graphs, and depth maps.</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x1F916;</div>
+                <h3>AI Agents</h3>
+                <p>Spawn intelligent NPCs with behavior trees and LLM-powered dialogue. Agents observe, act, and learn from rewards in real-time.</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x2699;</div>
+                <h3>Physics</h3>
+                <p>Add rigid bodies, step simulations, and model real-world hazards. Fire spread, structural collapse, projectile trajectories.</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x1F50A;</div>
+                <h3>Spatial Audio</h3>
+                <p>Position 3D audio sources in the world. Visitors hear historically accurate soundscapes that change with their GPS position.</p>
             </div>
         </div>
     </div>
 </section>
 
-<section class="section">
+<section class="pricing-section">
     <div class="container">
-        <h2 style="text-align: center; margin-bottom: 8px;">Everything You Need</h2>
-        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">From API keys to interactive docs, the developer portal has you covered.</p>
-        <div class="dev-features">
-            <div class="dev-feature-card">
-                <h3>API Reference</h3>
-                <p>Full endpoint documentation with request/response examples. Interactive Swagger UI and Redoc for exploration.</p>
-                <a href="docs.html" class="card-link">Explore API →</a>
+        <h2>Simple, Scalable Pricing</h2>
+        <p class="section-sub">Start free. Scale as you grow. No credit card required.</p>
+
+        <div class="pricing-grid-4">
+            <div class="price-card">
+                <h3>Free</h3>
+                <div class="price">$0</div>
+                <div class="price-period">forever</div>
+                <ul>
+                    <li>100 worlds / month</li>
+                    <li>10 entities / world</li>
+                    <li>1 AI agent</li>
+                    <li>100m GPS radius</li>
+                    <li>Community support</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">Get Started</a>
             </div>
-            <div class="dev-feature-card">
-                <h3>API Key Management</h3>
-                <p>Create, scope, and revoke API keys from your dashboard. Support for read-only, generate, and full-access scopes.</p>
-                <a href="dashboard.html" class="card-link">Manage Keys →</a>
+
+            <div class="price-card">
+                <h3>Creative</h3>
+                <div class="price">$9.99</div>
+                <div class="price-period">per month</div>
+                <ul>
+                    <li>1,000 worlds / month</li>
+                    <li>100 entities / world</li>
+                    <li>5 AI agents</li>
+                    <li>1km GPS radius</li>
+                    <li>Email support</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">Start Trial</a>
             </div>
-            <div class="dev-feature-card">
-                <h3>SDK Downloads</h3>
-                <p>Python and JavaScript SDKs with type hints, async support, and comprehensive error handling built in.</p>
-                <a href="sdk.html" class="card-link">Download SDK →</a>
+
+            <div class="price-card featured">
+                <h3>Pro</h3>
+                <div class="price">$29.99</div>
+                <div class="price-period">per month</div>
+                <ul>
+                    <li>10,000 worlds / month</li>
+                    <li>1,000 entities / world</li>
+                    <li>20 AI agents</li>
+                    <li>8-player multiplayer</li>
+                    <li>10km GPS radius</li>
+                    <li>Priority support</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">Start Trial</a>
             </div>
-            <div class="dev-feature-card">
-                <h3>Quick Start Guide</h3>
-                <p>Go from zero to your first generated game in under 5 minutes. Step-by-step with code examples.</p>
-                <a href="docs.html#quickstart" class="card-link">Get Started →</a>
-            </div>
-            <div class="dev-feature-card">
-                <h3>Sample Projects</h3>
-                <p>Explore community and official sample projects. See what others are building with the RakuAI API.</p>
-                <a href="showcase.html" class="card-link">View Showcase →</a>
-            </div>
-            <div class="dev-feature-card">
-                <h3>Usage Analytics</h3>
-                <p>Monitor your API usage, error rates, and latency from a dedicated analytics dashboard.</p>
-                <a href="dashboard.html#analytics" class="card-link">View Analytics →</a>
+
+            <div class="price-card">
+                <h3>Enterprise</h3>
+                <div class="price">Custom</div>
+                <div class="price-period">contact us</div>
+                <ul>
+                    <li>Unlimited worlds</li>
+                    <li>Unlimited entities</li>
+                    <li>Unlimited AI agents</li>
+                    <li>Custom multiplayer</li>
+                    <li>Custom GPS radius</li>
+                    <li>Dedicated support</li>
+                </ul>
+                <a href="../contact.html" class="btn-price outline">Contact Sales</a>
             </div>
         </div>
     </div>
 </section>
 
-<section class="dev-cta-section">
+<section class="dev-bottom-cta">
     <div class="container">
-        <h2>Ready to Build?</h2>
-        <p>Request developer access to get your API key and start building AI-powered games today.</p>
-        <a href="register.html" class="btn-dev">Request Access</a>
+        <h2>Ready to Build Spatial AI?</h2>
+        <p>Get your API key in 30 seconds and start creating worlds.</p>
+        <div class="dev-cta-group">
+            <a href="register.html" class="btn-dev">Get API Key</a>
+            <a href="docs.html" class="btn-dev-outline">Read the Docs</a>
+        </div>
     </div>
 </section>
 
