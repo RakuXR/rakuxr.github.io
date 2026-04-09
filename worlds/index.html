@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RakuAI Worlds — 3D Engine Demo</title>
+<style>
+:root { --bg: #0a0a1a; --bg2: #111128; --text: #e8e8f0; --dim: #6a6a8a; --accent: #6c5ce7; --bright: #a388ff; --success: #00cec9; --warn: #fdcb6e; --danger: #ff6b6b; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100vh; }
+#canvas-container { position: absolute; inset: 0; z-index: 0; }
+canvas { display: block; width: 100%; height: 100%; }
+
+/* Top bar */
+#top-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 10; background: rgba(10,10,26,0.85); backdrop-filter: blur(8px); border-bottom: 1px solid #222; display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; height: 48px; }
+#top-bar h1 { font-size: 1rem; background: linear-gradient(135deg, var(--bright), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.toolbar { display: flex; gap: 8px; align-items: center; }
+.toolbar button { background: rgba(108,92,231,0.2); border: 1px solid var(--accent); color: var(--bright); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: background 0.2s; }
+.toolbar button:hover { background: rgba(108,92,231,0.4); }
+.toolbar button.active { background: var(--accent); color: white; }
+
+/* Bottom bar */
+#bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; background: rgba(10,10,26,0.9); border-top: 1px solid #222; padding: 6px 16px; display: flex; gap: 24px; font-size: 0.75rem; color: var(--dim); height: 32px; align-items: center; }
+.stat-val { color: var(--success); font-weight: 600; }
+
+/* DLL Dashboard */
+#dll-panel { position: fixed; left: 0; top: 48px; bottom: 32px; width: 220px; z-index: 10; background: rgba(10,10,26,0.9); border-right: 1px solid #222; overflow-y: auto; padding: 8px; transform: translateX(-220px); transition: transform 0.3s; }
+#dll-panel.open { transform: translateX(0); }
+#dll-panel h3 { font-size: 0.75rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin: 8px 0 4px; }
+.dll-row { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 4px; font-size: 0.7rem; margin: 2px 0; }
+.dll-dot { width: 8px; height: 8px; border-radius: 50%; background: #333; flex-shrink: 0; transition: all 0.5s; }
+.dll-dot.active { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.dll-name { flex: 1; }
+.dll-count { color: var(--dim); font-size: 0.65rem; }
+
+/* API Panel */
+#api-panel { position: fixed; right: 0; top: 48px; bottom: 32px; width: 300px; z-index: 10; background: rgba(10,10,26,0.92); border-left: 1px solid #222; overflow-y: auto; padding: 8px; transform: translateX(300px); transition: transform 0.3s; }
+#api-panel.open { transform: translateX(0); }
+#api-panel h3 { font-size: 0.75rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.api-entry { background: rgba(30,30,60,0.5); border: 1px solid #222; border-radius: 6px; padding: 6px 8px; margin-bottom: 4px; font-size: 0.7rem; }
+.api-method { display: inline-block; padding: 1px 6px; border-radius: 3px; font-weight: 700; font-size: 0.6rem; margin-right: 4px; }
+.api-method.POST { background: rgba(108,92,231,0.3); color: var(--bright); }
+.api-method.GET { background: rgba(0,206,201,0.3); color: var(--success); }
+.api-method.DELETE { background: rgba(255,107,107,0.3); color: var(--danger); }
+.api-path { color: var(--dim); }
+.api-status { float: right; }
+.api-status.s2 { color: var(--success); }
+.api-status.s4, .api-status.s5 { color: var(--danger); }
+.api-latency { color: var(--warn); margin-left: 4px; }
+
+/* NPC Dialogue */
+#dialogue { position: fixed; bottom: 48px; left: 50%; transform: translateX(-50%); z-index: 20; background: rgba(17,17,40,0.95); border: 1px solid var(--accent); border-radius: 12px; padding: 16px 20px; max-width: 500px; width: 90%; display: none; }
+#dialogue.open { display: block; }
+#dialogue h4 { color: var(--bright); margin-bottom: 6px; font-size: 0.9rem; }
+#dialogue p { color: var(--text); font-size: 0.85rem; line-height: 1.5; margin-bottom: 10px; }
+#dialogue input { width: 100%; background: var(--bg); border: 1px solid #333; color: var(--text); padding: 8px; border-radius: 6px; font-size: 0.85rem; }
+#dialogue .close-btn { position: absolute; top: 8px; right: 12px; background: none; border: none; color: var(--dim); cursor: pointer; font-size: 1.1rem; }
+
+/* Intro overlay */
+#intro { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s; }
+#intro h1 { font-size: 2.5rem; background: linear-gradient(135deg, var(--bright), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+#intro p { color: var(--dim); margin-bottom: 24px; font-size: 1rem; }
+#intro button { background: var(--accent); color: white; border: none; padding: 14px 40px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; font-weight: 600; }
+#intro button:hover { background: var(--bright); }
+#intro .sub { color: #444; font-size: 0.75rem; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <h1>RAKUAI WORLDS</h1>
+  <p>Experience the AI-Native Spatial Game Engine</p>
+  <button onclick="enterWorld()">Enter World</button>
+  <div class="sub">Powered by 2,636 C API functions across 18 native DLLs</div>
+</div>
+
+<div id="top-bar">
+  <h1>RAKUAI WORLDS</h1>
+  <div class="toolbar">
+    <button onclick="spawnEntity('cube')">+ Cube</button>
+    <button onclick="spawnEntity('sphere')">+ Sphere</button>
+    <button onclick="spawnNPC()">+ NPC</button>
+    <button id="physicsBtn" onclick="togglePhysics()">Physics ⏵</button>
+    <button onclick="toggleDLL()" id="dllBtn">DLLs</button>
+    <button onclick="toggleAPI()" id="apiBtn">API ◧</button>
+  </div>
+</div>
+
+<div id="bottom-bar">
+  <span>Entities: <span class="stat-val" id="s-entities">0</span></span>
+  <span>FPS: <span class="stat-val" id="s-fps">0</span></span>
+  <span>Physics: <span class="stat-val" id="s-physics">off</span></span>
+  <span>API Calls: <span class="stat-val" id="s-api">0</span></span>
+  <span>DLLs Active: <span class="stat-val" id="s-dlls">0</span>/18</span>
+</div>
+
+<div id="dll-panel">
+  <h3>Engine Subsystems</h3>
+  <div id="dll-list"></div>
+</div>
+
+<div id="api-panel">
+  <h3>API Activity</h3>
+  <div id="api-log"></div>
+</div>
+
+<div id="dialogue">
+  <button class="close-btn" onclick="closeDialogue()">×</button>
+  <h4 id="npc-name">Benjamin Franklin</h4>
+  <p id="npc-text">Click an NPC to start a conversation...</p>
+  <input id="npc-input" placeholder="Say something..." onkeydown="if(event.key==='Enter')sendToNPC()">
+</div>
+
+<div id="canvas-container"></div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ─── CONFIG ───
+const API_BASE = localStorage.getItem('raku_api_base') || '';
+let apiKey = localStorage.getItem('raku_api_key') || '';
+let worldId = null, entities = {}, agents = {}, physicsOn = false, apiCallCount = 0;
+let entityMeshes = {}, npcId = null;
+
+// ─── DLL DATA ───
+const DLLS = [
+  { name:'RakuCore', fns:312, desc:'ECS, timers, jobs' },
+  { name:'RakuScene', fns:245, desc:'scene graph, transforms' },
+  { name:'RakuRenderer', fns:198, desc:'PBR, shadows, post-FX' },
+  { name:'RakuXR', fns:167, desc:'OpenXR, hand tracking' },
+  { name:'RakuPhysics', fns:156, desc:'rigid body, collision' },
+  { name:'RakuAudio', fns:143, desc:'spatial 3D, HRTF' },
+  { name:'RakuAnimation', fns:134, desc:'skeletal, IK, blend' },
+  { name:'RakuAI', fns:128, desc:'pathfinding, behavior trees' },
+  { name:'RakuSLM', fns:118, desc:'on-device ML, dialogue' },
+  { name:'RakuNetwork', fns:112, desc:'WebRTC, state sync' },
+  { name:'RakuVoice', fns:98, desc:'voice chat, VAD' },
+  { name:'RakuInput', fns:94, desc:'keyboard, gamepad' },
+  { name:'RakuUI', fns:89, desc:'widgets, themes, HUD' },
+  { name:'RakuAssets', fns:156, desc:'GLB import, streaming' },
+  { name:'RakuEditor', fns:134, desc:'inspector, profiler' },
+  { name:'RakuScripting', fns:112, desc:'Lua VM, hot-reload' },
+  { name:'RakuCSG', fns:78, desc:'boolean ops, mesh gen' },
+  { name:'RakuGameplay', fns:162, desc:'save/load, quests' },
+];
+const activeDLLs = new Set();
+
+function buildDLLPanel() {
+  const el = document.getElementById('dll-list');
+  el.innerHTML = DLLS.map(d => `
+    <div class="dll-row" id="dll-${d.name}">
+      <div class="dll-dot" id="dot-${d.name}"></div>
+      <span class="dll-name">${d.name}</span>
+      <span class="dll-count">${d.fns}</span>
+    </div>`).join('');
+}
+buildDLLPanel();
+
+function activateDLL(name) {
+  if (activeDLLs.has(name)) return;
+  activeDLLs.add(name);
+  const dot = document.getElementById('dot-' + name);
+  if (dot) dot.classList.add('active');
+  document.getElementById('s-dlls').textContent = activeDLLs.size;
+}
+
+// ─── API LAYER ───
+function logAPI(method, path, status, latency) {
+  apiCallCount++;
+  document.getElementById('s-api').textContent = apiCallCount;
+  const log = document.getElementById('api-log');
+  const cls = status < 300 ? 's2' : status < 500 ? 's4' : 's5';
+  log.insertAdjacentHTML('afterbegin', `<div class="api-entry"><span class="api-method ${method}">${method}</span><span class="api-path">${path}</span><span class="api-status ${cls}">${status}</span><span class="api-latency">${latency}ms</span></div>`);
+  if (log.children.length > 30) log.removeChild(log.lastChild);
+}
+
+async function api(method, path, body) {
+  const resolved = path.replace('{world_id}', worldId || '').replace('{agent_id}', npcId || '');
+  if (!API_BASE) { logAPI(method, resolved, 200, Math.floor(Math.random()*80+40)); return mockResponse(path, body); }
+  const start = performance.now();
+  try {
+    const opts = { method, headers: { 'Content-Type':'application/json' } };
+    if (apiKey) opts.headers['Authorization'] = 'Bearer ' + apiKey;
+    if (body) opts.body = JSON.stringify(body);
+    const resp = await fetch(API_BASE + resolved, opts);
+    const latency = Math.round(performance.now() - start);
+    const data = await resp.json();
+    logAPI(method, resolved, resp.status, latency);
+    return data;
+  } catch(e) {
+    logAPI(method, resolved, 0, 0);
+    return mockResponse(path, body);
+  }
+}
+
+function mockResponse(path, body) {
+  if (path.includes('/worlds') && !path.includes('{')) return { world_id: 'w-' + Math.random().toString(36).substr(2,6), status: 'created' };
+  if (path.includes('/entities') && !path.includes('{entity_id}')) return { entity_id: 'e-' + Math.random().toString(36).substr(2,6) };
+  if (path.includes('/agents') && !path.includes('{agent_id}')) return { agent_id: 'a-' + Math.random().toString(36).substr(2,6) };
+  if (path.includes('/act')) return { dialogue: mockDialogue(), action: 'speak' };
+  if (path.includes('/physics/step')) return { stepped: true };
+  if (path.includes('/observe')) return { entities: Object.keys(entities).map(id => ({ entity_id: id, position: [entities[id].x, entities[id].y, entities[id].z] })) };
+  return { ok: true };
+}
+
+const FRANKLIN_LINES = [
+  "An investment in knowledge pays the best interest!",
+  "Well done is better than well said, I always maintain.",
+  "In this world, nothing can be said to be certain, except death and taxes.",
+  "Tell me and I forget, teach me and I may remember, involve me and I learn.",
+  "Energy and persistence conquer all things.",
+  "By failing to prepare, you are preparing to fail.",
+  "The Constitution only gives people the right to pursue happiness. You have to catch it yourself.",
+];
+function mockDialogue() { return FRANKLIN_LINES[Math.floor(Math.random() * FRANKLIN_LINES.length)]; }
+
+// ─── THREE.JS SCENE ───
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x050510);
+scene.fog = new THREE.FogExp2(0x050510, 0.035);
+
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(12, 8, 12);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.target.set(0, 1, 0);
+
+// Lights
+const ambientLight = new THREE.AmbientLight(0x1a1a3a, 0.8);
+scene.add(ambientLight);
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+dirLight.position.set(10, 15, 10);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(1024, 1024);
+dirLight.shadow.camera.near = 0.5; dirLight.shadow.camera.far = 50;
+dirLight.shadow.camera.left = -15; dirLight.shadow.camera.right = 15;
+dirLight.shadow.camera.top = 15; dirLight.shadow.camera.bottom = -15;
+scene.add(dirLight);
+
+// Grid ground
+const gridHelper = new THREE.GridHelper(40, 40, 0x222244, 0x151530);
+scene.add(gridHelper);
+const groundGeo = new THREE.PlaneGeometry(40, 40);
+const groundMat = new THREE.MeshStandardMaterial({ color: 0x0a0a1a, roughness: 0.9, metalness: 0.1 });
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Starfield
+const starGeo = new THREE.BufferGeometry();
+const starVerts = new Float32Array(3000);
+for (let i = 0; i < 3000; i++) starVerts[i] = (Math.random() - 0.5) * 80;
+starGeo.setAttribute('position', new THREE.BufferAttribute(starVerts, 3));
+const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.08, sizeAttenuation: true });
+scene.add(new THREE.Points(starGeo, starMat));
+
+// ─── ENTITY RENDERING ───
+const MATERIALS = {
+  cube: new THREE.MeshStandardMaterial({ color: 0x6c5ce7, emissive: 0x2a1f6e, roughness: 0.3, metalness: 0.7 }),
+  sphere: new THREE.MeshStandardMaterial({ color: 0x00cec9, emissive: 0x004d4c, roughness: 0.2, metalness: 0.5, transparent: true, opacity: 0.85 }),
+  npc: new THREE.MeshStandardMaterial({ color: 0xfdcb6e, emissive: 0x6e5a1f, roughness: 0.4, metalness: 0.6 }),
+};
+
+function createEntityMesh(type, position) {
+  let geo;
+  if (type === 'cube') geo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+  else if (type === 'sphere') geo = new THREE.SphereGeometry(0.5, 24, 24);
+  else geo = new THREE.CylinderGeometry(0.3, 0.3, 1.6, 12);
+  const mesh = new THREE.Mesh(geo, MATERIALS[type] || MATERIALS.cube);
+  mesh.position.set(position[0], position[1], position[2]);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  scene.add(mesh);
+
+  // Point light on entity
+  const light = new THREE.PointLight(MATERIALS[type].color.getHex(), 0.5, 5);
+  light.position.copy(mesh.position);
+  light.position.y += 1;
+  scene.add(light);
+  mesh.userData.light = light;
+
+  // Spawn particles
+  spawnParticles(mesh.position, MATERIALS[type].color.getHex());
+  playSpawnSound();
+  return mesh;
+}
+
+// Particle system
+const particleSystems = [];
+function spawnParticles(pos, color) {
+  const count = 20;
+  const geo = new THREE.BufferGeometry();
+  const positions = new Float32Array(count * 3);
+  const velocities = [];
+  for (let i = 0; i < count; i++) {
+    positions[i*3] = pos.x; positions[i*3+1] = pos.y; positions[i*3+2] = pos.z;
+    velocities.push(new THREE.Vector3((Math.random()-0.5)*0.3, Math.random()*0.2+0.1, (Math.random()-0.5)*0.3));
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const mat = new THREE.PointsMaterial({ color, size: 0.12, transparent: true, opacity: 1 });
+  const points = new THREE.Points(geo, mat);
+  scene.add(points);
+  particleSystems.push({ points, velocities, life: 1.0 });
+}
+
+function updateParticles(dt) {
+  for (let i = particleSystems.length - 1; i >= 0; i--) {
+    const ps = particleSystems[i];
+    ps.life -= dt * 1.5;
+    if (ps.life <= 0) { scene.remove(ps.points); particleSystems.splice(i, 1); continue; }
+    ps.points.material.opacity = ps.life;
+    const pos = ps.points.geometry.attributes.position.array;
+    for (let j = 0; j < ps.velocities.length; j++) {
+      pos[j*3] += ps.velocities[j].x * dt * 3;
+      pos[j*3+1] += ps.velocities[j].y * dt * 3;
+      pos[j*3+2] += ps.velocities[j].z * dt * 3;
+      ps.velocities[j].y -= dt * 2;
+    }
+    ps.points.geometry.attributes.position.needsUpdate = true;
+  }
+}
+
+// ─── AUDIO ───
+let audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+function playSpawnSound() {
+  initAudio(); if (!audioCtx) return;
+  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.15);
+  gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+}
+
+// ─── GAME LOGIC ───
+let entityCount = 0;
+
+window.spawnEntity = async function(type) {
+  const pos = [(Math.random()-0.5)*10, 5 + Math.random()*3, (Math.random()-0.5)*10];
+  const data = await api('POST', '/worlds/{world_id}/entities', { type, name: type + '_' + entityCount, position: pos });
+  const id = data.entity_id || 'e-' + entityCount;
+  entities[id] = { x: pos[0], y: pos[1], z: pos[2], type, vy: 0 };
+  entityMeshes[id] = createEntityMesh(type, pos);
+  entityCount++;
+  document.getElementById('s-entities').textContent = entityCount;
+  // DLLs activated
+  activateDLL('RakuCore'); activateDLL('RakuScene');
+  if (type === 'cube' || type === 'sphere') activateDLL('RakuRenderer');
+  activateDLL('RakuAssets'); activateDLL('RakuInput');
+};
+
+window.spawnNPC = async function() {
+  const pos = [0, 0.8, 0];
+  const data = await api('POST', '/worlds/{world_id}/agents', { type: 'guide', personality_prompt: 'You are Benjamin Franklin, standing in Independence Hall in 1776.', model: 'claude-haiku-4-5-20251001' });
+  npcId = data.agent_id || 'a-npc';
+  const eData = await api('POST', '/worlds/{world_id}/entities', { type: 'npc', name: 'Benjamin Franklin', position: pos });
+  const eId = eData.entity_id || 'e-npc';
+  entities[eId] = { x: pos[0], y: pos[1], z: pos[2], type: 'npc', isNPC: true };
+  entityMeshes[eId] = createEntityMesh('npc', pos);
+  entityCount++;
+  document.getElementById('s-entities').textContent = entityCount;
+  activateDLL('RakuAI'); activateDLL('RakuSLM'); activateDLL('RakuAnimation');
+  activateDLL('RakuScripting'); activateDLL('RakuGameplay');
+};
+
+window.togglePhysics = function() {
+  physicsOn = !physicsOn;
+  document.getElementById('physicsBtn').classList.toggle('active', physicsOn);
+  document.getElementById('s-physics').textContent = physicsOn ? 'active' : 'off';
+  if (physicsOn) { activateDLL('RakuPhysics'); activateDLL('RakuAudio'); }
+};
+
+let physicsTimer = 0;
+function stepPhysics(dt) {
+  if (!physicsOn) return;
+  physicsTimer += dt;
+  if (physicsTimer < 0.05) return; // 20Hz
+  physicsTimer = 0;
+  api('POST', '/worlds/{world_id}/physics/step', { dt: 0.05 });
+  // Client-side physics simulation for responsiveness
+  for (const id in entities) {
+    const e = entities[id];
+    if (e.isNPC) continue;
+    e.vy = (e.vy || 0) - 9.81 * 0.05;
+    e.y += e.vy * 0.05;
+    if (e.y < 0.4) { e.y = 0.4; e.vy = -e.vy * 0.5; if (Math.abs(e.vy) < 0.5) e.vy = 0; }
+    if (entityMeshes[id]) {
+      entityMeshes[id].position.y = e.y;
+      if (entityMeshes[id].userData.light) entityMeshes[id].userData.light.position.y = e.y + 1;
+    }
+  }
+}
+
+// NPC Dialogue
+window.closeDialogue = function() { document.getElementById('dialogue').classList.remove('open'); };
+window.sendToNPC = async function() {
+  const input = document.getElementById('npc-input');
+  const msg = input.value.trim(); if (!msg) return;
+  input.value = '';
+  document.getElementById('npc-text').textContent = 'Thinking...';
+  activateDLL('RakuVoice'); activateDLL('RakuUI'); activateDLL('RakuNetwork');
+  const data = await api('POST', '/worlds/{world_id}/agents/{agent_id}/act', { player_action: msg, observation: 'Player is speaking to the NPC.' });
+  document.getElementById('npc-text').textContent = data.dialogue || data.action || 'I appreciate your curiosity!';
+};
+
+// Click to talk to NPC
+renderer.domElement.addEventListener('click', (e) => {
+  if (!npcId) return;
+  const mouse = new THREE.Vector2((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, camera);
+  const meshes = Object.values(entityMeshes);
+  const intersects = raycaster.intersectObjects(meshes);
+  if (intersects.length > 0) {
+    document.getElementById('dialogue').classList.add('open');
+    document.getElementById('npc-input').focus();
+  }
+});
+
+// ─── PANELS ───
+window.toggleDLL = function() {
+  document.getElementById('dll-panel').classList.toggle('open');
+  document.getElementById('dllBtn').classList.toggle('active');
+};
+window.toggleAPI = function() {
+  document.getElementById('api-panel').classList.toggle('open');
+  document.getElementById('apiBtn').classList.toggle('active');
+};
+
+// ─── INTRO ───
+window.enterWorld = async function() {
+  document.getElementById('intro').style.opacity = '0';
+  setTimeout(() => document.getElementById('intro').style.display = 'none', 800);
+  initAudio();
+  activateDLL('RakuCore'); activateDLL('RakuScene'); activateDLL('RakuRenderer');
+
+  const data = await api('POST', '/worlds', { name: 'demo_world', gps_origin: { lat: 39.9496, lng: -75.1503, alt: 12 }, radius_m: 500 });
+  worldId = data.world_id || 'w-demo';
+  activateDLL('RakuGameplay');
+
+  // Spawn entities in a circle
+  for (let i = 0; i < 5; i++) {
+    const angle = (i / 5) * Math.PI * 2;
+    const type = i % 2 === 0 ? 'cube' : 'sphere';
+    await new Promise(r => setTimeout(r, 300));
+    await spawnEntity(type);
+  }
+
+  await new Promise(r => setTimeout(r, 500));
+  await spawnNPC();
+
+  await new Promise(r => setTimeout(r, 500));
+  togglePhysics();
+
+  // Open DLL panel to show activation
+  toggleDLL();
+  setTimeout(() => toggleAPI(), 1000);
+};
+
+// ─── ANIMATION LOOP ───
+const clock = new THREE.Clock();
+let frameCount = 0, fpsTime = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.1);
+  controls.update();
+  stepPhysics(dt);
+  updateParticles(dt);
+
+  // Gentle entity rotation
+  for (const id in entityMeshes) {
+    const mesh = entityMeshes[id];
+    if (entities[id] && !entities[id].isNPC) mesh.rotation.y += dt * 0.5;
+    else if (entities[id] && entities[id].isNPC) {
+      // NPC glow pulse
+      mesh.material.emissiveIntensity = 0.5 + Math.sin(clock.elapsedTime * 2) * 0.3;
+    }
+  }
+
+  renderer.render(scene, camera);
+
+  // FPS
+  frameCount++;
+  fpsTime += dt;
+  if (fpsTime >= 0.5) {
+    document.getElementById('s-fps').textContent = Math.round(frameCount / fpsTime);
+    frameCount = 0; fpsTime = 0;
+  }
+}
+animate();
+
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
