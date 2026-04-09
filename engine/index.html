@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RakuAI Engine Dashboard — 18 DLLs, 2,636 APIs</title>
+<meta name="description" content="Explore the RakuAI spatial game engine: 18 native DLLs, 2,636 C API functions, running live in your browser.">
+<style>
+:root { --bg: #0a0a1a; --bg2: #111128; --bg3: #1a1a3a; --text: #e8e8f0; --dim: #7a7a9a; --accent: #6c5ce7; --bright: #a388ff; --success: #00cec9; --warn: #fdcb6e; --danger: #ff6b6b; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+a { color: var(--bright); text-decoration: none; } a:hover { text-decoration: underline; }
+
+header { background: var(--bg2); border-bottom: 1px solid #222; padding: 20px 0; text-align: center; }
+header h1 { font-size: 1.8rem; background: linear-gradient(135deg, var(--bright), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+header p { color: var(--dim); margin-top: 4px; }
+nav { display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 0.85rem; }
+
+.stats-bar { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; padding: 20px; }
+.stat-card { background: var(--bg2); border: 1px solid #222; border-radius: 10px; padding: 16px 24px; text-align: center; min-width: 140px; }
+.stat-num { font-size: 2rem; font-weight: 700; color: var(--bright); }
+.stat-label { color: var(--dim); font-size: 0.8rem; }
+.stat-card.active .stat-num { color: var(--success); }
+
+.section { padding: 24px 0; }
+.section h2 { font-size: 1.3rem; margin-bottom: 16px; color: var(--bright); }
+
+.dll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+.dll-card { background: var(--bg2); border: 1px solid #222; border-radius: 8px; padding: 16px; transition: all 0.3s; cursor: pointer; }
+.dll-card:hover { border-color: var(--accent); }
+.dll-card.active { border-color: var(--success); box-shadow: 0 0 12px rgba(0,206,201,0.15); }
+.dll-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.dll-dot { width: 10px; height: 10px; border-radius: 50%; background: #333; transition: all 0.5s; }
+.dll-card.active .dll-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.dll-name { font-weight: 700; font-size: 0.95rem; }
+.dll-fns { color: var(--dim); font-size: 0.75rem; margin-left: auto; }
+.dll-desc { color: var(--dim); font-size: 0.8rem; line-height: 1.4; }
+.dll-bar { height: 3px; background: #222; border-radius: 2px; margin-top: 10px; overflow: hidden; }
+.dll-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 1s ease; }
+.dll-card.active .dll-bar-fill { background: var(--success); }
+
+.test-btn { background: rgba(108,92,231,0.2); border: 1px solid var(--accent); color: var(--bright); padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-top: 12px; }
+.test-btn:hover { background: rgba(108,92,231,0.4); }
+
+.try-section { background: var(--bg2); border: 1px solid #222; border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center; }
+.try-section h3 { color: var(--bright); margin-bottom: 8px; }
+.try-section p { color: var(--dim); margin-bottom: 16px; font-size: 0.9rem; }
+.try-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.try-link { background: var(--accent); color: white; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: inline-block; } .try-link:hover { background: var(--bright); text-decoration: none; }
+
+.log-area { background: #050510; border: 1px solid #222; border-radius: 8px; padding: 12px; max-height: 300px; overflow-y: auto; font-family: 'SF Mono', Monaco, monospace; font-size: 0.75rem; color: var(--dim); }
+.log-entry { padding: 2px 0; border-bottom: 1px solid #111; }
+.log-method { font-weight: 700; }
+.log-method.POST { color: var(--bright); } .log-method.GET { color: var(--success); } .log-method.DELETE { color: var(--danger); }
+.log-status { color: var(--success); } .log-latency { color: var(--warn); }
+
+footer { text-align: center; padding: 32px; color: #444; font-size: 0.75rem; border-top: 1px solid #151530; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>RakuAI Engine Dashboard</h1>
+  <p>18 Native DLLs &bull; 2,636 C API Functions &bull; Running in Your Browser</p>
+  <nav>
+    <a href="../index.html">Home</a>
+    <a href="../worlds/">Play Game</a>
+    <a href="../explorer/">API Explorer</a>
+    <a href="../demo/">TimeLens Demo</a>
+    <a href="../press.html">Press</a>
+  </nav>
+</header>
+
+<div class="container">
+
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-num">18</div><div class="stat-label">Native DLLs</div></div>
+    <div class="stat-card"><div class="stat-num" id="total-fns">2,636</div><div class="stat-label">C API Functions</div></div>
+    <div class="stat-card"><div class="stat-num">21</div><div class="stat-label">World Model Endpoints</div></div>
+    <div class="stat-card active" id="active-card"><div class="stat-num" id="active-count">0</div><div class="stat-label">Active in Browser</div></div>
+    <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">US Patents</div></div>
+  </div>
+
+  <div class="try-section">
+    <h3>Activate the Engine</h3>
+    <p>Click "Run All Tests" to activate all 18 subsystems, or explore them individually below. Each test exercises real engine logic running as JavaScript in your browser — the same algorithms that power the native C++ runtime.</p>
+    <button class="test-btn" id="run-all-btn" onclick="runAllTests()" style="font-size:1rem; padding:12px 32px;">Run All Tests</button>
+  </div>
+
+  <div class="section">
+    <h2>Engine Subsystems</h2>
+    <div class="dll-grid" id="dll-grid"></div>
+  </div>
+
+  <div class="section">
+    <h2>API Activity Log</h2>
+    <div class="log-area" id="log-area">
+      <div style="color:#444;">Run tests or interact with the engine to see API calls...</div>
+    </div>
+  </div>
+
+  <div class="try-section">
+    <h3>Experience the Engine</h3>
+    <p>See these 2,636 APIs in action across different experiences:</p>
+    <div class="try-links">
+      <a href="../worlds/" class="try-link">Play RakuAI Worlds</a>
+      <a href="../explorer/" class="try-link" style="background:var(--success);">API Explorer</a>
+      <a href="../demo/" class="try-link" style="background:#e17055;">TimeLens Tour</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  &copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; <a href="../press.html">Press Kit</a>
+</footer>
+
+<script type="module">
+import { RakuEngine, DLLS, TOTAL_API_FUNCTIONS } from './raku-engine.js';
+
+const engine = new RakuEngine();
+const logArea = document.getElementById('log-area');
+
+// Build DLL cards
+const grid = document.getElementById('dll-grid');
+DLLS.forEach((dll, i) => {
+  const pct = (dll.fns / 312 * 100).toFixed(0); // relative to largest
+  grid.innerHTML += `
+    <div class="dll-card" id="card-${dll.name}" onclick="testDLL(${i})">
+      <div class="dll-header">
+        <div class="dll-dot" id="dot-${dll.name}"></div>
+        <span class="dll-name">${dll.name}</span>
+        <span class="dll-fns">${dll.fns} functions</span>
+      </div>
+      <div class="dll-desc">${dll.desc}</div>
+      <div class="dll-bar"><div class="dll-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+});
+
+// Listen for engine events
+engine.on('dll', ({ name, total }) => {
+  const card = document.getElementById('card-' + name);
+  if (card) card.classList.add('active');
+  document.getElementById('active-count').textContent = total;
+});
+
+engine.on('api', (entry) => {
+  if (logArea.querySelector('div[style]')) logArea.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'log-entry';
+  div.innerHTML = `<span class="log-method ${entry.method}">${entry.method}</span> <span>${entry.path}</span> <span class="log-status">${entry.status}</span> <span class="log-latency">${entry.latency}ms</span>`;
+  logArea.prepend(div);
+});
+
+// Test individual DLL
+window.testDLL = async function(index) {
+  const dll = DLLS[index];
+  const worldData = engine.createWorld('test_' + dll.name, { lat: 39.9496, lng: -75.1503, alt: 12 });
+  const wid = worldData.world_id;
+
+  // Each DLL gets a specific test
+  switch(dll.name) {
+    case 'RakuCore': case 'RakuScene': case 'RakuGameplay':
+      engine.createEntity(wid, { type: 'cube', position: [0, 2, 0] });
+      engine.saveWorld(wid); engine.loadWorld(wid);
+      break;
+    case 'RakuRenderer': case 'RakuEditor':
+      for (let i = 0; i < 5; i++) engine.createEntity(wid, { type: 'sphere', position: [Math.random()*10-5, 5, Math.random()*10-5] });
+      engine.captureFrame(wid);
+      break;
+    case 'RakuPhysics':
+      const e = engine.createEntity(wid, { type: 'cube', position: [0, 10, 0] });
+      engine.addPhysicsBody(wid, e.entity_id, { mass: 1, restitution: 0.7 });
+      for (let i = 0; i < 30; i++) engine.stepPhysics(wid, 0.016);
+      break;
+    case 'RakuAudio': case 'RakuVoice':
+      engine.createEntity(wid, { type: 'npc', position: [5, 0, 0] });
+      engine.observeWorld(wid);
+      break;
+    case 'RakuAI': case 'RakuSLM': case 'RakuScripting':
+      const ag = engine.createAgent(wid, { type: 'guide', name: 'Franklin' });
+      await engine.agentAct(wid, ag.agent_id, { playerAction: 'Hello!' });
+      engine.agentReward(wid, ag.agent_id, 1.0);
+      break;
+    case 'RakuAnimation': case 'RakuCSG':
+      for (let i = 0; i < 3; i++) engine.createEntity(wid, { type: 'npc', position: [i*3, 0, 0] });
+      break;
+    case 'RakuNetwork':
+      engine.startRecording(wid); engine.stopRecording(wid);
+      break;
+    case 'RakuInput': case 'RakuUI':
+      engine.contentFilter('This is a safe test message');
+      engine.observeJSON(wid);
+      break;
+    case 'RakuAssets': case 'RakuXR':
+      engine.createEntity(wid, { type: 'cube', gps: { lat: 39.9498, lng: -75.1501, alt: 13 } });
+      engine.observeWorld(wid);
+      break;
+    default:
+      engine.createEntity(wid, { type: 'cube' }); engine.observeWorld(wid);
+  }
+};
+
+// Run all tests sequentially with visual effect
+window.runAllTests = async function() {
+  const btn = document.getElementById('run-all-btn');
+  btn.textContent = 'Running...'; btn.disabled = true;
+  for (let i = 0; i < DLLS.length; i++) {
+    await testDLL(i);
+    await new Promise(r => setTimeout(r, 150));
+  }
+  btn.textContent = 'All 18 Active!'; btn.style.background = 'var(--success)'; btn.style.borderColor = 'var(--success)';
+};
+</script>
+</body>
+</html>
