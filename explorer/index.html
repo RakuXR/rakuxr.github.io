@@ -243,7 +243,11 @@ async function apiCall(method, path, body) {
   try {
     resp = await fetch(baseUrl + resolvedPath, opts);
     latency = Math.round(performance.now() - start);
-    try { data = await resp.json(); } catch { data = { raw: await resp.text() }; }
+    // Read the body as text once, then try to parse as JSON. Calling
+    // resp.json() then resp.text() would fail because the body stream is
+    // already consumed.
+    const text = await resp.text();
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
   } catch (err) {
     latency = Math.round(performance.now() - start);
     logActivity(method, resolvedPath, 0, latency);
