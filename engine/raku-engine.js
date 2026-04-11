@@ -177,7 +177,8 @@ export class RakuEngine {
     w.version++;
     const snapshot = JSON.stringify({ entities: w.entities, agents: w.agents, version: w.version });
     w.savedSnapshots[w.version] = snapshot;
-    try { localStorage.setItem(`raku_save_${worldId}_v${w.version}`, snapshot); } catch(e) {}
+    try { localStorage.setItem(`raku_save_${worldId}_v${w.version}`, snapshot); }
+    catch(e) { console.warn('localStorage save failed (quota?):', e); }
     this._activateDLL('RakuAssets');
     this._log('POST', `/worlds/${worldId}/save`, 200, 30 + Math.random() * 40 | 0);
     return { world_id: worldId, version: w.version, size_bytes: snapshot.length };
@@ -395,22 +396,32 @@ export class RakuEngine {
     const parts = path.replace(/^\//, '').split('/');
     let result;
     try {
+      // Path structures:
+      //   /worlds                                         -> parts = ['worlds']
+      //   /worlds/{w}                                     -> parts = ['worlds', w]
+      //   /worlds/{w}/save | load | physics | observe | capture | agents | entities
+      //                                                   -> parts = ['worlds', w, action]
+      //   /worlds/{w}/entities/{e}                        -> parts = ['worlds', w, 'entities', e]
+      //   /worlds/{w}/entities/{e}/transform | physics    -> parts = ['worlds', w, 'entities', e, action]
+      //   /worlds/{w}/agents/{a}/act | observe | reward   -> parts = ['worlds', w, 'agents', a, action]
+      //   /worlds/{w}/recording/start | stop              -> parts = ['worlds', w, 'recording', action]
+      //   /worlds/{w}/observe/json                        -> parts = ['worlds', w, 'observe', 'json']
       if (method === 'POST' && path === '/worlds') result = this.createWorld(body.name, body.gps_origin, body.radius_m, body.tier);
       else if (method === 'DELETE' && parts[0] === 'worlds' && parts.length === 2) result = this.destroyWorld(parts[1]);
       else if (method === 'POST' && parts[2] === 'save') result = this.saveWorld(parts[1]);
       else if (method === 'POST' && parts[2] === 'load') result = this.loadWorld(parts[1], body.save_id);
       else if (method === 'POST' && parts[2] === 'entities' && parts.length === 3) result = this.createEntity(parts[1], body);
-      else if (method === 'PUT' && parts[3] === 'transform') result = this.setTransform(parts[1], parts[3] === 'transform' ? parts[2] : parts[3], body);
-      else if (method === 'DELETE' && parts[2] === 'entities') result = this.destroyEntity(parts[1], parts[3]);
-      else if (method === 'POST' && parts[3] === 'physics' && parts.length === 4) result = this.addPhysicsBody(parts[1], parts[2], body);
+      else if (method === 'PUT' && parts[2] === 'entities' && parts[4] === 'transform') result = this.setTransform(parts[1], parts[3], body);
+      else if (method === 'DELETE' && parts[2] === 'entities' && parts.length === 4) result = this.destroyEntity(parts[1], parts[3]);
+      else if (method === 'POST' && parts[2] === 'entities' && parts[4] === 'physics') result = this.addPhysicsBody(parts[1], parts[3], body);
       else if (method === 'POST' && parts[2] === 'physics') result = this.stepPhysics(parts[1], body.dt);
       else if (method === 'GET' && parts[2] === 'observe' && parts.length === 3) result = this.observeWorld(parts[1]);
-      else if (method === 'GET' && parts[3] === 'json') result = this.observeJSON(parts[1]);
+      else if (method === 'GET' && parts[2] === 'observe' && parts[3] === 'json') result = this.observeJSON(parts[1]);
       else if (method === 'POST' && parts[2] === 'capture') result = this.captureFrame(parts[1]);
       else if (method === 'POST' && parts[2] === 'agents' && parts.length === 3) result = this.createAgent(parts[1], body);
-      else if (method === 'POST' && parts[3] === 'act') result = await this.agentAct(parts[1], parts[2], body);
-      else if (method === 'GET' && parts[3] === 'observe') result = this.agentObserve(parts[1], parts[2]);
-      else if (method === 'POST' && parts[3] === 'reward') result = this.agentReward(parts[1], parts[2], body.reward);
+      else if (method === 'POST' && parts[2] === 'agents' && parts[4] === 'act') result = await this.agentAct(parts[1], parts[3], body);
+      else if (method === 'GET' && parts[2] === 'agents' && parts[4] === 'observe') result = this.agentObserve(parts[1], parts[3]);
+      else if (method === 'POST' && parts[2] === 'agents' && parts[4] === 'reward') result = this.agentReward(parts[1], parts[3], body.reward);
       else if (method === 'POST' && parts[2] === 'recording' && parts[3] === 'start') result = this.startRecording(parts[1]);
       else if (method === 'POST' && parts[2] === 'recording' && parts[3] === 'stop') result = this.stopRecording(parts[1]);
       else if (method === 'POST' && path.includes('content/filter')) result = this.contentFilter(body.text);
