@@ -393,7 +393,12 @@ export class RakuEngine {
   // ─── REST-COMPATIBLE HANDLER ───
   async handleRequest(method, path, body = {}) {
     const start = performance.now();
-    const parts = path.replace(/^\//, '').split('/');
+    // Strip /api/raku or /api/v2 prefix if present so downstream logic
+    // can match against unprefixed paths like /worlds/{id}.
+    let p = path;
+    if (p.startsWith('/api/raku')) p = p.slice('/api/raku'.length);
+    else if (p.startsWith('/api/v2')) p = p.slice('/api/v2'.length);
+    const parts = p.replace(/^\//, '').split('/');
     let result;
     try {
       // Path structures:
@@ -406,7 +411,7 @@ export class RakuEngine {
       //   /worlds/{w}/agents/{a}/act | observe | reward   -> parts = ['worlds', w, 'agents', a, action]
       //   /worlds/{w}/recording/start | stop              -> parts = ['worlds', w, 'recording', action]
       //   /worlds/{w}/observe/json                        -> parts = ['worlds', w, 'observe', 'json']
-      if (method === 'POST' && path === '/worlds') result = this.createWorld(body.name, body.gps_origin, body.radius_m, body.tier);
+      if (method === 'POST' && p === '/worlds') result = this.createWorld(body.name, body.gps_origin, body.radius_m, body.tier);
       else if (method === 'DELETE' && parts[0] === 'worlds' && parts.length === 2) result = this.destroyWorld(parts[1]);
       else if (method === 'POST' && parts[2] === 'save') result = this.saveWorld(parts[1]);
       else if (method === 'POST' && parts[2] === 'load') result = this.loadWorld(parts[1], body.save_id);
