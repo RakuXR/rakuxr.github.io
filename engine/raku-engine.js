@@ -9,7 +9,7 @@
  *   engine.createEntity(world.id, { type: 'cube', position: [0, 5, 0] });
  *   engine.stepPhysics(world.id, 0.016);
  *
- * Mirrors the v2 world model endpoints from the 126-endpoint REST API. Same logic, runs in your browser.
+ * Mirrors the v2 world model endpoints from the 454-endpoint REST API. Same logic, runs in your browser.
  */
 
 // ─── DLL REGISTRY (maps features to engine subsystems) ───
