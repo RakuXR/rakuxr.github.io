@@ -152,7 +152,7 @@
     <div id="board-wrap">
       <div id="title">BLOCK DROP</div>
       <canvas id="board" width="300" height="600"></canvas>
-      <div id="overlay">
+      <div id="overlay" class="show">
         <h2 id="overlay-title">BLOCK DROP</h2>
         <p id="overlay-msg">Press any key to start</p>
         <div class="hint">
@@ -187,11 +187,10 @@
   // ---------- Constants ----------
   const COLS = 10;
   const ROWS = 20;
-  const CELL = 30;              // pixel size per cell on the main board
-  const PREVIEW_CELL = 20;      // pixel size per cell on preview canvases
+  const CELL = 30;
+  const PREVIEW_CELL = 20;
 
-  // Tetromino shapes: each shape's initial matrix.
-  // SRS uses 4x4 (I) and 3x3 matrices (JLSTZ). O is 2x2.
+  // Tetromino shapes
   const SHAPES = {
     I: [
       [0,0,0,0],
@@ -231,16 +230,44 @@
   };
 
   const COLORS = {
-    I: '#00e5ff', // cyan
-    O: '#ffd500', // yellow
-    T: '#b048ff', // purple
-    S: '#00e676', // green
-    Z: '#ff3d57', // red
-    J: '#2979ff', // blue
-    L: '#ff9100', // orange
+    I: '#00e5ff',
+    O: '#ffd500',
+    T: '#b048ff',
+    S: '#00e676',
+    Z: '#ff3d57',
+    J: '#2979ff',
+    L: '#ff9100',
   };
 
   const TYPES = ['I','O','T','S','Z','J','L'];
+
+  // SRS wall-kick tables
+  // For JLSTZ pieces. Indexed by [fromRot][toRot] -> array of [dx, dy] tests.
+  // Rotation indices: 0 = spawn, 1 = R (CW from spawn), 2 = 2 (180), 3 = L (CCW from spawn)
+  const KICKS_JLSTZ = {
+    '0>1': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+    '1>0': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+    '1>2': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+    '2>1': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+    '2>3': [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
+    '3>2': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
+    '3>0': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
+    '0>3': [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
+  };
+  // For I piece
+  const KICKS_I = {
+    '0>1': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
+    '1>0': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+    '1>2': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]],
+    '2>1': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
+    '2>3': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+    '3>2': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
+    '3>0': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
+    '0>3': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]],
+  };
+
+  // Note: SRS y-axis convention is "up = +" but our grid uses "down = +".
+  // We invert the dy when applying kicks below (kickY = -srsDY).
 
   // ---------- DOM ----------
   const boardCanvas = document.getElementById('board');
@@ -249,13 +276,22 @@
   const nextCtx = nextCanvas.getContext('2d');
   const holdCanvas = document.getElementById('hold-canvas');
   const holdCtx = holdCanvas.getContext('2d');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlay-title');
+  const overlayMsg = document.getElementById('overlay-msg');
 
   // ---------- State ----------
   const state = {
     grid: createGrid(),
     bag: [],
-    current: null,    // { type, matrix, x, y, rot }
-    // Placeholder; additional state added in later commits
+    current: null,
+    started: false,
+    gameOver: false,
+    paused: false,
+    dropAccumulator: 0,
+    dropInterval: 1000,
+    lastTs: 0,
+    softDrop: false,
   };
 
   function createGrid() {
@@ -269,7 +305,6 @@
   // ---------- 7-bag randomizer ----------
   function refillBag() {
     const bag = TYPES.slice();
-    // Fisher-Yates shuffle
     for (let i = bag.length - 1; i > 0; i--) {
       const j = (Math.random() * (i + 1)) | 0;
       [bag[i], bag[j]] = [bag[j], bag[i]];
@@ -278,7 +313,7 @@
   }
 
   function nextType() {
-    if (state.bag.length === 0) refillBag();
+    if (state.bag.length < 7) refillBag();
     return state.bag.shift();
   }
 
@@ -294,22 +329,136 @@
     return piece;
   }
 
+  // ---------- Collision ----------
+  function collides(piece, dx = 0, dy = 0, mat = null) {
+    const m = mat || piece.matrix;
+    for (let r = 0; r < m.length; r++) {
+      for (let c = 0; c < m[r].length; c++) {
+        if (!m[r][c]) continue;
+        const nx = piece.x + c + dx;
+        const ny = piece.y + r + dy;
+        if (nx < 0 || nx >= COLS || ny >= ROWS) return true;
+        if (ny < 0) continue;
+        if (state.grid[ny][nx]) return true;
+      }
+    }
+    return false;
+  }
+
+  // ---------- Movement ----------
+  function tryMove(dx, dy) {
+    if (!state.current) return false;
+    if (!collides(state.current, dx, dy)) {
+      state.current.x += dx;
+      state.current.y += dy;
+      return true;
+    }
+    return false;
+  }
+
+  // ---------- Rotation (SRS) ----------
+  function rotateMatrixCW(m) {
+    const n = m.length;
+    const out = [];
+    for (let r = 0; r < n; r++) {
+      out.push(new Array(n).fill(0));
+    }
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        out[c][n - 1 - r] = m[r][c];
+      }
+    }
+    return out;
+  }
+
+  function rotateMatrixCCW(m) {
+    const n = m.length;
+    const out = [];
+    for (let r = 0; r < n; r++) {
+      out.push(new Array(n).fill(0));
+    }
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        out[n - 1 - c][r] = m[r][c];
+      }
+    }
+    return out;
+  }
+
+  function tryRotate(dir) {
+    if (!state.current) return false;
+    const p = state.current;
+    if (p.type === 'O') return false; // O doesn't rotate
+    const fromRot = p.rot;
+    const toRot = (fromRot + (dir > 0 ? 1 : 3)) % 4;
+    const newMatrix = dir > 0 ? rotateMatrixCW(p.matrix) : rotateMatrixCCW(p.matrix);
+    const table = (p.type === 'I') ? KICKS_I : KICKS_JLSTZ;
+    const tests = table[`${fromRot}>${toRot}`] || [[0,0]];
+    for (const [kx, kySRS] of tests) {
+      const ky = -kySRS; // invert Y for screen coords
+      if (!collides({ ...p, matrix: newMatrix }, kx, ky)) {
+        p.matrix = newMatrix;
+        p.x += kx;
+        p.y += ky;
+        p.rot = toRot;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // ---------- Lock + spawn ----------
+  function lockPiece() {
+    const p = state.current;
+    if (!p) return;
+    for (let r = 0; r < p.matrix.length; r++) {
+      for (let c = 0; c < p.matrix[r].length; c++) {
+        if (!p.matrix[r][c]) continue;
+        const gx = p.x + c;
+        const gy = p.y + r;
+        if (gy < 0) {
+          state.gameOver = true;
+          continue;
+        }
+        state.grid[gy][gx] = p.type;
+      }
+    }
+    spawnNext();
+  }
+
+  function spawnNext() {
+    const t = nextType();
+    state.current = spawnPiece(t);
+    if (collides(state.current)) {
+      state.gameOver = true;
+      showOverlay('GAME OVER', 'Press any key to restart');
+    }
+  }
+
+  function softDropStep() {
+    if (!tryMove(0, 1)) {
+      lockPiece();
+    }
+  }
+
+  function hardDrop() {
+    if (!state.current) return;
+    while (tryMove(0, 1)) { /* fall */ }
+    lockPiece();
+  }
+
   // ---------- Rendering ----------
   function drawCell(c, gx, gy, color, size = CELL) {
     const x = gx * size;
     const y = gy * size;
-    // base
     c.fillStyle = color;
     c.fillRect(x, y, size, size);
-    // bevel highlight (top + left)
     c.fillStyle = 'rgba(255,255,255,0.35)';
     c.fillRect(x, y, size, Math.max(2, size * 0.12));
     c.fillRect(x, y, Math.max(2, size * 0.12), size);
-    // bevel shadow (bottom + right)
     c.fillStyle = 'rgba(0,0,0,0.35)';
     c.fillRect(x, y + size - Math.max(2, size * 0.12), size, Math.max(2, size * 0.12));
     c.fillRect(x + size - Math.max(2, size * 0.12), y, Math.max(2, size * 0.12), size);
-    // border
     c.strokeStyle = 'rgba(0,0,0,0.5)';
     c.lineWidth = 1;
     c.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
@@ -333,12 +482,10 @@
   }
 
   function drawBoard() {
-    // background
     ctx.fillStyle = '#0c0c18';
     ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL);
     drawGridLines();
 
-    // locked cells
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         const v = state.grid[r][c];
@@ -346,7 +493,6 @@
       }
     }
 
-    // current piece
     const p = state.current;
     if (p) {
       for (let r = 0; r < p.matrix.length; r++) {
@@ -365,11 +511,84 @@
     drawBoard();
   }
 
+  // ---------- Overlay ----------
+  function showOverlay(title, msg) {
+    overlayTitle.textContent = title;
+    overlayMsg.textContent = msg;
+    overlay.classList.add('show');
+  }
+  function hideOverlay() {
+    overlay.classList.remove('show');
+  }
+
+  // ---------- Game loop ----------
+  function update(dt) {
+    if (!state.started || state.gameOver || state.paused) return;
+    state.dropAccumulator += dt;
+    const interval = state.softDrop ? Math.min(state.dropInterval, 50) : state.dropInterval;
+    while (state.dropAccumulator >= interval) {
+      state.dropAccumulator -= interval;
+      softDropStep();
+    }
+  }
+
+  function loop(ts) {
+    if (!state.lastTs) state.lastTs = ts;
+    const dt = ts - state.lastTs;
+    state.lastTs = ts;
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- Input ----------
+  function startGame() {
+    state.grid = createGrid();
+    state.bag = [];
+    refillBag();
+    state.current = spawnPiece(nextType());
+    state.started = true;
+    state.gameOver = false;
+    state.paused = false;
+    state.dropAccumulator = 0;
+    state.dropInterval = 1000;
+    hideOverlay();
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (state.gameOver || !state.started) {
+      // Any key starts/restarts
+      if (e.key.length === 1 || ['Enter','ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) {
+        startGame();
+        e.preventDefault();
+      }
+      return;
+    }
+    switch (e.key) {
+      case 'ArrowLeft':  tryMove(-1, 0); e.preventDefault(); break;
+      case 'ArrowRight': tryMove(1, 0); e.preventDefault(); break;
+      case 'ArrowDown':  state.softDrop = true; e.preventDefault(); break;
+      case 'ArrowUp':
+      case 'x':
+      case 'X':
+        tryRotate(1); e.preventDefault(); break;
+      case 'z':
+      case 'Z':
+        tryRotate(-1); e.preventDefault(); break;
+      case ' ':
+        hardDrop(); e.preventDefault(); break;
+    }
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowDown') state.softDrop = false;
+  });
+
   // ---------- Init ----------
   function init() {
     refillBag();
     state.current = spawnPiece(nextType());
-    render();
+    showOverlay('BLOCK DROP', 'Press any key to start');
+    requestAnimationFrame(loop);
   }
 
   init();
