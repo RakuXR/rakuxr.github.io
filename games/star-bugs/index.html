@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Star Bugs</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #04030a; color: #e8ecf5;
+    font-family: "Courier New", Menlo, monospace;
+    overflow: hidden;
+  }
+  #wrap {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  canvas {
+    background: #000;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    box-shadow: 0 0 40px rgba(120, 160, 255, 0.3);
+    max-width: 100%; max-height: 100%;
+    touch-action: none;
+  }
+  #hud {
+    position: fixed; top: 12px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px; letter-spacing: 2px;
+    color: #7fb0ff;
+    pointer-events: none;
+    text-shadow: 0 0 8px rgba(120, 160, 255, 0.8);
+  }
+  #hud a { color: #7fb0ff; text-decoration: none; }
+  #hud a:hover { color: #fff; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="game" width="480" height="640"></canvas></div>
+<div id="hud"><a href="../../">&lt; RAKU.AI</a> &nbsp;STAR BUGS</div>
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // ---------- Input ----------
+  const keys = {};
+  addEventListener('keydown', e => {
+    keys[e.code] = true;
+    if ([' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault();
+  });
+  addEventListener('keyup', e => { keys[e.code] = false; });
+
+  function readInput() {
+    const left  = keys['ArrowLeft']  || keys['KeyA'];
+    const right = keys['ArrowRight'] || keys['KeyD'];
+    const fire  = keys['Space'] || keys['KeyZ'] || keys['KeyJ'];
+    return { left, right, fire };
+  }
+
+  // ---------- Bezier helpers ----------
+  function bezier(p0, p1, p2, p3, t) {
+    const u = 1 - t;
+    const a = u*u*u, b = 3*u*u*t, c = 3*u*t*t, d = t*t*t;
+    return {
+      x: a*p0.x + b*p1.x + c*p2.x + d*p3.x,
+      y: a*p0.y + b*p1.y + c*p2.y + d*p3.y,
+    };
+  }
+  function bezierTangent(p0, p1, p2, p3, t) {
+    const u = 1 - t;
+    const x = 3*u*u*(p1.x-p0.x) + 6*u*t*(p2.x-p1.x) + 3*t*t*(p3.x-p2.x);
+    const y = 3*u*u*(p1.y-p0.y) + 6*u*t*(p2.y-p1.y) + 3*t*t*(p3.y-p2.y);
+    return Math.atan2(y, x);
+  }
+
+  // ---------- State ----------
+  const state = {
+    ship: { x: W/2, y: H - 60, w: 28, h: 24, cooldown: 0, alive: true },
+    bullets: [],
+    bugs: [],
+    bugBullets: [],
+    particles: [],
+    stars: [],
+    score: 0,
+    lives: 3,
+    stage: 1,
+    time: 0,
+    diveTimer: 1.5,
+    entryTimer: 0,
+    spawnQueue: [],
+  };
+
+  // Starfield
+  for (let i = 0; i < 80; i++) {
+    state.stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      s: Math.random() * 2 + 0.3,
+      v: Math.random() * 30 + 15,
+    });
+  }
+
+  // ---------- Bugs ----------
+  // Types: 0 = drone (green), 1 = wasp (red), 2 = boss (gold)
+  const BUG_COLORS = [
+    { body: '#5cf08f', accent: '#1a6b3b', eye: '#fff' },
+    { body: '#ff5870', accent: '#7a1425', eye: '#ffe94a' },
+    { body: '#ffd24a', accent: '#a06414', eye: '#5cf0ff' },
+  ];
+
+  function gridSlot(r, c) {
+    const cols = 8;
+    const spacingX = 42, spacingY = 36;
+    const startX = (W - (cols - 1) * spacingX) / 2;
+    const startY = 70;
+    return { x: startX + c * spacingX, y: startY + r * spacingY };
+  }
+
+  function spawnFormation(stage) {
+    state.bugs.length = 0;
+    state.spawnQueue.length = 0;
+    state.entryTimer = 0;
+    const rows = 4, cols = 8;
+    const order = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const type = r === 0 ? 2 : (r < 2 ? 1 : 0);
+        order.push({ r, c, type });
+      }
+    }
+    // 4 entry waves alternating sides
+    order.forEach((o, i) => {
+      const wave = i % 4;
+      const side = wave % 2 === 0 ? -1 : 1;
+      const slot = gridSlot(o.r, o.c);
+      const start = { x: side < 0 ? -30 : W + 30, y: -20 - (i % 4) * 15 };
+      const c1 = { x: side < 0 ? 60 : W - 60, y: 80 + (i % 5) * 30 };
+      const c2 = { x: side < 0 ? W - 100 : 100, y: 200 + (i % 4) * 25 };
+      const path = [start, c1, c2, slot];
+      state.spawnQueue.push({
+        delay: 0.12 * i,
+        bug: makeBug(o.type, o.r, o.c, slot, path),
+      });
+    });
+  }
+
+  function makeBug(type, r, c, slot, entryPath) {
+    return {
+      type,
+      row: r, col: c,
+      gridX: slot.x, gridY: slot.y,
+      x: entryPath[0].x, y: entryPath[0].y,
+      hp: type === 2 ? 2 : 1,
+      alive: true,
+      angle: Math.PI / 2,
+      // states: 'entry', 'idle', 'dive', 'return'
+      state: 'entry',
+      pathT: 0,
+      pathDur: 2.6,
+      path: entryPath,
+      divePath: null,
+      diveT: 0,
+      diveDur: 3.0,
+      fireCooldown: 1 + Math.random() * 2,
+    };
+  }
+
+  function makeDivePath(bug) {
+    const start = { x: bug.gridX, y: bug.gridY };
+    const c1 = { x: bug.gridX + (Math.random() * 200 - 100), y: bug.gridY + 80 + Math.random() * 60 };
+    const c2 = { x: state.ship.x + (Math.random() * 160 - 80), y: H - 200 + Math.random() * 60 };
+    const end = { x: state.ship.x + (Math.random() * 80 - 40), y: H + 40 };
+    return [start, c1, c2, end];
+  }
+
+  function makeReturnPath(bug) {
+    const start = { x: bug.x, y: -20 };
+    const c1 = { x: bug.gridX + 120, y: 0 };
+    const c2 = { x: bug.gridX - 60, y: 30 };
+    const end = { x: bug.gridX, y: bug.gridY };
+    return [start, c1, c2, end];
+  }
+
+  spawnFormation(1);
+
+  // ---------- Update ----------
+  function update(dt) {
+    state.time += dt;
+
+    // Stars
+    for (const s of state.stars) {
+      s.y += s.v * dt;
+      if (s.y > H) { s.y = 0; s.x = Math.random() * W; }
+    }
+
+    // Spawn queue (entry timing)
+    state.entryTimer += dt;
+    while (state.spawnQueue.length && state.entryTimer >= state.spawnQueue[0].delay) {
+      const item = state.spawnQueue.shift();
+      state.bugs.push(item.bug);
+    }
+
+    // Ship
+    const input = readInput();
+    if (state.ship.alive) {
+      const speed = 260;
+      if (input.left)  state.ship.x -= speed * dt;
+      if (input.right) state.ship.x += speed * dt;
+      state.ship.x = Math.max(20, Math.min(W - 20, state.ship.x));
+      state.ship.cooldown -= dt;
+      if (input.fire && state.ship.cooldown <= 0) {
+        state.bullets.push({ x: state.ship.x, y: state.ship.y - 16, v: -520 });
+        state.ship.cooldown = 0.22;
+      }
+    }
+
+    // Bullets
+    for (const b of state.bullets) b.y += b.v * dt;
+    state.bullets = state.bullets.filter(b => b.y > -20 && b.y < H + 20);
+    for (const b of state.bugBullets) { b.x += b.vx*dt; b.y += b.vy*dt; }
+    state.bugBullets = state.bugBullets.filter(b => b.y < H + 20 && b.x > -20 && b.x < W + 20);
+
+    // Bug formation idle sway
+    const sway = Math.sin(state.time * 1.2) * 12;
+
+    // Bug update
+    let aliveCount = 0;
+    let idleCount = 0;
+    for (const bug of state.bugs) {
+      if (!bug.alive) continue;
+      aliveCount++;
+      if (bug.state === 'entry') {
+        bug.pathT += dt / bug.pathDur;
+        if (bug.pathT >= 1) {
+          bug.pathT = 1;
+          bug.state = 'idle';
+        }
+        const p = bezier(bug.path[0], bug.path[1], bug.path[2], bug.path[3], bug.pathT);
+        bug.x = p.x; bug.y = p.y;
+        bug.angle = bezierTangent(bug.path[0], bug.path[1], bug.path[2], bug.path[3], bug.pathT) - Math.PI/2;
+      } else if (bug.state === 'idle') {
+        idleCount++;
+        bug.x = bug.gridX + sway;
+        bug.y = bug.gridY;
+        bug.angle = 0;
+      } else if (bug.state === 'dive') {
+        bug.diveT += dt / bug.diveDur;
+        if (bug.diveT >= 1) {
+          // wrap to top, return to slot
+          bug.state = 'return';
+          bug.divePath = makeReturnPath(bug);
+          bug.diveT = 0;
+          bug.diveDur = 1.8;
+        } else {
+          const p = bezier(bug.divePath[0], bug.divePath[1], bug.divePath[2], bug.divePath[3], bug.diveT);
+          bug.x = p.x; bug.y = p.y;
+          bug.angle = bezierTangent(bug.divePath[0], bug.divePath[1], bug.divePath[2], bug.divePath[3], bug.diveT) - Math.PI/2;
+          // fire
+          bug.fireCooldown -= dt;
+          if (bug.fireCooldown <= 0) {
+            bug.fireCooldown = 0.6;
+            const ang = Math.atan2(state.ship.y - bug.y, state.ship.x - bug.x);
+            state.bugBullets.push({ x: bug.x, y: bug.y, vx: Math.cos(ang)*180, vy: Math.sin(ang)*180 });
+          }
+        }
+      } else if (bug.state === 'return') {
+        bug.diveT += dt / bug.diveDur;
+        if (bug.diveT >= 1) {
+          bug.state = 'idle';
+          bug.x = bug.gridX; bug.y = bug.gridY;
+        } else {
+          const p = bezier(bug.divePath[0], bug.divePath[1], bug.divePath[2], bug.divePath[3], bug.diveT);
+          bug.x = p.x; bug.y = p.y;
+          bug.angle = bezierTangent(bug.divePath[0], bug.divePath[1], bug.divePath[2], bug.divePath[3], bug.diveT) - Math.PI/2;
+        }
+      }
+    }
+
+    // Trigger new dive
+    state.diveTimer -= dt;
+    if (state.diveTimer <= 0 && idleCount > 0 && state.spawnQueue.length === 0) {
+      const idle = state.bugs.filter(b => b.alive && b.state === 'idle');
+      if (idle.length) {
+        const target = idle[Math.floor(Math.random() * idle.length)];
+        target.state = 'dive';
+        target.divePath = makeDivePath(target);
+        target.diveT = 0;
+        target.diveDur = 2.8 + Math.random() * 0.6;
+        target.fireCooldown = 0.4;
+      }
+      state.diveTimer = Math.max(0.4, 1.6 - state.stage * 0.08);
+    }
+
+    // Bullet vs bug
+    for (const b of state.bullets) {
+      for (const bug of state.bugs) {
+        if (!bug.alive) continue;
+        if (Math.abs(b.x - bug.x) < 14 && Math.abs(b.y - bug.y) < 14) {
+          bug.hp--;
+          b.y = -9999;
+          if (bug.hp <= 0) {
+            bug.alive = false;
+            const isDive = bug.state === 'dive' || bug.state === 'return';
+            const base = bug.type === 2 ? 150 : (bug.type === 1 ? 80 : 50);
+            state.score += isDive ? base * 2 : base;
+            burst(bug.x, bug.y, BUG_COLORS[bug.type].body);
+          }
+        }
+      }
+    }
+    state.bullets = state.bullets.filter(b => b.y > -20);
+
+    // Bug bullets vs ship
+    if (state.ship.alive) {
+      for (const b of state.bugBullets) {
+        if (Math.abs(b.x - state.ship.x) < 10 && Math.abs(b.y - state.ship.y) < 12) {
+          b.y = H + 9999;
+          loseLife();
+        }
+      }
+      // Bug body vs ship
+      for (const bug of state.bugs) {
+        if (!bug.alive) continue;
+        if (bug.state !== 'idle' && Math.abs(bug.x - state.ship.x) < 14 && Math.abs(bug.y - state.ship.y) < 14) {
+          bug.alive = false;
+          burst(bug.x, bug.y, BUG_COLORS[bug.type].body);
+          loseLife();
+        }
+      }
+    }
+
+    // Particles
+    for (const p of state.particles) {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt;
+    }
+    state.particles = state.particles.filter(p => p.life > 0);
+
+    // Respawn formation when cleared
+    if (aliveCount === 0 && state.spawnQueue.length === 0) {
+      state.stage++;
+      spawnFormation(state.stage);
+    }
+  }
+
+  function loseLife() {
+    state.ship.alive = false;
+    burst(state.ship.x, state.ship.y, '#ffd24a');
+    state.lives--;
+    setTimeout(() => {
+      if (state.lives >= 0) {
+        state.ship.x = W/2;
+        state.ship.alive = true;
+      }
+    }, 1200);
+  }
+
+  function burst(x, y, color) {
+    for (let i = 0; i < 22; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const s = Math.random() * 160 + 40;
+      state.particles.push({
+        x, y,
+        vx: Math.cos(a) * s,
+        vy: Math.sin(a) * s,
+        life: 0.5 + Math.random() * 0.5,
+        max: 1.0,
+        color,
+      });
+    }
+  }
+
+  // ---------- Draw ----------
+  function draw() {
+    ctx.fillStyle = '#04030a';
+    ctx.fillRect(0, 0, W, H);
+
+    // Stars
+    for (const s of state.stars) {
+      ctx.fillStyle = `rgba(200, 220, 255, ${0.3 + s.s * 0.2})`;
+      ctx.fillRect(s.x, s.y, s.s, s.s);
+    }
+
+    // Bugs
+    for (const bug of state.bugs) {
+      if (!bug.alive) continue;
+      drawBug(bug);
+    }
+
+    // Bullets
+    ctx.fillStyle = '#fffb9e';
+    for (const b of state.bullets) ctx.fillRect(b.x - 1.5, b.y - 8, 3, 10);
+    ctx.fillStyle = '#ff7be0';
+    for (const b of state.bugBullets) ctx.fillRect(b.x - 2, b.y - 2, 4, 4);
+
+    // Ship
+    if (state.ship.alive) drawShip(state.ship.x, state.ship.y);
+
+    // Particles
+    for (const p of state.particles) {
+      const a = Math.max(0, p.life / p.max);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = a;
+      ctx.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
+    }
+    ctx.globalAlpha = 1;
+
+    // HUD
+    ctx.fillStyle = '#7fb0ff';
+    ctx.font = 'bold 14px "Courier New", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('SCORE ' + String(state.score).padStart(6, '0'), 12, 24);
+    ctx.textAlign = 'right';
+    ctx.fillText('STAGE ' + state.stage, W - 12, 24);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ff5870';
+    for (let i = 0; i < state.lives; i++) {
+      drawShipMini(16 + i * 22, H - 14);
+    }
+  }
+
+  function drawShip(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#ff9a3c';
+    ctx.beginPath();
+    ctx.moveTo(-4, 8); ctx.lineTo(0, 16 + Math.sin(state.time*30)*2); ctx.lineTo(4, 8);
+    ctx.fill();
+    ctx.fillStyle = '#cfd8ef';
+    ctx.beginPath();
+    ctx.moveTo(0, -14);
+    ctx.lineTo(-12, 10);
+    ctx.lineTo(-4, 6);
+    ctx.lineTo(4, 6);
+    ctx.lineTo(12, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#7fb0ff';
+    ctx.fillRect(-2, -6, 4, 10);
+    ctx.fillStyle = '#ff5870';
+    ctx.fillRect(-10, 6, 3, 5);
+    ctx.fillRect(7, 6, 3, 5);
+    ctx.restore();
+  }
+
+  function drawShipMini(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#cfd8ef';
+    ctx.beginPath();
+    ctx.moveTo(0, -6); ctx.lineTo(-6, 5); ctx.lineTo(6, 5); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBug(bug) {
+    const col = BUG_COLORS[bug.type];
+    const wing = Math.sin(state.time * 8 + bug.col * 0.3) * 2;
+    ctx.save();
+    ctx.translate(bug.x, bug.y);
+    ctx.rotate(bug.angle);
+    ctx.fillStyle = col.accent;
+    ctx.beginPath();
+    ctx.ellipse(-10 - wing, 0, 7, 10, 0, 0, Math.PI * 2);
+    ctx.ellipse(10 + wing, 0, 7, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = col.body;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 10, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = col.accent;
+    ctx.fillRect(-9, -3, 18, 2);
+    ctx.fillRect(-9, 2, 18, 2);
+    ctx.fillStyle = col.eye;
+    ctx.fillRect(-5, -8, 3, 3);
+    ctx.fillRect(2, -8, 3, 3);
+    ctx.strokeStyle = col.accent;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-4, -10); ctx.lineTo(-7, -14);
+    ctx.moveTo(4, -10); ctx.lineTo(7, -14);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ---------- Loop ----------
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
