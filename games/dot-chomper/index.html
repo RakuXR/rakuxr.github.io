@@ -113,6 +113,133 @@
   #api-log .ms-bad { color: #ff6666; }
   #api-log .ts { color: #888; font-size: 8px; }
 
+  /* Title / options overlay */
+  #title-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.88);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 15;
+    text-align: center;
+    padding: 20px;
+    pointer-events: auto;
+  }
+  #title-overlay.hidden { display: none; }
+  #title-overlay h2 {
+    color: #ffff00;
+    font-size: 32px;
+    letter-spacing: 4px;
+    text-shadow: 4px 4px 0 #ff0000, 8px 8px 24px #aa0000;
+    margin: 0 0 16px;
+    animation: titleGlow 2s ease-in-out infinite;
+  }
+  @keyframes titleGlow {
+    0%, 100% { text-shadow: 4px 4px 0 #ff0000, 8px 8px 24px #aa0000; }
+    50%      { text-shadow: 4px 4px 0 #ff8800, 8px 8px 28px #ffaa33; }
+  }
+  #title-overlay .subtitle {
+    color: #00ffff;
+    font-size: 10px;
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+  }
+  #title-overlay .press-start {
+    color: #ffff00;
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-top: 20px;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink {
+    0%, 49%  { opacity: 1; }
+    50%, 100% { opacity: 0.1; }
+  }
+  #title-overlay .hi-list {
+    margin: 10px 0 0;
+    padding: 12px 22px;
+    background: rgba(0, 0, 40, 0.7);
+    border: 1px solid #1d2ea8;
+    border-radius: 6px;
+    max-width: 300px;
+  }
+  #title-overlay .hi-list h3 {
+    color: #ff8800;
+    font-size: 11px;
+    margin: 0 0 10px;
+    letter-spacing: 1px;
+  }
+  #title-overlay .hi-list ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 9px;
+    color: #ffffff;
+  }
+  #title-overlay .hi-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    gap: 12px;
+  }
+  #title-overlay .hi-list li span:last-child { color: #ffff00; }
+  #title-overlay .options {
+    margin-top: 18px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  #title-overlay .options button {
+    background: #1d2ea8;
+    color: #ffff00;
+    border: 2px solid #5a6fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 8px 14px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  #title-overlay .options button:hover { background: #4a5cd8; }
+
+  /* Launcher button */
+  #launcher-btn {
+    position: fixed;
+    top: 10px;
+    left: 80px;
+    background: #000;
+    color: #ffff00;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 6px 12px;
+    border: 2px solid #ffff00;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 25;
+    text-decoration: none;
+  }
+  #launcher-btn:hover { background: #ffff00; color: #000; }
+
+  /* Debug HUD */
+  #debug-hud {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    padding: 6px 10px;
+    border: 1px solid #00ff00;
+    z-index: 20;
+    display: none;
+    border-radius: 4px;
+    line-height: 1.5;
+  }
+  #debug-hud.visible { display: block; }
+
   /* Pulsing API badge */
   #api-badge {
     position: fixed;
@@ -152,6 +279,19 @@
 <div id="api-overlay" aria-live="polite">
   <div class="title">RakuEngine API <small>F2 to hide</small></div>
   <div id="api-log"></div>
+</div>
+<div id="debug-hud"></div>
+<div id="title-overlay">
+  <h2>DOT CHOMPER</h2>
+  <div class="subtitle">POWERED BY RAKUENGINE</div>
+  <div class="hi-list" id="hi-list"></div>
+  <div class="press-start">PRESS START</div>
+  <div class="options">
+    <button data-action="start">PLAY</button>
+    <button data-action="mute">MUTE</button>
+    <button data-action="scanlines">SCANLINES</button>
+    <button data-action="reset-hi">RESET SCORES</button>
+  </div>
 </div>
 <script type="module">
 'use strict';
@@ -1245,6 +1385,28 @@ function drawScanlines() {
   ctx.restore();
 }
 
+// ─── DEBUG HUD ─────────────────────────────────────────────────
+const debugHudEl = document.getElementById('debug-hud');
+let debugHudVisible = false;
+let fpsAcc = 0, fpsFrames = 0, fpsVal = 0;
+function toggleDebugHud() {
+  debugHudVisible = !debugHudVisible;
+  debugHudEl.classList.toggle('visible', debugHudVisible);
+}
+function updateDebugHUD(dt) {
+  fpsAcc += dt; fpsFrames++;
+  if (fpsAcc >= 0.5) { fpsVal = Math.round(fpsFrames / fpsAcc); fpsAcc = 0; fpsFrames = 0; }
+  if (!debugHudVisible) return;
+  const pc = pxToCol(player.x), pr = pxToRow(player.y);
+  debugHudEl.innerHTML =
+    `FPS: ${fpsVal}<br>` +
+    `LEVEL: ${level}<br>` +
+    `DOTS: ${dotsEaten}/${totalDots}<br>` +
+    `MODE: ${aiMode}<br>` +
+    `PLAYER: (${pc},${pr})<br>` +
+    `STATE: ${gameState}`;
+}
+
 // ------------------------------------------------------------
 // Input
 // ------------------------------------------------------------
@@ -1270,8 +1432,9 @@ window.addEventListener('keydown', (e) => {
   if (k === 'arrowleft' || k === 'a') player.nextDir = DIR.LEFT;
   if (k === 'arrowright' || k === 'd') player.nextDir = DIR.RIGHT;
   if (k === 'p') paused = !paused;
+  if (e.key === 'Enter' && gameState === 'title') startGame();
   if (e.key === 'F1') { scanlines = !scanlines; e.preventDefault(); }
-  if (e.key === 'F2') { toggleApiOverlay(); e.preventDefault(); }
+  if (e.key === 'F2') { toggleApiOverlay(); toggleDebugHud(); e.preventDefault(); }
 });
 window.addEventListener('keyup', (e) => { keys[e.key] = false; });
 
@@ -1285,6 +1448,43 @@ let hiScore = parseInt(localStorage.getItem('dotchomper_hi') || '0', 10);
 let lives = 3;
 let level = 1;
 document.getElementById('hi').textContent = hiScore;
+
+// Game state: 'title' | 'play'
+let gameState = 'title';
+
+// Top-5 high scores (localStorage)
+function loadHiList() {
+  try {
+    const raw = localStorage.getItem('dotchomper_hiscores');
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(e => typeof e === 'object' && typeof e.score === 'number');
+  } catch { return []; }
+}
+function saveHiList(list) {
+  try { localStorage.setItem('dotchomper_hiscores', JSON.stringify(list)); }
+  catch { /* quota */ }
+}
+function addHiScore(score, level) {
+  const list = loadHiList();
+  list.push({ score, level, date: Date.now() });
+  list.sort((a, b) => b.score - a.score);
+  const top = list.slice(0, 5);
+  saveHiList(top);
+  return top;
+}
+function renderHiList() {
+  const el = document.getElementById('hi-list');
+  const list = loadHiList();
+  const rows = list.length
+    ? list.map((e, i) =>
+        `<li><span>${i + 1}. L${e.level}</span><span>${e.score.toLocaleString()}</span></li>`
+      ).join('')
+    : '<li><span>---</span><span>0</span></li>';
+  el.innerHTML = `<h3>HIGH SCORES</h3><ol>${rows}</ol>`;
+}
+renderHiList();
 
 loadMaze(0);
 
@@ -1390,6 +1590,50 @@ function updateHUD() {
   }
 }
 
+// Title overlay wiring
+const titleOverlay = document.getElementById('title-overlay');
+
+function showTitle() {
+  gameState = 'title';
+  titleOverlay.classList.remove('hidden');
+  renderHiList();
+  Sound.stopSiren();
+  Sound.stopWarble();
+}
+function startGame() {
+  gameState = 'play';
+  titleOverlay.classList.add('hidden');
+  unlockAudio();
+  // Fresh run
+  level = 1;
+  score = 0;
+  lives = 3;
+  loadMaze(0);
+  resetPositions();
+  Sound.setSirenLevel(0);
+  Sound.startSiren();
+}
+
+titleOverlay.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  if (action === 'start') startGame();
+  else if (action === 'mute') {
+    const muted = Sound.toggleMute();
+    btn.textContent = muted ? 'UNMUTE' : 'MUTE';
+  } else if (action === 'scanlines') {
+    scanlines = !scanlines;
+    btn.textContent = scanlines ? 'SCANLINES' : 'CRISP';
+  } else if (action === 'reset-hi') {
+    saveHiList([]);
+    hiScore = 0;
+    localStorage.setItem('dotchomper_hi', '0');
+    document.getElementById('hi').textContent = '0';
+    renderHiList();
+  }
+});
+
 // Ghost eat chain: 200, 400, 800, 1600 (then reset at power-pellet end)
 let ghostEatChain = 0;
 let deathTimer = 0;
@@ -1475,14 +1719,11 @@ function gameOver() {
     hiScore = score;
     localStorage.setItem('dotchomper_hi', hiScore);
   }
-  // Restart from level 1
-  level = 1;
-  score = 0;
-  lives = 3;
-  loadMaze(0);
-  resetPositions();
-  Sound.setSirenLevel(0);
-  Sound.startSiren();
+  addHiScore(score, level);
+  renderHiList();
+  Sound.stopSiren();
+  Sound.stopWarble();
+  showTitle();
 }
 
 function checkLevelComplete() {
@@ -1503,6 +1744,18 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
 
+  if (gameState === 'title') {
+    // Animated maze background + ghosts wandering (no player control)
+    updateGhosts(dt);
+    drawHUD();
+    drawMaze();
+    for (const g of ghosts) drawGhost(g);
+    if (scanlines) drawScanlines();
+    updateDebugHUD(dt);
+    requestAnimationFrame(frame);
+    return;
+  }
+
   if (paused) {
     ctx.save();
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
@@ -1512,6 +1765,7 @@ function frame(now) {
     ctx.textAlign = 'center';
     ctx.fillText('PAUSED', W / 2, H / 2);
     ctx.restore();
+    updateDebugHUD(dt);
     requestAnimationFrame(frame);
     return;
   }
@@ -1559,6 +1813,7 @@ function frame(now) {
   drawPopups(dt);
   if (scanlines) drawScanlines();
   updateHUD();
+  updateDebugHUD(dt);
   checkLevelComplete();
 
   requestAnimationFrame(frame);
