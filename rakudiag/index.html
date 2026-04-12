@@ -541,7 +541,7 @@ footer a { color: var(--dim); }
       if (s === 'pass' || s === 'ok' || s === 'passed') pass++;
       else if (s === 'fail' || s === 'failed' || s === 'error') fail++;
       else if (s === 'skip' || s === 'skipped') skip++;
-      else pass++; // default optimistic
+      else fail++; // unknown status counts as failure
       totalMs += Number(t.duration_ms || t.duration || 0) || 0;
     });
 
@@ -582,7 +582,7 @@ footer a { color: var(--dim); }
         } else if (status === 'skip' || status === 'skipped') {
           badgeCls = 'skip'; badgeIcon = '\u25CB SKIP';
         } else {
-          badgeCls = 'pass'; badgeIcon = '\u2713 ' + (t.status || 'OK').toUpperCase();
+          badgeCls = 'fail'; badgeIcon = '\u2717 ' + (t.status || 'UNKNOWN').toUpperCase();
         }
         const dur = (t.duration_ms != null ? t.duration_ms : (t.duration != null ? t.duration : 0));
         return '<tr>' +
@@ -627,13 +627,17 @@ footer a { color: var(--dim); }
     const url = base + '/rakudiag/run';
     const startedAt = Date.now();
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     try {
       const res = await fetch(url, {
         method: 'GET',
         headers: { 'Accept': 'application/json' },
         mode: 'cors',
-        cache: 'no-store'
+        cache: 'no-store',
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       if (!res.ok) {
         throw new Error('HTTP ' + res.status + ' ' + res.statusText);
       }
@@ -643,9 +647,15 @@ footer a { color: var(--dim); }
       timestampEl.textContent = 'Last run: ' + finishedAt.toLocaleString() +
         ' (' + (Date.now() - startedAt) + 'ms) — ' + url;
     } catch (err) {
-      showError('Could not reach RakuDiag API',
-        'GET ' + url + ' failed: ' + (err && err.message ? err.message : String(err)) +
-        '. Check the base URL, CORS headers on the API, or network connectivity.');
+      clearTimeout(timeoutId);
+      if (err && err.name === 'AbortError') {
+        showError('Request timed out after 15s',
+          'GET ' + url + ' did not respond within 15 seconds. The API may be overloaded or unreachable.');
+      } else {
+        showError('Could not reach RakuDiag API',
+          'GET ' + url + ' failed: ' + (err && err.message ? err.message : String(err)) +
+          '. Check the base URL, CORS headers on the API, or network connectivity.');
+      }
       setCard('card-overall', 'val-overall', 'fail', 'UNREACHABLE');
       setCard('card-native', 'val-native', 'neutral', '—');
       setCard('card-bound', 'val-bound', 'neutral', '—');
