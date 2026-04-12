@@ -56,41 +56,6 @@
     color: #888;
     text-align: center;
   }
-  #overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    text-align: center;
-    padding: 16px;
-  }
-  #overlay.hidden { display: none; }
-  #overlay h2 {
-    color: #ffff00;
-    font-size: 24px;
-    text-shadow: 3px 3px 0 #ff0000;
-    margin: 0 0 20px;
-  }
-  #overlay p {
-    color: #fff;
-    font-size: 10px;
-    line-height: 1.8;
-    max-width: 520px;
-  }
-  #overlay .hint {
-    color: #00ffff;
-    font-size: 10px;
-    margin-top: 16px;
-    animation: blink 1s infinite;
-  }
-  @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0.2; }
-  }
 </style>
 </head>
 <body>
@@ -103,17 +68,7 @@
     <div>LIVES <span id="lives">3</span></div>
   </div>
   <canvas id="game" width="560" height="620"></canvas>
-  <div id="footer">Arrows / WASD / Gamepad &bull; P = Pause &bull; M = Mute</div>
-</div>
-<div id="overlay">
-  <h2>DOT CHOMPER</h2>
-  <p>
-    Chomp every dot in the maze!<br>
-    Power pellets make ghosts vulnerable.<br>
-    Grab fruit for bonus points.<br>
-    Avoid the ghosts or lose a life.
-  </p>
-  <p class="hint">PRESS ANY KEY TO START</p>
+  <div id="footer">Arrows / WASD &bull; P = Pause</div>
 </div>
 <script>
 'use strict';
@@ -131,7 +86,7 @@ const HUD_H = 40;
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-ctx.imageSmoothingEnabled = false;
+ctx.imageSmoothingEnabled = true;
 
 // ------------------------------------------------------------
 // Maze definitions
@@ -293,6 +248,157 @@ function isWall(c, r) {
 }
 
 // ------------------------------------------------------------
+// Direction helpers (tile-based movement)
+// ------------------------------------------------------------
+
+const DIR = {
+  NONE:  { x:  0, y:  0, name: 'none' },
+  UP:    { x:  0, y: -1, name: 'up' },
+  DOWN:  { x:  0, y:  1, name: 'down' },
+  LEFT:  { x: -1, y:  0, name: 'left' },
+  RIGHT: { x:  1, y:  0, name: 'right' },
+};
+
+function dirAngle(d) {
+  if (d === DIR.RIGHT) return 0;
+  if (d === DIR.DOWN)  return Math.PI / 2;
+  if (d === DIR.LEFT)  return Math.PI;
+  if (d === DIR.UP)    return -Math.PI / 2;
+  return 0;
+}
+
+// Player moves between tile centers using pixel positions.
+// x/y are in maze-pixel space (0,0 = top-left of maze, not HUD).
+const player = {
+  x: 13.5 * TILE,
+  y: 23 * TILE + TILE / 2,
+  r: TILE * 0.45,
+  speed: 100, // px/sec
+  dir: DIR.LEFT,
+  nextDir: DIR.LEFT,
+  mouthPhase: 0,
+  alive: true,
+};
+
+function tileCenterX(c) { return c * TILE + TILE / 2; }
+function tileCenterY(r) { return r * TILE + TILE / 2; }
+function pxToCol(x) { return Math.floor(x / TILE); }
+function pxToRow(y) { return Math.floor(y / TILE); }
+
+// True if a given (col,row) tile is walkable for player/ghosts
+function canWalk(c, r) {
+  // Allow tunnels (off-grid horizontal) to wrap
+  if (c < 0 || c >= COLS) return true;
+  return !isWall(c, r);
+}
+
+// Try moving the entity one step; only commit movement if aligned enough.
+function tryStep(ent, dt) {
+  // Horizontal tunnel wrap
+  if (ent.x < -TILE / 2) ent.x = COLS * TILE + TILE / 2 - 1;
+  if (ent.x > COLS * TILE + TILE / 2) ent.x = -TILE / 2 + 1;
+
+  const curC = pxToCol(ent.x);
+  const curR = pxToRow(ent.y);
+  const cxPx = tileCenterX(curC);
+  const cyPx = tileCenterY(curR);
+
+  // If entity wants to change direction, only allow when near a tile center
+  // and the target tile is open.
+  const alignTol = 2;
+
+  if (ent.nextDir && ent.nextDir !== ent.dir) {
+    const nd = ent.nextDir;
+    const targetC = curC + nd.x;
+    const targetR = curR + nd.y;
+    // Turning 180° is always allowed
+    if (nd.x === -ent.dir.x && nd.y === -ent.dir.y) {
+      ent.dir = nd;
+    } else if (Math.abs(ent.x - cxPx) <= alignTol && Math.abs(ent.y - cyPx) <= alignTol
+               && canWalk(targetC, targetR)) {
+      ent.x = cxPx;
+      ent.y = cyPx;
+      ent.dir = nd;
+    }
+  }
+
+  // Attempt to move in current direction
+  const step = ent.speed * dt;
+  let nx = ent.x + ent.dir.x * step;
+  let ny = ent.y + ent.dir.y * step;
+
+  // If we're moving toward a wall, clamp at tile center
+  const ahead = {
+    c: pxToCol(nx + ent.dir.x * (TILE / 2 - 1)),
+    r: pxToRow(ny + ent.dir.y * (TILE / 2 - 1)),
+  };
+  if (!canWalk(ahead.c, ahead.r)) {
+    // Clamp to current tile center
+    if (ent.dir.x !== 0) nx = cxPx;
+    if (ent.dir.y !== 0) ny = cyPx;
+  }
+
+  ent.x = nx;
+  ent.y = ny;
+}
+
+// ------------------------------------------------------------
+// Ghosts
+// ------------------------------------------------------------
+
+function makeGhost(name, color, startCol, startRow) {
+  return {
+    name, color,
+    x: tileCenterX(startCol),
+    y: tileCenterY(startRow),
+    r: TILE * 0.45,
+    speed: 90,
+    dir: DIR.LEFT,
+    nextDir: DIR.LEFT,
+    vulnerable: false,
+    vulnTimer: 0,
+    eaten: false,
+    eyeDir: DIR.LEFT,
+  };
+}
+
+const ghosts = [
+  makeGhost('blinky', '#ff2020', 13, 11), // red
+  makeGhost('pinky',  '#ffb8de', 14, 11), // pink
+  makeGhost('inky',   '#00ffff', 12, 14), // cyan
+  makeGhost('clyde',  '#ff9900', 15, 14), // orange
+];
+
+function chooseGhostDir(g) {
+  // Very simple AI for commit 1: at tile centers, pick any non-backward
+  // open direction, preferring forward.
+  const c = pxToCol(g.x);
+  const r = pxToRow(g.y);
+  const cx = tileCenterX(c), cy = tileCenterY(r);
+  if (Math.abs(g.x - cx) > 1 || Math.abs(g.y - cy) > 1) return;
+  const opts = [];
+  const cand = [DIR.UP, DIR.DOWN, DIR.LEFT, DIR.RIGHT];
+  for (const d of cand) {
+    if (d.x === -g.dir.x && d.y === -g.dir.y) continue;
+    if (canWalk(c + d.x, r + d.y)) opts.push(d);
+  }
+  if (opts.length === 0) {
+    // dead end: reverse
+    g.nextDir = { x: -g.dir.x, y: -g.dir.y, name: 'rev' };
+  } else {
+    g.nextDir = opts[Math.floor(Math.random() * opts.length)];
+  }
+}
+
+function updateGhosts(dt) {
+  for (const g of ghosts) {
+    chooseGhostDir(g);
+    tryStep(g, dt);
+    g.eyeDir = g.dir;
+  }
+}
+
+// ------------------------------------------------------------
 // Render
 // ------------------------------------------------------------
 
@@ -301,34 +407,121 @@ function drawMaze() {
   ctx.fillRect(0, HUD_H, W, H - HUD_H);
 
   const offY = HUD_H;
+  // Walls: rounded pill style. Draw filled rounded rects.
+  ctx.save();
+  ctx.translate(0, offY);
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const t = grid[r][c];
       const x = c * TILE;
-      const y = r * TILE + offY;
+      const y = r * TILE;
       if (t === T_WALL) {
         ctx.fillStyle = '#1d2ea8';
-        ctx.fillRect(x + 2, y + 2, TILE - 4, TILE - 4);
-        ctx.strokeStyle = '#4a5cd8';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(x + 2, y + 2, TILE - 4, TILE - 4);
+        roundRect(ctx, x + 2, y + 2, TILE - 4, TILE - 4, 5);
+        ctx.fill();
+        ctx.strokeStyle = '#5a6fff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
       } else if (t === T_DOOR) {
         ctx.fillStyle = '#ffb8de';
         ctx.fillRect(x, y + TILE / 2 - 2, TILE, 4);
       } else if (t === T_DOT) {
         ctx.fillStyle = '#ffb897';
-        ctx.fillRect(x + TILE / 2 - 2, y + TILE / 2 - 2, 4, 4);
+        ctx.beginPath();
+        ctx.arc(x + TILE / 2, y + TILE / 2, 2, 0, Math.PI * 2);
+        ctx.fill();
       } else if (t === T_PWR) {
-        const blink = (Math.floor(performance.now() / 200) % 2) === 0;
-        if (blink) {
-          ctx.fillStyle = '#ffb897';
-          ctx.beginPath();
-          ctx.arc(x + TILE / 2, y + TILE / 2, 6, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        const pulse = 4 + Math.sin(performance.now() / 150) * 2;
+        ctx.fillStyle = '#ffb897';
+        ctx.beginPath();
+        ctx.arc(x + TILE / 2, y + TILE / 2, pulse, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
   }
+  ctx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, radius) {
+  const r = Math.min(radius, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawPlayer() {
+  const px = player.x;
+  const py = player.y + HUD_H;
+  const angle = dirAngle(player.dir);
+
+  // Animated chomp: mouth opens/closes. If not moving, mouth is closed.
+  const moving = player.dir.x !== 0 || player.dir.y !== 0;
+  if (moving) player.mouthPhase += 0.2;
+  const mouth = moving ? (Math.abs(Math.sin(player.mouthPhase)) * 0.6) : 0.0;
+
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(angle);
+  ctx.fillStyle = '#ffff00';
+  ctx.beginPath();
+  ctx.arc(0, 0, player.r, mouth, Math.PI * 2 - mouth);
+  ctx.lineTo(0, 0);
+  ctx.closePath();
+  ctx.fill();
+  // Tiny eye
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(0, -player.r * 0.5, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawGhost(g) {
+  const gx = g.x;
+  const gy = g.y + HUD_H;
+  const r = g.r;
+
+  ctx.save();
+  ctx.translate(gx, gy);
+  // Body (rounded top, wavy bottom)
+  ctx.fillStyle = g.vulnerable ? '#2222ff' : g.color;
+  ctx.beginPath();
+  ctx.arc(0, -2, r, Math.PI, 0);
+  ctx.lineTo(r, r * 0.9);
+  // wavy bottom
+  const segs = 4;
+  for (let i = 0; i < segs; i++) {
+    const midX = r - (i + 0.5) * (2 * r / segs);
+    const baseX = r - (i + 1) * (2 * r / segs);
+    ctx.lineTo(midX, r * 0.6);
+    ctx.lineTo(baseX, r * 0.9);
+  }
+  ctx.closePath();
+  ctx.fill();
+
+  // Eyes
+  const eyeOff = g.eyeDir || g.dir;
+  const ex = eyeOff.x * 1.2;
+  const ey = eyeOff.y * 1.2;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-r * 0.35, -r * 0.2, r * 0.28, 0, Math.PI * 2);
+  ctx.arc( r * 0.35, -r * 0.2, r * 0.28, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = g.vulnerable ? '#ff4444' : '#0033ff';
+  ctx.beginPath();
+  ctx.arc(-r * 0.35 + ex, -r * 0.2 + ey, r * 0.14, 0, Math.PI * 2);
+  ctx.arc( r * 0.35 + ex, -r * 0.2 + ey, r * 0.14, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawHUD() {
@@ -343,27 +536,89 @@ function drawHUD() {
 }
 
 // ------------------------------------------------------------
-// Main loop (rendering only for now)
+// Input
+// ------------------------------------------------------------
+
+const keys = {};
+window.addEventListener('keydown', (e) => {
+  keys[e.key] = true;
+  const k = e.key.toLowerCase();
+  if (k === 'arrowup' || k === 'w') player.nextDir = DIR.UP;
+  if (k === 'arrowdown' || k === 's') player.nextDir = DIR.DOWN;
+  if (k === 'arrowleft' || k === 'a') player.nextDir = DIR.LEFT;
+  if (k === 'arrowright' || k === 'd') player.nextDir = DIR.RIGHT;
+});
+window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+
+// ------------------------------------------------------------
+// Main loop
 // ------------------------------------------------------------
 
 loadMaze(0);
 
-function render() {
+// Score / HUD state
+let score = 0;
+let hiScore = parseInt(localStorage.getItem('dotchomper_hi') || '0', 10);
+let lives = 3;
+let level = 1;
+document.getElementById('hi').textContent = hiScore;
+
+function eatDots() {
+  const c = pxToCol(player.x);
+  const r = pxToRow(player.y);
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+  const t = grid[r][c];
+  if (t === T_DOT) {
+    grid[r][c] = T_EMPTY;
+    dotsEaten++;
+    score += 10;
+  } else if (t === T_PWR) {
+    grid[r][c] = T_EMPTY;
+    dotsEaten++;
+    score += 50;
+    for (const g of ghosts) {
+      g.vulnerable = true;
+      g.vulnTimer = 6.0;
+    }
+  }
+}
+
+function updateHUD() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('lives').textContent = lives;
+  document.getElementById('level').textContent = level;
+  if (score > hiScore) {
+    hiScore = score;
+    localStorage.setItem('dotchomper_hi', hiScore);
+    document.getElementById('hi').textContent = hiScore;
+  }
+}
+
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+
+  tryStep(player, dt);
+  eatDots();
+  updateGhosts(dt);
+
+  // Vulnerability timers
+  for (const g of ghosts) {
+    if (g.vulnerable) {
+      g.vulnTimer -= dt;
+      if (g.vulnTimer <= 0) g.vulnerable = false;
+    }
+  }
+
   drawHUD();
   drawMaze();
-}
+  drawPlayer();
+  for (const g of ghosts) drawGhost(g);
+  updateHUD();
 
-function frame() {
-  render();
   requestAnimationFrame(frame);
 }
-
-document.getElementById('overlay').addEventListener('click', () => {
-  document.getElementById('overlay').classList.add('hidden');
-});
-window.addEventListener('keydown', () => {
-  document.getElementById('overlay').classList.add('hidden');
-}, { once: true });
 
 requestAnimationFrame(frame);
 </script>
