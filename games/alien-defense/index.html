@@ -44,6 +44,51 @@
 
   const W = canvas.width;
   const H = canvas.height;
+  const GROUND_Y = H - 24;
+
+  // ---- Input ----
+  const keys = Object.create(null);
+  const pressed = Object.create(null);
+  addEventListener("keydown", (e) => {
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " ", "Space"].includes(e.key) || e.code === "Space") {
+      e.preventDefault();
+    }
+    if (!keys[e.code]) pressed[e.code] = true;
+    keys[e.code] = true;
+  });
+  addEventListener("keyup", (e) => { keys[e.code] = false; });
+
+  // Gamepad
+  function gp() {
+    const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (const g of gps) if (g) return g;
+    return null;
+  }
+  const gpPrev = { fire: false, start: false };
+  function readGamepad() {
+    const g = gp();
+    if (!g) return;
+    const ax = g.axes[0] || 0;
+    if (ax < -0.35 || g.buttons[14]?.pressed) keys.ArrowLeft = true;
+    else if (!keys._kbLeft) keys.ArrowLeft = false;
+    if (ax > 0.35 || g.buttons[15]?.pressed) keys.ArrowRight = true;
+    else if (!keys._kbRight) keys.ArrowRight = false;
+    const fire = !!(g.buttons[0]?.pressed || g.buttons[7]?.pressed);
+    if (fire && !gpPrev.fire) pressed.Space = true;
+    gpPrev.fire = fire;
+    const start = !!g.buttons[9]?.pressed;
+    if (start && !gpPrev.start) pressed.Enter = true;
+    gpPrev.start = start;
+  }
+  // Track kbd-origin so gamepad doesn't clobber it
+  addEventListener("keydown", (e) => {
+    if (e.code === "ArrowLeft") keys._kbLeft = true;
+    if (e.code === "ArrowRight") keys._kbRight = true;
+  });
+  addEventListener("keyup", (e) => {
+    if (e.code === "ArrowLeft") keys._kbLeft = false;
+    if (e.code === "ArrowRight") keys._kbRight = false;
+  });
 
   // ---- Starfield ----
   const stars = [];
@@ -64,77 +109,39 @@
     }
   }
 
-  // ---- Alien sprites (8x8 bitmaps, two frames) ----
+  // ---- Sprites ----
   const SPR = {
     squid: [
-      [
-        "..XX..X.",
-        ".XXXXXX.",
-        "XX.XX.XX",
-        "XXXXXXXX",
-        "X.XXXX.X",
-        "X.X..X.X",
-        "..XX.X..",
-        ".XX.XX..",
-      ],
-      [
-        "..XX..X.",
-        ".XXXXXX.",
-        "XX.XX.XX",
-        "XXXXXXXX",
-        ".XXXXXX.",
-        "..X..X..",
-        ".XX..XX.",
-        "X..XX..X",
-      ],
+      ["..XX..X.",".XXXXXX.","XX.XX.XX","XXXXXXXX","X.XXXX.X","X.X..X.X","..XX.X..",".XX.XX.."],
+      ["..XX..X.",".XXXXXX.","XX.XX.XX","XXXXXXXX",".XXXXXX.","..X..X..",".XX..XX.","X..XX..X"],
     ],
     crab: [
-      [
-        "..X.....",
-        "X.X.X...",
-        "XXXXXXX.",
-        "XX.XXX.X",
-        "XXXXXXXX",
-        ".XXXXX..",
-        "X.....X.",
-        ".X...X..",
-      ],
-      [
-        "..X.....",
-        "..X.X...",
-        "XXXXXXX.",
-        "XX.XXX.X",
-        "XXXXXXXX",
-        ".XXXXX..",
-        "X.X.X.X.",
-        "X.....X.",
-      ],
+      ["..X.....","X.X.X...","XXXXXXX.","XX.XXX.X","XXXXXXXX",".XXXXX..","X.....X.",".X...X.."],
+      ["..X.....","..X.X...","XXXXXXX.","XX.XXX.X","XXXXXXXX",".XXXXX..","X.X.X.X.","X.....X."],
     ],
     octopus: [
-      [
-        ".XXXXXX.",
-        "XXXXXXXX",
-        "XX.XX.XX",
-        "XXXXXXXX",
-        "..X..X..",
-        ".X.XX.X.",
-        "X.X..X.X",
-        ".X....X.",
-      ],
-      [
-        ".XXXXXX.",
-        "XXXXXXXX",
-        "XX.XX.XX",
-        "XXXXXXXX",
-        "..XXXX..",
-        ".XX..XX.",
-        ".X.XX.X.",
-        "X.X..X.X",
-      ],
+      [".XXXXXX.","XXXXXXXX","XX.XX.XX","XXXXXXXX","..X..X..",".X.XX.X.","X.X..X.X",".X....X."],
+      [".XXXXXX.","XXXXXXXX","XX.XX.XX","XXXXXXXX","..XXXX..",".XX..XX.",".X.XX.X.","X.X..X.X"],
+    ],
+    cannon: [
+      "......XX......",
+      "......XX......",
+      ".XXXXXXXXXXXX.",
+      "XXXXXXXXXXXXXX",
+      "XXXXXXXXXXXXXX",
+      "XXXXXXXXXXXXXX",
+    ],
+    cannonBoom: [
+      "X.X..X..X..X.X",
+      "..X.XX.X.XX.X.",
+      ".X.XXXXXXXX.X.",
+      "X.XXXXX.XXXXXX",
+      ".XXXXXXXXXX.X.",
+      "X..XX..X..XX.X",
     ],
   };
 
-  function drawSprite(bitmap, x, y, scale, color) {
+  function drawBitmap(bitmap, x, y, scale, color) {
     ctx.fillStyle = color;
     for (let r = 0; r < bitmap.length; r++) {
       const row = bitmap[r];
@@ -146,56 +153,43 @@
     }
   }
 
-  // ---- Alien formation (5 rows x 11 cols) ----
+  // ---- Alien formation ----
   const ROWS = 5;
   const COLS = 11;
   const CELL_W = 24;
   const CELL_H = 20;
   const ALIEN_PX = 8;
-  const ALIEN_SCALE = 2; // 16px sprites
+  const ALIEN_SCALE = 2;
   const ALIEN_W = ALIEN_PX * ALIEN_SCALE;
   const ALIEN_H = ALIEN_PX * ALIEN_SCALE;
 
   const ROW_INFO = [
-    { sprite: "squid",    color: "#c0c0ff", points: 30 },
-    { sprite: "crab",     color: "#a0ffa0", points: 20 },
-    { sprite: "crab",     color: "#a0ffa0", points: 20 },
-    { sprite: "octopus",  color: "#ffa0a0", points: 10 },
-    { sprite: "octopus",  color: "#ffa0a0", points: 10 },
+    { sprite: "squid",   color: "#c0c0ff", points: 30 },
+    { sprite: "crab",    color: "#a0ffa0", points: 20 },
+    { sprite: "crab",    color: "#a0ffa0", points: 20 },
+    { sprite: "octopus", color: "#ffa0a0", points: 10 },
+    { sprite: "octopus", color: "#ffa0a0", points: 10 },
   ];
 
   const formation = {
-    x: 0,
-    y: 0,
-    dir: 1,
-    frame: 0,
-    aliens: [],
+    x: 24, y: 56, dir: 1, frame: 0, aliens: [],
     reset() {
-      this.x = 24;
-      this.y = 56;
-      this.dir = 1;
-      this.frame = 0;
+      this.x = 24; this.y = 56; this.dir = 1; this.frame = 0;
       this.aliens = [];
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
           this.aliens.push({
-            r, c,
-            alive: true,
+            r, c, alive: true,
             type: ROW_INFO[r].sprite,
             color: ROW_INFO[r].color,
             points: ROW_INFO[r].points,
           });
-        }
-      }
     },
   };
   formation.reset();
 
   function alienPos(a) {
-    return {
-      x: formation.x + a.c * CELL_W,
-      y: formation.y + a.r * CELL_H,
-    };
+    return { x: formation.x + a.c * CELL_W, y: formation.y + a.r * CELL_H };
   }
 
   function drawFormation() {
@@ -203,8 +197,84 @@
       if (!a.alive) continue;
       const p = alienPos(a);
       const frames = SPR[a.type];
-      drawSprite(frames[formation.frame & 1], p.x, p.y, ALIEN_SCALE, a.color);
+      drawBitmap(frames[formation.frame & 1], p.x, p.y, ALIEN_SCALE, a.color);
     }
+  }
+
+  // ---- Cannon / player ----
+  const CANNON_SCALE = 2;
+  const CANNON_W = 14 * CANNON_SCALE;
+  const CANNON_H = 6 * CANNON_SCALE;
+  const player = {
+    x: W / 2 - CANNON_W / 2,
+    y: GROUND_Y - CANNON_H - 4,
+    speed: 160,
+    lives: 3,
+    score: 0,
+    hi: 0,
+    reset() {
+      this.x = W / 2 - CANNON_W / 2;
+    },
+  };
+
+  function drawPlayer() {
+    drawBitmap(SPR.cannon, player.x, player.y, CANNON_SCALE, "#0f0");
+  }
+
+  // ---- Shots ----
+  const playerShot = { active: false, x: 0, y: 0, w: 2, h: 10 };
+
+  function firePlayerShot() {
+    if (playerShot.active) return;
+    playerShot.active = true;
+    playerShot.x = player.x + CANNON_W / 2 - 1;
+    playerShot.y = player.y - 2;
+  }
+
+  function updatePlayerShot(dt) {
+    if (!playerShot.active) return;
+    playerShot.y -= 360 * dt;
+    if (playerShot.y + playerShot.h < 28) {
+      playerShot.active = false;
+      return;
+    }
+    // Alien collision
+    for (const a of formation.aliens) {
+      if (!a.alive) continue;
+      const p = alienPos(a);
+      if (
+        playerShot.x < p.x + ALIEN_W &&
+        playerShot.x + playerShot.w > p.x &&
+        playerShot.y < p.y + ALIEN_H &&
+        playerShot.y + playerShot.h > p.y
+      ) {
+        a.alive = false;
+        playerShot.active = false;
+        player.score += a.points;
+        if (player.score > player.hi) player.hi = player.score;
+        return;
+      }
+    }
+  }
+
+  function drawPlayerShot() {
+    if (!playerShot.active) return;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(playerShot.x | 0, playerShot.y | 0, playerShot.w, playerShot.h);
+  }
+
+  // ---- Game state ----
+  const STATE = { TITLE: 0, PLAY: 1, GAMEOVER: 2 };
+  let state = STATE.TITLE;
+
+  function updatePlayer(dt) {
+    if (keys.ArrowLeft) player.x -= player.speed * dt;
+    if (keys.ArrowRight) player.x += player.speed * dt;
+    const minX = 8;
+    const maxX = W - 8 - CANNON_W;
+    if (player.x < minX) player.x = minX;
+    if (player.x > maxX) player.x = maxX;
+    if (pressed.Space) firePlayerShot();
   }
 
   // ---- HUD ----
@@ -212,13 +282,26 @@
     ctx.fillStyle = "#fff";
     ctx.font = "bold 14px 'Courier New', monospace";
     ctx.textAlign = "left";
-    ctx.fillText("SCORE 0", 8, 18);
+    ctx.fillText("SCORE " + String(player.score).padStart(5, "0"), 8, 18);
     ctx.textAlign = "center";
-    ctx.fillText("ALIEN DEFENSE", W / 2, 18);
+    ctx.fillText("HI " + String(player.hi).padStart(5, "0"), W / 2, 18);
     ctx.textAlign = "right";
-    ctx.fillText("LV 1", W - 8, 18);
+    ctx.fillText("LIVES " + player.lives, W - 8, 18);
     ctx.fillStyle = "#0f0";
     ctx.fillRect(0, 26, W, 1);
+    ctx.fillRect(0, GROUND_Y + 4, W, 1);
+  }
+
+  function drawTitle() {
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.font = "bold 28px 'Courier New', monospace";
+    ctx.fillText("ALIEN DEFENSE", W / 2, 160);
+    ctx.font = "bold 12px 'Courier News', monospace";
+    ctx.fillStyle = "#0f0";
+    ctx.fillText("<- -> MOVE    SPACE FIRE", W / 2, 260);
+    ctx.fillStyle = "#fff";
+    ctx.fillText("PRESS SPACE TO START", W / 2, 300);
   }
 
   // ---- Main loop ----
@@ -227,16 +310,38 @@
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
+
+    readGamepad();
+
     frameTimer += dt;
     if (frameTimer > 0.5) {
       frameTimer = 0;
       formation.frame ^= 1;
     }
+
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, W, H);
     drawStars(dt);
-    drawHUD();
-    drawFormation();
+
+    if (state === STATE.TITLE) {
+      drawFormation();
+      drawPlayer();
+      drawHUD();
+      drawTitle();
+      if (pressed.Space || pressed.Enter) {
+        state = STATE.PLAY;
+        player.reset();
+      }
+    } else if (state === STATE.PLAY) {
+      updatePlayer(dt);
+      updatePlayerShot(dt);
+      drawFormation();
+      drawPlayer();
+      drawPlayerShot();
+      drawHUD();
+    }
+
+    for (const k in pressed) delete pressed[k];
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
