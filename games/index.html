@@ -478,6 +478,76 @@
   .api-feed .line .ok { color: var(--neon-green); }
   .api-feed .line .path { color: #fff; }
 
+
+  /* ============ LEADERBOARD ============ */
+  .leaderboard {
+    border: 3px solid var(--neon-yellow);
+    background: rgba(255, 234, 0, 0.04);
+    padding: 20px;
+    margin: 40px auto;
+    max-width: 720px;
+    box-shadow:
+      0 0 20px rgba(255, 234, 0, 0.4),
+      inset 0 0 30px rgba(255, 234, 0, 0.08);
+  }
+  .leaderboard h3 {
+    font-size: 14px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 8px var(--neon-yellow);
+    text-align: center;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+  }
+  .leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9px;
+  }
+  .leaderboard th, .leaderboard td {
+    padding: 6px 8px;
+    border-bottom: 1px dashed rgba(255, 234, 0, 0.25);
+    text-align: left;
+  }
+  .leaderboard th {
+    color: var(--neon-pink);
+    text-shadow: 0 0 4px var(--neon-pink);
+    font-size: 8px;
+  }
+  .leaderboard td.rank {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 4px var(--neon-cyan);
+    width: 10%;
+  }
+  .leaderboard td.game { color: #fff; }
+  .leaderboard td.score {
+    color: var(--neon-green);
+    text-shadow: 0 0 4px var(--neon-green);
+    text-align: right;
+    width: 25%;
+  }
+  .leaderboard tr.empty td {
+    color: #555;
+    text-align: center;
+    padding: 16px;
+  }
+  .leaderboard .clear-scores {
+    display: block;
+    margin: 12px auto 0;
+    font-family: inherit;
+    font-size: 8px;
+    background: transparent;
+    color: var(--neon-pink);
+    border: 2px solid var(--neon-pink);
+    padding: 6px 10px;
+    cursor: pointer;
+    text-shadow: 0 0 4px var(--neon-pink);
+  }
+  .leaderboard .clear-scores:hover {
+    background: var(--neon-pink);
+    color: #000;
+    text-shadow: none;
+  }
+
 </style>
 </head>
 <body>
@@ -521,6 +591,17 @@
     </div>
 
     <div class="game-grid" id="game-grid"></div>
+    <div class="section-header">&gt;&gt; TOP SCORES &lt;&lt;</div>
+    <div class="leaderboard" id="leaderboard">
+      <h3>&#9733; HIGH SCORE LEADERBOARD &#9733;</h3>
+      <table>
+        <thead>
+          <tr><th>#</th><th>GAME</th><th style="text-align:right;">SCORE</th></tr>
+        </thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+      <button type="button" class="clear-scores" id="clear-scores">CLEAR ALL SCORES</button>
+    </div>
   </main>
 
   <footer>
@@ -816,11 +897,65 @@
     }
   });
 
-  // High score storage (placeholder until leaderboard commit)
+  // ============ HIGH SCORES ============
+  const HS_PREFIX = 'raku.hs.';
+
+  function getHighScore(gameId) {
+    return parseInt(localStorage.getItem(HS_PREFIX + gameId) || '0', 10);
+  }
+
   function saveHighScore(gameId, score) {
-    const key = 'raku.hs.' + gameId;
-    const prev = parseInt(localStorage.getItem(key) || '0', 10);
-    if (score > prev) localStorage.setItem(key, String(score));
+    const prev = getHighScore(gameId);
+    if (score > prev) {
+      localStorage.setItem(HS_PREFIX + gameId, String(score));
+      renderLeaderboard();
+      updateCardScores();
+    }
+  }
+
+  function getAllScores() {
+    return GAMES.map(g => ({
+      id: g.id,
+      title: g.title,
+      score: getHighScore(g.id)
+    })).sort((a, b) => b.score - a.score);
+  }
+
+  function renderLeaderboard() {
+    const body = document.getElementById('leaderboard-body');
+    if (!body) return;
+    const scores = getAllScores().filter(s => s.score > 0).slice(0, 10);
+    if (scores.length === 0) {
+      body.innerHTML = '<tr class="empty"><td colspan="3">-- NO SCORES YET. PLAY A GAME! --</td></tr>';
+      return;
+    }
+    body.innerHTML = scores.map((s, i) => `
+      <tr>
+        <td class="rank">${String(i + 1).padStart(2, '0')}</td>
+        <td class="game">${s.title}</td>
+        <td class="score">${s.score.toLocaleString()}</td>
+      </tr>
+    `).join('');
+  }
+
+  function updateCardScores() {
+    document.querySelectorAll('.game-card').forEach((card) => {
+      const id = card.dataset.id;
+      const score = getHighScore(id);
+      const el = card.querySelector('.game-hiscore');
+      if (el) el.textContent = 'HI: ' + score.toLocaleString();
+    });
+  }
+
+  // Clear scores button
+  const clearBtn = document.getElementById('clear-scores');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      if (!confirm('Clear ALL high scores?')) return;
+      GAMES.forEach(g => localStorage.removeItem(HS_PREFIX + g.id));
+      renderLeaderboard();
+      updateCardScores();
+    });
   }
 
   // API feed logging
@@ -871,6 +1006,8 @@
   // ============ INIT ============
   renderGrid();
   spawnBulbs();
+  updateCardScores();
+  renderLeaderboard();
 </script>
 </body>
 </html>
