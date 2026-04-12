@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Myriapod Mayhem</title>
+  <style>
+    :root { color-scheme: dark; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #050607;
+      color: #d8f3d0;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      overflow: hidden;
+    }
+    #wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 8px;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    #hud {
+      width: min(92vmin, 560px);
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 6px #2e6;
+    }
+    #hud span b { color: #9f6; }
+    canvas {
+      display: block;
+      width: min(92vmin, 560px);
+      height: min(92vmin, 560px);
+      background: #05080a;
+      border: 1px solid #1a2a1a;
+      box-shadow: 0 0 40px rgba(60, 200, 90, 0.15) inset,
+                  0 0 30px rgba(60, 200, 90, 0.08);
+      image-rendering: pixelated;
+      touch-action: none;
+    }
+    #tip {
+      font-size: 11px;
+      opacity: 0.7;
+      text-align: center;
+      max-width: min(92vmin, 560px);
+    }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="hud">
+      <span>SCORE <b id="score">0</b></span>
+      <span>LV <b id="level">1</b></span>
+      <span>LIVES <b id="lives">3</b></span>
+    </div>
+    <canvas id="game" width="448" height="448"></canvas>
+    <div id="tip">Arrows move (bottom zone only) &middot; Space fires &middot; Gamepad supported &middot; M mutes</div>
+  </div>
+
+  <script>
+  (() => {
+    "use strict";
+
+    // -------- Config --------
+    const TILE = 14;
+    const COLS = 32;
+    const ROWS = 32;
+    const W = COLS * TILE;
+    const H = ROWS * TILE;
+    const PLAYER_ZONE_ROWS = 6;
+
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+
+    const scoreEl = document.getElementById("score");
+    const levelEl = document.getElementById("level");
+    const livesEl = document.getElementById("lives");
+
+    // -------- Input --------
+    const keys = new Set();
+    window.addEventListener("keydown", (e) => {
+      if (["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"," ","Space"].includes(e.key)) {
+        e.preventDefault();
+      }
+      keys.add(e.key === " " ? "Space" : e.key);
+    });
+    window.addEventListener("keyup", (e) => {
+      keys.delete(e.key === " " ? "Space" : e.key);
+    });
+
+    function readGamepad() {
+      const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+      for (const pad of pads) {
+        if (!pad) continue;
+        const ax = pad.axes[0] || 0;
+        const ay = pad.axes[1] || 0;
+        const dead = 0.25;
+        if (ax < -dead || pad.buttons[14]?.pressed) keys.add("ArrowLeft"); else keys.delete("ArrowLeft");
+        if (ax >  dead || pad.buttons[15]?.pressed) keys.add("ArrowRight"); else keys.delete("ArrowRight");
+        if (ay < -dead || pad.buttons[12]?.pressed) keys.add("ArrowUp"); else keys.delete("ArrowUp");
+        if (ay >  dead || pad.buttons[13]?.pressed) keys.add("ArrowDown"); else keys.delete("ArrowDown");
+        if (pad.buttons[0]?.pressed || pad.buttons[7]?.pressed) keys.add("Space"); else keys.delete("Space");
+        return;
+      }
+    }
+
+    // -------- Mushroom field --------
+    // 0 = empty, 1..4 = hit stages, negative = poisoned stages
+    const field = new Int8Array(COLS * ROWS);
+    const idx = (c, r) => r * COLS + c;
+    const inBounds = (c, r) => c >= 0 && c < COLS && r >= 0 && r < ROWS;
+    const getCell = (c, r) => inBounds(c, r) ? field[idx(c, r)] : 0;
+    const setCell = (c, r, v) => { if (inBounds(c, r)) field[idx(c, r)] = v; };
+
+    function seedMushrooms(count) {
+      for (let i = 0; i < field.length; i++) field[i] = 0;
+      let placed = 0, tries = 0;
+      while (placed < count && tries < count * 10) {
+        tries++;
+        const c = (Math.random() * COLS) | 0;
+        const r = 1 + ((Math.random() * (ROWS - PLAYER_ZONE_ROWS - 3)) | 0);
+        if (field[idx(c, r)] === 0) {
+          field[idx(c, r)] = 4;
+          placed++;
+        }
+      }
+    }
+
+    function drawMushroom(c, r, stage) {
+      const x = c * TILE, y = r * TILE;
+      const poisoned = stage < 0;
+      const s = poisoned ? -stage : stage;
+      ctx.fillStyle = poisoned ? "#3a1a4f" : "#173c1a";
+      ctx.fillRect(x + 5, y + 8, 4, 5);
+      ctx.fillStyle = poisoned ? "#8a4bd8" : "#4cd657";
+      if (s >= 4) {
+        ctx.fillRect(x + 2, y + 4, 10, 5);
+        ctx.fillRect(x + 3, y + 3, 8, 1);
+        ctx.fillRect(x + 4, y + 9, 6, 1);
+      } else if (s === 3) {
+        ctx.fillRect(x + 3, y + 4, 8, 4);
+        ctx.fillRect(x + 4, y + 3, 6, 1);
+      } else if (s === 2) {
+        ctx.fillRect(x + 4, y + 4, 6, 3);
+        ctx.fillRect(x + 5, y + 3, 4, 1);
+      } else if (s === 1) {
+        ctx.fillRect(x + 5, y + 5, 4, 2);
+      }
+      if (!poisoned && s >= 2) {
+        ctx.fillStyle = "#0e7a1a";
+        ctx.fillRect(x + 4, y + 5, 1, 1);
+        ctx.fillRect(x + 8, y + 6, 1, 1);
+      }
+    }
+
+    function drawField() {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const v = field[idx(c, r)];
+          if (v !== 0) drawMushroom(c, r, v);
+        }
+      }
+    }
+
+    // -------- Player --------
+    const player = {
+      x: W / 2 - TILE / 2,
+      y: H - TILE * 2,
+      w: TILE,
+      h: TILE,
+      speed: 2.2,
+      cooldown: 0,
+      alive: true,
+    };
+
+    function resetPlayer() {
+      player.x = W / 2 - TILE / 2;
+      player.y = H - TILE * 2;
+      player.cooldown = 0;
+      player.alive = true;
+    }
+
+    function clampPlayerZone() {
+      const minY = H - PLAYER_ZONE_ROWS * TILE;
+      const maxY = H - TILE;
+      if (player.x < 0) player.x = 0;
+      if (player.x > W - player.w) player.x = W - player.w;
+      if (player.y < minY) player.y = minY;
+      if (player.y > maxY) player.y = maxY;
+    }
+
+    function playerCellBlocked(px, py) {
+      const c = ((px + TILE / 2) / TILE) | 0;
+      const r = ((py + TILE / 2) / TILE) | 0;
+      return getCell(c, r) > 0;
+    }
+
+    function updatePlayer(dt) {
+      if (!player.alive) return;
+      let dx = 0, dy = 0;
+      if (keys.has("ArrowLeft"))  dx -= 1;
+      if (keys.has("ArrowRight")) dx += 1;
+      if (keys.has("ArrowUp"))    dy -= 1;
+      if (keys.has("ArrowDown"))  dy += 1;
+      if (dx && dy) { dx *= 0.7071; dy *= 0.7071; }
+
+      const nx = player.x + dx * player.speed;
+      const ny = player.y + dy * player.speed;
+      if (!playerCellBlocked(nx, player.y)) player.x = nx;
+      if (!playerCellBlocked(player.x, ny)) player.y = ny;
+      clampPlayerZone();
+
+      player.cooldown -= dt;
+      if (keys.has("Space") && player.cooldown <= 0 && bullets.length < 2) {
+        bullets.push({ x: player.x + player.w / 2 - 1, y: player.y - 4, vy: -6 });
+        player.cooldown = 180;
+        sfx("shoot");
+      }
+    }
+
+    function drawPlayer() {
+      if (!player.alive) return;
+      const x = player.x, y = player.y;
+      ctx.fillStyle = "#d6ffd0";
+      ctx.fillRect(x + 5, y + 2, 4, 8);
+      ctx.fillRect(x + 3, y + 5, 8, 6);
+      ctx.fillRect(x + 1, y + 8, 12, 4);
+      ctx.fillStyle = "#5dff7a";
+      ctx.fillRect(x + 6, y + 5, 2, 3);
+      ctx.fillStyle = "#ffb347";
+      ctx.fillRect(x + 5, y + 12, 1, 2);
+      ctx.fillRect(x + 8, y + 12, 1, 2);
+    }
+
+    // -------- Bullets --------
+    const bullets = [];
+    function updateBullets() {
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const b = bullets[i];
+        b.y += b.vy;
+        if (b.y < -4) { bullets.splice(i, 1); continue; }
+        const c = ((b.x + 1) / TILE) | 0;
+        const r = ((b.y + 2) / TILE) | 0;
+        const v = getCell(c, r);
+        if (v !== 0) {
+          if (v > 0) {
+            setCell(c, r, v - 1);
+            if (v - 1 === 0) addScore(1);
+          } else {
+            setCell(c, r, 0);
+            addScore(5);
+          }
+          sfx("hit");
+          bullets.splice(i, 1);
+          continue;
+        }
+      }
+    }
+    function drawBullets() {
+      ctx.fillStyle = "#ffffa0";
+      for (const b of bullets) ctx.fillRect(b.x, b.y, 2, 4);
+    }
+
+    // -------- Scoring & HUD --------
+    let score = 0;
+    let lives = 3;
+    let level = 1;
+    function addScore(n) {
+      score += n;
+      scoreEl.textContent = score;
+    }
+    function updateHUD() {
+      scoreEl.textContent = score;
+      levelEl.textContent = level;
+      livesEl.textContent = lives;
+    }
+
+    // -------- Audio stub (Web Audio API added in later commit) --------
+    function sfx(_name) { /* filled in later commit */ }
+
+    // -------- Main loop --------
+    let last = performance.now();
+    function frame(now) {
+      const dt = Math.min(50, now - last);
+      last = now;
+      readGamepad();
+      updatePlayer(dt);
+      updateBullets();
+      ctx.fillStyle = "#05080a";
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "rgba(30, 80, 40, 0.08)";
+      ctx.fillRect(0, H - PLAYER_ZONE_ROWS * TILE, W, PLAYER_ZONE_ROWS * TILE);
+      drawField();
+      drawBullets();
+      drawPlayer();
+      requestAnimationFrame(frame);
+    }
+
+    // -------- Init --------
+    seedMushrooms(40);
+    updateHUD();
+    requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>
