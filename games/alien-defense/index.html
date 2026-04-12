@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Alien Defense</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #000;
+    color: #fff;
+    font-family: "Courier New", ui-monospace, monospace;
+    overflow: hidden;
+  }
+  #wrap {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+  canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #000;
+    display: block;
+    max-width: 100vw;
+    max-height: 100vh;
+    box-shadow: 0 0 24px #0f0a;
+  }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="game" width="448" height="512"></canvas></div>
+<script>
+(() => {
+  "use strict";
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+
+  const W = canvas.width;
+  const H = canvas.height;
+
+  // ---- Starfield ----
+  const stars = [];
+  for (let i = 0; i < 60; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      s: Math.random() < 0.25 ? 2 : 1,
+      t: Math.random() * Math.PI * 2,
+    });
+  }
+  function drawStars(dt) {
+    for (const s of stars) {
+      s.t += dt * (0.8 + s.s * 0.4);
+      const a = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(s.t));
+      ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+      ctx.fillRect(s.x | 0, s.y | 0, s.s, s.s);
+    }
+  }
+
+  // ---- Alien sprites (8x8 bitmaps, two frames) ----
+  const SPR = {
+    squid: [
+      [
+        "..XX..X.",
+        ".XXXXXX.",
+        "XX.XX.XX",
+        "XXXXXXXX",
+        "X.XXXX.X",
+        "X.X..X.X",
+        "..XX.X..",
+        ".XX.XX..",
+      ],
+      [
+        "..XX..X.",
+        ".XXXXXX.",
+        "XX.XX.XX",
+        "XXXXXXXX",
+        ".XXXXXX.",
+        "..X..X..",
+        ".XX..XX.",
+        "X..XX..X",
+      ],
+    ],
+    crab: [
+      [
+        "..X.....",
+        "X.X.X...",
+        "XXXXXXX.",
+        "XX.XXX.X",
+        "XXXXXXXX",
+        ".XXXXX..",
+        "X.....X.",
+        ".X...X..",
+      ],
+      [
+        "..X.....",
+        "..X.X...",
+        "XXXXXXX.",
+        "XX.XXX.X",
+        "XXXXXXXX",
+        ".XXXXX..",
+        "X.X.X.X.",
+        "X.....X.",
+      ],
+    ],
+    octopus: [
+      [
+        ".XXXXXX.",
+        "XXXXXXXX",
+        "XX.XX.XX",
+        "XXXXXXXX",
+        "..X..X..",
+        ".X.XX.X.",
+        "X.X..X.X",
+        ".X....X.",
+      ],
+      [
+        ".XXXXXX.",
+        "XXXXXXXX",
+        "XX.XX.XX",
+        "XXXXXXXX",
+        "..XXXX..",
+        ".XX..XX.",
+        ".X.XX.X.",
+        "X.X..X.X",
+      ],
+    ],
+  };
+
+  function drawSprite(bitmap, x, y, scale, color) {
+    ctx.fillStyle = color;
+    for (let r = 0; r < bitmap.length; r++) {
+      const row = bitmap[r];
+      for (let c = 0; c < row.length; c++) {
+        if (row[c] === "X") {
+          ctx.fillRect(x + c * scale, y + r * scale, scale, scale);
+        }
+      }
+    }
+  }
+
+  // ---- Alien formation (5 rows x 11 cols) ----
+  const ROWS = 5;
+  const COLS = 11;
+  const CELL_W = 24;
+  const CELL_H = 20;
+  const ALIEN_PX = 8;
+  const ALIEN_SCALE = 2; // 16px sprites
+  const ALIEN_W = ALIEN_PX * ALIEN_SCALE;
+  const ALIEN_H = ALIEN_PX * ALIEN_SCALE;
+
+  const ROW_INFO = [
+    { sprite: "squid",    color: "#c0c0ff", points: 30 },
+    { sprite: "crab",     color: "#a0ffa0", points: 20 },
+    { sprite: "crab",     color: "#a0ffa0", points: 20 },
+    { sprite: "octopus",  color: "#ffa0a0", points: 10 },
+    { sprite: "octopus",  color: "#ffa0a0", points: 10 },
+  ];
+
+  const formation = {
+    x: 0,
+    y: 0,
+    dir: 1,
+    frame: 0,
+    aliens: [],
+    reset() {
+      this.x = 24;
+      this.y = 56;
+      this.dir = 1;
+      this.frame = 0;
+      this.aliens = [];
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          this.aliens.push({
+            r, c,
+            alive: true,
+            type: ROW_INFO[r].sprite,
+            color: ROW_INFO[r].color,
+            points: ROW_INFO[r].points,
+          });
+        }
+      }
+    },
+  };
+  formation.reset();
+
+  function alienPos(a) {
+    return {
+      x: formation.x + a.c * CELL_W,
+      y: formation.y + a.r * CELL_H,
+    };
+  }
+
+  function drawFormation() {
+    for (const a of formation.aliens) {
+      if (!a.alive) continue;
+      const p = alienPos(a);
+      const frames = SPR[a.type];
+      drawSprite(frames[formation.frame & 1], p.x, p.y, ALIEN_SCALE, a.color);
+    }
+  }
+
+  // ---- HUD ----
+  function drawHUD() {
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 14px 'Courier New', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("SCORE 0", 8, 18);
+    ctx.textAlign = "center";
+    ctx.fillText("ALIEN DEFENSE", W / 2, 18);
+    ctx.textAlign = "right";
+    ctx.fillText("LV 1", W - 8, 18);
+    ctx.fillStyle = "#0f0";
+    ctx.fillRect(0, 26, W, 1);
+  }
+
+  // ---- Main loop ----
+  let last = performance.now();
+  let frameTimer = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    frameTimer += dt;
+    if (frameTimer > 0.5) {
+      frameTimer = 0;
+      formation.frame ^= 1;
+    }
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
+    drawStars(dt);
+    drawHUD();
+    drawFormation();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
