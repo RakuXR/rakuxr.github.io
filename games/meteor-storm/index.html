@@ -44,7 +44,7 @@
   'use strict';
   // -------------------------------------------------------------------
   // Meteor Storm - vector-style Asteroids clone
-  // Scaffold: canvas setup, resize, game state, main loop, title+HUD.
+  // Stage 2: ship rotate/thrust/fire + bullets + screen wrap
   // -------------------------------------------------------------------
 
   const canvas = document.getElementById('game');
@@ -52,6 +52,7 @@
 
   const VW = 960;
   const VH = 720;
+  const TAU = Math.PI * 2;
 
   function resize() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -65,6 +66,7 @@
   window.addEventListener('resize', resize);
   resize();
 
+  // ---------- state ----------
   const STATE = {
     TITLE: 'title',
     PLAYING: 'playing',
@@ -84,6 +86,128 @@
     highScore: 0,
   };
 
+  // ---------- entities ----------
+  /** @type {Ship} */ let ship = null;
+  const bullets = [];
+
+  class Ship {
+    constructor() {
+      this.x = VW / 2;
+      this.y = VH / 2;
+      this.vx = 0;
+      this.vy = 0;
+      this.angle = -Math.PI / 2; // pointing up
+      this.radius = 12;
+      this.thrusting = false;
+      this.canFire = true;
+      this.fireCooldown = 0;
+      this.invuln = 2.5; // spawn invulnerability (seconds)
+    }
+    update(dt) {
+      // Rotation
+      const turn = 4.2;
+      if (keys['ArrowLeft']) this.angle -= turn * dt;
+      if (keys['ArrowRight']) this.angle += turn * dt;
+
+      // Thrust
+      this.thrusting = !!keys['ArrowUp'];
+      if (this.thrusting) {
+        const accel = 260;
+        this.vx += Math.cos(this.angle) * accel * dt;
+        this.vy += Math.sin(this.angle) * accel * dt;
+      }
+      // Drag / max speed
+      const drag = 0.994;
+      this.vx *= Math.pow(drag, dt * 60);
+      this.vy *= Math.pow(drag, dt * 60);
+      const maxSpd = 380;
+      const sp2 = this.vx * this.vx + this.vy * this.vy;
+      if (sp2 > maxSpd * maxSpd) {
+        const s = maxSpd / Math.sqrt(sp2);
+        this.vx *= s; this.vy *= s;
+      }
+
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+      wrap(this);
+
+      // Firing
+      this.fireCooldown -= dt;
+      if (this.fireCooldown <= 0) this.canFire = true;
+      if (keys['Space'] && this.canFire) {
+        this.fire();
+        this.canFire = false;
+        this.fireCooldown = 0.22;
+      }
+
+      if (this.invuln > 0) this.invuln -= dt;
+    }
+    fire() {
+      const spd = 520;
+      const bx = this.x + Math.cos(this.angle) * this.radius;
+      const by = this.y + Math.sin(this.angle) * this.radius;
+      bullets.push(new Bullet(
+        bx, by,
+        this.vx + Math.cos(this.angle) * spd,
+        this.vy + Math.sin(this.angle) * spd
+      ));
+    }
+    draw() {
+      // Flicker when invulnerable
+      if (this.invuln > 0 && (Math.floor(game.tick / 4) & 1)) return;
+
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
+      ctx.beginPath();
+      ctx.moveTo(14, 0);
+      ctx.lineTo(-10, 9);
+      ctx.lineTo(-6, 0);
+      ctx.lineTo(-10, -9);
+      ctx.closePath();
+      ctx.stroke();
+
+      // Thrust flame — flicker
+      if (this.thrusting && (game.tick & 1)) {
+        ctx.beginPath();
+        ctx.moveTo(-6, 4);
+        ctx.lineTo(-14, 0);
+        ctx.lineTo(-6, -4);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  class Bullet {
+    constructor(x, y, vx, vy) {
+      this.x = x; this.y = y;
+      this.vx = vx; this.vy = vy;
+      this.life = 0.9;
+      this.radius = 2;
+    }
+    update(dt) {
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+      wrap(this);
+      this.life -= dt;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 1.5, 0, TAU);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+    }
+  }
+
+  function wrap(e) {
+    if (e.x < 0) e.x += VW;
+    else if (e.x >= VW) e.x -= VW;
+    if (e.y < 0) e.y += VH;
+    else if (e.y >= VH) e.y -= VH;
+  }
+
+  // ---------- input ----------
   const keys = Object.create(null);
   window.addEventListener('keydown', (e) => {
     keys[e.code] = true;
@@ -96,6 +220,7 @@
   }, { passive: false });
   window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
+  // ---------- main loop ----------
   let lastT = performance.now();
   function loop(now) {
     const dt = Math.min((now - lastT) / 1000, 1/30);
@@ -109,6 +234,14 @@
     game.tick++;
     game.stateTimer += dt;
     if (game.shake > 0) game.shake = Math.max(0, game.shake - dt * 60);
+
+    if (game.state === STATE.PLAYING) {
+      if (ship) ship.update(dt);
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        bullets[i].update(dt);
+        if (bullets[i].life <= 0) bullets.splice(i, 1);
+      }
+    }
   }
 
   function render() {
@@ -128,9 +261,13 @@
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    if (game.state === STATE.TITLE) drawTitle();
-    else drawHUD();
-
+    if (game.state === STATE.TITLE) {
+      drawTitle();
+    } else {
+      for (const b of bullets) b.draw();
+      if (ship) ship.draw();
+      drawHUD();
+    }
     ctx.restore();
   }
 
@@ -144,6 +281,9 @@
     ctx.font = '16px "Courier New", monospace';
     ctx.fillStyle = '#bbb';
     ctx.fillText('PRESS ENTER TO START', VW/2, VH/2 + 20);
+    ctx.font = '12px "Courier New", monospace';
+    ctx.fillStyle = '#666';
+    ctx.fillText('ARROWS: ROTATE / THRUST    SPACE: FIRE', VW/2, VH/2 + 70);
     ctx.restore();
   }
 
@@ -172,6 +312,8 @@
     game.score = 0;
     game.level = 1;
     game.lives = 3;
+    bullets.length = 0;
+    ship = new Ship();
   }
 
   requestAnimationFrame(loop);
