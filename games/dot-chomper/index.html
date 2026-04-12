@@ -644,6 +644,22 @@ function tryStep(ent, dt) {
 // Ghosts
 // ------------------------------------------------------------
 
+// Scatter corners (classic Pac-Man target tiles)
+const SCATTER_TARGETS = {
+  blinky: { c: COLS - 2, r: 0 },
+  pinky:  { c: 1,        r: 0 },
+  inky:   { c: COLS - 1, r: ROWS - 1 },
+  clyde:  { c: 0,        r: ROWS - 1 },
+};
+
+// Spawn positions so a ghost can be respawned after being eaten
+const GHOST_SPAWN = {
+  blinky: { c: 13, r: 11 },
+  pinky:  { c: 14, r: 11 },
+  inky:   { c: 12, r: 14 },
+  clyde:  { c: 15, r: 14 },
+};
+
 function makeGhost(name, color, startCol, startRow) {
   return {
     name, color,
@@ -655,44 +671,156 @@ function makeGhost(name, color, startCol, startRow) {
     nextDir: DIR.LEFT,
     vulnerable: false,
     vulnTimer: 0,
-    eaten: false,
+    eaten: false,       // true when returning home as "eyes"
     eyeDir: DIR.LEFT,
+    releaseDelay: 0,    // seconds until ghost leaves the house
   };
 }
 
 const ghosts = [
-  makeGhost('blinky', '#ff2020', 13, 11), // red
-  makeGhost('pinky',  '#ffb8de', 14, 11), // pink
-  makeGhost('inky',   '#00ffff', 12, 14), // cyan
-  makeGhost('clyde',  '#ff9900', 15, 14), // orange
+  makeGhost('blinky', '#ff2020', 13, 11), // red — direct chaser
+  makeGhost('pinky',  '#ffb8de', 14, 11), // pink — 4 tiles ahead
+  makeGhost('inky',   '#00ffff', 12, 14), // cyan — flank via Blinky
+  makeGhost('clyde',  '#ff9900', 15, 14), // orange — chase/retreat
 ];
+// Staggered release: Blinky out immediately, Pinky soon, Inky mid, Clyde last
+ghosts[0].releaseDelay = 0.0;
+ghosts[1].releaseDelay = 2.0;
+ghosts[2].releaseDelay = 5.0;
+ghosts[3].releaseDelay = 9.0;
 
-function chooseGhostDir(g) {
-  // Very simple AI for commit 1: at tile centers, pick any non-backward
-  // open direction, preferring forward.
-  const c = pxToCol(g.x);
-  const r = pxToRow(g.y);
-  const cx = tileCenterX(c), cy = tileCenterY(r);
-  if (Math.abs(g.x - cx) > 1 || Math.abs(g.y - cy) > 1) return;
-  const opts = [];
-  const cand = [DIR.UP, DIR.DOWN, DIR.LEFT, DIR.RIGHT];
-  for (const d of cand) {
-    if (d.x === -g.dir.x && d.y === -g.dir.y) continue;
-    if (canWalk(c + d.x, r + d.y)) opts.push(d);
-  }
-  if (opts.length === 0) {
-    // dead end: reverse
-    g.nextDir = { x: -g.dir.x, y: -g.dir.y, name: 'rev' };
-  } else {
-    g.nextDir = opts[Math.floor(Math.random() * opts.length)];
+// Chase/Scatter phase scheduler (classic arcade cadence, compressed)
+let aiModeTimer = 0;
+let aiMode = 'scatter'; // 'scatter' or 'chase'
+// Alternating durations — 7s scatter, 20s chase (classic first phase)
+const SCATTER_SECS = 7;
+const CHASE_SECS = 20;
+
+function updateAIMode(dt) {
+  aiModeTimer += dt;
+  if (aiMode === 'scatter' && aiModeTimer >= SCATTER_SECS) {
+    aiMode = 'chase';
+    aiModeTimer = 0;
+  } else if (aiMode === 'chase' && aiModeTimer >= CHASE_SECS) {
+    aiMode = 'scatter';
+    aiModeTimer = 0;
   }
 }
 
+function ghostTargetTile(g) {
+  // Eyes returning home
+  if (g.eaten) {
+    const s = GHOST_SPAWN[g.name] || { c: 13, r: 11 };
+    return { c: s.c, r: s.r };
+  }
+  // Vulnerable ghosts wander: pick a random legal target
+  if (g.vulnerable) {
+    return { c: Math.floor(Math.random() * COLS), r: Math.floor(Math.random() * ROWS) };
+  }
+  // Scatter: corners
+  if (aiMode === 'scatter') return SCATTER_TARGETS[g.name];
+
+  // Chase: classic per-ghost targeting
+  const pc = pxToCol(player.x);
+  const pr = pxToRow(player.y);
+  const pd = player.dir;
+  switch (g.name) {
+    case 'blinky': {
+      return { c: pc, r: pr };
+    }
+    case 'pinky': {
+      return { c: pc + pd.x * 4, r: pr + pd.y * 4 };
+    }
+    case 'inky': {
+      // 2 tiles ahead of player, then vector from Blinky doubled
+      const midC = pc + pd.x * 2;
+      const midR = pr + pd.y * 2;
+      const blinky = ghosts.find(gg => gg.name === 'blinky');
+      const bc = blinky ? pxToCol(blinky.x) : 0;
+      const br = blinky ? pxToRow(blinky.y) : 0;
+      return { c: midC + (midC - bc), r: midR + (midR - br) };
+    }
+    case 'clyde': {
+      // Distance to player
+      const gc = pxToCol(g.x), gr = pxToRow(g.y);
+      const dc = gc - pc, dr = gr - pr;
+      const dist2 = dc * dc + dr * dr;
+      if (dist2 > 8 * 8) return { c: pc, r: pr };
+      return SCATTER_TARGETS.clyde;
+    }
+  }
+  return { c: pc, r: pr };
+}
+
+function chooseGhostDir(g) {
+  const c = pxToCol(g.x);
+  const r = pxToRow(g.y);
+  const cx = tileCenterX(c), cy = tileCenterY(r);
+  // Only pick direction when aligned with tile center to avoid jitter
+  if (Math.abs(g.x - cx) > 2 || Math.abs(g.y - cy) > 2) return;
+
+  // Eyes pass through door; others cannot
+  const canPass = (cc, rr) => {
+    const t = tileAt(cc, rr);
+    if (g.eaten) return t !== T_WALL;
+    return t !== T_WALL && t !== T_DOOR;
+  };
+
+  const cand = [DIR.UP, DIR.LEFT, DIR.DOWN, DIR.RIGHT];
+  const opts = [];
+  for (const d of cand) {
+    if (d.x === -g.dir.x && d.y === -g.dir.y) continue; // no 180 at intersections
+    const nc = c + d.x, nr = r + d.y;
+    if (!canPass(nc, nr)) continue;
+    opts.push({ dir: d, c: nc, r: nr });
+  }
+  let chosen;
+  if (opts.length === 0) {
+    // dead end: force reverse
+    chosen = { dir: { x: -g.dir.x, y: -g.dir.y, name: 'rev' } };
+  } else if (opts.length === 1) {
+    chosen = opts[0];
+  } else {
+    const t = ghostTargetTile(g);
+    let best = null, bestD = Infinity;
+    // Classic tie-break order: UP > LEFT > DOWN > RIGHT (our cand order)
+    for (const o of opts) {
+      const dc = o.c - t.c, dr = o.r - t.r;
+      const d2 = dc * dc + dr * dr;
+      if (d2 < bestD) { bestD = d2; best = o; }
+    }
+    chosen = best;
+  }
+  g.nextDir = chosen.dir;
+}
+
 function updateGhosts(dt) {
+  updateAIMode(dt);
   for (const g of ghosts) {
+    // Gate ghosts released from the house
+    if (g.releaseDelay > 0) { g.releaseDelay -= dt; continue; }
+
+    // Speed modulation
+    const baseSpeed = 90 + Math.min(30, level * 2);
+    if (g.eaten) g.speed = baseSpeed * 2.0;
+    else if (g.vulnerable) g.speed = baseSpeed * 0.55;
+    else g.speed = baseSpeed;
+
     chooseGhostDir(g);
     tryStep(g, dt);
     g.eyeDir = g.dir;
+
+    // Eyes reach spawn → respawn
+    if (g.eaten) {
+      const s = GHOST_SPAWN[g.name];
+      const sx = tileCenterX(s.c), sy = tileCenterY(s.r);
+      if (Math.abs(g.x - sx) < 3 && Math.abs(g.y - sy) < 3) {
+        g.eaten = false;
+        g.vulnerable = false;
+        g.vulnTimer = 0;
+        g.releaseDelay = 1.5;
+      }
+    }
   }
 }
 
@@ -960,31 +1088,130 @@ function updateHUD() {
   }
 }
 
+// Ghost eat chain: 200, 400, 800, 1600 (then reset at power-pellet end)
+let ghostEatChain = 0;
+let deathTimer = 0;
+
+function handleGhostCollisions() {
+  if (!player.alive) return;
+  for (const g of ghosts) {
+    if (g.eaten) continue;
+    const dx = g.x - player.x, dy = g.y - player.y;
+    if (dx * dx + dy * dy < (TILE * 0.6) * (TILE * 0.6)) {
+      if (g.vulnerable) {
+        ghostEatChain = Math.min(4, ghostEatChain + 1);
+        const pts = 200 * (1 << (ghostEatChain - 1)); // 200/400/800/1600
+        score += pts;
+        addPopup(g.x, g.y, '+' + pts, '#00ffff');
+        g.vulnerable = false;
+        g.eaten = true;
+      } else {
+        player.alive = false;
+        deathTimer = 1.5;
+        lives--;
+      }
+    }
+  }
+}
+
+function drawDeath(dt) {
+  // Descending chomp animation
+  deathTimer -= dt;
+  const t = Math.max(0, 1 - deathTimer / 1.5); // 0..1
+  const px = player.x;
+  const py = player.y + HUD_H;
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(dirAngle(player.dir));
+  ctx.fillStyle = '#ffff00';
+  const open = Math.min(Math.PI, t * Math.PI);
+  ctx.beginPath();
+  ctx.arc(0, 0, player.r, open, Math.PI * 2 - open);
+  ctx.lineTo(0, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  if (deathTimer <= 0) {
+    if (lives < 0) {
+      gameOver();
+    } else {
+      resetPositions();
+    }
+  }
+}
+
+function resetPositions() {
+  player.x = tileCenterX(13) + TILE / 2;
+  player.y = tileCenterY(23);
+  player.dir = DIR.LEFT;
+  player.nextDir = DIR.LEFT;
+  player.alive = true;
+  ghostEatChain = 0;
+  const spawns = ['blinky', 'pinky', 'inky', 'clyde'];
+  for (let i = 0; i < ghosts.length; i++) {
+    const g = ghosts[i];
+    const s = GHOST_SPAWN[g.name];
+    g.x = tileCenterX(s.c);
+    g.y = tileCenterY(s.r);
+    g.dir = DIR.LEFT;
+    g.nextDir = DIR.LEFT;
+    g.vulnerable = false;
+    g.eaten = false;
+    g.releaseDelay = [0, 1.0, 3.0, 6.0][i] || 0;
+  }
+}
+
+function gameOver() {
+  // Save high score if beaten
+  if (score > hiScore) {
+    hiScore = score;
+    localStorage.setItem('dotchomper_hi', hiScore);
+  }
+  // Restart from level 1
+  level = 1;
+  score = 0;
+  lives = 3;
+  loadMaze(0);
+  resetPositions();
+}
+
+function checkLevelComplete() {
+  if (dotsEaten >= totalDots && totalDots > 0) {
+    level++;
+    loadMaze(level - 1);
+    resetPositions();
+  }
+}
+
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
 
-  tryStep(player, dt);
+  if (player.alive) tryStep(player, dt);
   eatDots();
   updateGhosts(dt);
   updateFruit(dt);
+  handleGhostCollisions();
 
   // Vulnerability timers
   for (const g of ghosts) {
     if (g.vulnerable) {
       g.vulnTimer -= dt;
-      if (g.vulnTimer <= 0) g.vulnerable = false;
+      if (g.vulnTimer <= 0) { g.vulnerable = false; ghostEatChain = 0; }
     }
   }
 
   drawHUD();
   drawMaze();
   drawFruit();
-  drawPlayer();
+  if (player.alive) drawPlayer();
+  else drawDeath(dt);
   for (const g of ghosts) drawGhost(g);
   drawPopups(dt);
   updateHUD();
+  checkLevelComplete();
 
   requestAnimationFrame(frame);
 }
