@@ -6,50 +6,32 @@
 <title>River Hopper</title>
 <style>
   html, body {
-    margin: 0;
-    padding: 0;
-    background: #0a0a14;
-    color: #e8e8f0;
+    margin: 0; padding: 0;
+    background: #0a0a14; color: #e8e8f0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
     user-select: none;
   }
   h1 {
     margin: 12px 0 4px 0;
-    font-weight: 700;
-    letter-spacing: 2px;
+    font-weight: 700; letter-spacing: 2px;
     color: #7df27d;
     text-shadow: 0 0 12px rgba(125, 242, 125, 0.4);
   }
-  .sub {
-    margin: 0 0 10px 0;
-    font-size: 12px;
-    color: #8a8aa0;
-    letter-spacing: 1px;
-  }
+  .sub { margin: 0 0 10px 0; font-size: 12px; color: #8a8aa0; letter-spacing: 1px; }
   #wrap {
     position: relative;
-    border: 2px solid #2a2a3e;
-    border-radius: 6px;
+    border: 2px solid #2a2a3e; border-radius: 6px;
     box-shadow: 0 0 32px rgba(0, 0, 0, 0.6);
     background: #000;
   }
-  canvas {
-    display: block;
-    image-rendering: pixelated;
-  }
+  canvas { display: block; image-rendering: pixelated; }
   .legend {
-    margin-top: 10px;
-    font-size: 11px;
-    color: #6a6a80;
-    letter-spacing: 0.5px;
-    text-align: center;
-    max-width: 560px;
-    line-height: 1.5;
+    margin-top: 10px; font-size: 11px; color: #6a6a80;
+    letter-spacing: 0.5px; text-align: center;
+    max-width: 560px; line-height: 1.5;
   }
   .legend b { color: #9a9ab0; }
 </style>
@@ -76,11 +58,24 @@
   canvas.width = COLS * TILE;
   canvas.height = ROWS * TILE;
 
-  // Playfield rows 0..12, HUD in rows 13..15
   var FIELD_ROWS = 13;
   var HUD_HEIGHT = (ROWS - FIELD_ROWS) * TILE;
   var FIELD_HEIGHT = FIELD_ROWS * TILE;
 
+  // Row semantics (field = rows 0..12):
+  //   0      home bank (goal row)
+  //   1-5    river (4 logs/turtles bands)  -- wired later
+  //   6      median (safe)
+  //   7-11   road (5 car lanes)
+  //   12     start / safe
+  var ROW_HOME = 0;
+  var ROW_MEDIAN = 6;
+  var ROAD_ROWS = [7, 8, 9, 10, 11];
+  var ROW_START = 12;
+
+  // ----------------------------------------------------------------
+  // State
+  // ----------------------------------------------------------------
   var state = {
     frog: {
       col: 7, row: 12,
@@ -89,9 +84,126 @@
       hopT: 1.0, facing: 0
     },
     lives: 3, score: 0, level: 1,
-    running: true, dead: false
+    running: true, dead: false, deathT: 0,
+    cars: []
   };
 
+  // ----------------------------------------------------------------
+  // Car lanes
+  // ----------------------------------------------------------------
+  // Each lane: row, direction (+1 right, -1 left), speed (tiles/sec),
+  // length (tiles), spacing (tiles), color.
+  function buildCars(level) {
+    state.cars = [];
+    var speedMul = 1 + (level - 1) * 0.15;
+    var lanes = [
+      // row, dir, speed, len, spacing, color, label
+      { row: 11, dir: -1, speed: 2.2,  len: 1, spacing: 4.0, color: '#f25a4e', kind: 'car' },
+      { row: 10, dir:  1, speed: 2.8,  len: 1, spacing: 4.5, color: '#f2d24e', kind: 'car' },
+      { row:  9, dir: -1, speed: 3.6,  len: 1, spacing: 5.0, color: '#6ed4f0', kind: 'car' },
+      { row:  8, dir:  1, speed: 1.6,  len: 2, spacing: 6.0, color: '#d88a3a', kind: 'truck' },
+      { row:  7, dir: -1, speed: 4.0,  len: 1, spacing: 5.5, color: '#c48af0', kind: 'car' }
+    ];
+    for (var i = 0; i < lanes.length; i++) {
+      var L = lanes[i];
+      var spd = L.speed * speedMul;
+      // Populate lane at even spacing offsets
+      var count = Math.floor(COLS / L.spacing) + 1;
+      for (var j = 0; j < count; j++) {
+        var startX = (j * L.spacing) * TILE;
+        if (L.dir < 0) startX = COLS * TILE - startX - L.len * TILE;
+        state.cars.push({
+          row: L.row,
+          x: startX,
+          dir: L.dir,
+          speed: spd,
+          len: L.len,
+          color: L.color,
+          kind: L.kind
+        });
+      }
+    }
+  }
+
+  function updateCars(dt) {
+    for (var i = 0; i < state.cars.length; i++) {
+      var c = state.cars[i];
+      c.x += c.dir * c.speed * TILE * dt;
+      var w = c.len * TILE;
+      if (c.dir > 0 && c.x > COLS * TILE + 20) c.x = -w - 20;
+      if (c.dir < 0 && c.x < -w - 20) c.x = COLS * TILE + 20;
+    }
+  }
+
+  function drawCars() {
+    for (var i = 0; i < state.cars.length; i++) {
+      var c = state.cars[i];
+      var w = c.len * TILE;
+      var y = c.row * TILE;
+      // shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(c.x + 2, y + 6, w - 4, TILE - 10);
+      // body
+      ctx.fillStyle = c.color;
+      ctx.fillRect(c.x + 2, y + 4, w - 4, TILE - 10);
+      // cab highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      if (c.kind === 'truck') {
+        var cabW = 10;
+        var cabX = c.dir > 0 ? c.x + w - 4 - cabW : c.x + 4;
+        ctx.fillRect(cabX, y + 8, cabW, TILE - 18);
+      } else {
+        ctx.fillRect(c.x + 6, y + 8, w - 14, 6);
+      }
+      // wheels
+      ctx.fillStyle = '#111';
+      ctx.fillRect(c.x + 4, y + TILE - 8, 6, 4);
+      ctx.fillRect(c.x + w - 12, y + TILE - 8, 6, 4);
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // Collisions
+  // ----------------------------------------------------------------
+  function carHitsFrog() {
+    if (state.dead) return false;
+    if (state.frog.row < 7 || state.frog.row > 11) return false;
+    var fx = state.frog.col * TILE;
+    var fy = state.frog.row * TILE;
+    for (var i = 0; i < state.cars.length; i++) {
+      var c = state.cars[i];
+      if (c.row !== state.frog.row) continue;
+      var w = c.len * TILE;
+      if (c.x + w > fx + 6 && c.x < fx + TILE - 6) return true;
+    }
+    return false;
+  }
+
+  function killFrog(cause) {
+    if (state.dead) return;
+    state.dead = true;
+    state.deathT = 0;
+    state.cause = cause || 'squash';
+  }
+
+  function respawnFrog() {
+    state.frog.col = 7; state.frog.row = 12;
+    state.frog.drawX = 7 * TILE; state.frog.drawY = 12 * TILE;
+    state.frog.targetX = 7 * TILE; state.frog.targetY = 12 * TILE;
+    state.frog.hopT = 1.0;
+    state.dead = false;
+    state.lives--;
+    if (state.lives < 0) {
+      state.lives = 3;
+      state.score = 0;
+      state.level = 1;
+      buildCars(1);
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // Input
+  // ----------------------------------------------------------------
   var pressedOnce = {};
   var heldKeys = {};
   window.addEventListener('keydown', function (e) {
@@ -131,7 +243,11 @@
     return edges;
   }
 
+  // ----------------------------------------------------------------
+  // Frog
+  // ----------------------------------------------------------------
   function tryHop(dc, dr, facing) {
+    if (state.dead) return;
     if (state.frog.hopT < 1.0) return;
     var nc = state.frog.col + dc;
     var nr = state.frog.row + dr;
@@ -144,8 +260,6 @@
   function updateFrog(dt) {
     if (state.frog.hopT < 1.0) {
       state.frog.hopT = Math.min(1.0, state.frog.hopT + dt * 10);
-      var t = state.frog.hopT;
-      var e = 1 - (1 - t) * (1 - t);
       state.frog.drawX += (state.frog.targetX - state.frog.drawX) * 0.4;
       state.frog.drawY += (state.frog.targetY - state.frog.drawY) * 0.4;
       if (state.frog.hopT >= 1.0) {
@@ -155,8 +269,10 @@
     }
   }
 
+  // ----------------------------------------------------------------
+  // Drawing
+  // ----------------------------------------------------------------
   function drawField() {
-    // Water band
     ctx.fillStyle = '#0d2a5e';
     ctx.fillRect(0, 1 * TILE, COLS * TILE, 5 * TILE);
     ctx.fillStyle = 'rgba(255,255,255,0.03)';
@@ -174,6 +290,17 @@
     // Road
     ctx.fillStyle = '#1a1a20';
     ctx.fillRect(0, 7 * TILE, COLS * TILE, 5 * TILE);
+    // Lane dashes (between rows)
+    ctx.fillStyle = 'rgba(255, 220, 60, 0.35)';
+    for (var lr = 8; lr <= 11; lr++) {
+      for (var lx = 0; lx < COLS; lx++) {
+        if (lx % 2 === 0) ctx.fillRect(lx * TILE + 12, lr * TILE - 2, 16, 4);
+      }
+    }
+    // Road edge stripes
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 7 * TILE - 2, COLS * TILE, 2);
+    ctx.fillRect(0, 12 * TILE, COLS * TILE, 2);
     // Start row
     ctx.fillStyle = '#16401e';
     ctx.fillRect(0, 12 * TILE, COLS * TILE, TILE);
@@ -189,6 +316,13 @@
     var y = state.frog.drawY;
     var lift = 0;
     if (state.frog.hopT < 1.0) lift = Math.sin(state.frog.hopT * Math.PI) * 6;
+    if (state.dead) {
+      // Simple splat: red X
+      ctx.fillStyle = '#e24a4a';
+      ctx.fillRect(x + 8, y + 14, TILE - 16, 4);
+      ctx.fillRect(x + 14, y + 8, 4, TILE - 16);
+      return;
+    }
     ctx.fillStyle = '#4ec44e';
     ctx.fillRect(x + 6, y + 8 - lift, TILE - 12, TILE - 16);
     ctx.fillStyle = '#2f8a2f';
@@ -219,21 +353,40 @@
     ctx.fillText('LIVES ' + state.lives, COLS * TILE - 12, hudY);
   }
 
+  // ----------------------------------------------------------------
+  // Main loop
+  // ----------------------------------------------------------------
+  buildCars(state.level);
+
   var lastT = performance.now();
   function frame(now) {
     var dt = Math.min(0.05, (now - lastT) / 1000);
     lastT = now;
-    var pad = pollGamepad();
-    if (consumePress('ArrowUp')    || pad.up)    tryHop(0, -1, 0);
-    if (consumePress('ArrowRight') || pad.right) tryHop(1,  0, 1);
-    if (consumePress('ArrowDown')  || pad.down)  tryHop(0,  1, 2);
-    if (consumePress('ArrowLeft')  || pad.left)  tryHop(-1, 0, 3);
+
+    if (!state.dead) {
+      var pad = pollGamepad();
+      if (consumePress('ArrowUp')    || pad.up)    tryHop(0, -1, 0);
+      if (consumePress('ArrowRight') || pad.right) tryHop(1,  0, 1);
+      if (consumePress('ArrowDown')  || pad.down)  tryHop(0,  1, 2);
+      if (consumePress('ArrowLeft')  || pad.left)  tryHop(-1, 0, 3);
+    }
+
     updateFrog(dt);
+    updateCars(dt);
+
+    if (!state.dead && carHitsFrog()) killFrog('squash');
+    if (state.dead) {
+      state.deathT += dt;
+      if (state.deathT > 0.8) respawnFrog();
+    }
+
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawField();
+    drawCars();
     drawFrog();
     drawHUD();
+
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
