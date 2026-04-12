@@ -678,6 +678,23 @@
     color: #000;
   }
 
+
+  /* ============ NAV HINT ============ */
+  .nav-hint {
+    text-align: center;
+    font-size: 7px;
+    color: #6a7a9a;
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+  .nav-hint .key {
+    display: inline-block;
+    padding: 2px 5px;
+    border: 1px solid #6a7a9a;
+    margin: 0 2px;
+    color: var(--neon-cyan);
+  }
+
 </style>
 </head>
 <body>
@@ -715,6 +732,15 @@
       <span>10,328 ENGINE FUNCTIONS</span>
       <span>9,500+ REST ENDPOINTS</span>
       <span>18 DLLS</span>
+    </div>
+
+
+    <div class="nav-hint">
+      <span class="key">&larr;</span><span class="key">&rarr;</span><span class="key">&uarr;</span><span class="key">&darr;</span> NAVIGATE &nbsp;&bull;&nbsp;
+      <span class="key">ENTER</span> LAUNCH &nbsp;&bull;&nbsp;
+      <span class="key">ESC</span> BACK &nbsp;&bull;&nbsp;
+      <span class="key">M</span> MUTE &nbsp;&bull;&nbsp;
+      GAMEPAD SUPPORTED
     </div>
 
     <div class="api-feed" id="api-feed">
@@ -1379,6 +1405,133 @@
       exitAttract();
     }
   });
+
+
+  // ============ KEYBOARD NAVIGATION ============
+  let selectedIndex = 0;
+  let cardsPerRow = 4;
+
+  function computeCardsPerRow() {
+    const grid = document.getElementById('game-grid');
+    if (!grid) return 4;
+    const w = window.innerWidth;
+    if (w <= 540) return 1;
+    if (w <= 820) return 2;
+    if (w <= 1100) return 3;
+    return 4;
+  }
+
+  function setSelected(i) {
+    const cards = document.querySelectorAll('.game-card');
+    if (!cards.length) return;
+    selectedIndex = ((i % cards.length) + cards.length) % cards.length;
+    cards.forEach(c => c.classList.remove('selected'));
+    const card = cards[selectedIndex];
+    card.classList.add('selected');
+    card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    playHover();
+  }
+
+  function moveSelection(dx, dy) {
+    cardsPerRow = computeCardsPerRow();
+    const n = GAMES.length;
+    let next = selectedIndex;
+    if (dx !== 0) next = selectedIndex + dx;
+    if (dy !== 0) next = selectedIndex + dy * cardsPerRow;
+    if (next < 0) next = 0;
+    if (next >= n) next = n - 1;
+    setSelected(next);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    // Don't hijack when in game frame
+    if (document.body.classList.contains('in-game')) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        returnToLauncher();
+        playBack();
+      }
+      return;
+    }
+    // Don't hijack form inputs
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) return;
+
+    switch (e.key) {
+      case 'ArrowRight': e.preventDefault(); moveSelection(1, 0); break;
+      case 'ArrowLeft':  e.preventDefault(); moveSelection(-1, 0); break;
+      case 'ArrowDown':  e.preventDefault(); moveSelection(0, 1); break;
+      case 'ArrowUp':    e.preventDefault(); moveSelection(0, -1); break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        playSelect();
+        launchGame(selectedIndex);
+        break;
+      case 'Escape':
+        if (document.getElementById('options-panel').classList.contains('open')) {
+          document.getElementById('options-panel').classList.remove('open');
+        } else if (document.getElementById('attract').classList.contains('on')) {
+          exitAttract();
+        }
+        break;
+      case 'm':
+      case 'M':
+        document.getElementById('mute-btn').click();
+        break;
+      case 'o':
+      case 'O':
+        document.getElementById('options-btn').click();
+        break;
+    }
+  });
+
+  window.addEventListener('resize', () => { cardsPerRow = computeCardsPerRow(); });
+
+  // ============ GAMEPAD NAVIGATION ============
+  let gpPrev = { up: false, down: false, left: false, right: false, a: false, b: false };
+  let gpPollInterval = null;
+
+  function pollGamepad() {
+    if (document.body.classList.contains('in-game')) return;
+    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    let gp = null;
+    for (const p of pads) { if (p) { gp = p; break; } }
+    if (!gp) return;
+
+    const ax = gp.axes[0] || 0;
+    const ay = gp.axes[1] || 0;
+    const dpadL = (gp.buttons[14] && gp.buttons[14].pressed) || ax < -0.5;
+    const dpadR = (gp.buttons[15] && gp.buttons[15].pressed) || ax > 0.5;
+    const dpadU = (gp.buttons[12] && gp.buttons[12].pressed) || ay < -0.5;
+    const dpadD = (gp.buttons[13] && gp.buttons[13].pressed) || ay > 0.5;
+    const btnA  = gp.buttons[0] && gp.buttons[0].pressed;
+    const btnB  = gp.buttons[1] && gp.buttons[1].pressed;
+
+    if (dpadL && !gpPrev.left) moveSelection(-1, 0);
+    if (dpadR && !gpPrev.right) moveSelection(1, 0);
+    if (dpadU && !gpPrev.up) moveSelection(0, -1);
+    if (dpadD && !gpPrev.down) moveSelection(0, 1);
+    if (btnA && !gpPrev.a) { playSelect(); launchGame(selectedIndex); }
+    if (btnB && !gpPrev.b) {
+      const attract = document.getElementById('attract');
+      if (attract.classList.contains('on')) exitAttract();
+    }
+
+    gpPrev = { up: dpadU, down: dpadD, left: dpadL, right: dpadR, a: btnA, b: btnB };
+  }
+
+  window.addEventListener('gamepadconnected', () => {
+    logApi('GAMEPAD CONNECTED');
+    if (!gpPollInterval) gpPollInterval = setInterval(pollGamepad, 100);
+  });
+  window.addEventListener('gamepaddisconnected', () => {
+    logApi('GAMEPAD DISCONNECTED');
+  });
+  // Also start polling right away in case pad is already present
+  gpPollInterval = setInterval(pollGamepad, 100);
+
+  // Initial selection
+  setSelected(0);
 
   kickIdle();
 
