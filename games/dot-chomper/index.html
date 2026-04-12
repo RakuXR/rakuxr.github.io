@@ -197,6 +197,135 @@ for (const name of ['blinky', 'pinky', 'inky', 'clyde']) {
 engine.observeWorld(WORLD_ID);
 engine.captureFrame(WORLD_ID);
 
+// ─── SOUND SYSTEM (Web Audio API) ──────────────────────────────
+const Sound = (() => {
+  let actx = null;
+  let master = null;
+  let sirenOsc = null;
+  let sirenGain = null;
+  let sirenLevel = 0; // 0..4 — raised each time a ghost is eaten / each level
+  let muted = false;
+
+  function ensure() {
+    if (!actx) {
+      try {
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        master = actx.createGain();
+        master.gain.value = 0.45;
+        master.connect(actx.destination);
+      } catch (e) { /* silent */ }
+    }
+    if (actx && actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+
+  function beep(freq, ms, type = 'square', vol = 0.4) {
+    if (!ensure() || muted) return;
+    const t0 = actx.currentTime;
+    const osc = actx.createOscillator();
+    const g = actx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + ms / 1000);
+    osc.connect(g); g.connect(master);
+    osc.start(t0);
+    osc.stop(t0 + ms / 1000 + 0.02);
+  }
+
+  function slide(fromHz, toHz, ms, type = 'square', vol = 0.4) {
+    if (!ensure() || muted) return;
+    const t0 = actx.currentTime;
+    const osc = actx.createOscillator();
+    const g = actx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(fromHz, t0);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(1, toHz), t0 + ms / 1000);
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + ms / 1000);
+    osc.connect(g); g.connect(master);
+    osc.start(t0);
+    osc.stop(t0 + ms / 1000 + 0.02);
+  }
+
+  // Chomp loop — play a short blip, rate-limited
+  let lastChomp = 0;
+  function chomp() {
+    const now = performance.now();
+    if (now - lastChomp < 100) return;
+    lastChomp = now;
+    beep(720 + Math.random() * 60, 50, 'square', 0.22);
+  }
+
+  function powerPellet() {
+    slide(260, 80, 380, 'sawtooth', 0.35);
+  }
+
+  // Ghost vulnerable — warble
+  let warbleTimer = null;
+  function startWarble() {
+    if (!ensure() || muted) return;
+    stopWarble();
+    warbleTimer = setInterval(() => {
+      beep(380, 70, 'triangle', 0.18);
+      setTimeout(() => beep(520, 70, 'triangle', 0.18), 80);
+    }, 260);
+  }
+  function stopWarble() {
+    if (warbleTimer) { clearInterval(warbleTimer); warbleTimer = null; }
+  }
+
+  function ghostEaten() {
+    // boing — quick upward sweep
+    slide(200, 1200, 200, 'sine', 0.5);
+  }
+
+  function death() {
+    // Descending wail
+    slide(520, 80, 900, 'sawtooth', 0.5);
+    setTimeout(() => slide(380, 60, 700, 'square', 0.4), 400);
+  }
+
+  function levelJingle() {
+    const notes = [523, 659, 784, 1047]; // C E G C
+    notes.forEach((f, i) => setTimeout(() => beep(f, 160, 'square', 0.35), i * 160));
+  }
+
+  function intro() {
+    const notes = [262, 330, 392, 523, 392, 523];
+    notes.forEach((f, i) => setTimeout(() => beep(f, 180, 'triangle', 0.3), i * 190));
+  }
+
+  // Siren — continuous background tone that rises in pitch with sirenLevel
+  function startSiren() {
+    if (!ensure() || muted) return;
+    stopSiren();
+    sirenOsc = actx.createOscillator();
+    sirenGain = actx.createGain();
+    sirenOsc.type = 'sawtooth';
+    sirenOsc.frequency.value = sirenFreq();
+    sirenGain.gain.value = 0.06;
+    sirenOsc.connect(sirenGain); sirenGain.connect(master);
+    sirenOsc.start();
+  }
+  function stopSiren() {
+    if (sirenOsc) { try { sirenOsc.stop(); } catch {} sirenOsc = null; }
+    if (sirenGain) { try { sirenGain.disconnect(); } catch {} sirenGain = null; }
+  }
+  function sirenFreq() { return 80 + sirenLevel * 30; }
+  function setSirenLevel(lv) {
+    sirenLevel = Math.max(0, Math.min(8, lv));
+    if (sirenOsc) sirenOsc.frequency.setValueAtTime(sirenFreq(), ensure().currentTime);
+  }
+  function raiseSiren() { setSirenLevel(sirenLevel + 1); }
+
+  function toggleMute() { muted = !muted; if (master) master.gain.value = muted ? 0 : 0.45; return muted; }
+
+  return { chomp, powerPellet, startWarble, stopWarble, ghostEaten, death,
+           levelJingle, intro, startSiren, stopSiren, setSirenLevel, raiseSiren,
+           toggleMute, ensure };
+})();
+
 // ─── API DEBUG OVERLAY ─────────────────────────────────────────
 const apiLogEl = document.getElementById('api-log');
 const apiOverlay = document.getElementById('api-overlay');
@@ -1123,7 +1252,17 @@ function drawScanlines() {
 const keys = {};
 let paused = false;
 let scanlines = true;
+let audioUnlocked = false;
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  Sound.ensure();
+  Sound.intro();
+  setTimeout(() => Sound.startSiren(), 1200);
+}
+window.addEventListener('pointerdown', unlockAudio, { once: false });
 window.addEventListener('keydown', (e) => {
+  unlockAudio();
   keys[e.key] = true;
   const k = e.key.toLowerCase();
   if (k === 'arrowup' || k === 'w') player.nextDir = DIR.UP;
@@ -1164,10 +1303,13 @@ function eatDots() {
     grid[r][c] = T_EMPTY;
     dotsEaten++;
     score += 10;
+    Sound.chomp();
   } else if (t === T_PWR) {
     grid[r][c] = T_EMPTY;
     dotsEaten++;
     score += 50;
+    Sound.powerPellet();
+    Sound.startWarble();
     for (const g of ghosts) {
       g.vulnerable = true;
       g.vulnTimer = 6.0;
@@ -1265,10 +1407,15 @@ function handleGhostCollisions() {
         addPopup(g.x, g.y, '+' + pts, '#00ffff');
         g.vulnerable = false;
         g.eaten = true;
+        Sound.ghostEaten();
+        Sound.raiseSiren();
       } else {
         player.alive = false;
         deathTimer = 1.5;
         lives--;
+        Sound.stopWarble();
+        Sound.stopSiren();
+        Sound.death();
       }
     }
   }
@@ -1334,13 +1481,19 @@ function gameOver() {
   lives = 3;
   loadMaze(0);
   resetPositions();
+  Sound.setSirenLevel(0);
+  Sound.startSiren();
 }
 
 function checkLevelComplete() {
   if (dotsEaten >= totalDots && totalDots > 0) {
+    Sound.stopWarble();
+    Sound.levelJingle();
     level++;
     loadMaze(level - 1);
     resetPositions();
+    Sound.setSirenLevel(Math.min(4, Math.floor(level / 2)));
+    Sound.startSiren();
   }
 }
 
@@ -1370,12 +1523,15 @@ function frame(now) {
   handleGhostCollisions();
 
   // Vulnerability timers
+  let anyVuln = false;
   for (const g of ghosts) {
     if (g.vulnerable) {
       g.vulnTimer -= dt;
       if (g.vulnTimer <= 0) { g.vulnerable = false; ghostEatChain = 0; }
+      else anyVuln = true;
     }
   }
+  if (!anyVuln) Sound.stopWarble();
 
   // Throttled engine sync — pushes live transforms to RakuEngine so the
   // API debug overlay shows continuous activity.
