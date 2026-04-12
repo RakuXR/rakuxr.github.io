@@ -86,6 +86,89 @@
   body.no-crt .crt-overlay { display: none; }
   body.no-scanlines .crt-overlay { background: none; }
 
+  /* CRT flicker */
+  @keyframes crt-flicker {
+    0%, 100% { opacity: 1; }
+    48% { opacity: 1; }
+    50% { opacity: 0.92; }
+    52% { opacity: 1; }
+    92% { opacity: 0.98; }
+  }
+  body:not(.no-crt) main,
+  body:not(.no-crt) nav.top,
+  body:not(.no-crt) .marquee {
+    animation: crt-flicker 6s infinite;
+  }
+
+  /* ============ MARQUEE ============ */
+  .marquee {
+    position: relative;
+    z-index: 9;
+    margin: 0;
+    padding: 14px 24px;
+    background: #000;
+    border-top: 4px solid var(--neon-pink);
+    border-bottom: 4px solid var(--neon-pink);
+    box-shadow:
+      0 0 20px rgba(255, 45, 149, 0.6),
+      inset 0 0 30px rgba(255, 45, 149, 0.25);
+    overflow: hidden;
+    text-align: center;
+  }
+  .marquee-bulbs {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 8px;
+    display: flex;
+    justify-content: space-around;
+    pointer-events: none;
+  }
+  .marquee-bulbs.top { top: 2px; }
+  .marquee-bulbs.bot { bottom: 2px; }
+  .bulb {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--neon-yellow);
+    box-shadow: 0 0 6px var(--neon-yellow), 0 0 12px var(--neon-yellow);
+    animation: bulb-chase 1.6s steps(1) infinite;
+  }
+  .bulb:nth-child(4n+1) { animation-delay: 0s; background: var(--neon-yellow); }
+  .bulb:nth-child(4n+2) { animation-delay: 0.4s; background: var(--neon-pink); box-shadow: 0 0 6px var(--neon-pink), 0 0 12px var(--neon-pink); }
+  .bulb:nth-child(4n+3) { animation-delay: 0.8s; background: var(--neon-cyan); box-shadow: 0 0 6px var(--neon-cyan), 0 0 12px var(--neon-cyan); }
+  .bulb:nth-child(4n+4) { animation-delay: 1.2s; background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green), 0 0 12px var(--neon-green); }
+  @keyframes bulb-chase {
+    0%, 50% { opacity: 1; transform: scale(1); }
+    50.01%, 100% { opacity: 0.15; transform: scale(0.8); }
+  }
+
+  .marquee-track {
+    display: inline-block;
+    white-space: nowrap;
+    font-size: 22px;
+    color: var(--neon-yellow);
+    text-shadow:
+      0 0 8px var(--neon-yellow),
+      0 0 16px var(--neon-pink),
+      0 0 24px var(--neon-pink);
+    animation: marquee-slide 18s linear infinite;
+    letter-spacing: 4px;
+    padding: 6px 0;
+  }
+  @media (max-width: 700px) {
+    .marquee-track { font-size: 16px; letter-spacing: 2px; }
+  }
+  @keyframes marquee-slide {
+    0% { transform: translateX(60%); }
+    100% { transform: translateX(-60%); }
+  }
+  .marquee-track .sep {
+    color: var(--neon-cyan);
+    margin: 0 20px;
+    text-shadow: 0 0 8px var(--neon-cyan);
+  }
+
   /* Top nav */
   nav.top {
     position: relative;
@@ -296,6 +379,18 @@
 </head>
 <body>
   <div class="bg-grid"></div>
+
+  <div class="marquee" role="banner" aria-label="RakuAI Arcade">
+    <div class="marquee-bulbs top" id="bulbs-top"></div>
+    <div class="marquee-track">
+      &#9733; RAKUAI ARCADE <span class="sep">&bull;</span>
+      INSERT COIN TO PLAY <span class="sep">&bull;</span>
+      8 GAMES <span class="sep">&bull;</span>
+      POWERED BY RAKU ENGINE <span class="sep">&bull;</span>
+      RAKUAI ARCADE &#9733;
+    </div>
+    <div class="marquee-bulbs bot" id="bulbs-bot"></div>
+  </div>
 
   <nav class="top">
     <div class="nav-group">
@@ -547,8 +642,24 @@
     window.location.href = '/';
   });
 
+  // ============ MARQUEE BULBS ============
+  function spawnBulbs() {
+    const count = 32;
+    ['bulbs-top', 'bulbs-bot'].forEach(id => {
+      const host = document.getElementById(id);
+      if (!host) return;
+      host.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const b = document.createElement('div');
+        b.className = 'bulb';
+        host.appendChild(b);
+      }
+    });
+  }
+
   // ============ INIT ============
   renderGrid();
+  spawnBulbs();
 </script>
 </body>
 </html>
