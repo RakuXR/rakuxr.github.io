@@ -113,7 +113,6 @@
     }
 
     // -------- Mushroom field --------
-    // 0 = empty, 1..4 = hit stages, negative = poisoned stages
     const field = new Int8Array(COLS * ROWS);
     const idx = (c, r) => r * COLS + c;
     const inBounds = (c, r) => c >= 0 && c < COLS && r >= 0 && r < ROWS;
@@ -179,6 +178,7 @@
       speed: 2.2,
       cooldown: 0,
       alive: true,
+      invuln: 0,
     };
 
     function resetPlayer() {
@@ -186,6 +186,7 @@
       player.y = H - TILE * 2;
       player.cooldown = 0;
       player.alive = true;
+      player.invuln = 1500;
     }
 
     function clampPlayerZone() {
@@ -205,6 +206,7 @@
 
     function updatePlayer(dt) {
       if (!player.alive) return;
+      if (player.invuln > 0) player.invuln -= dt;
       let dx = 0, dy = 0;
       if (keys.has("ArrowLeft"))  dx -= 1;
       if (keys.has("ArrowRight")) dx += 1;
@@ -228,6 +230,7 @@
 
     function drawPlayer() {
       if (!player.alive) return;
+      if (player.invuln > 0 && ((player.invuln / 80) | 0) % 2 === 0) return;
       const x = player.x, y = player.y;
       ctx.fillStyle = "#d6ffd0";
       ctx.fillRect(x + 5, y + 2, 4, 8);
@@ -247,6 +250,20 @@
         const b = bullets[i];
         b.y += b.vy;
         if (b.y < -4) { bullets.splice(i, 1); continue; }
+        // Centipede segment collision
+        let hit = false;
+        for (let j = segments.length - 1; j >= 0; j--) {
+          const s = segments[j];
+          if (!s.alive) continue;
+          if (b.x + 2 > s.x + 2 && b.x < s.x + TILE - 2 &&
+              b.y + 4 > s.y + 2 && b.y < s.y + TILE - 2) {
+            killSegment(j);
+            hit = true;
+            break;
+          }
+        }
+        if (hit) { bullets.splice(i, 1); continue; }
+
         const c = ((b.x + 1) / TILE) | 0;
         const r = ((b.y + 2) / TILE) | 0;
         const v = getCell(c, r);
@@ -267,6 +284,170 @@
     function drawBullets() {
       ctx.fillStyle = "#ffffa0";
       for (const b of bullets) ctx.fillRect(b.x, b.y, 2, 4);
+    }
+
+    // -------- Centipede --------
+    // Each segment is a grid walker. Behavior: move left/right along current row;
+    // when blocked (wall or mushroom), drop one row and reverse. If it reaches the
+    // bottom (player zone), it pops back up to the top of the player zone.
+    // The centipede is stored as a linked list via `next` indices: segments[i].next is index of trailing segment.
+    // Head is flagged with isHead. Shooting any segment splits the chain: the hit segment dies, and the segment
+    // immediately trailing becomes a new head.
+    const segments = [];
+    function spawnCentipede(lengthN, startY) {
+      for (let i = 0; i < lengthN; i++) {
+        segments.push({
+          alive: true,
+          isHead: i === 0,
+          x: (COLS - 1 - i) * TILE,  // spawn off the right, facing left
+          y: startY,
+          dir: -1,          // -1 left, +1 right
+          vdir: 1,          // +1 descending, -1 ascending (used in player zone)
+          moveAccum: 0,
+          dropping: false,
+          dropPx: 0,
+          targetRow: startY / TILE,
+          next: i + 1 < lengthN ? (segments.length + 1) : -1, // index in global segments array
+          wiggle: i,
+        });
+      }
+    }
+    function killSegment(j) {
+      const seg = segments[j];
+      if (!seg || !seg.alive) return;
+      seg.alive = false;
+      addScore(seg.isHead ? 100 : 10);
+      // Leave a mushroom where it died (grid-snapped)
+      const c = ((seg.x + TILE / 2) / TILE) | 0;
+      const r = ((seg.y + TILE / 2) / TILE) | 0;
+      if (getCell(c, r) === 0) setCell(c, r, 4);
+      // Split: the segment that had this one as its successor loses it;
+      // the segment AFTER this one (seg.next) becomes a new head.
+      if (seg.next >= 0 && segments[seg.next] && segments[seg.next].alive) {
+        segments[seg.next].isHead = true;
+      }
+      // The segment that was pointing at j should now point at -1 (end of its chain).
+      for (const other of segments) {
+        if (other.alive && other.next === j) other.next = -1;
+      }
+    }
+
+    // Step speed scales with level
+    let stepInterval = 110; // ms per grid cell
+
+    function updateCentipede(dt) {
+      for (let i = 0; i < segments.length; i++) {
+        const s = segments[i];
+        if (!s.alive) continue;
+        s.moveAccum += dt;
+        const interval = stepInterval;
+        while (s.moveAccum >= interval) {
+          s.moveAccum -= interval;
+          stepSegment(s);
+        }
+      }
+    }
+
+    function stepSegment(s) {
+      if (s.dropping) {
+        // Finish vertical drop of one tile
+        s.y += TILE;
+        s.dropping = false;
+        s.dir = -s.dir;
+        // If we just entered the player zone, crawl back up when hitting bottom
+        const row = (s.y / TILE) | 0;
+        if (row >= ROWS - 1) {
+          s.vdir = -1;
+        } else if (row <= ROWS - PLAYER_ZONE_ROWS) {
+          s.vdir = 1;
+        }
+        return;
+      }
+      const nextX = s.x + s.dir * TILE;
+      const nextC = (nextX / TILE) | 0;
+      const r = (s.y / TILE) | 0;
+      const hitWall = nextX < 0 || nextX > W - TILE;
+      const hitMush = !hitWall && getCell(nextC, r) > 0;
+      if (hitWall || hitMush) {
+        // Drop (or rise if in player zone vdir = -1)
+        const newRow = r + s.vdir;
+        if (newRow < 0) { s.vdir = 1; s.y += TILE; s.dir = -s.dir; return; }
+        if (newRow >= ROWS) { s.vdir = -1; s.y -= TILE; s.dir = -s.dir; return; }
+        s.dropping = true;
+        return;
+      }
+      s.x = nextX;
+      s.wiggle++;
+      // Eat poisoned? Triggers a dive (commit 3 introduces poisoned cells; safe no-op here)
+      const v = getCell((s.x / TILE) | 0, r);
+      if (v < 0 && s.isHead) {
+        // Rage-dive straight down towards the player zone
+        s.vdir = 1;
+        s.dropping = true;
+      }
+    }
+
+    function drawCentipede() {
+      for (let i = 0; i < segments.length; i++) {
+        const s = segments[i];
+        if (!s.alive) continue;
+        const hue = (i * 18) % 60;
+        const body = s.isHead ? "#ff3e7a" : `hsl(${120 + hue},80%,55%)`;
+        ctx.fillStyle = body;
+        ctx.fillRect(s.x + 2, s.y + 2, TILE - 4, TILE - 4);
+        // Eyes / spikes
+        ctx.fillStyle = s.isHead ? "#fff" : "#0a2a10";
+        if (s.isHead) {
+          ctx.fillRect(s.x + 4, s.y + 4, 2, 2);
+          ctx.fillRect(s.x + 8, s.y + 4, 2, 2);
+        } else {
+          // Legs wiggle
+          const w = (s.wiggle & 1);
+          ctx.fillRect(s.x + 1, s.y + 4 + w, 1, 2);
+          ctx.fillRect(s.x + TILE - 2, s.y + 4 + (1 - w), 1, 2);
+          ctx.fillRect(s.x + 1, s.y + 9 + (1 - w), 1, 2);
+          ctx.fillRect(s.x + TILE - 2, s.y + 9 + w, 1, 2);
+        }
+      }
+    }
+
+    function centipedeAlive() {
+      return segments.some(s => s.alive);
+    }
+
+    function checkPlayerCentipedeHit() {
+      if (!player.alive || player.invuln > 0) return;
+      for (const s of segments) {
+        if (!s.alive) continue;
+        if (player.x + 3 < s.x + TILE - 3 && player.x + player.w - 3 > s.x + 3 &&
+            player.y + 3 < s.y + TILE - 3 && player.y + player.h - 3 > s.y + 3) {
+          killPlayer();
+          return;
+        }
+      }
+    }
+
+    function killPlayer() {
+      player.alive = false;
+      lives--;
+      updateHUD();
+      sfx("die");
+      setTimeout(() => {
+        if (lives <= 0) {
+          // Game over -> restart
+          score = 0; lives = 3; level = 1;
+          stepInterval = 110;
+          seedMushrooms(40);
+          segments.length = 0;
+          spawnCentipede(10, TILE);
+          updateHUD();
+        } else {
+          segments.length = segments.filter(s => s.alive).length
+            ? segments.length
+            : (spawnCentipede(10, TILE), segments.length);
+        }
+        resetPlayer();
+      }, 700);
     }
 
     // -------- Scoring & HUD --------
@@ -294,11 +475,23 @@
       readGamepad();
       updatePlayer(dt);
       updateBullets();
+      updateCentipede(dt);
+      checkPlayerCentipedeHit();
+
+      if (!centipedeAlive()) {
+        level++;
+        stepInterval = Math.max(50, 110 - level * 8);
+        seedMushrooms(40 + level * 4);
+        spawnCentipede(10, TILE);
+        updateHUD();
+      }
+
       ctx.fillStyle = "#05080a";
       ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = "rgba(30, 80, 40, 0.08)";
       ctx.fillRect(0, H - PLAYER_ZONE_ROWS * TILE, W, PLAYER_ZONE_ROWS * TILE);
       drawField();
+      drawCentipede();
       drawBullets();
       drawPlayer();
       requestAnimationFrame(frame);
@@ -306,6 +499,7 @@
 
     // -------- Init --------
     seedMushrooms(40);
+    spawnCentipede(10, TILE);
     updateHUD();
     requestAnimationFrame(frame);
   })();
