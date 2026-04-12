@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Barrel Jumper</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    color: #fff;
+    font-family: "Courier New", monospace;
+    height: 100%;
+    overflow: hidden;
+  }
+  #wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+  h1 {
+    margin: 0 0 8px 0;
+    font-size: 20px;
+    letter-spacing: 3px;
+    color: #ffd24a;
+    text-shadow: 2px 2px 0 #8b0000;
+  }
+  #game {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #000;
+    border: 3px solid #444;
+    box-shadow: 0 0 28px rgba(255, 64, 0, 0.25);
+    max-width: 100%;
+    height: auto;
+  }
+  .hint {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #888;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+  .hint b { color: #ffd24a; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1>BARREL JUMPER</h1>
+  <canvas id="game" width="448" height="512" tabindex="0"></canvas>
+  <div class="hint">
+    <b>ARROWS</b> move / climb &nbsp;|&nbsp; <b>SPACE</b> jump &nbsp;|&nbsp; <b>P</b> pause &nbsp;|&nbsp; gamepad supported
+  </div>
+</div>
+<script>
+"use strict";
+(function () {
+  // ---------- constants ----------
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width;
+  const H = canvas.height;
+  const TILE = 16;
+  const COLS = W / TILE; // 28
+  const ROWS = H / TILE; // 32
+
+  // colors
+  const COL_BG = "#000";
+  const COL_GIRDER = "#ff3a1d";
+  const COL_GIRDER_HL = "#ff7a5c";
+  const COL_RIVET = "#ffd24a";
+  const COL_LADDER = "#4aa8ff";
+  const COL_LADDER_RUNG = "#cfe8ff";
+  const COL_TEXT = "#fff";
+
+  // physics
+  const GRAVITY = 0.35;
+  const MOVE_SPEED = 1.2;
+  const CLIMB_SPEED = 1.0;
+  const JUMP_VEL = -5.2;
+  const MAX_FALL = 6.5;
+
+  // ---------- level tile map ----------
+  // Legend:
+  //   '.' empty  '=' girder  'H' ladder  'h' broken ladder
+  //   'r' rivet (stage 4)  'c' conveyor  'o' oil/fire
+  //   'P' princess  'G' gorilla  'M' hero spawn  '*' hammer  'L' elevator
+
+  const STAGE1 = [
+    "............P...............",
+    "=============H==============",
+    ".............H..............",
+    ".............H........G.....",
+    "=============================",
+    "H...........................",
+    "H...........*...............",
+    "H...........................",
+    "=============================",
+    "...........................H",
+    "...........................H",
+    "...........................H",
+    "=============================",
+    "H...........................",
+    "H...........................",
+    "H...........................",
+    "=============================",
+    "...........................H",
+    "...........................H",
+    "...........................H",
+    "=============================",
+    "H...........................",
+    "H...........................",
+    "H...........................",
+    "=============================",
+    "............................",
+    "............................",
+    "....M.......................",
+    "============================",
+    "...o........................",
+    "............................",
+    "............................"
+  ];
+
+  const STAGE2 = [
+    "............P...............",
+    "=============H==============",
+    ".............H..............",
+    ".............H........G.....",
+    "=============================",
+    "H...........................",
+    "H...........*...............",
+    "H...........................",
+    "cccccccccccccccccccccccccccc",
+    "...........................H",
+    "...........................H",
+    "...........................H",
+    "cccccccccccccccccccccccccccc",
+    "H...........................",
+    "H...........................",
+    "H...........................",
+    "cccccccccccccccccccccccccccc",
+    "...........................H",
+    "...........................H",
+    "...........................H",
+    "cccccccccccccccccccccccccccc",
+    "H...........................",
+    "H...........................",
+    "H...........................",
+    "=============================",
+    "............................",
+    "............................",
+    "....M.......................",
+    "============================",
+    "...o........................",
+    "............................",
+    "............................"
+  ];
+
+  const STAGE3 = [
+    "............P...............",
+    "=============H==============",
+    ".............H..............",
+    ".............H........G.....",
+    "=============================",
+    "H........L.........L........",
+    "H........L.........L........",
+    "H........L....*....L........",
+    "======...L.........L...=====",
+    ".........L.........L.......H",
+    ".........L.........L.......H",
+    ".........L.........L.......H",
+    "======...L.........L...=====",
+    "H........L.........L........",
+    "H........L.........L........",
+    "H........L.........L........",
+    "======...L.........L...=====",
+    ".........L.........L.......H",
+    ".........L.........L.......H",
+    ".........L.........L.......H",
+    "======...L.........L...=====",
+    "H........L.........L........",
+    "H........L.........L........",
+    "H........L.........L........",
+    "=============================",
+    "............................",
+    "............................",
+    "....M.......................",
+    "============================",
+    "...o........................",
+    "............................",
+    "............................"
+  ];
+
+  const STAGE4 = [
+    "............P...............",
+    "r===========H==============r",
+    ".............H..............",
+    ".............H........G.....",
+    "r===========================r",
+    "H....*......................",
+    "H...........................",
+    "H...........................",
+    "r===========================r",
+    "...........................H",
+    "...........................H",
+    "...........................H",
+    "r===========================r",
+    "H...........................",
+    "H...........................",
+    "H...........................",
+    "r===========================r",
+    "...........................H",
+    "...........................H",
+    "...........................H",
+    "r===========================r",
+    "H...........................",
+    "H...........................",
+    "H...........................",
+    "r===========================r",
+    "............................",
+    "............................",
+    "....M.......................",
+    "r==========================r",
+    "...o........................",
+    "............................",
+    "............................"
+  ];
+
+  const STAGES = [STAGE1, STAGE2, STAGE3, STAGE4];
+
+  // ---------- level parsing ----------
+  function makeLevel(rawRows) {
+    const rows = rawRows.slice();
+    while (rows.length < ROWS) rows.push(".".repeat(COLS));
+    const map = [];
+    const spawns = { hero: null, gorilla: null, princess: null, oil: null };
+    const hammers = [];
+    const rivets = [];
+    for (let y = 0; y < ROWS; y++) {
+      const line = (rows[y] || "").padEnd(COLS, ".");
+      const row = [];
+      for (let x = 0; x < COLS; x++) {
+        const ch = line[x];
+        let t = ".";
+        if (ch === "=" || ch === "c") t = ch;
+        else if (ch === "H" || ch === "h") t = ch;
+        else if (ch === "L") t = "L";
+        else if (ch === "r") {
+          t = "=";
+          rivets.push({ x: x * TILE, y: y * TILE, alive: true });
+        } else if (ch === "M") spawns.hero = { x: x * TILE, y: y * TILE };
+        else if (ch === "G") spawns.gorilla = { x: x * TILE, y: y * TILE };
+        else if (ch === "P") spawns.princess = { x: x * TILE, y: y * TILE };
+        else if (ch === "o") spawns.oil = { x: x * TILE, y: y * TILE };
+        else if (ch === "*") hammers.push({ x: x * TILE, y: y * TILE, alive: true });
+        row.push(t);
+      }
+      map.push(row);
+    }
+    return { map, spawns, hammers, rivets };
+  }
+
+  function tileAt(level, tx, ty) {
+    if (tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) return ".";
+    return level.map[ty][tx];
+  }
+  function isSolidTop(t) { return t === "=" || t === "c"; }
+  function isLadder(t) { return t === "H" || t === "h"; }
+
+  // ---------- input ----------
+  const keys = { left: false, right: false, up: false, down: false, jump: false };
+  let jumpEdge = false;
+  function setKey(e, down) {
+    const k = e.key;
+    let handled = true;
+    if (k === "ArrowLeft" || k === "a" || k === "A") keys.left = down;
+    else if (k === "ArrowRight" || k === "d" || k === "D") keys.right = down;
+    else if (k === "ArrowUp" || k === "w" || k === "W") keys.up = down;
+    else if (k === "ArrowDown" || k === "s" || k === "S") keys.down = down;
+    else if (k === " " || k === "Spacebar") {
+      if (down && !keys.jump) jumpEdge = true;
+      keys.jump = down;
+    } else handled = false;
+    if (handled) e.preventDefault();
+  }
+  window.addEventListener("keydown", (e) => setKey(e, true));
+  window.addEventListener("keyup", (e) => setKey(e, false));
+
+  // gamepad poll
+  function pollGamepad() {
+    if (!navigator.getGamepads) return;
+    const pads = navigator.getGamepads();
+    for (const p of pads) {
+      if (!p) continue;
+      const ax = p.axes[0] || 0, ay = p.axes[1] || 0;
+      if (ax < -0.3) keys.left = true;
+      if (ax > 0.3) keys.right = true;
+      if (ay < -0.3) keys.up = true;
+      if (ay > 0.3) keys.down = true;
+      const a = p.buttons[0] && p.buttons[0].pressed;
+      if (a && !keys.jump) jumpEdge = true;
+      keys.jump = keys.jump || a;
+      break;
+    }
+  }
+
+  // ---------- hero ----------
+  function makeHero(spawn) {
+    return {
+      x: spawn.x,
+      y: spawn.y,
+      w: 12,
+      h: 14,
+      vx: 0,
+      vy: 0,
+      onGround: false,
+      climbing: false,
+      facing: 1,
+      alive: true,
+      walkFrame: 0
+    };
+  }
+
+  function heroCenter(h) { return { x: h.x + h.w / 2, y: h.y + h.h / 2 }; }
+
+  function ladderAt(level, px, py) {
+    const tx = Math.floor(px / TILE);
+    const ty = Math.floor(py / TILE);
+    return isLadder(tileAt(level, tx, ty));
+  }
+
+  function groundBelow(level, hx, hy, hw, hh) {
+    // sample 2 feet points just under the bbox
+    const fy = hy + hh;
+    const fx1 = hx + 2;
+    const fx2 = hx + hw - 2;
+    const tx1 = Math.floor(fx1 / TILE);
+    const tx2 = Math.floor(fx2 / TILE);
+    const ty = Math.floor(fy / TILE);
+    const t1 = tileAt(level, tx1, ty);
+    const t2 = tileAt(level, tx2, ty);
+    return isSolidTop(t1) || isSolidTop(t2);
+  }
+
+  function updateHero(hero, level) {
+    // climbing check
+    const c = heroCenter(hero);
+    const onLadder =
+      ladderAt(level, c.x, c.y) ||
+      ladderAt(level, c.x, hero.y + hero.h - 1);
+
+    // climbing state transitions
+    if (onLadder && (keys.up || keys.down)) hero.climbing = true;
+    if (!onLadder) hero.climbing = false;
+
+    // horizontal motion (disabled while pure-climbing if no ground)
+    hero.vx = 0;
+    if (keys.left) { hero.vx = -MOVE_SPEED; hero.facing = -1; }
+    else if (keys.right) { hero.vx = MOVE_SPEED; hero.facing = 1; }
+
+    if (hero.climbing) {
+      hero.vy = 0;
+      if (keys.up) hero.vy = -CLIMB_SPEED;
+      else if (keys.down) hero.vy = CLIMB_SPEED;
+      // snap x to ladder center for feel
+      const tx = Math.floor(c.x / TILE);
+      const targetX = tx * TILE + (TILE - hero.w) / 2;
+      hero.x += (targetX - hero.x) * 0.3;
+      // stop climbing when we reach top (ground) and press up no more
+      if (!keys.up && !keys.down && hero.onGround) hero.climbing = false;
+    } else {
+      // jumping
+      if (jumpEdge && hero.onGround) {
+        hero.vy = JUMP_VEL;
+        hero.onGround = false;
+      }
+      // variable jump height: cut vel when jump released rising
+      if (!keys.jump && hero.vy < -2) hero.vy = -2;
+      hero.vy += GRAVITY;
+      if (hero.vy > MAX_FALL) hero.vy = MAX_FALL;
+    }
+    jumpEdge = false;
+
+    // integrate x with simple bounds
+    hero.x += hero.vx;
+    if (hero.x < 0) hero.x = 0;
+    if (hero.x + hero.w > W) hero.x = W - hero.w;
+
+    // integrate y with tile collision
+    hero.y += hero.vy;
+
+    // ground test (solid top)
+    if (hero.vy >= 0) {
+      const fy = hero.y + hero.h;
+      const ty = Math.floor(fy / TILE);
+      const tx1 = Math.floor((hero.x + 2) / TILE);
+      const tx2 = Math.floor((hero.x + hero.w - 2) / TILE);
+      const t1 = tileAt(level, tx1, ty);
+      const t2 = tileAt(level, tx2, ty);
+      const hit = isSolidTop(t1) || isSolidTop(t2);
+      const topOfTile = ty * TILE;
+      // allow pass-through when climbing down
+      if (hit && fy - topOfTile < 6 && !(hero.climbing && keys.down)) {
+        hero.y = topOfTile - hero.h;
+        hero.vy = 0;
+        hero.onGround = true;
+        if (hero.climbing && !keys.up && !keys.down) hero.climbing = false;
+      } else {
+        hero.onGround = false;
+      }
+    }
+
+    // also clamp to bottom of screen
+    if (hero.y + hero.h > H) {
+      hero.y = H - hero.h;
+      hero.vy = 0;
+      hero.onGround = true;
+    }
+
+    // walk frame
+    if (hero.vx !== 0 && hero.onGround && !hero.climbing) hero.walkFrame += 0.2;
+    else hero.walkFrame = 0;
+  }
+
+  // ---------- rendering ----------
+  function drawGirder(x, y) {
+    ctx.fillStyle = COL_GIRDER;
+    ctx.fillRect(x, y, TILE, TILE);
+    ctx.fillStyle = COL_GIRDER_HL;
+    ctx.fillRect(x, y, TILE, 2);
+    ctx.fillStyle = "#8b0000";
+    ctx.fillRect(x, y + TILE - 2, TILE, 2);
+    ctx.fillStyle = COL_RIVET;
+    ctx.fillRect(x + 2, y + 6, 2, 2);
+    ctx.fillRect(x + TILE - 4, y + 6, 2, 2);
+  }
+  function drawConveyor(x, y, phase) {
+    ctx.fillStyle = "#3a3a3a";
+    ctx.fillRect(x, y, TILE, TILE);
+    ctx.fillStyle = "#888";
+    ctx.fillRect(x, y, TILE, 2);
+    ctx.fillStyle = "#bbb";
+    const p = Math.floor(phase) % 4;
+    for (let i = -p; i < TILE; i += 4) {
+      if (i + 2 <= TILE && i >= 0) ctx.fillRect(x + i, y + 4, 2, 2);
+    }
+    ctx.fillStyle = "#222";
+    ctx.fillRect(x, y + TILE - 2, TILE, 2);
+  }
+  function drawLadder(x, y) {
+    ctx.fillStyle = COL_LADDER;
+    ctx.fillRect(x + 3, y, 2, TILE);
+    ctx.fillRect(x + TILE - 5, y, 2, TILE);
+    ctx.fillStyle = COL_LADDER_RUNG;
+    ctx.fillRect(x + 3, y + 4, TILE - 8, 2);
+    ctx.fillRect(x + 3, y + 11, TILE - 8, 2);
+  }
+  function drawElevator(x, y) {
+    ctx.fillStyle = "#222";
+    ctx.fillRect(x + 6, y, 4, TILE);
+    ctx.fillStyle = "#555";
+    ctx.fillRect(x + 5, y, 1, TILE);
+    ctx.fillRect(x + 10, y, 1, TILE);
+  }
+  function drawLevel(level, t) {
+    ctx.fillStyle = COL_BG;
+    ctx.fillRect(0, 0, W, H);
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const tile = level.map[y][x];
+        const px = x * TILE;
+        const py = y * TILE;
+        if (tile === "=") drawGirder(px, py);
+        else if (tile === "c") drawConveyor(px, py, t * 0.1);
+        else if (tile === "H" || tile === "h") drawLadder(px, py);
+        else if (tile === "L") drawElevator(px, py);
+      }
+    }
+  }
+  function drawHero(h) {
+    // 12x14 hero: red cap, blue overalls, skin face
+    const x = Math.floor(h.x);
+    const y = Math.floor(h.y);
+    // cap
+    ctx.fillStyle = "#ff2020";
+    ctx.fillRect(x + 2, y, 8, 3);
+    ctx.fillRect(x + 1, y + 1, 10, 2);
+    // face
+    ctx.fillStyle = "#ffd1a1";
+    ctx.fillRect(x + 2, y + 3, 8, 4);
+    // mustache
+    ctx.fillStyle = "#402010";
+    ctx.fillRect(x + 3, y + 6, 6, 1);
+    // body overalls
+    ctx.fillStyle = "#2060ff";
+    ctx.fillRect(x + 1, y + 7, 10, 5);
+    // shirt stripe
+    ctx.fillStyle = "#ff2020";
+    ctx.fillRect(x + 1, y + 7, 10, 1);
+    ctx.fillRect(x, y + 8, 12, 2);
+    // legs (alternating on walk frame)
+    const f = Math.floor(h.walkFrame) & 1;
+    ctx.fillStyle = "#402010";
+    if (f === 0) {
+      ctx.fillRect(x + 2, y + 12, 3, 2);
+      ctx.fillRect(x + 7, y + 12, 3, 2);
+    } else {
+      ctx.fillRect(x + 1, y + 12, 3, 2);
+      ctx.fillRect(x + 8, y + 12, 3, 2);
+    }
+    // face direction hint (eye)
+    ctx.fillStyle = "#000";
+    ctx.fillRect(x + (h.facing > 0 ? 7 : 4), y + 4, 1, 1);
+  }
+  function drawHammers(list) {
+    for (const hm of list) {
+      if (!hm.alive) continue;
+      ctx.fillStyle = "#a06020";
+      ctx.fillRect(hm.x + 7, hm.y + 4, 2, 10);
+      ctx.fillStyle = "#c0c0c0";
+      ctx.fillRect(hm.x + 4, hm.y + 2, 8, 5);
+      ctx.fillStyle = "#eee";
+      ctx.fillRect(hm.x + 4, hm.y + 2, 8, 1);
+    }
+  }
+  function drawPrincess(p) {
+    if (!p) return;
+    const x = p.x, y = p.y;
+    ctx.fillStyle = "#ffd1a1";
+    ctx.fillRect(x + 4, y + 2, 6, 4);
+    ctx.fillStyle = "#ffd24a";
+    ctx.fillRect(x + 3, y, 8, 3);
+    ctx.fillStyle = "#ff66cc";
+    ctx.fillRect(x + 3, y + 6, 8, 8);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(x + 5, y + 3, 1, 1);
+    ctx.fillRect(x + 8, y + 3, 1, 1);
+  }
+  function drawGorilla(g) {
+    if (!g) return;
+    const x = g.x, y = g.y;
+    ctx.fillStyle = "#8a4a1a";
+    ctx.fillRect(x - 4, y, 20, 14);
+    ctx.fillStyle = "#ffd1a1";
+    ctx.fillRect(x, y + 4, 12, 6);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(x + 3, y + 6, 2, 2);
+    ctx.fillRect(x + 7, y + 6, 2, 2);
+    ctx.fillStyle = "#6a2a0a";
+    ctx.fillRect(x - 4, y + 10, 4, 4);
+    ctx.fillRect(x + 12, y + 10, 4, 4);
+  }
+  function drawOil(o) {
+    if (!o) return;
+    ctx.fillStyle = "#3070c0";
+    ctx.fillRect(o.x + 2, o.y + 2, 12, 14);
+    ctx.fillStyle = "#60a0ff";
+    ctx.fillRect(o.x + 2, o.y + 2, 12, 2);
+    ctx.fillStyle = "#ffd24a";
+    ctx.fillRect(o.x + 4, o.y - 2, 3, 4);
+    ctx.fillRect(o.x + 9, o.y - 2, 3, 4);
+  }
+
+  // ---------- HUD ----------
+  function drawHUD(state) {
+    ctx.fillStyle = COL_TEXT;
+    ctx.font = "10px 'Courier New', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("SCORE", 8, 12);
+    ctx.fillText(String(state.score).padStart(6, "0"), 8, 24);
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#ffd24a";
+    ctx.fillText("STAGE " + (state.stage + 1), W / 2, 12);
+    ctx.fillStyle = "#9fe";
+    ctx.fillText(["25M", "50M", "75M", "100M"][state.stage], W / 2, 24);
+    ctx.textAlign = "right";
+    ctx.fillStyle = COL_TEXT;
+    ctx.fillText("LIVES " + state.lives, W - 8, 12);
+    ctx.fillText("BONUS " + state.bonus, W - 8, 24);
+  }
+
+  // ---------- state ----------
+  const state = {
+    stage: 0,
+    level: null,
+    hero: null,
+    score: 0,
+    lives: 3,
+    bonus: 5000,
+    paused: false,
+    tick: 0
+  };
+
+  function loadStage(i) {
+    state.stage = i;
+    state.level = makeLevel(STAGES[i]);
+    state.bonus = 5000;
+    state.tick = 0;
+    state.hero = makeHero(state.level.spawns.hero || { x: 64, y: 400 });
+  }
+
+  function frame() {
+    state.tick++;
+    pollGamepad();
+    if (!state.paused) updateHero(state.hero, state.level);
+    // reset gamepad-held key edges (axis stays through pollGamepad next frame)
+    // but also clear axes so keyboard still works if user switches back
+    // (we reset only axis-sourced keys at end-of-frame)
+    drawLevel(state.level, state.tick);
+    drawPrincess(state.level.spawns.princess);
+    drawGorilla(state.level.spawns.gorilla);
+    drawOil(state.level.spawns.oil);
+    drawHammers(state.level.hammers);
+    drawHero(state.hero);
+    drawHUD(state);
+    requestAnimationFrame(frame);
+  }
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "p" || e.key === "P") state.paused = !state.paused;
+  });
+
+  canvas.focus();
+
+  loadStage(0);
+  frame();
+
+  window.BJ = { state, loadStage, makeLevel, STAGES };
+})();
+</script>
+</body>
+</html>
