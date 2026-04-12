@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meteor Storm</title>
+<style>
+  :root { --fg:#fff; --bg:#000; --accent:#5effb2; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin:0; padding:0; background:var(--bg); color:var(--fg);
+    font-family:'Courier New','Menlo',monospace;
+    overflow:hidden; height:100%;
+    user-select:none; -webkit-user-select:none;
+  }
+  #wrap {
+    position:fixed; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+  }
+  #game {
+    display:block; background:#000;
+    box-shadow: 0 0 60px rgba(94,255,178,0.08);
+    image-rendering:pixelated;
+  }
+  #title {
+    position:absolute; top:10px; left:50%;
+    transform:translateX(-50%);
+    font-size:11px; letter-spacing:3px;
+    color:#888; text-transform:uppercase;
+  }
+  #title a { color:#888; text-decoration:none; }
+  #title a:hover { color:var(--accent); }
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="game" width="960" height="720"></canvas>
+  </div>
+  <div id="title"><a href="../">&lt; games</a> &nbsp;|&nbsp; METEOR STORM</div>
+
+<script>
+(function () {
+  'use strict';
+  // -------------------------------------------------------------------
+  // Meteor Storm - vector-style Asteroids clone
+  // Scaffold: canvas setup, resize, game state, main loop, title+HUD.
+  // -------------------------------------------------------------------
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  const VW = 960;
+  const VH = 720;
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const scale = Math.min(window.innerWidth / VW, window.innerHeight / VH);
+    canvas.style.width = Math.floor(VW * scale) + 'px';
+    canvas.style.height = Math.floor(VH * scale) + 'px';
+    canvas.width = Math.floor(VW * dpr);
+    canvas.height = Math.floor(VH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const STATE = {
+    TITLE: 'title',
+    PLAYING: 'playing',
+    DYING: 'dying',
+    GAMEOVER: 'gameover',
+    LEVEL_CLEAR: 'level_clear',
+  };
+
+  const game = {
+    state: STATE.TITLE,
+    stateTimer: 0,
+    score: 0,
+    level: 1,
+    lives: 3,
+    shake: 0,
+    tick: 0,
+    highScore: 0,
+  };
+
+  const keys = Object.create(null);
+  window.addEventListener('keydown', (e) => {
+    keys[e.code] = true;
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft','ShiftRight'].includes(e.code)) {
+      e.preventDefault();
+    }
+    if (e.code === 'Enter' && (game.state === STATE.TITLE || game.state === STATE.GAMEOVER)) {
+      startNewGame();
+    }
+  }, { passive: false });
+  window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+  let lastT = performance.now();
+  function loop(now) {
+    const dt = Math.min((now - lastT) / 1000, 1/30);
+    lastT = now;
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  function update(dt) {
+    game.tick++;
+    game.stateTimer += dt;
+    if (game.shake > 0) game.shake = Math.max(0, game.shake - dt * 60);
+  }
+
+  function render() {
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+    const sx = (Math.random() - 0.5) * game.shake;
+    const sy = (Math.random() - 0.5) * game.shake;
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.strokeStyle = '#fff';
+    ctx.fillStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (game.state === STATE.TITLE) drawTitle();
+    else drawHUD();
+
+    ctx.restore();
+  }
+
+  function drawTitle() {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 56px "Courier New", monospace';
+    ctx.fillText('METEOR STORM', VW/2, VH/2 - 80);
+    ctx.font = '16px "Courier New", monospace';
+    ctx.fillStyle = '#bbb';
+    ctx.fillText('PRESS ENTER TO START', VW/2, VH/2 + 20);
+    ctx.restore();
+  }
+
+  function drawHUD() {
+    ctx.save();
+    ctx.fillStyle = '#fff';
+    ctx.font = '20px "Courier New", monospace';
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+    ctx.fillText('SCORE ' + pad(game.score, 6), 20, 16);
+    ctx.textAlign = 'center';
+    ctx.fillText('LEVEL ' + game.level, VW/2, 16);
+    ctx.textAlign = 'right';
+    ctx.fillText('LIVES ' + game.lives, VW - 20, 16);
+    ctx.restore();
+  }
+
+  function pad(n, w) {
+    const s = String(n);
+    return '0'.repeat(Math.max(0, w - s.length)) + s;
+  }
+
+  function startNewGame() {
+    game.state = STATE.PLAYING;
+    game.stateTimer = 0;
+    game.score = 0;
+    game.level = 1;
+    game.lives = 3;
+  }
+
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
