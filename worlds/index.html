@@ -56,6 +56,20 @@ canvas { display: block; width: 100%; height: 100%; }
 #dialogue input { width: 100%; background: var(--bg); border: 1px solid #333; color: var(--text); padding: 8px; border-radius: 6px; font-size: 0.85rem; }
 #dialogue .close-btn { position: absolute; top: 8px; right: 12px; background: none; border: none; color: var(--dim); cursor: pointer; font-size: 1.1rem; }
 
+/* Server connection panel */
+#server-panel { position: fixed; top: 48px; left: 50%; transform: translateX(-50%); z-index: 30; background: rgba(17,17,40,0.97); border: 1px solid var(--accent); border-radius: 12px; padding: 16px 20px; width: 400px; max-width: 90vw; display: none; }
+#server-panel.open { display: block; }
+#server-panel h4 { color: var(--bright); margin-bottom: 10px; font-size: 0.9rem; }
+#server-panel label { display: block; color: var(--dim); font-size: 0.75rem; margin-bottom: 3px; margin-top: 8px; }
+#server-panel input { width: 100%; background: var(--bg); border: 1px solid #333; color: var(--text); padding: 8px; border-radius: 6px; font-size: 0.8rem; font-family: 'SF Mono', Monaco, monospace; }
+#server-panel .srv-actions { display: flex; gap: 8px; margin-top: 12px; }
+#server-panel button { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+#server-panel button:hover { background: var(--bright); }
+#server-panel button.disconnect { background: rgba(255,107,107,0.2); border: 1px solid var(--danger); color: var(--danger); }
+#server-panel button.disconnect:hover { background: rgba(255,107,107,0.4); }
+.live-badge { display: inline-block; background: var(--success); color: #000; font-size: 0.65rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; margin-left: 8px; vertical-align: middle; animation: livePulse 2s infinite; }
+@keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
 /* Intro overlay */
 #intro { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s; }
 #intro h1 { font-size: 2.5rem; background: linear-gradient(135deg, var(--bright), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
@@ -81,6 +95,7 @@ canvas { display: block; width: 100%; height: 100%; }
     <button onclick="spawnEntity('sphere')">+ Sphere</button>
     <button onclick="spawnNPC()">+ NPC</button>
     <button id="physicsBtn" onclick="togglePhysics()">Physics ⏵</button>
+    <button onclick="toggleServer()" id="serverBtn">Server</button>
     <button onclick="toggleDLL()" id="dllBtn">DLLs</button>
     <button onclick="toggleAPI()" id="apiBtn">API ◧</button>
   </div>
@@ -109,6 +124,18 @@ canvas { display: block; width: 100%; height: 100%; }
   <h4 id="npc-name">Benjamin Franklin</h4>
   <p id="npc-text">Click an NPC to start a conversation...</p>
   <input id="npc-input" placeholder="Say something..." onkeydown="if(event.key==='Enter')sendToNPC()">
+</div>
+
+<div id="server-panel">
+  <h4>Connect to Server</h4>
+  <label for="srv-url">API URL</label>
+  <input type="text" id="srv-url" value="https://raku-api-staging.fly.dev" spellcheck="false">
+  <label for="srv-key">API Key (optional)</label>
+  <input type="text" id="srv-key" placeholder="X-Raku-API-Key value" spellcheck="false">
+  <div class="srv-actions">
+    <button onclick="connectServer()">Connect</button>
+    <button class="disconnect" onclick="disconnectServer()">Disconnect</button>
+  </div>
 </div>
 
 <div id="canvas-container"></div>
@@ -220,6 +247,105 @@ const FRANKLIN_LINES = [
   "The Constitution only gives people the right to pursue happiness. You have to catch it yourself.",
 ];
 function mockDialogue() { return FRANKLIN_LINES[Math.floor(Math.random() * FRANKLIN_LINES.length)]; }
+
+// ─── SERVER CONNECTION ───
+let serverConnected = false;
+
+window.toggleServer = function() {
+  document.getElementById('server-panel').classList.toggle('open');
+  document.getElementById('serverBtn').classList.toggle('active');
+};
+
+window.connectServer = async function() {
+  const urlInput = document.getElementById('srv-url');
+  const keyInput = document.getElementById('srv-key');
+  const serverUrl = urlInput.value.trim().replace(/\/+$/, '');
+  const serverKey = keyInput.value.trim();
+  if (!serverUrl) return;
+
+  // Test connectivity
+  try {
+    const headers = { 'Accept': 'application/json' };
+    if (serverKey) headers['X-Raku-API-Key'] = serverKey;
+    const resp = await fetch(serverUrl + '/api/raku/health', { method: 'GET', headers, mode: 'cors' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  } catch (e) {
+    console.warn('Server health check failed, connecting anyway:', e.message);
+  }
+
+  serverConnected = true;
+  localStorage.setItem('raku_server_url', serverUrl);
+  localStorage.setItem('raku_server_key', serverKey);
+
+  // Add LIVE badge to header
+  const h1 = document.querySelector('#top-bar h1');
+  if (!document.getElementById('live-badge')) {
+    const badge = document.createElement('span');
+    badge.id = 'live-badge';
+    badge.className = 'live-badge';
+    badge.textContent = 'LIVE';
+    h1.appendChild(badge);
+  }
+
+  // Close panel
+  document.getElementById('server-panel').classList.remove('open');
+  document.getElementById('serverBtn').classList.add('active');
+  logAPI('GET', '/health', 200, 0);
+};
+
+window.disconnectServer = function() {
+  serverConnected = false;
+  localStorage.removeItem('raku_server_url');
+  localStorage.removeItem('raku_server_key');
+
+  // Remove LIVE badge
+  const badge = document.getElementById('live-badge');
+  if (badge) badge.remove();
+
+  document.getElementById('server-panel').classList.remove('open');
+  document.getElementById('serverBtn').classList.remove('active');
+};
+
+// Server-side API call helper (used in parallel with client-side simulation)
+async function serverCall(method, path, body) {
+  if (!serverConnected) return null;
+  const serverUrl = localStorage.getItem('raku_server_url') || '';
+  const serverKey = localStorage.getItem('raku_server_key') || '';
+  if (!serverUrl) return null;
+  const resolved = path.replace('{world_id}', worldId || '').replace('{agent_id}', npcId || '');
+  const headers = { 'Content-Type': 'application/json' };
+  if (serverKey) headers['X-Raku-API-Key'] = serverKey;
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const resp = await fetch(serverUrl + '/api/raku' + resolved, opts);
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch (e) {
+    console.warn('Server call failed:', resolved, e.message);
+    return null;
+  }
+}
+
+// Restore server connection from localStorage on load
+(function restoreServerConnection() {
+  const savedUrl = localStorage.getItem('raku_server_url');
+  if (savedUrl) {
+    document.getElementById('srv-url').value = savedUrl;
+    const savedKey = localStorage.getItem('raku_server_key');
+    if (savedKey) document.getElementById('srv-key').value = savedKey;
+    serverConnected = true;
+    const h1 = document.querySelector('#top-bar h1');
+    if (!document.getElementById('live-badge')) {
+      const badge = document.createElement('span');
+      badge.id = 'live-badge';
+      badge.className = 'live-badge';
+      badge.textContent = 'LIVE';
+      h1.appendChild(badge);
+    }
+    document.getElementById('serverBtn').classList.add('active');
+  }
+})();
 
 // ─── THREE.JS SCENE ───
 const scene = new THREE.Scene();
@@ -359,6 +485,8 @@ let entityCount = 0;
 window.spawnEntity = async function(type) {
   const pos = [(Math.random()-0.5)*10, 5 + Math.random()*3, (Math.random()-0.5)*10];
   const data = await api('POST', '/worlds/{world_id}/entities', { type, name: type + '_' + entityCount, position: pos });
+  // Also call server in parallel when connected
+  serverCall('POST', '/worlds/{world_id}/entities', { type, name: type + '_' + entityCount, position: pos });
   const id = data.entity_id || 'e-' + entityCount;
   entities[id] = { x: pos[0], y: pos[1], z: pos[2], type, vy: 0 };
   entityMeshes[id] = createEntityMesh(type, pos);
@@ -412,6 +540,8 @@ function stepPhysics(dt) {
   const step = physicsTimer;
   physicsTimer = 0;
   api('POST', '/worlds/{world_id}/physics/step', { dt: step });
+  // Also step physics on server when connected
+  serverCall('POST', '/worlds/{world_id}/physics/step', { dt: step });
 }
 
 // NPC Dialogue
@@ -422,6 +552,12 @@ window.sendToNPC = async function() {
   input.value = '';
   document.getElementById('npc-text').textContent = 'Thinking...';
   activateDLL('RakuVoice'); activateDLL('RakuUI'); activateDLL('RakuNetwork');
+  // Prefer server response when connected
+  const serverData = await serverCall('POST', '/worlds/{world_id}/agents/{agent_id}/act', { player_action: msg, observation: 'Player is speaking to the NPC.' });
+  if (serverData && serverData.dialogue) {
+    document.getElementById('npc-text').textContent = serverData.dialogue;
+    return;
+  }
   const data = await api('POST', '/worlds/{world_id}/agents/{agent_id}/act', { player_action: msg, observation: 'Player is speaking to the NPC.' });
   document.getElementById('npc-text').textContent = data.dialogue || data.action || 'I appreciate your curiosity!';
 };
@@ -459,6 +595,8 @@ window.enterWorld = async function() {
 
   const data = await api('POST', '/worlds', { name: 'demo_world', gps_origin: { lat: 39.9496, lng: -75.1503, alt: 12 }, radius_m: 500 });
   worldId = data.world_id || 'w-demo';
+  // Also create world on server when connected
+  serverCall('POST', '/worlds', { name: 'demo_world', gps_origin: { lat: 39.9496, lng: -75.1503, alt: 12 }, radius_m: 500 });
   activateDLL('RakuGameplay');
 
   // Spawn entities in a circle

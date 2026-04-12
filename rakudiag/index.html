@@ -96,6 +96,45 @@ nav { display: flex; gap: 16px; margin-top: 12px; font-size: 0.85rem; }
   font-size: 0.8rem;
   font-family: 'SF Mono', Monaco, monospace;
 }
+.conn-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(30, 30, 60, 0.5);
+}
+.conn-status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #555;
+}
+.conn-status.connected .dot {
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+.conn-status.connected {
+  border-color: var(--success);
+  color: var(--success);
+}
+.conn-status.disconnected .dot {
+  background: var(--danger);
+}
+.conn-status.disconnected {
+  color: var(--danger);
+}
+.conn-status.checking .dot {
+  background: var(--warn);
+  animation: blink 1s infinite;
+}
+.conn-status.checking {
+  color: var(--warn);
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 /* Status cards */
 .status-cards {
@@ -326,6 +365,7 @@ footer a { color: var(--dim); }
       <h1>RakuDiag &mdash; Engine Health</h1>
       <div class="controls">
         <input type="text" id="base-url" placeholder="API base URL" spellcheck="false">
+        <span class="conn-status" id="conn-status"><span class="dot"></span><span id="conn-label">Unknown</span></span>
         <button class="btn" id="run-btn">Run Tests</button>
       </div>
     </div>
@@ -442,12 +482,46 @@ footer a { color: var(--dim); }
   function setBaseUrl(url) {
     try { localStorage.setItem(STORAGE_KEY, url); } catch (e) {}
   }
+  const connStatus = $('conn-status');
+  const connLabel = $('conn-label');
+
+  function setConnStatus(state, label) {
+    connStatus.className = 'conn-status ' + state;
+    connLabel.textContent = label;
+  }
+
+  async function checkConnection() {
+    const base = (baseUrlInput.value || DEFAULT_BASE_URL).trim().replace(/\/+$/, '');
+    setConnStatus('checking', 'Checking...');
+    try {
+      const resp = await fetch(base + '/rakudiag/health', {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        mode: 'cors',
+        cache: 'no-store',
+        signal: AbortSignal.timeout(5000),
+      });
+      if (resp.ok) {
+        setConnStatus('connected', 'Connected');
+      } else {
+        // Still reachable but returned an error — may not have /health, try /rakudiag/run
+        setConnStatus('connected', 'Reachable (' + resp.status + ')');
+      }
+    } catch (e) {
+      setConnStatus('disconnected', 'Unreachable');
+    }
+  }
+
   baseUrlInput.value = getBaseUrl();
   baseUrlInput.addEventListener('change', () => {
     const v = baseUrlInput.value.trim().replace(/\/+$/, '');
     baseUrlInput.value = v || DEFAULT_BASE_URL;
     setBaseUrl(baseUrlInput.value);
+    checkConnection();
   });
+
+  // Initial connection check
+  checkConnection();
 
   // ---------- Initial DLL grid (all missing) ----------
   function renderDllGrid(loadedModules) {
@@ -643,6 +717,7 @@ footer a { color: var(--dim); }
       }
       const data = await res.json();
       renderResults(data);
+      setConnStatus('connected', 'Connected');
       const finishedAt = new Date();
       timestampEl.textContent = 'Last run: ' + finishedAt.toLocaleString() +
         ' (' + (Date.now() - startedAt) + 'ms) — ' + url;
@@ -656,6 +731,7 @@ footer a { color: var(--dim); }
           'GET ' + url + ' failed: ' + (err && err.message ? err.message : String(err)) +
           '. Check the base URL, CORS headers on the API, or network connectivity.');
       }
+      setConnStatus('disconnected', 'Unreachable');
       setCard('card-overall', 'val-overall', 'fail', 'UNREACHABLE');
       setCard('card-native', 'val-native', 'neutral', '—');
       setCard('card-bound', 'val-bound', 'neutral', '—');

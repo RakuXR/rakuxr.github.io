@@ -127,6 +127,9 @@ export class RakuEngine {
     this._apiLog = [];
     this._listeners = { dll: [], api: [] };
     this.anthropicKey = options.anthropicKey || '';
+    this.serverUrl = options.serverUrl || '';  // e.g. 'https://raku-api-staging.fly.dev'
+    this.apiKey = options.apiKey || '';  // X-Raku-API-Key header value
+    this.serverMode = !!this.serverUrl;
   }
 
   // Event system
@@ -148,6 +151,22 @@ export class RakuEngine {
     return entry;
   }
 
+  async _serverCall(method, path, body = null) {
+    if (!this.serverMode) return null;
+    const headers = { 'Content-Type': 'application/json' };
+    if (this.apiKey) headers['X-Raku-API-Key'] = this.apiKey;
+    const opts = { method, headers };
+    if (body) opts.body = JSON.stringify(body);
+    try {
+      const resp = await fetch(`${this.serverUrl}/api/raku${path}`, opts);
+      if (!resp.ok) return null;
+      return await resp.json();
+    } catch (e) {
+      console.warn('Server call failed:', path, e.message);
+      return null;
+    }
+  }
+
   get activeDLLCount() { return this._activeDLLs.size; }
   get activeDLLNames() { return [...this._activeDLLs]; }
   get apiLog() { return this._apiLog; }
@@ -163,6 +182,8 @@ export class RakuEngine {
       createdAt: Date.now(), savedSnapshots: {},
     };
     this._log('POST', '/worlds', 201, 42 + Math.random() * 60 | 0);
+    // Fire-and-forget server call when serverMode is enabled
+    this._serverCall('POST', '/worlds', { name, gps_origin: gpsOrigin, radius_m: radiusM, tier });
     return { world_id: id, name, status: 'created', gps_origin: gpsOrigin };
   }
 
@@ -206,6 +227,8 @@ export class RakuEngine {
     if (gps) { const local = gpsToLocal(w.gpsOrigin, gps); pos = [local.x, local.y, local.z]; }
     w.entities[id] = { id, type, name: name || `${type}_${id}`, position: [...pos], rotation: [0, 0, 0, 1], scale: [1, 1, 1], properties, physics: null, createdAt: Date.now() };
     this._log('POST', `/worlds/${worldId}/entities`, 201, 25 + Math.random() * 50 | 0);
+    // Fire-and-forget server call when serverMode is enabled
+    this._serverCall('POST', `/worlds/${worldId}/entities`, { type, name: name || `${type}_${id}`, position: pos, gps, properties });
     return { entity_id: id, position: pos, type };
   }
 
@@ -260,6 +283,8 @@ export class RakuEngine {
       }
     }
     this._log('POST', `/worlds/${worldId}/physics/step`, 200, 8 + Math.random() * 15 | 0, `${collisions.length} collisions`);
+    // Fire-and-forget server call when serverMode is enabled
+    this._serverCall('POST', `/worlds/${worldId}/physics/step`, { dt });
     return { stepped: true, dt, collisions };
   }
 
@@ -305,6 +330,18 @@ export class RakuEngine {
   async agentAct(worldId, agentId, { playerAction = '', observation = '' } = {}) {
     const w = this._worlds[worldId]; const agent = w?.agents[agentId]; if (!agent) return { error: 'agent not found' };
     this._activateDLL('RakuAI'); this._activateDLL('RakuSLM'); this._activateDLL('RakuScripting');
+
+    // Prefer server response when serverMode is enabled
+    if (this.serverMode) {
+      const serverResult = await this._serverCall('POST', `/worlds/${worldId}/agents/${agentId}/act`, { player_action: playerAction, observation });
+      if (serverResult && serverResult.dialogue) {
+        agent.memory.push({ role: 'user', content: playerAction }, { role: 'assistant', content: serverResult.dialogue });
+        if (agent.memory.length > 10) agent.memory = agent.memory.slice(-10);
+        this._log('POST', `/worlds/${worldId}/agents/${agentId}/act`, 200, 200 + Math.random() * 500 | 0, 'server');
+        return { dialogue: serverResult.dialogue, emotion: serverResult.emotion || agent.emotion, action: serverResult.action || 'speak' };
+      }
+      // Fall through to client-side if server call failed
+    }
 
     let dialogue;
     if (this.anthropicKey) {
