@@ -395,7 +395,7 @@ let physicsTimer = 0;
 function stepPhysics(dt) {
   if (!physicsOn) return;
   physicsTimer += dt;
-  if (physicsTimer < 0.2) return; // 5Hz (reduced from 20Hz to ease backend load)
+  if (physicsTimer < 0.05) return; // 20Hz for smooth spatial engine visuals
   const step = physicsTimer;
   physicsTimer = 0;
   api('POST', '/worlds/{world_id}/physics/step', { dt: step });

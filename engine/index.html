@@ -124,9 +124,11 @@ const logArea = document.getElementById('log-area');
 
 // Build DLL cards
 const grid = document.getElementById('dll-grid');
+const maxFns = Math.max(...DLLS.map(d => d.fns));
+let gridHTML = '';
 DLLS.forEach((dll, i) => {
-  const pct = (dll.fns / 312 * 100).toFixed(0); // relative to largest
-  grid.innerHTML += `
+  const pct = (dll.fns / maxFns * 100).toFixed(0); // relative to largest
+  gridHTML += `
     <div class="dll-card" id="card-${dll.name}" onclick="testDLL(${i})">
       <div class="dll-header">
         <div class="dll-dot" id="dot-${dll.name}"></div>
@@ -137,6 +139,7 @@ DLLS.forEach((dll, i) => {
       <div class="dll-bar"><div class="dll-bar-fill" style="width:${pct}%"></div></div>
     </div>`;
 });
+grid.innerHTML = gridHTML;
 
 // Listen for engine events
 engine.on('dll', ({ name, total }) => {
