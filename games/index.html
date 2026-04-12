@@ -616,6 +616,68 @@
     pointer-events: none;
   }
 
+
+  /* ============ OPTIONS MENU ============ */
+  .options-panel {
+    display: none;
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 100;
+    background: #000;
+    border: 3px solid var(--neon-cyan);
+    padding: 16px;
+    box-shadow: 0 0 20px var(--neon-cyan);
+    min-width: 260px;
+  }
+  .options-panel.open { display: block; }
+  .options-panel h4 {
+    font-size: 10px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 6px var(--neon-yellow);
+    margin-bottom: 12px;
+    text-align: center;
+    letter-spacing: 2px;
+  }
+  .options-panel .opt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 8px;
+    color: #b9d8ff;
+    gap: 8px;
+  }
+  .options-panel label {
+    flex: 1;
+    cursor: pointer;
+  }
+  .options-panel input[type="range"] {
+    width: 110px;
+    accent-color: var(--neon-pink);
+  }
+  .options-panel input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--neon-cyan);
+    cursor: pointer;
+  }
+  .options-panel .close-opt {
+    margin-top: 8px;
+    width: 100%;
+    font-family: inherit;
+    font-size: 8px;
+    background: transparent;
+    color: var(--neon-pink);
+    border: 2px solid var(--neon-pink);
+    padding: 6px;
+    cursor: pointer;
+  }
+  .options-panel .close-opt:hover {
+    background: var(--neon-pink);
+    color: #000;
+  }
+
 </style>
 </head>
 <body>
@@ -639,6 +701,8 @@
       <a href="/api/">API DOCS</a>
     </div>
     <div class="nav-group">
+      <button id="mute-btn" type="button" title="Mute">&#128266; SOUND</button>
+      <button id="options-btn" type="button">&#9881; OPTIONS</button>
       <button class="exit" id="exit-arcade">EXIT ARCADE</button>
     </div>
   </nav>
@@ -685,6 +749,31 @@
   </div>
 
   <div class="coin-corner">&#9733; INSERT COIN &#9733;</div>
+
+  <div class="options-panel" id="options-panel" role="dialog" aria-label="Options">
+    <h4>&gt;&gt; OPTIONS &lt;&lt;</h4>
+    <div class="opt-row">
+      <label for="opt-volume">MASTER VOLUME</label>
+      <input type="range" id="opt-volume" min="0" max="100" value="60">
+    </div>
+    <div class="opt-row">
+      <label for="opt-mute">MUTE ALL</label>
+      <input type="checkbox" id="opt-mute">
+    </div>
+    <div class="opt-row">
+      <label for="opt-scanlines">SCANLINES</label>
+      <input type="checkbox" id="opt-scanlines" checked>
+    </div>
+    <div class="opt-row">
+      <label for="opt-crt">CRT EFFECT</label>
+      <input type="checkbox" id="opt-crt" checked>
+    </div>
+    <div class="opt-row">
+      <label for="opt-music">BG MUSIC</label>
+      <input type="checkbox" id="opt-music">
+    </div>
+    <button type="button" class="close-opt" id="close-opt">[ CLOSE ]</button>
+  </div>
 
   <div class="game-frame-host" id="game-frame-host" role="dialog" aria-modal="true" aria-label="Game player">
     <div class="game-frame-bar">
@@ -1058,8 +1147,153 @@
   logApi('GET /api/raku/engine/status');
   logApi('GET /api/raku/catalog/games');
 
-  // Placeholder sound hook — real audio added in sound commit
-  function playLaunchSound() { /* noop until audio commit */ }
+  // ============ WEB AUDIO ============
+  const AUDIO = {
+    ctx: null,
+    gain: null,
+    muted: localStorage.getItem('raku.mute') === '1',
+    volume: parseFloat(localStorage.getItem('raku.vol') || '0.6'),
+    musicOn: localStorage.getItem('raku.music') === '1',
+    musicOsc: null,
+    musicGain: null,
+    musicTimer: null
+  };
+
+  function audioCtx() {
+    if (!AUDIO.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      AUDIO.ctx = new AC();
+      AUDIO.gain = AUDIO.ctx.createGain();
+      AUDIO.gain.gain.value = AUDIO.muted ? 0 : AUDIO.volume;
+      AUDIO.gain.connect(AUDIO.ctx.destination);
+    }
+    if (AUDIO.ctx.state === 'suspended') AUDIO.ctx.resume();
+    return AUDIO.ctx;
+  }
+
+  function beep(freq, dur, type, vol) {
+    const ctx = audioCtx();
+    if (!ctx || AUDIO.muted) return;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type || 'square';
+    o.frequency.value = freq;
+    const now = ctx.currentTime;
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime((vol || 0.3) * AUDIO.volume, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+    o.connect(g);
+    g.connect(AUDIO.gain);
+    o.start(now);
+    o.stop(now + dur + 0.02);
+  }
+
+  function playHover() { beep(880, 0.05, 'square', 0.15); }
+  function playSelect() { beep(1320, 0.08, 'square', 0.25); }
+  function playLaunchSound() {
+    beep(440, 0.08, 'square', 0.3);
+    setTimeout(() => beep(660, 0.08, 'square', 0.3), 80);
+    setTimeout(() => beep(880, 0.12, 'square', 0.35), 160);
+  }
+  function playBack() { beep(220, 0.1, 'triangle', 0.2); }
+
+  // 8-bit background loop
+  const MUSIC_NOTES = [262, 330, 392, 523, 392, 330, 294, 330]; // C E G C G E D E
+  let musicStep = 0;
+  function startMusic() {
+    if (AUDIO.musicTimer) return;
+    musicStep = 0;
+    const tick = () => {
+      if (!AUDIO.musicOn || AUDIO.muted) return;
+      const freq = MUSIC_NOTES[musicStep % MUSIC_NOTES.length];
+      beep(freq, 0.18, 'triangle', 0.12);
+      musicStep++;
+    };
+    tick();
+    AUDIO.musicTimer = setInterval(tick, 320);
+  }
+  function stopMusic() {
+    if (AUDIO.musicTimer) {
+      clearInterval(AUDIO.musicTimer);
+      AUDIO.musicTimer = null;
+    }
+  }
+
+  // Wire hover sound into cards (after grid renders)
+  function attachCardSounds() {
+    document.querySelectorAll('.game-card').forEach(card => {
+      card.addEventListener('mouseenter', playHover);
+      card.addEventListener('focus', playHover);
+    });
+  }
+
+  // ============ OPTIONS MENU ============
+  const optPanel = document.getElementById('options-panel');
+  const optBtn = document.getElementById('options-btn');
+  const muteBtn = document.getElementById('mute-btn');
+  const optVolume = document.getElementById('opt-volume');
+  const optMute = document.getElementById('opt-mute');
+  const optScan = document.getElementById('opt-scanlines');
+  const optCrt = document.getElementById('opt-crt');
+  const optMusic = document.getElementById('opt-music');
+
+  // Load persisted options
+  optVolume.value = Math.round(AUDIO.volume * 100);
+  optMute.checked = AUDIO.muted;
+  optScan.checked = localStorage.getItem('raku.scanlines') !== '0';
+  optCrt.checked = localStorage.getItem('raku.crt') !== '0';
+  optMusic.checked = AUDIO.musicOn;
+  if (!optScan.checked) document.body.classList.add('no-scanlines');
+  if (!optCrt.checked) document.body.classList.add('no-crt');
+  updateMuteBtn();
+
+  optBtn.addEventListener('click', () => {
+    optPanel.classList.toggle('open');
+    playSelect();
+  });
+  document.getElementById('close-opt').addEventListener('click', () => optPanel.classList.remove('open'));
+
+  optVolume.addEventListener('input', () => {
+    AUDIO.volume = parseInt(optVolume.value, 10) / 100;
+    localStorage.setItem('raku.vol', String(AUDIO.volume));
+    if (AUDIO.gain) AUDIO.gain.gain.value = AUDIO.muted ? 0 : AUDIO.volume;
+  });
+  optMute.addEventListener('change', () => {
+    AUDIO.muted = optMute.checked;
+    localStorage.setItem('raku.mute', AUDIO.muted ? '1' : '0');
+    if (AUDIO.gain) AUDIO.gain.gain.value = AUDIO.muted ? 0 : AUDIO.volume;
+    updateMuteBtn();
+  });
+  muteBtn.addEventListener('click', () => {
+    AUDIO.muted = !AUDIO.muted;
+    optMute.checked = AUDIO.muted;
+    localStorage.setItem('raku.mute', AUDIO.muted ? '1' : '0');
+    if (AUDIO.gain) AUDIO.gain.gain.value = AUDIO.muted ? 0 : AUDIO.volume;
+    updateMuteBtn();
+    playSelect();
+  });
+  function updateMuteBtn() {
+    muteBtn.innerHTML = AUDIO.muted ? '&#128263; MUTED' : '&#128266; SOUND';
+  }
+
+  optScan.addEventListener('change', () => {
+    document.body.classList.toggle('no-scanlines', !optScan.checked);
+    localStorage.setItem('raku.scanlines', optScan.checked ? '1' : '0');
+  });
+  optCrt.addEventListener('change', () => {
+    document.body.classList.toggle('no-crt', !optCrt.checked);
+    localStorage.setItem('raku.crt', optCrt.checked ? '1' : '0');
+  });
+  optMusic.addEventListener('change', () => {
+    AUDIO.musicOn = optMusic.checked;
+    localStorage.setItem('raku.music', AUDIO.musicOn ? '1' : '0');
+    if (AUDIO.musicOn) { audioCtx(); startMusic(); } else { stopMusic(); }
+  });
+
+  // First user interaction unlocks audio context
+  document.addEventListener('click', () => audioCtx(), { once: true });
+  document.addEventListener('keydown', () => audioCtx(), { once: true });
 
   // ============ EXIT ARCADE ============
   document.getElementById('exit-arcade').addEventListener('click', () => {
@@ -1083,6 +1317,7 @@
 
   // ============ INIT ============
   renderGrid();
+  attachCardSounds();
   spawnBulbs();
   updateCardScores();
   renderLeaderboard();
