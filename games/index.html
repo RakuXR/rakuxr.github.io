@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="RakuAI Arcade — 8 retro games powered by the RakuAI game engine.">
+<title>RAKUAI ARCADE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-pink: #ff2d95;
+    --neon-cyan: #00f0ff;
+    --neon-yellow: #ffea00;
+    --neon-green: #39ff14;
+    --neon-purple: #b967ff;
+    --bg-dark: #050012;
+    --bg-mid: #0a0420;
+    --bg-card: #120830;
+    --scan: rgba(0, 0, 0, 0.25);
+    --glow-pink: 0 0 8px #ff2d95, 0 0 16px #ff2d95, 0 0 24px #ff2d95;
+    --glow-cyan: 0 0 8px #00f0ff, 0 0 16px #00f0ff, 0 0 24px #00f0ff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg-dark);
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body {
+    background:
+      radial-gradient(ellipse at top, #1a0045 0%, transparent 60%),
+      radial-gradient(ellipse at bottom, #1a0045 0%, transparent 60%),
+      var(--bg-dark);
+    position: relative;
+  }
+
+  /* Animated grid background */
+  .bg-grid {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(0, 240, 255, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 45, 149, 0.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: grid-pan 20s linear infinite;
+  }
+  @keyframes grid-pan {
+    0% { background-position: 0 0, 0 0; }
+    100% { background-position: 40px 40px, 40px 40px; }
+  }
+
+  /* CRT scanlines overlay */
+  .crt-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0) 0px,
+        rgba(0, 0, 0, 0) 2px,
+        rgba(0, 0, 0, 0.18) 3px,
+        rgba(0, 0, 0, 0.18) 4px
+      );
+    mix-blend-mode: multiply;
+  }
+  .crt-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%);
+    pointer-events: none;
+  }
+  body.no-crt .crt-overlay { display: none; }
+  body.no-scanlines .crt-overlay { background: none; }
+
+  /* CRT flicker */
+  @keyframes crt-flicker {
+    0%, 100% { opacity: 1; }
+    48% { opacity: 1; }
+    50% { opacity: 0.92; }
+    52% { opacity: 1; }
+    92% { opacity: 0.98; }
+  }
+  body:not(.no-crt) main,
+  body:not(.no-crt) nav.top,
+  body:not(.no-crt) .marquee {
+    animation: crt-flicker 6s infinite;
+  }
+
+  /* ============ MARQUEE ============ */
+  .marquee {
+    position: relative;
+    z-index: 9;
+    margin: 0;
+    padding: 14px 24px;
+    background: #000;
+    border-top: 4px solid var(--neon-pink);
+    border-bottom: 4px solid var(--neon-pink);
+    box-shadow:
+      0 0 20px rgba(255, 45, 149, 0.6),
+      inset 0 0 30px rgba(255, 45, 149, 0.25);
+    overflow: hidden;
+    text-align: center;
+  }
+  .marquee-bulbs {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 8px;
+    display: flex;
+    justify-content: space-around;
+    pointer-events: none;
+  }
+  .marquee-bulbs.top { top: 2px; }
+  .marquee-bulbs.bot { bottom: 2px; }
+  .bulb {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--neon-yellow);
+    box-shadow: 0 0 6px var(--neon-yellow), 0 0 12px var(--neon-yellow);
+    animation: bulb-chase 1.6s steps(1) infinite;
+  }
+  .bulb:nth-child(4n+1) { animation-delay: 0s; background: var(--neon-yellow); }
+  .bulb:nth-child(4n+2) { animation-delay: 0.4s; background: var(--neon-pink); box-shadow: 0 0 6px var(--neon-pink), 0 0 12px var(--neon-pink); }
+  .bulb:nth-child(4n+3) { animation-delay: 0.8s; background: var(--neon-cyan); box-shadow: 0 0 6px var(--neon-cyan), 0 0 12px var(--neon-cyan); }
+  .bulb:nth-child(4n+4) { animation-delay: 1.2s; background: var(--neon-green); box-shadow: 0 0 6px var(--neon-green), 0 0 12px var(--neon-green); }
+  @keyframes bulb-chase {
+    0%, 50% { opacity: 1; transform: scale(1); }
+    50.01%, 100% { opacity: 0.15; transform: scale(0.8); }
+  }
+
+  .marquee-track {
+    display: inline-block;
+    white-space: nowrap;
+    font-size: 22px;
+    color: var(--neon-yellow);
+    text-shadow:
+      0 0 8px var(--neon-yellow),
+      0 0 16px var(--neon-pink),
+      0 0 24px var(--neon-pink);
+    animation: marquee-slide 18s linear infinite;
+    letter-spacing: 4px;
+    padding: 6px 0;
+  }
+  @media (max-width: 700px) {
+    .marquee-track { font-size: 16px; letter-spacing: 2px; }
+  }
+  @keyframes marquee-slide {
+    0% { transform: translateX(60%); }
+    100% { transform: translateX(-60%); }
+  }
+  .marquee-track .sep {
+    color: var(--neon-cyan);
+    margin: 0 20px;
+    text-shadow: 0 0 8px var(--neon-cyan);
+  }
+
+  /* Top nav */
+  nav.top {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 2px solid var(--neon-pink);
+    background: rgba(5, 0, 18, 0.85);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  nav.top a, nav.top button {
+    color: var(--neon-cyan);
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 10px;
+    background: transparent;
+    border: 2px solid var(--neon-cyan);
+    padding: 8px 12px;
+    cursor: pointer;
+    text-shadow: 0 0 6px var(--neon-cyan);
+    box-shadow: 0 0 8px rgba(0, 240, 255, 0.4) inset, 0 0 8px rgba(0, 240, 255, 0.2);
+    transition: all 0.15s;
+  }
+  nav.top a:hover, nav.top button:hover {
+    background: var(--neon-cyan);
+    color: #000;
+    text-shadow: none;
+    box-shadow: var(--glow-cyan);
+  }
+  nav.top .exit {
+    border-color: var(--neon-pink);
+    color: var(--neon-pink);
+    text-shadow: 0 0 6px var(--neon-pink);
+    box-shadow: 0 0 8px rgba(255, 45, 149, 0.4) inset, 0 0 8px rgba(255, 45, 149, 0.2);
+  }
+  nav.top .exit:hover {
+    background: var(--neon-pink);
+    color: #000;
+    text-shadow: none;
+    box-shadow: var(--glow-pink);
+  }
+  nav.top .nav-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* Main layout */
+  main {
+    position: relative;
+    z-index: 5;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 24px 80px;
+  }
+
+  /* Game grid */
+  .game-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin: 32px 0;
+  }
+  @media (max-width: 1100px) {
+    .game-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 820px) {
+    .game-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 540px) {
+    .game-grid { grid-template-columns: 1fr; gap: 16px; }
+  }
+
+  .game-card {
+    background: var(--bg-card);
+    border: 3px solid var(--neon-cyan);
+    padding: 16px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    outline: none;
+  }
+  .game-card::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border: 3px solid transparent;
+    pointer-events: none;
+    transition: all 0.2s;
+  }
+  .game-card:hover,
+  .game-card:focus,
+  .game-card.selected {
+    transform: translateY(-6px);
+    border-color: var(--neon-pink);
+    box-shadow:
+      0 0 12px var(--neon-pink),
+      0 0 24px rgba(255, 45, 149, 0.5),
+      0 12px 30px rgba(0, 0, 0, 0.6);
+  }
+  .game-card.selected::before {
+    border-color: var(--neon-yellow);
+    box-shadow: 0 0 10px var(--neon-yellow);
+    animation: pulse-border 1s infinite alternate;
+  }
+  @keyframes pulse-border {
+    from { opacity: 0.6; }
+    to { opacity: 1; }
+  }
+
+  .game-thumb {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: #000;
+    border: 2px solid var(--neon-cyan);
+    position: relative;
+    overflow: hidden;
+    image-rendering: pixelated;
+  }
+  .game-thumb svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .game-title {
+    font-size: 11px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 6px var(--neon-yellow);
+    min-height: 2.4em;
+    line-height: 1.2;
+  }
+  .game-desc {
+    font-size: 8px;
+    color: #b9d8ff;
+    line-height: 1.5;
+    min-height: 3em;
+  }
+  .game-hiscore {
+    font-size: 8px;
+    color: var(--neon-green);
+    text-shadow: 0 0 4px var(--neon-green);
+  }
+  .game-play {
+    font-family: inherit;
+    font-size: 10px;
+    background: transparent;
+    color: var(--neon-pink);
+    border: 2px solid var(--neon-pink);
+    padding: 8px;
+    cursor: pointer;
+    text-shadow: 0 0 4px var(--neon-pink);
+    transition: all 0.15s;
+  }
+  .game-card:hover .game-play,
+  .game-card.selected .game-play {
+    background: var(--neon-pink);
+    color: #000;
+    text-shadow: none;
+    box-shadow: 0 0 10px var(--neon-pink);
+  }
+
+  /* Section header */
+  .section-header {
+    font-size: 14px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px var(--neon-cyan);
+    text-align: center;
+    margin: 32px 0 16px;
+    letter-spacing: 2px;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 12px;
+    border: 2px solid var(--neon-purple);
+    background: rgba(185, 103, 255, 0.05);
+    font-size: 8px;
+    color: var(--neon-purple);
+    text-shadow: 0 0 4px var(--neon-purple);
+  }
+  .stats-bar .powered {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 6px var(--neon-yellow);
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 8px;
+    color: #6a7a9a;
+    border-top: 1px solid rgba(0, 240, 255, 0.2);
+    margin-top: 40px;
+  }
+
+  /* ============ GAME FRAME ============ */
+  .game-frame-host {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: #000;
+    flex-direction: column;
+  }
+  .game-frame-host.open { display: flex; }
+  .game-frame-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #000;
+    border-bottom: 2px solid var(--neon-pink);
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .game-frame-bar .now-playing {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 6px var(--neon-yellow);
+    font-size: 10px;
+  }
+  .game-frame-bar button {
+    font-family: inherit;
+    font-size: 9px;
+    background: transparent;
+    color: var(--neon-cyan);
+    border: 2px solid var(--neon-cyan);
+    padding: 6px 10px;
+    cursor: pointer;
+    text-shadow: 0 0 4px var(--neon-cyan);
+  }
+  .game-frame-bar button:hover {
+    background: var(--neon-cyan);
+    color: #000;
+    text-shadow: none;
+  }
+  .game-frame-bar .back-btn {
+    color: var(--neon-pink);
+    border-color: var(--neon-pink);
+    text-shadow: 0 0 4px var(--neon-pink);
+  }
+  .game-frame-bar .back-btn:hover {
+    background: var(--neon-pink);
+    color: #000;
+    text-shadow: none;
+  }
+  .game-frame-host iframe {
+    flex: 1;
+    width: 100%;
+    border: 0;
+    background: #000;
+  }
+
+  /* Launch flash transition */
+  .launch-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #fff;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .launch-flash.fire {
+    animation: launch-fire 0.45s ease-out forwards;
+  }
+  @keyframes launch-fire {
+    0%   { opacity: 0; }
+    25%  { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+
+  /* API feed panel */
+  .api-feed {
+    border: 2px solid var(--neon-cyan);
+    background: rgba(0, 240, 255, 0.04);
+    padding: 10px 12px;
+    margin: 20px 0;
+    font-size: 7px;
+    color: var(--neon-cyan);
+    max-height: 120px;
+    overflow: hidden;
+    position: relative;
+  }
+  .api-feed h4 {
+    font-size: 9px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 4px var(--neon-yellow);
+    margin-bottom: 6px;
+  }
+  .api-feed .line {
+    line-height: 1.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .api-feed .line .ok { color: var(--neon-green); }
+  .api-feed .line .path { color: #fff; }
+
+
+  /* ============ LEADERBOARD ============ */
+  .leaderboard {
+    border: 3px solid var(--neon-yellow);
+    background: rgba(255, 234, 0, 0.04);
+    padding: 20px;
+    margin: 40px auto;
+    max-width: 720px;
+    box-shadow:
+      0 0 20px rgba(255, 234, 0, 0.4),
+      inset 0 0 30px rgba(255, 234, 0, 0.08);
+  }
+  .leaderboard h3 {
+    font-size: 14px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 8px var(--neon-yellow);
+    text-align: center;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+  }
+  .leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9px;
+  }
+  .leaderboard th, .leaderboard td {
+    padding: 6px 8px;
+    border-bottom: 1px dashed rgba(255, 234, 0, 0.25);
+    text-align: left;
+  }
+  .leaderboard th {
+    color: var(--neon-pink);
+    text-shadow: 0 0 4px var(--neon-pink);
+    font-size: 8px;
+  }
+  .leaderboard td.rank {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 4px var(--neon-cyan);
+    width: 10%;
+  }
+  .leaderboard td.game { color: #fff; }
+  .leaderboard td.score {
+    color: var(--neon-green);
+    text-shadow: 0 0 4px var(--neon-green);
+    text-align: right;
+    width: 25%;
+  }
+  .leaderboard tr.empty td {
+    color: #555;
+    text-align: center;
+    padding: 16px;
+  }
+  .leaderboard .clear-scores {
+    display: block;
+    margin: 12px auto 0;
+    font-family: inherit;
+    font-size: 8px;
+    background: transparent;
+    color: var(--neon-pink);
+    border: 2px solid var(--neon-pink);
+    padding: 6px 10px;
+    cursor: pointer;
+    text-shadow: 0 0 4px var(--neon-pink);
+  }
+  .leaderboard .clear-scores:hover {
+    background: var(--neon-pink);
+    color: #000;
+    text-shadow: none;
+  }
+
+
+  /* ============ ATTRACT MODE ============ */
+  .attract {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9997;
+    background: #000;
+    pointer-events: auto;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .attract.on { display: flex; }
+  .attract .showcase {
+    width: min(80vw, 640px);
+    aspect-ratio: 4 / 3;
+    border: 4px solid var(--neon-pink);
+    box-shadow: 0 0 30px var(--neon-pink), 0 0 60px rgba(255, 45, 149, 0.5);
+    background: #000;
+    position: relative;
+    overflow: hidden;
+  }
+  .attract .showcase svg { width: 100%; height: 100%; }
+  .attract .showcase .caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--neon-yellow);
+    text-align: center;
+    font-size: 12px;
+    text-shadow: 0 0 8px var(--neon-yellow);
+    letter-spacing: 2px;
+  }
+  .attract .insert-coin {
+    font-size: 18px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 12px var(--neon-cyan), 0 0 24px var(--neon-cyan);
+    letter-spacing: 4px;
+    animation: coin-flash 0.8s steps(1) infinite;
+  }
+  @keyframes coin-flash {
+    0%, 50% { opacity: 1; }
+    50.01%, 100% { opacity: 0.1; }
+  }
+  .attract .press-any {
+    font-size: 10px;
+    color: #888;
+  }
+
+  /* Small corner INSERT COIN indicator */
+  .coin-corner {
+    position: fixed;
+    bottom: 12px;
+    left: 12px;
+    z-index: 50;
+    font-size: 8px;
+    color: var(--neon-pink);
+    text-shadow: 0 0 6px var(--neon-pink);
+    animation: coin-flash 1.2s steps(1) infinite;
+    pointer-events: none;
+  }
+
+
+  /* ============ OPTIONS MENU ============ */
+  .options-panel {
+    display: none;
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 100;
+    background: #000;
+    border: 3px solid var(--neon-cyan);
+    padding: 16px;
+    box-shadow: 0 0 20px var(--neon-cyan);
+    min-width: 260px;
+  }
+  .options-panel.open { display: block; }
+  .options-panel h4 {
+    font-size: 10px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 6px var(--neon-yellow);
+    margin-bottom: 12px;
+    text-align: center;
+    letter-spacing: 2px;
+  }
+  .options-panel .opt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 8px;
+    color: #b9d8ff;
+    gap: 8px;
+  }
+  .options-panel label {
+    flex: 1;
+    cursor: pointer;
+  }
+  .options-panel input[type="range"] {
+    width: 110px;
+    accent-color: var(--neon-pink);
+  }
+  .options-panel input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--neon-cyan);
+    cursor: pointer;
+  }
+  .options-panel .close-opt {
+    margin-top: 8px;
+    width: 100%;
+    font-family: inherit;
+    font-size: 8px;
+    background: transparent;
+    color: var(--neon-pink);
+    border: 2px solid var(--neon-pink);
+    padding: 6px;
+    cursor: pointer;
+  }
+  .options-panel .close-opt:hover {
+    background: var(--neon-pink);
+    color: #000;
+  }
+
+
+  /* ============ NAV HINT ============ */
+  .nav-hint {
+    text-align: center;
+    font-size: 7px;
+    color: #6a7a9a;
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+  .nav-hint .key {
+    display: inline-block;
+    padding: 2px 5px;
+    border: 1px solid #6a7a9a;
+    margin: 0 2px;
+    color: var(--neon-cyan);
+  }
+
+
+  /* ============ ACHIEVEMENTS ============ */
+  .achievements {
+    border: 3px solid var(--neon-green);
+    background: rgba(57, 255, 20, 0.04);
+    padding: 20px;
+    margin: 40px auto;
+    max-width: 720px;
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.3), inset 0 0 20px rgba(57, 255, 20, 0.05);
+  }
+  .achievements h3 {
+    font-size: 14px;
+    color: var(--neon-green);
+    text-shadow: 0 0 8px var(--neon-green);
+    text-align: center;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+  }
+  .ach-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .ach-stat {
+    border: 1px dashed rgba(57, 255, 20, 0.35);
+    padding: 10px;
+    font-size: 8px;
+  }
+  .ach-stat .label { color: #9fd8a4; display: block; margin-bottom: 4px; }
+  .ach-stat .value {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 4px var(--neon-yellow);
+    font-size: 11px;
+  }
+  .ach-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .ach-badge {
+    border: 2px solid #2a5a2a;
+    padding: 8px;
+    font-size: 7px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.4);
+  }
+  .ach-badge.unlocked {
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+    text-shadow: 0 0 4px var(--neon-green);
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+  }
+  .ach-badge .icon {
+    font-size: 14px;
+    width: 20px;
+    text-align: center;
+  }
+  .ach-badge.unlocked .icon { color: var(--neon-yellow); text-shadow: 0 0 4px var(--neon-yellow); }
+  .ach-badge .name { font-size: 8px; }
+  .ach-badge .desc { font-size: 6px; color: inherit; opacity: 0.75; display: block; margin-top: 2px; }
+
+  /* Achievement toast */
+  .ach-toast {
+    position: fixed;
+    right: 20px;
+    bottom: 60px;
+    z-index: 200;
+    background: #000;
+    border: 3px solid var(--neon-yellow);
+    box-shadow: 0 0 20px var(--neon-yellow);
+    padding: 14px 18px;
+    max-width: 280px;
+    font-size: 8px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 4px var(--neon-yellow);
+    transform: translateY(120%);
+    opacity: 0;
+    transition: all 0.35s ease;
+  }
+  .ach-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .ach-toast .title { font-size: 10px; color: var(--neon-pink); text-shadow: 0 0 6px var(--neon-pink); display: block; margin-bottom: 4px; }
+
+</style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <div class="marquee" role="banner" aria-label="RakuAI Arcade">
+    <div class="marquee-bulbs top" id="bulbs-top"></div>
+    <div class="marquee-track">
+      &#9733; RAKUAI ARCADE <span class="sep">&bull;</span>
+      INSERT COIN TO PLAY <span class="sep">&bull;</span>
+      8 GAMES <span class="sep">&bull;</span>
+      POWERED BY RAKU ENGINE <span class="sep">&bull;</span>
+      RAKUAI ARCADE &#9733;
+    </div>
+    <div class="marquee-bulbs bot" id="bulbs-bot"></div>
+  </div>
+
+  <nav class="top">
+    <div class="nav-group">
+      <a href="/">&larr; RAKUAI HOME</a>
+      <a href="/api/">API DOCS</a>
+    </div>
+    <div class="nav-group">
+      <button id="mute-btn" type="button" title="Mute">&#128266; SOUND</button>
+      <button id="options-btn" type="button">&#9881; OPTIONS</button>
+      <button class="exit" id="exit-arcade">EXIT ARCADE</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="section-header">&gt;&gt; SELECT YOUR GAME &lt;&lt;</div>
+
+    <div class="stats-bar">
+      <span class="powered">&#9733; POWERED BY RAKUAI &#9733;</span>
+      <span>10,328 ENGINE FUNCTIONS</span>
+      <span>9,500+ REST ENDPOINTS</span>
+      <span>18 DLLS</span>
+    </div>
+
+
+    <div class="nav-hint">
+      <span class="key">&larr;</span><span class="key">&rarr;</span><span class="key">&uarr;</span><span class="key">&darr;</span> NAVIGATE &nbsp;&bull;&nbsp;
+      <span class="key">ENTER</span> LAUNCH &nbsp;&bull;&nbsp;
+      <span class="key">ESC</span> BACK &nbsp;&bull;&nbsp;
+      <span class="key">M</span> MUTE &nbsp;&bull;&nbsp;
+      GAMEPAD SUPPORTED
+    </div>
+
+    <div class="api-feed" id="api-feed">
+      <h4>&gt; LIVE API FEED (raku-api-staging.fly.dev)</h4>
+      <div id="api-feed-lines"></div>
+    </div>
+
+    <div class="game-grid" id="game-grid"></div>
+    <div class="section-header">&gt;&gt; ACHIEVEMENTS &lt;&lt;</div>
+    <div class="achievements" id="achievements">
+      <h3>&#9733; HALL OF FAME &#9733;</h3>
+      <div class="ach-stats" id="ach-stats"></div>
+      <div class="ach-list" id="ach-list"></div>
+    </div>
+
+    <div class="section-header">&gt;&gt; TOP SCORES &lt;&lt;</div>
+    <div class="leaderboard" id="leaderboard">
+      <h3>&#9733; HIGH SCORE LEADERBOARD &#9733;</h3>
+      <table>
+        <thead>
+          <tr><th>#</th><th>GAME</th><th style="text-align:right;">SCORE</th></tr>
+        </thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+      <button type="button" class="clear-scores" id="clear-scores">CLEAR ALL SCORES</button>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2026 RAKUAI &bull; ALL GAMES RUN ON THE RAKU ENGINE
+  </footer>
+
+  <div class="attract" id="attract">
+    <div class="showcase" id="attract-showcase">
+      <div class="caption" id="attract-caption">METEOR STORM</div>
+    </div>
+    <div class="insert-coin">INSERT COIN</div>
+    <div class="press-any">&gt; PRESS ANY KEY OR CLICK TO START &lt;</div>
+  </div>
+
+  <div class="coin-corner">&#9733; INSERT COIN &#9733;</div>
+
+  <div class="options-panel" id="options-panel" role="dialog" aria-label="Options">
+    <h4>&gt;&gt; OPTIONS &lt;&lt;</h4>
+    <div class="opt-row">
+      <label for="opt-volume">MASTER VOLUME</label>
+      <input type="range" id="opt-volume" min="0" max="100" value="60">
+    </div>
+    <div class="opt-row">
+      <label for="opt-mute">MUTE ALL</label>
+      <input type="checkbox" id="opt-mute">
+    </div>
+    <div class="opt-row">
+      <label for="opt-scanlines">SCANLINES</label>
+      <input type="checkbox" id="opt-scanlines" checked>
+    </div>
+    <div class="opt-row">
+      <label for="opt-crt">CRT EFFECT</label>
+      <input type="checkbox" id="opt-crt" checked>
+    </div>
+    <div class="opt-row">
+      <label for="opt-music">BG MUSIC</label>
+      <input type="checkbox" id="opt-music">
+    </div>
+    <button type="button" class="close-opt" id="close-opt">[ CLOSE ]</button>
+  </div>
+
+  <div class="ach-toast" id="ach-toast" role="status" aria-live="polite">
+    <span class="title">ACHIEVEMENT UNLOCKED</span>
+    <span class="body" id="ach-toast-body">—</span>
+  </div>
+
+  <div class="game-frame-host" id="game-frame-host" role="dialog" aria-modal="true" aria-label="Game player">
+    <div class="game-frame-bar">
+      <div class="now-playing" id="now-playing">NOW PLAYING: —</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button type="button" id="frame-reload">&#8635; RESTART</button>
+        <button type="button" class="back-btn" id="frame-back">&larr; BACK TO ARCADE</button>
+      </div>
+    </div>
+    <iframe id="game-frame" title="Game" allow="autoplay; fullscreen; gamepad"></iframe>
+  </div>
+
+  <div class="launch-flash" id="launch-flash"></div>
+
+  <div class="crt-overlay"></div>
+
+<script>
+  // ============ GAME CATALOG ============
+  const GAMES = [
+    {
+      id: 'meteor-storm',
+      title: 'METEOR STORM',
+      desc: 'Blast rocks. Wrap around space.',
+      url: '/games/meteor-storm/?launcher=1',
+      color: '#00f0ff',
+      thumb: (c) => `
+        <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="60" fill="#000"/>
+          <circle cx="10" cy="10" r="0.8" fill="#fff"/>
+          <circle cx="25" cy="18" r="0.6" fill="#fff"/>
+          <circle cx="60" cy="8" r="1" fill="#fff"/>
+          <circle cx="70" cy="25" r="0.7" fill="#fff"/>
+          <circle cx="15" cy="45" r="0.9" fill="#fff"/>
+          <circle cx="50" cy="50" r="0.7" fill="#fff"/>
+          <polygon points="40,22 46,36 34,36" fill="none" stroke="${c}" stroke-width="1.5"/>
+          <polygon points="20,32 28,38 24,44 16,42 14,36" fill="none" stroke="#888" stroke-width="1"/>
+          <polygon points="58,32 66,36 64,44 56,42 54,36" fill="none" stroke="#888" stroke-width="1"/>
+        </svg>`
+    },
+    {
+      id: 'dot-chomper',
+      title: 'DOT CHOMPER',
+      desc: 'Munch dots. Dodge ghosts.',
+      url: '/games/dot-chomper/?launcher=1',
+      color: '#ffea00',
+      thumb: (c) => `
+        <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="60" fill="#000"/>
+          <rect x="4" y="4" width="72" height="52" fill="none" stroke="#1e1eff" stroke-width="1.5"/>
+          <rect x="14" y="14" width="8" height="6" fill="none" stroke="#1e1eff" stroke-width="1"/>
+          <rect x="30" y="14" width="20" height="6" fill="none" stroke="#1e1eff" stroke-width="1"/>
+          <rect x="58" y="14" width="8" height="6" fill="none" stroke="#1e1eff" stroke-width="1"/>
+          <rect x="14" y="40" width="20" height="6" fill="none" stroke="#1e1eff" stroke-width="1"/>
+          <rect x="46" y="40" width="20" height="6" fill="none" stroke="#1e1eff" stroke-width="1"/>
+          <circle cx="10" cy="30" r="1" fill="#fff"/>
+          <circle cx="20" cy="30" r="1" fill="#fff"/>
+          <circle cx="30" cy="30" r="1" fill="#fff"/>
+          <path d="M 40 30 m -5 0 a 5 5 0 1 0 10 0 a 5 5 0 1 0 -10 0 M 40 30 L 46 26 L 46 34 Z" fill="${c}"/>
+          <path d="M 58 30 q 0 -4 4 -4 q 4 0 4 4 v 4 l -2 -1 l -2 1 l -2 -1 l -2 1 z" fill="#ff2d95"/>
+        </svg>`
+    },
+    {
+      id: 'barrel-jumper',
+      title: 'BARREL JUMPER',
+      desc: 'Climb. Jump. Rescue.',
+      url: '/games/barrel-jumper/?launcher=1',
+      color: '#ff2d95',
+      thumb: (c) => `
+        <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="60" fill="#000"/>
+          <rect x="8" y="50" width="64" height="3" fill="${c}"/>
+          <rect x="8" y="38" width="56" height="3" fill="${c}"/>
+          <rect x="16" y="26" width="56" height="3" fill="${c}"/>
+          <rect x="8" y="14" width="56" height="3" fill="${c}"/>
+          <rect x="36" y="6" width="10" height="3" fill="#ffea00"/>
+          <circle cx="20" cy="46" r="3" fill="#00f0ff"/>
+          <rect x="18" y="48" width="4" height="2" fill="#00f0ff"/>
+          <circle cx="60" cy="22" r="2.5" fill="#964b00"/>
+        </svg>`
+    },
+    {
+      id: 'alien-defense',
+      title: 'ALIEN DEFENSE',
+      desc: 'Five rows of invaders.',
+      url: '/games/alien-defense/?launcher=1',
+      color: '#39ff14',
+      thumb: (c) => `
+        <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="60" fill="#000"/>
+          <g fill="${c}">
+            <rect x="10" y="8" width="4" height="2"/><rect x="14" y="6" width="4" height="2"/><rect x="18" y="8" width="4" height="2"/><rect x="12" y="10" width="8" height="2"/>
+            <rect x="30" y="8" width="4" height="2"/><rect x="34" y="6" width="4" height="2"/><rect x="38" y="8" width="4" height="2"/><rect x="32" y="10" width="8" height="2"/>
+            <rect x="50" y="8" width="4" height="2"/><rect x="54" y="6" width="4" height="2"/><rect x="58" y="8" width="4" height="2"/><rect x="52" y="10" width="8" height="2"/>
+          </g>
+          <g fill="#ff2d95">
+            <rect x="10" y="20" width="12" height="4"/>
+            <rect x="30" y="20" width="12" height="4"/>
+            <rect x="50" y="20" width="12" height="4"/>
+          </g>
+          <g fill="#ffea00">
+            <rect x="10" y="30" width="12" height="4"/>
+            <rect x="30" y="30" width="12" height="4"/>
+            <rect x="50" y="30" width="12" height="4"/>
+          </g>
+          <rect x="34" y="50" width="12" height="4" fill="#00f0ff"/>
+          <rect x="38" y="46" width="4" height="4" fill="#00f0ff"/>
+        </svg>`
+    },
+    {
+      id: 'block-drop',
+      title: 'BLOCK DROP',
+      desc: 'Clear the lines.',
+      url: '/games/block-drop/?launcher=1',
+      color: '#00f0ff',
+      thumb: (c) => `
+        <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="60" fill="#000"/>
+          <rect x="24" y="4" width="32" height="52" fill="none" stroke="#444" stroke-width="1"/>
+          <rect x="24" y="40" width="8" height="8" fill="${c}" stroke="#fff" stroke-width="0.5"/>
+          <rect x="32" y="40" width="8" height="8" fill="${c}" stroke="#fff" stroke-width="0.5"/>
+          <rect x="40" y="40" width="8" height="8" fill="${c}" stroke="#fff" stroke-width="0.5"/>
+          <rect x="32" y="32" width="8" height="8" fill="${c}" stroke="#fff" stroke-width="0.5"/>
+          <rect x="24" y="48" width="8" height="8" fill="#ff2d95" stroke="#fff" stroke-width="0.5"/>
+          <rect x="32" y="48" width="8" height="8" fill="#ffea00" stroke="#fff" stroke-width="0.5"/>
+          <rect x="40" y="48" width="8" height="8" fill="#39ff14" stroke="#fff" stroke-width="0.5"/>
+          <rect x="48" y="48" width="8" height="8" fill="#b967ff" stroke="#fff" stroke-width="0.5"/>
+          <rect x="40" y="10" width="8" height="8" fill="#ffea00" stroke="#fff" stroke-width="0.5"/>
+          <rect x="40" y="18" width="8" height="8" fill="#ffea00" stroke="#fff" stroke-width="0.5"/>
+        </svg>`
+    },
+    {
+      id: 'river-hopper',
+      title: 'RIVER HOPPER',
+      desc: 'Cross the road, ride the logs.',
+      url: '/games/river-hopper/?launcher=1',
+      color: '#39ff14',
+      thumb: (c) => `
+        <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="60" fill="#000"/>
+          <rect y="0" width="80" height="10" fill="#062"/>
+          <rect y="10" width="80" height="12" fill="#0066cc"/>
+          <rect x="6" y="12" width="16" height="4" rx="1" fill="#964b00"/>
+          <rect x="40" y="16" width="20" height="4" rx="1" fill="#964b00"/>
+          <rect y="22" width="80" height="12" fill="#222"/>
+          <rect x="10" y="26" width="8" height="4" fill="#ff2d95"/>
+          <rect x="50" y="26" width="8" height="4" fill="#ffea00"/>
+          <rect y="34" width="80" height="12" fill="#0066cc"/>
+          <rect x="14" y="36" width="14" height="4" rx="1" fill="#964b00"/>
+          <rect x="48" y="40" width="14" height="4" rx="1" fill="#964b00"/>
+          <rect y="46" width="80" height="14" fill="#062"/>
+          <rect x="36" y="50" width="8" height="6" fill="${c}"/>
+          <rect x="34" y="52" width="2" height="2" fill="${c}"/>
+          <rect x="44" y="52" width="2" height="2" fill="${c}"/>
+        </svg>`
+    },
+    {
+      id: 'star-bugs',
+      title: 'STAR BUGS',
+      desc: 'Rescue your wingman.',
+      url: '/games/star-bugs/?launcher=1',
+      color: '#b967ff',
+      thumb: (c) => `
+        <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="60" fill="#000"/>
+          <circle cx="12" cy="12" r="0.7" fill="#fff"/>
+          <circle cx="68" cy="18" r="0.7" fill="#fff"/>
+          <circle cx="30" cy="8" r="0.5" fill="#fff"/>
+          <circle cx="55" cy="6" r="0.8" fill="#fff"/>
+          <g fill="${c}">
+            <rect x="18" y="16" width="4" height="3"/><rect x="22" y="14" width="2" height="5"/><rect x="20" y="18" width="6" height="2"/>
+            <rect x="38" y="16" width="4" height="3"/><rect x="42" y="14" width="2" height="5"/><rect x="40" y="18" width="6" height="2"/>
+            <rect x="58" y="16" width="4" height="3"/><rect x="62" y="14" width="2" height="5"/><rect x="60" y="18" width="6" height="2"/>
+          </g>
+          <rect x="36" y="48" width="8" height="4" fill="#ff2d95"/>
+          <rect x="38" y="44" width="4" height="4" fill="#ff2d95"/>
+          <rect x="39" y="40" width="2" height="4" fill="#fff"/>
+        </svg>`
+    },
+    {
+      id: 'myriapod',
+      title: 'MYRIAPOD MAYHEM',
+      desc: 'Shoot the centipede.',
+      url: '/games/myriapod/?launcher=1',
+      color: '#ff2d95',
+      thumb: (c) => `
+        <svg viewBox="0 0 80 60" xmlns="http://www.w3.org/2000/svg">
+          <rect width="80" height="60" fill="#000"/>
+          <g fill="#39ff14">
+            <rect x="10" y="10" width="3" height="3"/><rect x="25" y="18" width="3" height="3"/><rect x="55" y="8" width="3" height="3"/>
+            <rect x="60" y="30" width="3" height="3"/><rect x="15" y="36" width="3" height="3"/>
+          </g>
+          <g fill="${c}">
+            <circle cx="10" cy="22" r="3"/><circle cx="18" cy="22" r="3"/><circle cx="26" cy="22" r="3"/>
+            <circle cx="34" cy="22" r="3"/><circle cx="42" cy="22" r="3"/><circle cx="50" cy="22" r="3"/>
+            <circle cx="58" cy="22" r="3"/><circle cx="66" cy="22" r="3"/>
+            <circle cx="8" cy="20" r="0.6" fill="#fff"/><circle cx="12" cy="20" r="0.6" fill="#fff"/>
+          </g>
+          <rect x="36" y="50" width="8" height="4" fill="#00f0ff"/>
+          <rect x="38" y="46" width="4" height="4" fill="#00f0ff"/>
+        </svg>`
+    }
+  ];
+
+  // ============ RENDER GAME GRID ============
+  function renderGrid() {
+    const grid = document.getElementById('game-grid');
+    grid.innerHTML = '';
+    GAMES.forEach((g, i) => {
+      const card = document.createElement('div');
+      card.className = 'game-card';
+      card.tabIndex = 0;
+      card.dataset.index = i;
+      card.dataset.id = g.id;
+      card.innerHTML = `
+        <div class="game-thumb">${g.thumb(g.color)}</div>
+        <div class="game-title">${g.title}</div>
+        <div class="game-desc">${g.desc}</div>
+        <div class="game-hiscore">HI: 0</div>
+        <button class="game-play" type="button">&gt; PLAY</button>
+      `;
+      card.addEventListener('click', () => launchGame(i));
+      grid.appendChild(card);
+    });
+  }
+
+  // ============ LAUNCH GAME ============
+  let currentGame = null;
+
+  function launchGame(index) {
+    const g = GAMES[index];
+    if (!g) return;
+    currentGame = g;
+    trackGamePlayed(g.id);
+    // Flash transition
+    const flash = document.getElementById('launch-flash');
+    flash.classList.remove('fire');
+    void flash.offsetWidth;
+    flash.classList.add('fire');
+    playLaunchSound();
+    logApi('POST /api/raku/session/start ' + g.id);
+    setTimeout(() => {
+      const host = document.getElementById('game-frame-host');
+      const frame = document.getElementById('game-frame');
+      const label = document.getElementById('now-playing');
+      label.textContent = 'NOW PLAYING: ' + g.title;
+      frame.src = g.url;
+      host.classList.add('open');
+      document.body.classList.add('in-game');
+    }, 200);
+  }
+
+  function returnToLauncher() {
+    const host = document.getElementById('game-frame-host');
+    const frame = document.getElementById('game-frame');
+    host.classList.remove('open');
+    frame.src = 'about:blank';
+    document.body.classList.remove('in-game');
+    if (currentGame) logApi('POST /api/raku/session/end ' + currentGame.id);
+    currentGame = null;
+  }
+
+  // Frame bar controls
+  document.getElementById('frame-back').addEventListener('click', returnToLauncher);
+  document.getElementById('frame-reload').addEventListener('click', () => {
+    const frame = document.getElementById('game-frame');
+    if (currentGame) frame.src = currentGame.url;
+  });
+
+  // postMessage protocol: listen for quit/gameover/apicall from games
+  window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || typeof d !== 'object') return;
+    switch (d.type) {
+      case 'quit':
+      case 'exit':
+        returnToLauncher();
+        break;
+      case 'gameover':
+        if (currentGame && typeof d.score === 'number') {
+          saveHighScore(currentGame.id, d.score);
+          trackScore(d.score);
+        }
+        if (typeof d.level === 'number') trackLevel(d.level);
+        break;
+      case 'level':
+        if (typeof d.level === 'number') trackLevel(d.level);
+        break;
+      case 'score':
+        if (typeof d.score === 'number') trackScore(d.score);
+        break;
+      case 'apicall':
+        if (typeof d.path === 'string') logApi(d.method || 'GET', d.path, d.ok);
+        break;
+      case 'ready':
+        // Game announced it's ready — could sync state here
+        break;
+    }
+  });
+
+  // ============ HIGH SCORES ============
+  const HS_PREFIX = 'raku.hs.';
+
+  function getHighScore(gameId) {
+    return parseInt(localStorage.getItem(HS_PREFIX + gameId) || '0', 10);
+  }
+
+  function saveHighScore(gameId, score) {
+    const prev = getHighScore(gameId);
+    if (score > prev) {
+      localStorage.setItem(HS_PREFIX + gameId, String(score));
+      renderLeaderboard();
+      updateCardScores();
+    }
+  }
+
+  function getAllScores() {
+    return GAMES.map(g => ({
+      id: g.id,
+      title: g.title,
+      score: getHighScore(g.id)
+    })).sort((a, b) => b.score - a.score);
+  }
+
+  function renderLeaderboard() {
+    const body = document.getElementById('leaderboard-body');
+    if (!body) return;
+    const scores = getAllScores().filter(s => s.score > 0).slice(0, 10);
+    if (scores.length === 0) {
+      body.innerHTML = '<tr class="empty"><td colspan="3">-- NO SCORES YET. PLAY A GAME! --</td></tr>';
+      return;
+    }
+    body.innerHTML = scores.map((s, i) => `
+      <tr>
+        <td class="rank">${String(i + 1).padStart(2, '0')}</td>
+        <td class="game">${s.title}</td>
+        <td class="score">${s.score.toLocaleString()}</td>
+      </tr>
+    `).join('');
+  }
+
+  function updateCardScores() {
+    document.querySelectorAll('.game-card').forEach((card) => {
+      const id = card.dataset.id;
+      const score = getHighScore(id);
+      const el = card.querySelector('.game-hiscore');
+      if (el) el.textContent = 'HI: ' + score.toLocaleString();
+    });
+  }
+
+  // Clear scores button
+  const clearBtn = document.getElementById('clear-scores');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      if (!confirm('Clear ALL high scores?')) return;
+      GAMES.forEach(g => localStorage.removeItem(HS_PREFIX + g.id));
+      renderLeaderboard();
+      updateCardScores();
+    });
+  }
+
+  // API feed logging
+  const apiLines = [];
+  function logApi(methodOrLine, path, ok) {
+    const lines = document.getElementById('api-feed-lines');
+    if (!lines) return;
+    const stamp = new Date().toLocaleTimeString();
+    let html;
+    if (path === undefined) {
+      html = `<div class="line">[${stamp}] <span class="ok">200</span> <span class="path">${methodOrLine}</span></div>`;
+    } else {
+      const status = ok === false ? '500' : '200';
+      html = `<div class="line">[${stamp}] <span class="ok">${status}</span> ${methodOrLine} <span class="path">${path}</span></div>`;
+    }
+    apiLines.unshift(html);
+    if (apiLines.length > 8) apiLines.length = 8;
+    lines.innerHTML = apiLines.join('');
+  }
+
+  // Seed the feed with idle heartbeat lines
+  logApi('GET /api/raku/engine/status');
+  logApi('GET /api/raku/catalog/games');
+
+  // ============ WEB AUDIO ============
+  const AUDIO = {
+    ctx: null,
+    gain: null,
+    muted: localStorage.getItem('raku.mute') === '1',
+    volume: parseFloat(localStorage.getItem('raku.vol') || '0.6'),
+    musicOn: localStorage.getItem('raku.music') === '1',
+    musicOsc: null,
+    musicGain: null,
+    musicTimer: null
+  };
+
+  function audioCtx() {
+    if (!AUDIO.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      AUDIO.ctx = new AC();
+      AUDIO.gain = AUDIO.ctx.createGain();
+      AUDIO.gain.gain.value = AUDIO.muted ? 0 : AUDIO.volume;
+      AUDIO.gain.connect(AUDIO.ctx.destination);
+    }
+    if (AUDIO.ctx.state === 'suspended') AUDIO.ctx.resume();
+    return AUDIO.ctx;
+  }
+
+  function beep(freq, dur, type, vol) {
+    const ctx = audioCtx();
+    if (!ctx || AUDIO.muted) return;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type || 'square';
+    o.frequency.value = freq;
+    const now = ctx.currentTime;
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime((vol || 0.3) * AUDIO.volume, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+    o.connect(g);
+    g.connect(AUDIO.gain);
+    o.start(now);
+    o.stop(now + dur + 0.02);
+  }
+
+  function playHover() { beep(880, 0.05, 'square', 0.15); }
+  function playSelect() { beep(1320, 0.08, 'square', 0.25); }
+  function playLaunchSound() {
+    beep(440, 0.08, 'square', 0.3);
+    setTimeout(() => beep(660, 0.08, 'square', 0.3), 80);
+    setTimeout(() => beep(880, 0.12, 'square', 0.35), 160);
+  }
+  function playBack() { beep(220, 0.1, 'triangle', 0.2); }
+
+  // 8-bit background loop
+  const MUSIC_NOTES = [262, 330, 392, 523, 392, 330, 294, 330]; // C E G C G E D E
+  let musicStep = 0;
+  function startMusic() {
+    if (AUDIO.musicTimer) return;
+    musicStep = 0;
+    const tick = () => {
+      if (!AUDIO.musicOn || AUDIO.muted) return;
+      const freq = MUSIC_NOTES[musicStep % MUSIC_NOTES.length];
+      beep(freq, 0.18, 'triangle', 0.12);
+      musicStep++;
+    };
+    tick();
+    AUDIO.musicTimer = setInterval(tick, 320);
+  }
+  function stopMusic() {
+    if (AUDIO.musicTimer) {
+      clearInterval(AUDIO.musicTimer);
+      AUDIO.musicTimer = null;
+    }
+  }
+
+  // Wire hover sound into cards (after grid renders)
+  function attachCardSounds() {
+    document.querySelectorAll('.game-card').forEach(card => {
+      card.addEventListener('mouseenter', playHover);
+      card.addEventListener('focus', playHover);
+    });
+  }
+
+  // ============ OPTIONS MENU ============
+  const optPanel = document.getElementById('options-panel');
+  const optBtn = document.getElementById('options-btn');
+  const muteBtn = document.getElementById('mute-btn');
+  const optVolume = document.getElementById('opt-volume');
+  const optMute = document.getElementById('opt-mute');
+  const optScan = document.getElementById('opt-scanlines');
+  const optCrt = document.getElementById('opt-crt');
+  const optMusic = document.getElementById('opt-music');
+
+  // Load persisted options
+  optVolume.value = Math.round(AUDIO.volume * 100);
+  optMute.checked = AUDIO.muted;
+  optScan.checked = localStorage.getItem('raku.scanlines') !== '0';
+  optCrt.checked = localStorage.getItem('raku.crt') !== '0';
+  optMusic.checked = AUDIO.musicOn;
+  if (!optScan.checked) document.body.classList.add('no-scanlines');
+  if (!optCrt.checked) document.body.classList.add('no-crt');
+  updateMuteBtn();
+
+  optBtn.addEventListener('click', () => {
+    optPanel.classList.toggle('open');
+    playSelect();
+  });
+  document.getElementById('close-opt').addEventListener('click', () => optPanel.classList.remove('open'));
+
+  optVolume.addEventListener('input', () => {
+    AUDIO.volume = parseInt(optVolume.value, 10) / 100;
+    localStorage.setItem('raku.vol', String(AUDIO.volume));
+    if (AUDIO.gain) AUDIO.gain.gain.value = AUDIO.muted ? 0 : AUDIO.volume;
+  });
+  optMute.addEventListener('change', () => {
+    AUDIO.muted = optMute.checked;
+    localStorage.setItem('raku.mute', AUDIO.muted ? '1' : '0');
+    if (AUDIO.gain) AUDIO.gain.gain.value = AUDIO.muted ? 0 : AUDIO.volume;
+    updateMuteBtn();
+  });
+  muteBtn.addEventListener('click', () => {
+    AUDIO.muted = !AUDIO.muted;
+    optMute.checked = AUDIO.muted;
+    localStorage.setItem('raku.mute', AUDIO.muted ? '1' : '0');
+    if (AUDIO.gain) AUDIO.gain.gain.value = AUDIO.muted ? 0 : AUDIO.volume;
+    updateMuteBtn();
+    playSelect();
+  });
+  function updateMuteBtn() {
+    muteBtn.innerHTML = AUDIO.muted ? '&#128263; MUTED' : '&#128266; SOUND';
+  }
+
+  optScan.addEventListener('change', () => {
+    document.body.classList.toggle('no-scanlines', !optScan.checked);
+    localStorage.setItem('raku.scanlines', optScan.checked ? '1' : '0');
+  });
+  optCrt.addEventListener('change', () => {
+    document.body.classList.toggle('no-crt', !optCrt.checked);
+    localStorage.setItem('raku.crt', optCrt.checked ? '1' : '0');
+  });
+  optMusic.addEventListener('change', () => {
+    AUDIO.musicOn = optMusic.checked;
+    localStorage.setItem('raku.music', AUDIO.musicOn ? '1' : '0');
+    if (AUDIO.musicOn) { audioCtx(); startMusic(); } else { stopMusic(); }
+  });
+
+  // First user interaction unlocks audio context
+  document.addEventListener('click', () => audioCtx(), { once: true });
+  document.addEventListener('keydown', () => audioCtx(), { once: true });
+
+  // ============ EXIT ARCADE ============
+  document.getElementById('exit-arcade').addEventListener('click', () => {
+    window.location.href = '/';
+  });
+
+  // ============ MARQUEE BULBS ============
+  function spawnBulbs() {
+    const count = 32;
+    ['bulbs-top', 'bulbs-bot'].forEach(id => {
+      const host = document.getElementById(id);
+      if (!host) return;
+      host.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const b = document.createElement('div');
+        b.className = 'bulb';
+        host.appendChild(b);
+      }
+    });
+  }
+
+  // ============ INIT ============
+  renderGrid();
+  attachCardSounds();
+  spawnBulbs();
+  updateCardScores();
+  renderLeaderboard();
+  // ============ ATTRACT MODE ============
+  const IDLE_MS = 30000;
+  let idleTimer = null;
+  let attractIndex = 0;
+  let attractCycle = null;
+
+  function kickIdle() {
+    clearTimeout(idleTimer);
+    if (document.body.classList.contains('in-game')) return;
+    exitAttract();
+    idleTimer = setTimeout(enterAttract, IDLE_MS);
+  }
+
+  function enterAttract() {
+    const el = document.getElementById('attract');
+    if (!el) return;
+    el.classList.add('on');
+    attractIndex = 0;
+    renderAttractFrame();
+    clearInterval(attractCycle);
+    attractCycle = setInterval(() => {
+      attractIndex = (attractIndex + 1) % GAMES.length;
+      renderAttractFrame();
+    }, 3000);
+  }
+
+  function exitAttract() {
+    const el = document.getElementById('attract');
+    if (!el) return;
+    if (el.classList.contains('on')) {
+      el.classList.remove('on');
+      clearInterval(attractCycle);
+      attractCycle = null;
+    }
+  }
+
+  function renderAttractFrame() {
+    const g = GAMES[attractIndex];
+    const show = document.getElementById('attract-showcase');
+    const cap = document.getElementById('attract-caption');
+    if (!show || !g) return;
+    // Replace SVG while keeping caption
+    const svg = g.thumb(g.color);
+    show.innerHTML = svg + '<div class="caption">' + g.title + '</div>';
+  }
+
+  // User activity resets idle timer
+  ['click', 'keydown', 'mousemove', 'touchstart', 'wheel'].forEach(ev => {
+    window.addEventListener(ev, kickIdle, { passive: true });
+  });
+
+  // Click or press any key inside attract mode exits it
+  document.getElementById('attract').addEventListener('click', exitAttract);
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById('attract').classList.contains('on')) {
+      exitAttract();
+    }
+  });
+
+
+  // ============ KEYBOARD NAVIGATION ============
+  let selectedIndex = 0;
+  let cardsPerRow = 4;
+
+  function computeCardsPerRow() {
+    const grid = document.getElementById('game-grid');
+    if (!grid) return 4;
+    const w = window.innerWidth;
+    if (w <= 540) return 1;
+    if (w <= 820) return 2;
+    if (w <= 1100) return 3;
+    return 4;
+  }
+
+  function setSelected(i) {
+    const cards = document.querySelectorAll('.game-card');
+    if (!cards.length) return;
+    selectedIndex = ((i % cards.length) + cards.length) % cards.length;
+    cards.forEach(c => c.classList.remove('selected'));
+    const card = cards[selectedIndex];
+    card.classList.add('selected');
+    card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    playHover();
+  }
+
+  function moveSelection(dx, dy) {
+    cardsPerRow = computeCardsPerRow();
+    const n = GAMES.length;
+    let next = selectedIndex;
+    if (dx !== 0) next = selectedIndex + dx;
+    if (dy !== 0) next = selectedIndex + dy * cardsPerRow;
+    if (next < 0) next = 0;
+    if (next >= n) next = n - 1;
+    setSelected(next);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    // Don't hijack when in game frame
+    if (document.body.classList.contains('in-game')) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        returnToLauncher();
+        playBack();
+      }
+      return;
+    }
+    // Don't hijack form inputs
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) return;
+
+    switch (e.key) {
+      case 'ArrowRight': e.preventDefault(); moveSelection(1, 0); break;
+      case 'ArrowLeft':  e.preventDefault(); moveSelection(-1, 0); break;
+      case 'ArrowDown':  e.preventDefault(); moveSelection(0, 1); break;
+      case 'ArrowUp':    e.preventDefault(); moveSelection(0, -1); break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        playSelect();
+        launchGame(selectedIndex);
+        break;
+      case 'Escape':
+        if (document.getElementById('options-panel').classList.contains('open')) {
+          document.getElementById('options-panel').classList.remove('open');
+        } else if (document.getElementById('attract').classList.contains('on')) {
+          exitAttract();
+        }
+        break;
+      case 'm':
+      case 'M':
+        document.getElementById('mute-btn').click();
+        break;
+      case 'o':
+      case 'O':
+        document.getElementById('options-btn').click();
+        break;
+    }
+  });
+
+  window.addEventListener('resize', () => { cardsPerRow = computeCardsPerRow(); });
+
+  // ============ GAMEPAD NAVIGATION ============
+  let gpPrev = { up: false, down: false, left: false, right: false, a: false, b: false };
+  let gpPollInterval = null;
+
+  function pollGamepad() {
+    if (document.body.classList.contains('in-game')) return;
+    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    let gp = null;
+    for (const p of pads) { if (p) { gp = p; break; } }
+    if (!gp) return;
+
+    const ax = gp.axes[0] || 0;
+    const ay = gp.axes[1] || 0;
+    const dpadL = (gp.buttons[14] && gp.buttons[14].pressed) || ax < -0.5;
+    const dpadR = (gp.buttons[15] && gp.buttons[15].pressed) || ax > 0.5;
+    const dpadU = (gp.buttons[12] && gp.buttons[12].pressed) || ay < -0.5;
+    const dpadD = (gp.buttons[13] && gp.buttons[13].pressed) || ay > 0.5;
+    const btnA  = gp.buttons[0] && gp.buttons[0].pressed;
+    const btnB  = gp.buttons[1] && gp.buttons[1].pressed;
+
+    if (dpadL && !gpPrev.left) moveSelection(-1, 0);
+    if (dpadR && !gpPrev.right) moveSelection(1, 0);
+    if (dpadU && !gpPrev.up) moveSelection(0, -1);
+    if (dpadD && !gpPrev.down) moveSelection(0, 1);
+    if (btnA && !gpPrev.a) { playSelect(); launchGame(selectedIndex); }
+    if (btnB && !gpPrev.b) {
+      const attract = document.getElementById('attract');
+      if (attract.classList.contains('on')) exitAttract();
+    }
+
+    gpPrev = { up: dpadU, down: dpadD, left: dpadL, right: dpadR, a: btnA, b: btnB };
+  }
+
+  window.addEventListener('gamepadconnected', () => {
+    trackGamepad();
+    logApi('GAMEPAD CONNECTED');
+    if (!gpPollInterval) gpPollInterval = setInterval(pollGamepad, 100);
+  });
+  window.addEventListener('gamepaddisconnected', () => {
+    logApi('GAMEPAD DISCONNECTED');
+  });
+  // Also start polling right away in case pad is already present
+  gpPollInterval = setInterval(pollGamepad, 100);
+
+
+  // ============ ACHIEVEMENTS ============
+  const ACHIEVEMENTS = [
+    { id: 'first_play',   icon: '&#127918;', name: 'INSERT COIN',    desc: 'Play your first game',             check: (st) => st.gamesPlayed >= 1 },
+    { id: 'play_5',       icon: '&#127919;', name: 'ARCADE REGULAR', desc: 'Play 5 games',                     check: (st) => st.gamesPlayed >= 5 },
+    { id: 'play_20',      icon: '&#128081;', name: 'HIGH ROLLER',    desc: 'Play 20 games',                    check: (st) => st.gamesPlayed >= 20 },
+    { id: 'sampler',      icon: '&#127775;', name: 'SAMPLER',        desc: 'Try 3 different games',            check: (st) => st.uniqueGames.length >= 3 },
+    { id: 'completionist',icon: '&#127942;', name: 'COMPLETIONIST',  desc: 'Play all 8 games',                 check: (st) => st.uniqueGames.length >= 8 },
+    { id: 'score_1k',     icon: '&#128176;', name: 'QUICK BUCK',     desc: 'Reach 1,000 points in any game',   check: (st) => st.highestScore >= 1000 },
+    { id: 'score_10k',    icon: '&#128293;', name: 'ON FIRE',        desc: 'Reach 10,000 points in any game',  check: (st) => st.highestScore >= 10000 },
+    { id: 'score_50k',    icon: '&#9889;',  name: 'LEGEND',          desc: 'Reach 50,000 points in any game',  check: (st) => st.highestScore >= 50000 },
+    { id: 'level_5',      icon: '&#127894;', name: 'CLIMBING UP',    desc: 'Reach level 5',                    check: (st) => st.highestLevel >= 5 },
+    { id: 'level_10',     icon: '&#128081;', name: 'GRANDMASTER',    desc: 'Reach level 10',                   check: (st) => st.highestLevel >= 10 },
+    { id: 'gamepad',      icon: '&#127918;', name: 'ANALOG HERO',    desc: 'Connect a gamepad',                check: (st) => st.gamepadUsed }
+  ];
+
+  const ACH_STATE_KEY = 'raku.ach.state';
+  const ACH_UNLOCKED_KEY = 'raku.ach.unlocked';
+
+  function loadAchState() {
+    try {
+      const raw = localStorage.getItem(ACH_STATE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return { gamesPlayed: 0, uniqueGames: [], highestScore: 0, highestLevel: 0, gamepadUsed: false };
+  }
+
+  function saveAchState(st) {
+    localStorage.setItem(ACH_STATE_KEY, JSON.stringify(st));
+  }
+
+  function loadUnlocked() {
+    try { return JSON.parse(localStorage.getItem(ACH_UNLOCKED_KEY) || '[]'); } catch (e) { return []; }
+  }
+
+  function saveUnlocked(list) {
+    localStorage.setItem(ACH_UNLOCKED_KEY, JSON.stringify(list));
+  }
+
+  let achState = loadAchState();
+  let unlockedIds = loadUnlocked();
+
+  function trackGamePlayed(gameId) {
+    achState.gamesPlayed++;
+    if (gameId && !achState.uniqueGames.includes(gameId)) {
+      achState.uniqueGames.push(gameId);
+    }
+    saveAchState(achState);
+    checkAchievements();
+    renderAchievements();
+  }
+
+  function trackScore(score) {
+    if (score > achState.highestScore) {
+      achState.highestScore = score;
+      saveAchState(achState);
+      checkAchievements();
+      renderAchievements();
+    }
+  }
+
+  function trackLevel(level) {
+    if (level > achState.highestLevel) {
+      achState.highestLevel = level;
+      saveAchState(achState);
+      checkAchievements();
+      renderAchievements();
+    }
+  }
+
+  function trackGamepad() {
+    if (!achState.gamepadUsed) {
+      achState.gamepadUsed = true;
+      saveAchState(achState);
+      checkAchievements();
+      renderAchievements();
+    }
+  }
+
+  function checkAchievements() {
+    ACHIEVEMENTS.forEach(a => {
+      if (!unlockedIds.includes(a.id) && a.check(achState)) {
+        unlockedIds.push(a.id);
+        saveUnlocked(unlockedIds);
+        showAchToast(a);
+        playLaunchSound();
+      }
+    });
+  }
+
+  function showAchToast(a) {
+    const toast = document.getElementById('ach-toast');
+    const body = document.getElementById('ach-toast-body');
+    if (!toast || !body) return;
+    body.innerHTML = a.icon + ' ' + a.name;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3600);
+  }
+
+  function renderAchievements() {
+    const stats = document.getElementById('ach-stats');
+    const list = document.getElementById('ach-list');
+    if (!stats || !list) return;
+
+    stats.innerHTML = `
+      <div class="ach-stat"><span class="label">GAMES PLAYED</span><span class="value">${achState.gamesPlayed}</span></div>
+      <div class="ach-stat"><span class="label">UNIQUE GAMES</span><span class="value">${achState.uniqueGames.length} / ${GAMES.length}</span></div>
+      <div class="ach-stat"><span class="label">HIGHEST SCORE</span><span class="value">${achState.highestScore.toLocaleString()}</span></div>
+      <div class="ach-stat"><span class="label">HIGHEST LEVEL</span><span class="value">${achState.highestLevel}</span></div>
+    `;
+
+    list.innerHTML = ACHIEVEMENTS.map(a => {
+      const unlocked = unlockedIds.includes(a.id);
+      return `
+        <div class="ach-badge ${unlocked ? 'unlocked' : ''}">
+          <div class="icon">${unlocked ? a.icon : '&#128274;'}</div>
+          <div>
+            <span class="name">${a.name}</span>
+            <span class="desc">${a.desc}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  renderAchievements();
+
+  // Initial selection
+  setSelected(0);
+
+  kickIdle();
+
+</script>
+</body>
+</html>
