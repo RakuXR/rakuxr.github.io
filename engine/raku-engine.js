@@ -9,29 +9,29 @@
  *   engine.createEntity(world.id, { type: 'cube', position: [0, 5, 0] });
  *   engine.stepPhysics(world.id, 0.016);
  *
- * Mirrors the raku engine endpoints from the 454-endpoint REST API. Same logic, runs in your browser.
+ * Mirrors the raku engine endpoints from the 9,500+ endpoint REST API. Same logic, runs in your browser.
  */
 
 // ─── DLL REGISTRY (maps features to engine subsystems) ───
 export const DLLS = [
-  { name:'RakuCore', fns:312, desc:'Engine lifecycle, ECS, job system, timers, memory pools' },
-  { name:'RakuScene', fns:245, desc:'Scene graph, transforms, culling, CSG, GridMap, streaming' },
-  { name:'RakuRenderer', fns:198, desc:'PBR materials, dynamic lighting, shadows, post-FX, LOD, particles' },
-  { name:'RakuXR', fns:167, desc:'OpenXR 1.1, hand tracking (26 joints), eye tracking, foveated rendering, spatial anchors' },
-  { name:'RakuPhysics', fns:156, desc:'Rigid body dynamics, CCD, spatial hash collision, raycasting, joints, soft body' },
-  { name:'RakuAudio', fns:143, desc:'Spatial 3D audio, HRTF, adaptive music, procedural SFX, bus mixing, sequencer' },
-  { name:'RakuAnimation', fns:134, desc:'Skeletal animation, blend trees, IK (FABRIK/CCD), state machines, tween/easing' },
-  { name:'RakuAI', fns:128, desc:'A* pathfinding, behavior trees, DDA, NPC behavior, crowd sim, sensory system' },
-  { name:'RakuSLM', fns:118, desc:'On-device ML (TFLite), emotion recognition, gesture detection, NPC dialogue' },
-  { name:'RakuNetwork', fns:112, desc:'WebRTC P2P, state replication, lobby/matchmaking, NAT traversal, delta compression' },
-  { name:'RakuVoice', fns:98, desc:'Voice chat, AEC, VAD, noise suppression, AGC, WASAPI capture' },
-  { name:'RakuInput', fns:94, desc:'Keyboard, mouse, gamepad (XInput), touch, gesture, haptic feedback' },
-  { name:'RakuUI', fns:89, desc:'2D/3D widgets, theme engine, accessibility, HUD overlay, localization' },
-  { name:'RakuAssets', fns:156, desc:'GLTF 2.0/FBX import, texture streaming, audio codecs, hot-reload, compression' },
-  { name:'RakuEditor', fns:134, desc:'Scene inspector, property editor, debug overlays, profiler, gizmos' },
-  { name:'RakuScripting', fns:112, desc:'Embedded Lua VM, hot-reload, auto C API bindings, coroutines, visual scripting' },
-  { name:'RakuCSG', fns:78, desc:'Boolean ops (union/subtract/intersect), real-time mesh gen, UV preservation' },
-  { name:'RakuGameplay', fns:162, desc:'Game state machines, save/load, inventory, quests, dialogue, achievements' },
+  { name:'RakuCore', fns:110, desc:'Runtime lifecycle, logging, telemetry, job system, timers, memory pools' },
+  { name:'RakuScene', fns:642, desc:'Scene graph, prefabs, CSG, GridMap, terrain, streaming' },
+  { name:'RakuRenderer', fns:1315, desc:'PBR materials, dynamic lighting, shadows, particles, post-FX, LOD' },
+  { name:'RakuXR', fns:1127, desc:'OpenXR 1.1, hand and eye tracking, spatial anchors, foveated rendering' },
+  { name:'RakuPhysics', fns:450, desc:'Rigid bodies, cloth, vehicles, ragdolls, fluid simulation, joints' },
+  { name:'RakuAudio', fns:699, desc:'Spatial 3D audio, HRTF, propagation, adaptive music, bus mixing' },
+  { name:'RakuAnimation', fns:529, desc:'Skeletal animation, blend trees, IK, root motion, state machines' },
+  { name:'RakuAI', fns:430, desc:'Navmesh, behavior trees, NPC dialogue, utility AI, GOAP, crowd sim' },
+  { name:'RakuSLM', fns:484, desc:'On-device LLM inference, emotion recognition, gesture detection' },
+  { name:'RakuNetwork', fns:523, desc:'Sessions, state sync, WebRTC, matchmaking, NAT traversal' },
+  { name:'RakuVoice', fns:233, desc:'STT, TTS, VAD, opus codec, noise suppression' },
+  { name:'RakuInput', fns:214, desc:'Actions, gamepad, XR controllers, gestures, haptic feedback' },
+  { name:'RakuUI', fns:604, desc:'Canvas, widgets, layouts, accessibility, HUD overlay' },
+  { name:'RakuAssets', fns:607, desc:'Mesh import, texture compression, audio codecs, hot reload' },
+  { name:'RakuEditor', fns:476, desc:'Gizmos, inspector, profiler, debug draw, scene tools' },
+  { name:'RakuScripting', fns:1169, desc:'Lua VM, events, quests, dialogue trees, visual scripting' },
+  { name:'RakuCSG', fns:23, desc:'Boolean geometry operations: union, subtract, intersect' },
+  { name:'RakuGameplay', fns:693, desc:'Game state machines, save/load, inventory, quests, achievements' },
 ];
 export const TOTAL_API_FUNCTIONS = DLLS.reduce((s, d) => s + d.fns, 0);
 
