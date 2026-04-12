@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>River Hopper</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #0a0a14;
+    color: #e8e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+  }
+  h1 {
+    margin: 12px 0 4px 0;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #7df27d;
+    text-shadow: 0 0 12px rgba(125, 242, 125, 0.4);
+  }
+  .sub {
+    margin: 0 0 10px 0;
+    font-size: 12px;
+    color: #8a8aa0;
+    letter-spacing: 1px;
+  }
+  #wrap {
+    position: relative;
+    border: 2px solid #2a2a3e;
+    border-radius: 6px;
+    box-shadow: 0 0 32px rgba(0, 0, 0, 0.6);
+    background: #000;
+  }
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+  }
+  .legend {
+    margin-top: 10px;
+    font-size: 11px;
+    color: #6a6a80;
+    letter-spacing: 0.5px;
+    text-align: center;
+    max-width: 560px;
+    line-height: 1.5;
+  }
+  .legend b { color: #9a9ab0; }
+</style>
+</head>
+<body>
+  <h1>RIVER HOPPER</h1>
+  <div class="sub">HOP ACROSS THE ROAD AND RIVER</div>
+  <div id="wrap">
+    <canvas id="game" width="560" height="640"></canvas>
+  </div>
+  <div class="legend">
+    <b>ARROWS</b> hop one tile &middot; <b>GAMEPAD D-PAD</b> hop &middot; <b>R</b> restart &middot; <b>M</b> mute
+  </div>
+<script>
+(function () {
+  'use strict';
+
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+
+  var TILE = 40;
+  var COLS = 14;
+  var ROWS = 16;
+  canvas.width = COLS * TILE;
+  canvas.height = ROWS * TILE;
+
+  // Playfield rows 0..12, HUD in rows 13..15
+  var FIELD_ROWS = 13;
+  var HUD_HEIGHT = (ROWS - FIELD_ROWS) * TILE;
+  var FIELD_HEIGHT = FIELD_ROWS * TILE;
+
+  var state = {
+    frog: {
+      col: 7, row: 12,
+      drawX: 7 * TILE, drawY: 12 * TILE,
+      targetX: 7 * TILE, targetY: 12 * TILE,
+      hopT: 1.0, facing: 0
+    },
+    lives: 3, score: 0, level: 1,
+    running: true, dead: false
+  };
+
+  var pressedOnce = {};
+  var heldKeys = {};
+  window.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight' || k === ' ') {
+      e.preventDefault();
+    }
+    if (!heldKeys[k]) pressedOnce[k] = true;
+    heldKeys[k] = true;
+  });
+  window.addEventListener('keyup', function (e) { heldKeys[e.key] = false; });
+  function consumePress(k) {
+    if (pressedOnce[k]) { pressedOnce[k] = false; return true; }
+    return false;
+  }
+
+  var padPrev = { up: false, down: false, left: false, right: false };
+  function pollGamepad() {
+    var out = { up: false, down: false, left: false, right: false };
+    if (!navigator.getGamepads) return out;
+    var pads = navigator.getGamepads();
+    for (var i = 0; i < pads.length; i++) {
+      var p = pads[i];
+      if (!p) continue;
+      var up    = (p.buttons[12] && p.buttons[12].pressed) || (p.axes[1] && p.axes[1] < -0.5);
+      var down  = (p.buttons[13] && p.buttons[13].pressed) || (p.axes[1] && p.axes[1] >  0.5);
+      var left  = (p.buttons[14] && p.buttons[14].pressed) || (p.axes[0] && p.axes[0] < -0.5);
+      var right = (p.buttons[15] && p.buttons[15].pressed) || (p.axes[0] && p.axes[0] >  0.5);
+      out.up = out.up || up; out.down = out.down || down;
+      out.left = out.left || left; out.right = out.right || right;
+    }
+    var edges = {
+      up: out.up && !padPrev.up, down: out.down && !padPrev.down,
+      left: out.left && !padPrev.left, right: out.right && !padPrev.right
+    };
+    padPrev = out;
+    return edges;
+  }
+
+  function tryHop(dc, dr, facing) {
+    if (state.frog.hopT < 1.0) return;
+    var nc = state.frog.col + dc;
+    var nr = state.frog.row + dr;
+    if (nc < 0 || nc >= COLS || nr < 0 || nr >= FIELD_ROWS) return;
+    state.frog.col = nc; state.frog.row = nr;
+    state.frog.targetX = nc * TILE; state.frog.targetY = nr * TILE;
+    state.frog.hopT = 0; state.frog.facing = facing;
+  }
+
+  function updateFrog(dt) {
+    if (state.frog.hopT < 1.0) {
+      state.frog.hopT = Math.min(1.0, state.frog.hopT + dt * 10);
+      var t = state.frog.hopT;
+      var e = 1 - (1 - t) * (1 - t);
+      state.frog.drawX += (state.frog.targetX - state.frog.drawX) * 0.4;
+      state.frog.drawY += (state.frog.targetY - state.frog.drawY) * 0.4;
+      if (state.frog.hopT >= 1.0) {
+        state.frog.drawX = state.frog.targetX;
+        state.frog.drawY = state.frog.targetY;
+      }
+    }
+  }
+
+  function drawField() {
+    // Water band
+    ctx.fillStyle = '#0d2a5e';
+    ctx.fillRect(0, 1 * TILE, COLS * TILE, 5 * TILE);
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    for (var y = 1; y < 6; y++) {
+      for (var x = 0; x < COLS; x += 2) {
+        ctx.fillRect(x * TILE, y * TILE + (x % 4 === 0 ? 6 : 18), TILE, 4);
+      }
+    }
+    // Home bank
+    ctx.fillStyle = '#0f3d1a';
+    ctx.fillRect(0, 0, COLS * TILE, TILE);
+    // Median
+    ctx.fillStyle = '#16401e';
+    ctx.fillRect(0, 6 * TILE, COLS * TILE, TILE);
+    // Road
+    ctx.fillStyle = '#1a1a20';
+    ctx.fillRect(0, 7 * TILE, COLS * TILE, 5 * TILE);
+    // Start row
+    ctx.fillStyle = '#16401e';
+    ctx.fillRect(0, 12 * TILE, COLS * TILE, TILE);
+    // HUD
+    ctx.fillStyle = '#05050a';
+    ctx.fillRect(0, FIELD_HEIGHT, COLS * TILE, HUD_HEIGHT);
+    ctx.fillStyle = '#1a1a2a';
+    ctx.fillRect(0, FIELD_HEIGHT, COLS * TILE, 2);
+  }
+
+  function drawFrog() {
+    var x = state.frog.drawX;
+    var y = state.frog.drawY;
+    var lift = 0;
+    if (state.frog.hopT < 1.0) lift = Math.sin(state.frog.hopT * Math.PI) * 6;
+    ctx.fillStyle = '#4ec44e';
+    ctx.fillRect(x + 6, y + 8 - lift, TILE - 12, TILE - 16);
+    ctx.fillStyle = '#2f8a2f';
+    ctx.fillRect(x + 10, y + 6 - lift, TILE - 20, 8);
+    ctx.fillStyle = '#3ea83e';
+    ctx.fillRect(x + 2,  y + 14 - lift, 6, 10);
+    ctx.fillRect(x + TILE - 8, y + 14 - lift, 6, 10);
+    ctx.fillRect(x + 4,  y + TILE - 10 - lift, 6, 6);
+    ctx.fillRect(x + TILE - 10, y + TILE - 10 - lift, 6, 6);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + 12, y + 4 - lift, 5, 5);
+    ctx.fillRect(x + TILE - 17, y + 4 - lift, 5, 5);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(x + 13, y + 5 - lift, 3, 3);
+    ctx.fillRect(x + TILE - 16, y + 5 - lift, 3, 3);
+  }
+
+  function drawHUD() {
+    ctx.fillStyle = '#7df27d';
+    ctx.font = 'bold 16px monospace';
+    ctx.textBaseline = 'middle';
+    var hudY = FIELD_HEIGHT + HUD_HEIGHT / 2;
+    ctx.textAlign = 'left';
+    ctx.fillText('SCORE ' + state.score, 12, hudY);
+    ctx.textAlign = 'center';
+    ctx.fillText('LEVEL ' + state.level, COLS * TILE / 2, hudY);
+    ctx.textAlign = 'right';
+    ctx.fillText('LIVES ' + state.lives, COLS * TILE - 12, hudY);
+  }
+
+  var lastT = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+    var pad = pollGamepad();
+    if (consumePress('ArrowUp')    || pad.up)    tryHop(0, -1, 0);
+    if (consumePress('ArrowRight') || pad.right) tryHop(1,  0, 1);
+    if (consumePress('ArrowDown')  || pad.down)  tryHop(0,  1, 2);
+    if (consumePress('ArrowLeft')  || pad.left)  tryHop(-1, 0, 3);
+    updateFrog(dt);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    drawField();
+    drawFrog();
+    drawHUD();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
