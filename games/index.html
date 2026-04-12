@@ -548,6 +548,74 @@
     text-shadow: none;
   }
 
+
+  /* ============ ATTRACT MODE ============ */
+  .attract {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9997;
+    background: #000;
+    pointer-events: auto;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .attract.on { display: flex; }
+  .attract .showcase {
+    width: min(80vw, 640px);
+    aspect-ratio: 4 / 3;
+    border: 4px solid var(--neon-pink);
+    box-shadow: 0 0 30px var(--neon-pink), 0 0 60px rgba(255, 45, 149, 0.5);
+    background: #000;
+    position: relative;
+    overflow: hidden;
+  }
+  .attract .showcase svg { width: 100%; height: 100%; }
+  .attract .showcase .caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--neon-yellow);
+    text-align: center;
+    font-size: 12px;
+    text-shadow: 0 0 8px var(--neon-yellow);
+    letter-spacing: 2px;
+  }
+  .attract .insert-coin {
+    font-size: 18px;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 12px var(--neon-cyan), 0 0 24px var(--neon-cyan);
+    letter-spacing: 4px;
+    animation: coin-flash 0.8s steps(1) infinite;
+  }
+  @keyframes coin-flash {
+    0%, 50% { opacity: 1; }
+    50.01%, 100% { opacity: 0.1; }
+  }
+  .attract .press-any {
+    font-size: 10px;
+    color: #888;
+  }
+
+  /* Small corner INSERT COIN indicator */
+  .coin-corner {
+    position: fixed;
+    bottom: 12px;
+    left: 12px;
+    z-index: 50;
+    font-size: 8px;
+    color: var(--neon-pink);
+    text-shadow: 0 0 6px var(--neon-pink);
+    animation: coin-flash 1.2s steps(1) infinite;
+    pointer-events: none;
+  }
+
 </style>
 </head>
 <body>
@@ -607,6 +675,16 @@
   <footer>
     &copy; 2026 RAKUAI &bull; ALL GAMES RUN ON THE RAKU ENGINE
   </footer>
+
+  <div class="attract" id="attract">
+    <div class="showcase" id="attract-showcase">
+      <div class="caption" id="attract-caption">METEOR STORM</div>
+    </div>
+    <div class="insert-coin">INSERT COIN</div>
+    <div class="press-any">&gt; PRESS ANY KEY OR CLICK TO START &lt;</div>
+  </div>
+
+  <div class="coin-corner">&#9733; INSERT COIN &#9733;</div>
 
   <div class="game-frame-host" id="game-frame-host" role="dialog" aria-modal="true" aria-label="Game player">
     <div class="game-frame-bar">
@@ -1008,6 +1086,67 @@
   spawnBulbs();
   updateCardScores();
   renderLeaderboard();
+  // ============ ATTRACT MODE ============
+  const IDLE_MS = 30000;
+  let idleTimer = null;
+  let attractIndex = 0;
+  let attractCycle = null;
+
+  function kickIdle() {
+    clearTimeout(idleTimer);
+    if (document.body.classList.contains('in-game')) return;
+    exitAttract();
+    idleTimer = setTimeout(enterAttract, IDLE_MS);
+  }
+
+  function enterAttract() {
+    const el = document.getElementById('attract');
+    if (!el) return;
+    el.classList.add('on');
+    attractIndex = 0;
+    renderAttractFrame();
+    clearInterval(attractCycle);
+    attractCycle = setInterval(() => {
+      attractIndex = (attractIndex + 1) % GAMES.length;
+      renderAttractFrame();
+    }, 3000);
+  }
+
+  function exitAttract() {
+    const el = document.getElementById('attract');
+    if (!el) return;
+    if (el.classList.contains('on')) {
+      el.classList.remove('on');
+      clearInterval(attractCycle);
+      attractCycle = null;
+    }
+  }
+
+  function renderAttractFrame() {
+    const g = GAMES[attractIndex];
+    const show = document.getElementById('attract-showcase');
+    const cap = document.getElementById('attract-caption');
+    if (!show || !g) return;
+    // Replace SVG while keeping caption
+    const svg = g.thumb(g.color);
+    show.innerHTML = svg + '<div class="caption">' + g.title + '</div>';
+  }
+
+  // User activity resets idle timer
+  ['click', 'keydown', 'mousemove', 'touchstart', 'wheel'].forEach(ev => {
+    window.addEventListener(ev, kickIdle, { passive: true });
+  });
+
+  // Click or press any key inside attract mode exits it
+  document.getElementById('attract').addEventListener('click', exitAttract);
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById('attract').classList.contains('on')) {
+      exitAttract();
+    }
+  });
+
+  kickIdle();
+
 </script>
 </body>
 </html>
