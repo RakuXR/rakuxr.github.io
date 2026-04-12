@@ -132,7 +132,6 @@
 <body>
 <div id="app">
   <div class="stage">
-    <!-- LEFT SIDE: hold + score -->
     <div class="side">
       <div class="panel">
         <h3>Hold</h3>
@@ -148,7 +147,6 @@
       </div>
     </div>
 
-    <!-- CENTER: board -->
     <div id="board-wrap">
       <div id="title">BLOCK DROP</div>
       <canvas id="board" width="300" height="600"></canvas>
@@ -162,7 +160,6 @@
       </div>
     </div>
 
-    <!-- RIGHT SIDE: next + level + lines -->
     <div class="side">
       <div class="panel">
         <h3>Next</h3>
@@ -190,7 +187,6 @@
   const CELL = 30;
   const PREVIEW_CELL = 20;
 
-  // Tetromino shapes
   const SHAPES = {
     I: [
       [0,0,0,0],
@@ -241,9 +237,6 @@
 
   const TYPES = ['I','O','T','S','Z','J','L'];
 
-  // SRS wall-kick tables
-  // For JLSTZ pieces. Indexed by [fromRot][toRot] -> array of [dx, dy] tests.
-  // Rotation indices: 0 = spawn, 1 = R (CW from spawn), 2 = 2 (180), 3 = L (CCW from spawn)
   const KICKS_JLSTZ = {
     '0>1': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
     '1>0': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
@@ -254,7 +247,6 @@
     '3>0': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
     '0>3': [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
   };
-  // For I piece
   const KICKS_I = {
     '0>1': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
     '1>0': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
@@ -266,8 +258,7 @@
     '0>3': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]],
   };
 
-  // Note: SRS y-axis convention is "up = +" but our grid uses "down = +".
-  // We invert the dy when applying kicks below (kickY = -srsDY).
+  const LINE_SCORES = [0, 100, 300, 500, 800];
 
   // ---------- DOM ----------
   const boardCanvas = document.getElementById('board');
@@ -279,6 +270,10 @@
   const overlay = document.getElementById('overlay');
   const overlayTitle = document.getElementById('overlay-title');
   const overlayMsg = document.getElementById('overlay-msg');
+  const scoreEl = document.getElementById('score-val');
+  const highEl = document.getElementById('high-val');
+  const levelEl = document.getElementById('level-val');
+  const linesEl = document.getElementById('lines-val');
 
   // ---------- State ----------
   const state = {
@@ -292,6 +287,11 @@
     dropInterval: 1000,
     lastTs: 0,
     softDrop: false,
+    score: 0,
+    highScore: 0,
+    lines: 0,
+    level: 1,
+    clearAnim: null, // { rows: [...], t: 0, dur: 300 }
   };
 
   function createGrid() {
@@ -302,7 +302,7 @@
     return g;
   }
 
-  // ---------- 7-bag randomizer ----------
+  // ---------- 7-bag ----------
   function refillBag() {
     const bag = TYPES.slice();
     for (let i = bag.length - 1; i > 0; i--) {
@@ -319,14 +319,13 @@
 
   function spawnPiece(type) {
     const matrix = SHAPES[type].map(row => row.slice());
-    const piece = {
+    return {
       type,
       matrix,
       rot: 0,
       x: ((COLS - matrix[0].length) / 2) | 0,
       y: type === 'I' ? -1 : 0,
     };
-    return piece;
   }
 
   // ---------- Collision ----------
@@ -345,7 +344,6 @@
     return false;
   }
 
-  // ---------- Movement ----------
   function tryMove(dx, dy) {
     if (!state.current) return false;
     if (!collides(state.current, dx, dy)) {
@@ -356,13 +354,10 @@
     return false;
   }
 
-  // ---------- Rotation (SRS) ----------
   function rotateMatrixCW(m) {
     const n = m.length;
     const out = [];
-    for (let r = 0; r < n; r++) {
-      out.push(new Array(n).fill(0));
-    }
+    for (let r = 0; r < n; r++) out.push(new Array(n).fill(0));
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         out[c][n - 1 - r] = m[r][c];
@@ -374,9 +369,7 @@
   function rotateMatrixCCW(m) {
     const n = m.length;
     const out = [];
-    for (let r = 0; r < n; r++) {
-      out.push(new Array(n).fill(0));
-    }
+    for (let r = 0; r < n; r++) out.push(new Array(n).fill(0));
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         out[n - 1 - c][r] = m[r][c];
@@ -388,14 +381,14 @@
   function tryRotate(dir) {
     if (!state.current) return false;
     const p = state.current;
-    if (p.type === 'O') return false; // O doesn't rotate
+    if (p.type === 'O') return false;
     const fromRot = p.rot;
     const toRot = (fromRot + (dir > 0 ? 1 : 3)) % 4;
     const newMatrix = dir > 0 ? rotateMatrixCW(p.matrix) : rotateMatrixCCW(p.matrix);
     const table = (p.type === 'I') ? KICKS_I : KICKS_JLSTZ;
     const tests = table[`${fromRot}>${toRot}`] || [[0,0]];
     for (const [kx, kySRS] of tests) {
-      const ky = -kySRS; // invert Y for screen coords
+      const ky = -kySRS;
       if (!collides({ ...p, matrix: newMatrix }, kx, ky)) {
         p.matrix = newMatrix;
         p.x += kx;
@@ -407,23 +400,61 @@
     return false;
   }
 
-  // ---------- Lock + spawn ----------
+  // ---------- Lock + line clears ----------
   function lockPiece() {
     const p = state.current;
     if (!p) return;
+    let above = false;
     for (let r = 0; r < p.matrix.length; r++) {
       for (let c = 0; c < p.matrix[r].length; c++) {
         if (!p.matrix[r][c]) continue;
         const gx = p.x + c;
         const gy = p.y + r;
         if (gy < 0) {
-          state.gameOver = true;
+          above = true;
           continue;
         }
         state.grid[gy][gx] = p.type;
       }
     }
+    state.current = null;
+    if (above) {
+      state.gameOver = true;
+      saveHighScore();
+      showOverlay('GAME OVER', `Score: ${state.score}`);
+      return;
+    }
+    const cleared = clearLines();
+    if (cleared > 0) {
+      addLineScore(cleared);
+    }
     spawnNext();
+  }
+
+  function clearLines() {
+    const fullRows = [];
+    for (let r = 0; r < ROWS; r++) {
+      let full = true;
+      for (let c = 0; c < COLS; c++) {
+        if (!state.grid[r][c]) { full = false; break; }
+      }
+      if (full) fullRows.push(r);
+    }
+    if (fullRows.length === 0) return 0;
+
+    // Remove full rows and shift remaining down
+    for (const r of fullRows) {
+      state.grid.splice(r, 1);
+      state.grid.unshift(new Array(COLS).fill(0));
+    }
+    return fullRows.length;
+  }
+
+  function addLineScore(n) {
+    const points = (LINE_SCORES[n] || 0) * state.level;
+    state.score += points;
+    state.lines += n;
+    updateHud();
   }
 
   function spawnNext() {
@@ -431,7 +462,8 @@
     state.current = spawnPiece(t);
     if (collides(state.current)) {
       state.gameOver = true;
-      showOverlay('GAME OVER', 'Press any key to restart');
+      saveHighScore();
+      showOverlay('GAME OVER', `Score: ${state.score}`);
     }
   }
 
@@ -443,14 +475,39 @@
 
   function hardDrop() {
     if (!state.current) return;
-    while (tryMove(0, 1)) { /* fall */ }
+    let cells = 0;
+    while (tryMove(0, 1)) { cells++; }
+    state.score += cells * 2; // hard drop bonus
+    updateHud();
     lockPiece();
   }
 
+  // ---------- HUD + storage ----------
+  function updateHud() {
+    scoreEl.textContent = state.score;
+    highEl.textContent = state.highScore;
+    levelEl.textContent = state.level;
+    linesEl.textContent = state.lines;
+  }
+
+  function loadHighScore() {
+    try {
+      const v = parseInt(localStorage.getItem('blockDropHigh') || '0', 10);
+      if (!isNaN(v)) state.highScore = v;
+    } catch (_) {}
+  }
+
+  function saveHighScore() {
+    if (state.score > state.highScore) {
+      state.highScore = state.score;
+      try { localStorage.setItem('blockDropHigh', String(state.highScore)); } catch (_) {}
+    }
+  }
+
   // ---------- Rendering ----------
-  function drawCell(c, gx, gy, color, size = CELL) {
-    const x = gx * size;
-    const y = gy * size;
+  function drawCell(c, gx, gy, color, size = CELL, ox = 0, oy = 0) {
+    const x = gx * size + ox;
+    const y = gy * size + oy;
     c.fillStyle = color;
     c.fillRect(x, y, size, size);
     c.fillStyle = 'rgba(255,255,255,0.35)';
@@ -552,12 +609,15 @@
     state.paused = false;
     state.dropAccumulator = 0;
     state.dropInterval = 1000;
+    state.score = 0;
+    state.lines = 0;
+    state.level = 1;
+    updateHud();
     hideOverlay();
   }
 
   window.addEventListener('keydown', (e) => {
     if (state.gameOver || !state.started) {
-      // Any key starts/restarts
       if (e.key.length === 1 || ['Enter','ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) {
         startGame();
         e.preventDefault();
@@ -567,7 +627,11 @@
     switch (e.key) {
       case 'ArrowLeft':  tryMove(-1, 0); e.preventDefault(); break;
       case 'ArrowRight': tryMove(1, 0); e.preventDefault(); break;
-      case 'ArrowDown':  state.softDrop = true; e.preventDefault(); break;
+      case 'ArrowDown':
+        if (tryMove(0, 1)) state.score += 1;
+        state.softDrop = true;
+        updateHud();
+        e.preventDefault(); break;
       case 'ArrowUp':
       case 'x':
       case 'X':
@@ -585,8 +649,10 @@
 
   // ---------- Init ----------
   function init() {
+    loadHighScore();
     refillBag();
     state.current = spawnPiece(nextType());
+    updateHud();
     showOverlay('BLOCK DROP', 'Press any key to start');
     requestAnimationFrame(loop);
   }
