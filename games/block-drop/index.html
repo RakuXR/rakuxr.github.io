@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Block Drop</title>
+<style>
+  :root {
+    --bg: #0a0a12;
+    --panel: #141424;
+    --panel-border: #2a2a44;
+    --text: #e8e8ff;
+    --accent: #6cf;
+    --grid: #1c1c30;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: radial-gradient(ellipse at center, #161628 0%, #05050c 100%);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  #app {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 16px;
+    gap: 20px;
+  }
+  .stage {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 150px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .panel h3 {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #8899cc;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .panel .value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  #board-wrap {
+    position: relative;
+  }
+  #board {
+    background: var(--grid);
+    border: 2px solid var(--panel-border);
+    border-radius: 8px;
+    box-shadow: 0 0 40px rgba(100, 200, 255, 0.15), inset 0 0 30px rgba(0,0,0,0.6);
+    display: block;
+  }
+  .preview-canvas {
+    display: block;
+    margin: 0 auto;
+    background: #0c0c18;
+    border-radius: 4px;
+  }
+  #title {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    color: #8cf;
+    text-align: center;
+    margin-bottom: 8px;
+    text-shadow: 0 0 10px rgba(100, 200, 255, 0.5);
+  }
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: rgba(5, 5, 15, 0.85);
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+    text-align: center;
+    padding: 20px;
+  }
+  #overlay.show { display: flex; }
+  #overlay h2 {
+    font-size: 32px;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+    color: #fff;
+    text-shadow: 0 0 16px rgba(140, 200, 255, 0.8);
+  }
+  #overlay p {
+    font-size: 14px;
+    color: #aac;
+    margin-bottom: 6px;
+  }
+  #overlay .hint {
+    font-size: 12px;
+    color: #6688aa;
+    margin-top: 16px;
+  }
+  .controls-list {
+    font-size: 10px;
+    color: #7788aa;
+    line-height: 1.6;
+  }
+  .controls-list strong { color: #bbccee; }
+  @media (max-width: 720px) {
+    .stage { flex-direction: column; align-items: center; }
+    .side { flex-direction: row; flex-wrap: wrap; justify-content: center; min-width: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="stage">
+    <!-- LEFT SIDE: hold + score -->
+    <div class="side">
+      <div class="panel">
+        <h3>Hold</h3>
+        <canvas id="hold-canvas" class="preview-canvas" width="120" height="80"></canvas>
+      </div>
+      <div class="panel">
+        <h3>Score</h3>
+        <div class="value" id="score-val">0</div>
+      </div>
+      <div class="panel">
+        <h3>High</h3>
+        <div class="value" id="high-val">0</div>
+      </div>
+    </div>
+
+    <!-- CENTER: board -->
+    <div id="board-wrap">
+      <div id="title">BLOCK DROP</div>
+      <canvas id="board" width="300" height="600"></canvas>
+      <div id="overlay">
+        <h2 id="overlay-title">BLOCK DROP</h2>
+        <p id="overlay-msg">Press any key to start</p>
+        <div class="hint">
+          Arrows: Move &nbsp;·&nbsp; Up/X: Rotate CW &nbsp;·&nbsp; Z: Rotate CCW<br>
+          Down: Soft drop &nbsp;·&nbsp; Space: Hard drop &nbsp;·&nbsp; Shift/C: Hold
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE: next + level + lines -->
+    <div class="side">
+      <div class="panel">
+        <h3>Next</h3>
+        <canvas id="next-canvas" class="preview-canvas" width="120" height="260"></canvas>
+      </div>
+      <div class="panel">
+        <h3>Level</h3>
+        <div class="value" id="level-val">1</div>
+      </div>
+      <div class="panel">
+        <h3>Lines</h3>
+        <div class="value" id="lines-val">0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- Constants ----------
+  const COLS = 10;
+  const ROWS = 20;
+  const CELL = 30;              // pixel size per cell on the main board
+  const PREVIEW_CELL = 20;      // pixel size per cell on preview canvases
+
+  // Tetromino shapes: each shape's initial matrix.
+  // SRS uses 4x4 (I) and 3x3 matrices (JLSTZ). O is 2x2.
+  const SHAPES = {
+    I: [
+      [0,0,0,0],
+      [1,1,1,1],
+      [0,0,0,0],
+      [0,0,0,0],
+    ],
+    O: [
+      [1,1],
+      [1,1],
+    ],
+    T: [
+      [0,1,0],
+      [1,1,1],
+      [0,0,0],
+    ],
+    S: [
+      [0,1,1],
+      [1,1,0],
+      [0,0,0],
+    ],
+    Z: [
+      [1,1,0],
+      [0,1,1],
+      [0,0,0],
+    ],
+    J: [
+      [1,0,0],
+      [1,1,1],
+      [0,0,0],
+    ],
+    L: [
+      [0,0,1],
+      [1,1,1],
+      [0,0,0],
+    ],
+  };
+
+  const COLORS = {
+    I: '#00e5ff', // cyan
+    O: '#ffd500', // yellow
+    T: '#b048ff', // purple
+    S: '#00e676', // green
+    Z: '#ff3d57', // red
+    J: '#2979ff', // blue
+    L: '#ff9100', // orange
+  };
+
+  const TYPES = ['I','O','T','S','Z','J','L'];
+
+  // ---------- DOM ----------
+  const boardCanvas = document.getElementById('board');
+  const ctx = boardCanvas.getContext('2d');
+  const nextCanvas = document.getElementById('next-canvas');
+  const nextCtx = nextCanvas.getContext('2d');
+  const holdCanvas = document.getElementById('hold-canvas');
+  const holdCtx = holdCanvas.getContext('2d');
+
+  // ---------- State ----------
+  const state = {
+    grid: createGrid(),
+    bag: [],
+    current: null,    // { type, matrix, x, y, rot }
+    // Placeholder; additional state added in later commits
+  };
+
+  function createGrid() {
+    const g = [];
+    for (let r = 0; r < ROWS; r++) {
+      g.push(new Array(COLS).fill(0));
+    }
+    return g;
+  }
+
+  // ---------- 7-bag randomizer ----------
+  function refillBag() {
+    const bag = TYPES.slice();
+    // Fisher-Yates shuffle
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+    state.bag.push(...bag);
+  }
+
+  function nextType() {
+    if (state.bag.length === 0) refillBag();
+    return state.bag.shift();
+  }
+
+  function spawnPiece(type) {
+    const matrix = SHAPES[type].map(row => row.slice());
+    const piece = {
+      type,
+      matrix,
+      rot: 0,
+      x: ((COLS - matrix[0].length) / 2) | 0,
+      y: type === 'I' ? -1 : 0,
+    };
+    return piece;
+  }
+
+  // ---------- Rendering ----------
+  function drawCell(c, gx, gy, color, size = CELL) {
+    const x = gx * size;
+    const y = gy * size;
+    // base
+    c.fillStyle = color;
+    c.fillRect(x, y, size, size);
+    // bevel highlight (top + left)
+    c.fillStyle = 'rgba(255,255,255,0.35)';
+    c.fillRect(x, y, size, Math.max(2, size * 0.12));
+    c.fillRect(x, y, Math.max(2, size * 0.12), size);
+    // bevel shadow (bottom + right)
+    c.fillStyle = 'rgba(0,0,0,0.35)';
+    c.fillRect(x, y + size - Math.max(2, size * 0.12), size, Math.max(2, size * 0.12));
+    c.fillRect(x + size - Math.max(2, size * 0.12), y, Math.max(2, size * 0.12), size);
+    // border
+    c.strokeStyle = 'rgba(0,0,0,0.5)';
+    c.lineWidth = 1;
+    c.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
+  }
+
+  function drawGridLines() {
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 1; x < COLS; x++) {
+      ctx.beginPath();
+      ctx.moveTo(x * CELL + 0.5, 0);
+      ctx.lineTo(x * CELL + 0.5, ROWS * CELL);
+      ctx.stroke();
+    }
+    for (let y = 1; y < ROWS; y++) {
+      ctx.beginPath();
+      ctx.moveTo(0, y * CELL + 0.5);
+      ctx.lineTo(COLS * CELL, y * CELL + 0.5);
+      ctx.stroke();
+    }
+  }
+
+  function drawBoard() {
+    // background
+    ctx.fillStyle = '#0c0c18';
+    ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL);
+    drawGridLines();
+
+    // locked cells
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const v = state.grid[r][c];
+        if (v) drawCell(ctx, c, r, COLORS[v]);
+      }
+    }
+
+    // current piece
+    const p = state.current;
+    if (p) {
+      for (let r = 0; r < p.matrix.length; r++) {
+        for (let c = 0; c < p.matrix[r].length; c++) {
+          if (!p.matrix[r][c]) continue;
+          const gx = p.x + c;
+          const gy = p.y + r;
+          if (gy < 0) continue;
+          drawCell(ctx, gx, gy, COLORS[p.type]);
+        }
+      }
+    }
+  }
+
+  function render() {
+    drawBoard();
+  }
+
+  // ---------- Init ----------
+  function init() {
+    refillBag();
+    state.current = spawnPiece(nextType());
+    render();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
