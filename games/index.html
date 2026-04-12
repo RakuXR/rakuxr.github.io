@@ -375,6 +375,109 @@
     border-top: 1px solid rgba(0, 240, 255, 0.2);
     margin-top: 40px;
   }
+
+  /* ============ GAME FRAME ============ */
+  .game-frame-host {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: #000;
+    flex-direction: column;
+  }
+  .game-frame-host.open { display: flex; }
+  .game-frame-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: #000;
+    border-bottom: 2px solid var(--neon-pink);
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .game-frame-bar .now-playing {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 6px var(--neon-yellow);
+    font-size: 10px;
+  }
+  .game-frame-bar button {
+    font-family: inherit;
+    font-size: 9px;
+    background: transparent;
+    color: var(--neon-cyan);
+    border: 2px solid var(--neon-cyan);
+    padding: 6px 10px;
+    cursor: pointer;
+    text-shadow: 0 0 4px var(--neon-cyan);
+  }
+  .game-frame-bar button:hover {
+    background: var(--neon-cyan);
+    color: #000;
+    text-shadow: none;
+  }
+  .game-frame-bar .back-btn {
+    color: var(--neon-pink);
+    border-color: var(--neon-pink);
+    text-shadow: 0 0 4px var(--neon-pink);
+  }
+  .game-frame-bar .back-btn:hover {
+    background: var(--neon-pink);
+    color: #000;
+    text-shadow: none;
+  }
+  .game-frame-host iframe {
+    flex: 1;
+    width: 100%;
+    border: 0;
+    background: #000;
+  }
+
+  /* Launch flash transition */
+  .launch-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #fff;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .launch-flash.fire {
+    animation: launch-fire 0.45s ease-out forwards;
+  }
+  @keyframes launch-fire {
+    0%   { opacity: 0; }
+    25%  { opacity: 0.9; }
+    100% { opacity: 0; }
+  }
+
+  /* API feed panel */
+  .api-feed {
+    border: 2px solid var(--neon-cyan);
+    background: rgba(0, 240, 255, 0.04);
+    padding: 10px 12px;
+    margin: 20px 0;
+    font-size: 7px;
+    color: var(--neon-cyan);
+    max-height: 120px;
+    overflow: hidden;
+    position: relative;
+  }
+  .api-feed h4 {
+    font-size: 9px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 4px var(--neon-yellow);
+    margin-bottom: 6px;
+  }
+  .api-feed .line {
+    line-height: 1.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .api-feed .line .ok { color: var(--neon-green); }
+  .api-feed .line .path { color: #fff; }
+
 </style>
 </head>
 <body>
@@ -412,12 +515,30 @@
       <span>18 DLLS</span>
     </div>
 
+    <div class="api-feed" id="api-feed">
+      <h4>&gt; LIVE API FEED (raku-api-staging.fly.dev)</h4>
+      <div id="api-feed-lines"></div>
+    </div>
+
     <div class="game-grid" id="game-grid"></div>
   </main>
 
   <footer>
     &copy; 2026 RAKUAI &bull; ALL GAMES RUN ON THE RAKU ENGINE
   </footer>
+
+  <div class="game-frame-host" id="game-frame-host" role="dialog" aria-modal="true" aria-label="Game player">
+    <div class="game-frame-bar">
+      <div class="now-playing" id="now-playing">NOW PLAYING: —</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button type="button" id="frame-reload">&#8635; RESTART</button>
+        <button type="button" class="back-btn" id="frame-back">&larr; BACK TO ARCADE</button>
+      </div>
+    </div>
+    <iframe id="game-frame" title="Game" allow="autoplay; fullscreen; gamepad"></iframe>
+  </div>
+
+  <div class="launch-flash" id="launch-flash"></div>
 
   <div class="crt-overlay"></div>
 
@@ -631,11 +752,101 @@
   }
 
   // ============ LAUNCH GAME ============
+  let currentGame = null;
+
   function launchGame(index) {
     const g = GAMES[index];
     if (!g) return;
-    window.location.href = g.url;
+    currentGame = g;
+    // Flash transition
+    const flash = document.getElementById('launch-flash');
+    flash.classList.remove('fire');
+    void flash.offsetWidth;
+    flash.classList.add('fire');
+    playLaunchSound();
+    logApi('POST /api/raku/session/start ' + g.id);
+    setTimeout(() => {
+      const host = document.getElementById('game-frame-host');
+      const frame = document.getElementById('game-frame');
+      const label = document.getElementById('now-playing');
+      label.textContent = 'NOW PLAYING: ' + g.title;
+      frame.src = g.url;
+      host.classList.add('open');
+      document.body.classList.add('in-game');
+    }, 200);
   }
+
+  function returnToLauncher() {
+    const host = document.getElementById('game-frame-host');
+    const frame = document.getElementById('game-frame');
+    host.classList.remove('open');
+    frame.src = 'about:blank';
+    document.body.classList.remove('in-game');
+    if (currentGame) logApi('POST /api/raku/session/end ' + currentGame.id);
+    currentGame = null;
+  }
+
+  // Frame bar controls
+  document.getElementById('frame-back').addEventListener('click', returnToLauncher);
+  document.getElementById('frame-reload').addEventListener('click', () => {
+    const frame = document.getElementById('game-frame');
+    if (currentGame) frame.src = currentGame.url;
+  });
+
+  // postMessage protocol: listen for quit/gameover/apicall from games
+  window.addEventListener('message', (e) => {
+    const d = e.data;
+    if (!d || typeof d !== 'object') return;
+    switch (d.type) {
+      case 'quit':
+      case 'exit':
+        returnToLauncher();
+        break;
+      case 'gameover':
+        if (currentGame && typeof d.score === 'number') {
+          saveHighScore(currentGame.id, d.score);
+        }
+        break;
+      case 'apicall':
+        if (typeof d.path === 'string') logApi(d.method || 'GET', d.path, d.ok);
+        break;
+      case 'ready':
+        // Game announced it's ready — could sync state here
+        break;
+    }
+  });
+
+  // High score storage (placeholder until leaderboard commit)
+  function saveHighScore(gameId, score) {
+    const key = 'raku.hs.' + gameId;
+    const prev = parseInt(localStorage.getItem(key) || '0', 10);
+    if (score > prev) localStorage.setItem(key, String(score));
+  }
+
+  // API feed logging
+  const apiLines = [];
+  function logApi(methodOrLine, path, ok) {
+    const lines = document.getElementById('api-feed-lines');
+    if (!lines) return;
+    const stamp = new Date().toLocaleTimeString();
+    let html;
+    if (path === undefined) {
+      html = `<div class="line">[${stamp}] <span class="ok">200</span> <span class="path">${methodOrLine}</span></div>`;
+    } else {
+      const status = ok === false ? '500' : '200';
+      html = `<div class="line">[${stamp}] <span class="ok">${status}</span> ${methodOrLine} <span class="path">${path}</span></div>`;
+    }
+    apiLines.unshift(html);
+    if (apiLines.length > 8) apiLines.length = 8;
+    lines.innerHTML = apiLines.join('');
+  }
+
+  // Seed the feed with idle heartbeat lines
+  logApi('GET /api/raku/engine/status');
+  logApi('GET /api/raku/catalog/games');
+
+  // Placeholder sound hook — real audio added in sound commit
+  function playLaunchSound() { /* noop until audio commit */ }
 
   // ============ EXIT ARCADE ============
   document.getElementById('exit-arcade').addEventListener('click', () => {
