@@ -429,7 +429,7 @@ export class RakuEngine {
       else if (method === 'POST' && parts[2] === 'agents' && parts[4] === 'reward') result = this.agentReward(parts[1], parts[3], body.reward);
       else if (method === 'POST' && parts[2] === 'recording' && parts[3] === 'start') result = this.startRecording(parts[1]);
       else if (method === 'POST' && parts[2] === 'recording' && parts[3] === 'stop') result = this.stopRecording(parts[1]);
-      else if (method === 'POST' && path.includes('content/filter')) result = this.contentFilter(body.text);
+      else if (method === 'POST' && parts[0] === 'content' && parts[1] === 'filter' && parts.length === 2) result = this.contentFilter(body.text);
       else result = { error: 'Unknown endpoint' };
     } catch (e) { result = { error: e.message }; }
     const latency = Math.round(performance.now() - start);
