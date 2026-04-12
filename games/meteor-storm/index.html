@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meteor Storm</title>
+<style>
+  :root { --fg:#fff; --bg:#000; --accent:#5effb2; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin:0; padding:0; background:var(--bg); color:var(--fg);
+    font-family:'Courier New','Menlo',monospace;
+    overflow:hidden; height:100%;
+    user-select:none; -webkit-user-select:none;
+  }
+  #wrap {
+    position:fixed; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+  }
+  #game {
+    display:block; background:#000;
+    box-shadow: 0 0 60px rgba(94,255,178,0.08);
+    image-rendering:pixelated;
+  }
+  #title {
+    position:absolute; top:10px; left:50%;
+    transform:translateX(-50%);
+    font-size:11px; letter-spacing:3px;
+    color:#888; text-transform:uppercase;
+  }
+  #title a { color:#888; text-decoration:none; }
+  #title a:hover { color:var(--accent); }
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="game" width="960" height="720"></canvas>
+  </div>
+  <div id="title"><a href="../">&lt; games</a> &nbsp;|&nbsp; METEOR STORM</div>
+
+<script>
+(function () {
+  'use strict';
+  // -------------------------------------------------------------------
+  // Meteor Storm - vector-style Asteroids clone
+  // Stage 3: rocks with procedural jagged shapes + splitting + particles
+  // -------------------------------------------------------------------
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  const VW = 960;
+  const VH = 720;
+  const TAU = Math.PI * 2;
+
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const scale = Math.min(window.innerWidth / VW, window.innerHeight / VH);
+    canvas.style.width = Math.floor(VW * scale) + 'px';
+    canvas.style.height = Math.floor(VH * scale) + 'px';
+    canvas.width = Math.floor(VW * dpr);
+    canvas.height = Math.floor(VH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ---------- state ----------
+  const STATE = {
+    TITLE: 'title',
+    PLAYING: 'playing',
+    DYING: 'dying',
+    GAMEOVER: 'gameover',
+    LEVEL_CLEAR: 'level_clear',
+  };
+
+  const game = {
+    state: STATE.TITLE,
+    stateTimer: 0,
+    score: 0,
+    level: 1,
+    lives: 3,
+    shake: 0,
+    tick: 0,
+    highScore: 0,
+  };
+
+  // ---------- entities ----------
+  /** @type {Ship|null} */ let ship = null;
+  const bullets = [];
+  const rocks = [];
+  const particles = [];
+
+  const ROCK_SIZES = {
+    3: { radius: 44, score: 20, speed: 60 },
+    2: { radius: 24, score: 50, speed: 90 },
+    1: { radius: 12, score: 100, speed: 130 },
+  };
+
+  class Ship {
+    constructor() {
+      this.x = VW / 2;
+      this.y = VH / 2;
+      this.vx = 0;
+      this.vy = 0;
+      this.angle = -Math.PI / 2;
+      this.radius = 12;
+      this.thrusting = false;
+      this.canFire = true;
+      this.fireCooldown = 0;
+      this.invuln = 2.5;
+    }
+    update(dt) {
+      const turn = 4.2;
+      if (keys['ArrowLeft']) this.angle -= turn * dt;
+      if (keys['ArrowRight']) this.angle += turn * dt;
+
+      this.thrusting = !!keys['ArrowUp'];
+      if (this.thrusting) {
+        const accel = 260;
+        this.vx += Math.cos(this.angle) * accel * dt;
+        this.vy += Math.sin(this.angle) * accel * dt;
+      }
+      const drag = 0.994;
+      this.vx *= Math.pow(drag, dt * 60);
+      this.vy *= Math.pow(drag, dt * 60);
+      const maxSpd = 380;
+      const sp2 = this.vx * this.vx + this.vy * this.vy;
+      if (sp2 > maxSpd * maxSpd) {
+        const s = maxSpd / Math.sqrt(sp2);
+        this.vx *= s; this.vy *= s;
+      }
+
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+      wrap(this);
+
+      this.fireCooldown -= dt;
+      if (this.fireCooldown <= 0) this.canFire = true;
+      if (keys['Space'] && this.canFire && bullets.length < 5) {
+        this.fire();
+        this.canFire = false;
+        this.fireCooldown = 0.22;
+      }
+
+      if (this.invuln > 0) this.invuln -= dt;
+    }
+    fire() {
+      const spd = 520;
+      const bx = this.x + Math.cos(this.angle) * this.radius;
+      const by = this.y + Math.sin(this.angle) * this.radius;
+      bullets.push(new Bullet(
+        bx, by,
+        this.vx + Math.cos(this.angle) * spd,
+        this.vy + Math.sin(this.angle) * spd
+      ));
+    }
+    draw() {
+      if (this.invuln > 0 && (Math.floor(game.tick / 4) & 1)) return;
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
+      ctx.beginPath();
+      ctx.moveTo(14, 0);
+      ctx.lineTo(-10, 9);
+      ctx.lineTo(-6, 0);
+      ctx.lineTo(-10, -9);
+      ctx.closePath();
+      ctx.stroke();
+      if (this.thrusting && (game.tick & 1)) {
+        ctx.beginPath();
+        ctx.moveTo(-6, 4);
+        ctx.lineTo(-14, 0);
+        ctx.lineTo(-6, -4);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  class Bullet {
+    constructor(x, y, vx, vy) {
+      this.x = x; this.y = y;
+      this.vx = vx; this.vy = vy;
+      this.life = 0.9;
+      this.radius = 2;
+    }
+    update(dt) {
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+      wrap(this);
+      this.life -= dt;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 1.5, 0, TAU);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+    }
+  }
+
+  class Rock {
+    constructor(x, y, size) {
+      this.x = x;
+      this.y = y;
+      this.size = size; // 3 = large, 2 = medium, 1 = small
+      const meta = ROCK_SIZES[size];
+      this.radius = meta.radius;
+      const dir = Math.random() * TAU;
+      const spd = meta.speed * (0.7 + Math.random() * 0.6);
+      this.vx = Math.cos(dir) * spd;
+      this.vy = Math.sin(dir) * spd;
+      this.angle = 0;
+      this.spin = (Math.random() - 0.5) * 1.4;
+
+      // Generate jagged polygon
+      const nPoints = 8 + Math.floor(Math.random() * 5);
+      this.shape = new Array(nPoints);
+      for (let i = 0; i < nPoints; i++) {
+        const a = (i / nPoints) * TAU;
+        const jitter = 0.72 + Math.random() * 0.45;
+        this.shape[i] = {
+          x: Math.cos(a) * this.radius * jitter,
+          y: Math.sin(a) * this.radius * jitter,
+        };
+      }
+    }
+    update(dt) {
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+      this.angle += this.spin * dt;
+      wrap(this);
+    }
+    draw() {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle);
+      ctx.beginPath();
+      const s = this.shape;
+      ctx.moveTo(s[0].x, s[0].y);
+      for (let i = 1; i < s.length; i++) ctx.lineTo(s[i].x, s[i].y);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  class Particle {
+    constructor(x, y, vx, vy, life) {
+      this.x = x; this.y = y;
+      this.vx = vx; this.vy = vy;
+      this.life = life;
+      this.maxLife = life;
+    }
+    update(dt) {
+      this.x += this.vx * dt;
+      this.y += this.vy * dt;
+      this.vx *= Math.pow(0.96, dt * 60);
+      this.vy *= Math.pow(0.96, dt * 60);
+      this.life -= dt;
+    }
+    draw() {
+      const t = Math.max(0, this.life / this.maxLife);
+      ctx.globalAlpha = t;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 1.3, 0, TAU);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function wrap(e) {
+    if (e.x < 0) e.x += VW;
+    else if (e.x >= VW) e.x -= VW;
+    if (e.y < 0) e.y += VH;
+    else if (e.y >= VH) e.y -= VH;
+  }
+
+  function dist2(a, b) {
+    let dx = a.x - b.x;
+    let dy = a.y - b.y;
+    // Handle wrap-around (closest distance across torus)
+    if (dx > VW / 2) dx -= VW; else if (dx < -VW / 2) dx += VW;
+    if (dy > VH / 2) dy -= VH; else if (dy < -VH / 2) dy += VH;
+    return dx * dx + dy * dy;
+  }
+
+  function spawnExplosion(x, y, count, speed) {
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * TAU;
+      const s = speed * (0.3 + Math.random());
+      particles.push(new Particle(
+        x, y,
+        Math.cos(a) * s,
+        Math.sin(a) * s,
+        0.5 + Math.random() * 0.6
+      ));
+    }
+  }
+
+  function spawnLevelRocks(level) {
+    rocks.length = 0;
+    const n = 3 + Math.min(level, 6);
+    for (let i = 0; i < n; i++) {
+      // Spawn away from ship center
+      let x, y;
+      do {
+        x = Math.random() * VW;
+        y = Math.random() * VH;
+      } while (((x - VW/2) ** 2 + (y - VH/2) ** 2) < 140 * 140);
+      rocks.push(new Rock(x, y, 3));
+    }
+  }
+
+  function splitRock(rock) {
+    spawnExplosion(rock.x, rock.y, 12, 80);
+    game.shake = Math.max(game.shake, rock.size * 3);
+    if (rock.size > 1) {
+      rocks.push(new Rock(rock.x, rock.y, rock.size - 1));
+      rocks.push(new Rock(rock.x, rock.y, rock.size - 1));
+    }
+  }
+
+  // ---------- input ----------
+  const keys = Object.create(null);
+  window.addEventListener('keydown', (e) => {
+    keys[e.code] = true;
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft','ShiftRight'].includes(e.code)) {
+      e.preventDefault();
+    }
+    if (e.code === 'Enter' && (game.state === STATE.TITLE || game.state === STATE.GAMEOVER)) {
+      startNewGame();
+    }
+  }, { passive: false });
+  window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+  // ---------- main loop ----------
+  let lastT = performance.now();
+  function loop(now) {
+    const dt = Math.min((now - lastT) / 1000, 1/30);
+    lastT = now;
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  function update(dt) {
+    game.tick++;
+    game.stateTimer += dt;
+    if (game.shake > 0) game.shake = Math.max(0, game.shake - dt * 60);
+
+    if (game.state === STATE.PLAYING) {
+      if (ship) ship.update(dt);
+
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        bullets[i].update(dt);
+        if (bullets[i].life <= 0) bullets.splice(i, 1);
+      }
+
+      for (const r of rocks) r.update(dt);
+
+      // Bullet <-> rock collisions
+      for (let i = rocks.length - 1; i >= 0; i--) {
+        const r = rocks[i];
+        for (let j = bullets.length - 1; j >= 0; j--) {
+          const b = bullets[j];
+          if (dist2(r, b) < r.radius * r.radius) {
+            bullets.splice(j, 1);
+            rocks.splice(i, 1);
+            const meta = ROCK_SIZES[r.size];
+            game.score += meta.score;
+            splitRock(r);
+            break;
+          }
+        }
+      }
+
+      // Ship <-> rock collisions (ignored while invulnerable)
+      if (ship && ship.invuln <= 0) {
+        for (let i = rocks.length - 1; i >= 0; i--) {
+          const r = rocks[i];
+          const rr = r.radius + ship.radius - 4;
+          if (dist2(r, ship) < rr * rr) {
+            rocks.splice(i, 1);
+            splitRock(r);
+            killShip();
+            break;
+          }
+        }
+      }
+
+      // Check level clear
+      if (rocks.length === 0 && game.state === STATE.PLAYING) {
+        game.level++;
+        spawnLevelRocks(game.level);
+      }
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      particles[i].update(dt);
+      if (particles[i].life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  function killShip() {
+    if (!ship) return;
+    spawnExplosion(ship.x, ship.y, 30, 140);
+    game.shake = 14;
+    game.lives--;
+    ship = null;
+    if (game.lives <= 0) {
+      game.state = STATE.GAMEOVER;
+      game.stateTimer = 0;
+    } else {
+      setTimeout(() => {
+        if (game.state === STATE.PLAYING) ship = new Ship();
+      }, 1200);
+    }
+  }
+
+  function render() {
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+
+    const sx = (Math.random() - 0.5) * game.shake;
+    const sy = (Math.random() - 0.5) * game.shake;
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.strokeStyle = '#fff';
+    ctx.fillStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    if (game.state === STATE.TITLE) {
+      drawTitle();
+    } else {
+      for (const r of rocks) r.draw();
+      for (const b of bullets) b.draw();
+      for (const p of particles) p.draw();
+      if (ship) ship.draw();
+      drawHUD();
+      if (game.state === STATE.GAMEOVER) drawGameOver();
+    }
+    ctx.restore();
+  }
+
+  function drawTitle() {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 56px "Courier New", monospace';
+    ctx.fillText('METEOR STORM', VW/2, VH/2 - 80);
+    ctx.font = '16px "Courier New", monospace';
+    ctx.fillStyle = '#bbb';
+    ctx.fillText('PRESS ENTER TO START', VW/2, VH/2 + 20);
+    ctx.font = '12px "Courier New", monospace';
+    ctx.fillStyle = '#666';
+    ctx.fillText('ARROWS: ROTATE / THRUST    SPACE: FIRE', VW/2, VH/2 + 70);
+    ctx.restore();
+  }
+
+  function drawGameOver() {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 48px "Courier New", monospace';
+    ctx.fillText('GAME OVER', VW/2, VH/2 - 20);
+    ctx.font = '14px "Courier New", monospace';
+    ctx.fillStyle = '#bbb';
+    ctx.fillText('PRESS ENTER TO RESTART', VW/2, VH/2 + 30);
+    ctx.restore();
+  }
+
+  function drawHUD() {
+    ctx.save();
+    ctx.fillStyle = '#fff';
+    ctx.font = '20px "Courier New", monospace';
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+    ctx.fillText('SCORE ' + pad(game.score, 6), 20, 16);
+    ctx.textAlign = 'center';
+    ctx.fillText('LEVEL ' + game.level, VW/2, 16);
+    ctx.textAlign = 'right';
+    ctx.fillText('LIVES ' + game.lives, VW - 20, 16);
+    ctx.restore();
+  }
+
+  function pad(n, w) {
+    const s = String(n);
+    return '0'.repeat(Math.max(0, w - s.length)) + s;
+  }
+
+  function startNewGame() {
+    game.state = STATE.PLAYING;
+    game.stateTimer = 0;
+    game.score = 0;
+    game.level = 1;
+    game.lives = 3;
+    bullets.length = 0;
+    rocks.length = 0;
+    particles.length = 0;
+    ship = new Ship();
+    spawnLevelRocks(game.level);
+  }
+
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
