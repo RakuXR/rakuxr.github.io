@@ -56,6 +56,84 @@
     color: #888;
     text-align: center;
   }
+
+  /* API debug overlay */
+  #api-overlay {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 280px;
+    max-height: 60vh;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    padding: 8px;
+    z-index: 20;
+    display: none;
+    box-shadow: 0 0 14px rgba(0, 255, 255, 0.4);
+    border-radius: 4px;
+  }
+  #api-overlay.visible { display: block; }
+  #api-overlay .title {
+    color: #ffff00;
+    font-weight: bold;
+    font-size: 11px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #00ffff;
+    padding-bottom: 3px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #api-overlay .title small {
+    color: #888;
+    font-weight: normal;
+    font-size: 8px;
+  }
+  #api-log {
+    max-height: calc(60vh - 40px);
+    overflow-y: auto;
+    padding-right: 3px;
+  }
+  #api-log::-webkit-scrollbar { width: 6px; }
+  #api-log::-webkit-scrollbar-thumb { background: #00ffff; }
+  #api-log .row {
+    padding: 2px 0;
+    border-bottom: 1px dashed rgba(0, 255, 255, 0.15);
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  #api-log .method { color: #ffcc00; font-weight: bold; min-width: 38px; }
+  #api-log .path { color: #fff; flex: 1 1 auto; word-break: break-all; }
+  #api-log .ms-ok { color: #66ff66; }
+  #api-log .ms-warn { color: #ffdd66; }
+  #api-log .ms-bad { color: #ff6666; }
+  #api-log .ts { color: #888; font-size: 8px; }
+
+  /* Pulsing API badge */
+  #api-badge {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #00ffff;
+    color: #000;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 6px 10px;
+    z-index: 19;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    animation: apiPulse 1.6s infinite;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+  }
+  @keyframes apiPulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 255, 0.7); }
+    50%      { box-shadow: 0 0 22px rgba(0, 255, 255, 1); }
+  }
 </style>
 </head>
 <body>
@@ -68,10 +146,16 @@
     <div>LIVES <span id="lives">3</span></div>
   </div>
   <canvas id="game" width="560" height="620"></canvas>
-  <div id="footer">Arrows / WASD &bull; P = Pause</div>
+  <div id="footer">Arrows / WASD &bull; P = Pause &bull; F2 = API Debug</div>
 </div>
-<script>
+<button id="api-badge" title="Toggle API debug (F2)">API</button>
+<div id="api-overlay" aria-live="polite">
+  <div class="title">RakuEngine API <small>F2 to hide</small></div>
+  <div id="api-log"></div>
+</div>
+<script type="module">
 'use strict';
+import { RakuEngine } from '../../engine/raku-engine.js';
 
 // ============================================================
 // DOT CHOMPER - A Pac-Man-style maze game
@@ -87,6 +171,69 @@ const HUD_H = 40;
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = true;
+
+// ------------------------------------------------------------
+// RakuEngine integration — creates a world and entities for the
+// player and the four ghosts, and streams live API calls into a
+// debug overlay on screen.
+// ------------------------------------------------------------
+
+const engine = new RakuEngine();
+const worldRes = engine.createWorld('dot-chomper');
+const WORLD_ID = worldRes.world_id;
+const playerEntityRes = engine.createEntity(WORLD_ID, {
+  type: 'chomper', name: 'player', position: [0, 0, 0],
+  properties: { shape: 'sphere', color: '#ffff00' },
+});
+const PLAYER_ENTITY_ID = playerEntityRes.entity_id;
+const ghostEntityIds = {};
+for (const name of ['blinky', 'pinky', 'inky', 'clyde']) {
+  const r = engine.createEntity(WORLD_ID, {
+    type: 'ghost', name, position: [0, 0, 0],
+    properties: { ghost: name },
+  });
+  ghostEntityIds[name] = r.entity_id;
+}
+engine.observeWorld(WORLD_ID);
+engine.captureFrame(WORLD_ID);
+
+// ─── API DEBUG OVERLAY ─────────────────────────────────────────
+const apiLogEl = document.getElementById('api-log');
+const apiOverlay = document.getElementById('api-overlay');
+const apiBadge = document.getElementById('api-badge');
+let apiOverlayVisible = false;
+let apiEntries = [];
+const MAX_API_ENTRIES = 20;
+
+function latencyClass(ms) {
+  if (ms < 50) return 'ms-ok';
+  if (ms < 200) return 'ms-warn';
+  return 'ms-bad';
+}
+function renderApiLog() {
+  if (!apiOverlayVisible) return;
+  const rows = apiEntries.slice(0, MAX_API_ENTRIES).map(e => {
+    const ts = new Date(e.time).toLocaleTimeString().slice(-8);
+    const lat = (e.latency | 0) + 'ms';
+    const cls = latencyClass(e.latency);
+    return `<div class="row"><span class="method">${e.method}</span>` +
+           `<span class="path">${e.path}</span>` +
+           `<span class="${cls}">${lat}</span>` +
+           `<span class="ts">${ts}</span></div>`;
+  }).join('');
+  apiLogEl.innerHTML = rows || '<div style="color:#666">No API calls yet.</div>';
+}
+engine.on('api', (entry) => {
+  apiEntries.unshift(entry);
+  if (apiEntries.length > MAX_API_ENTRIES) apiEntries.length = MAX_API_ENTRIES;
+  renderApiLog();
+});
+function toggleApiOverlay() {
+  apiOverlayVisible = !apiOverlayVisible;
+  apiOverlay.classList.toggle('visible', apiOverlayVisible);
+  renderApiLog();
+}
+apiBadge.addEventListener('click', toggleApiOverlay);
 
 // ------------------------------------------------------------
 // Maze definitions
@@ -953,7 +1100,7 @@ function drawGhost(g) {
 function drawHUD() {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, W, HUD_H);
-  ctx.strokeStyle = '#1d2ea8';
+  ctx.strokeStyle = mazeColor.edge;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(0, HUD_H - 1);
@@ -961,11 +1108,21 @@ function drawHUD() {
   ctx.stroke();
 }
 
+function drawScanlines() {
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#000';
+  for (let y = 0; y < H; y += 3) ctx.fillRect(0, y, W, 1);
+  ctx.restore();
+}
+
 // ------------------------------------------------------------
 // Input
 // ------------------------------------------------------------
 
 const keys = {};
+let paused = false;
+let scanlines = true;
 window.addEventListener('keydown', (e) => {
   keys[e.key] = true;
   const k = e.key.toLowerCase();
@@ -973,6 +1130,9 @@ window.addEventListener('keydown', (e) => {
   if (k === 'arrowdown' || k === 's') player.nextDir = DIR.DOWN;
   if (k === 'arrowleft' || k === 'a') player.nextDir = DIR.LEFT;
   if (k === 'arrowright' || k === 'd') player.nextDir = DIR.RIGHT;
+  if (k === 'p') paused = !paused;
+  if (e.key === 'F1') { scanlines = !scanlines; e.preventDefault(); }
+  if (e.key === 'F2') { toggleApiOverlay(); e.preventDefault(); }
 });
 window.addEventListener('keyup', (e) => { keys[e.key] = false; });
 
@@ -1185,9 +1345,23 @@ function checkLevelComplete() {
 }
 
 let last = performance.now();
+let engineTick = 0;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
+
+  if (paused) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#ffff00';
+    ctx.font = 'bold 18px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('PAUSED', W / 2, H / 2);
+    ctx.restore();
+    requestAnimationFrame(frame);
+    return;
+  }
 
   if (player.alive) tryStep(player, dt);
   eatDots();
@@ -1203,6 +1377,23 @@ function frame(now) {
     }
   }
 
+  // Throttled engine sync — pushes live transforms to RakuEngine so the
+  // API debug overlay shows continuous activity.
+  engineTick += dt;
+  if (engineTick > 0.25) {
+    engineTick = 0;
+    engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
+      position: [player.x / TILE, 0, player.y / TILE],
+    });
+    for (const g of ghosts) {
+      const id = ghostEntityIds[g.name];
+      if (id) engine.setTransform(WORLD_ID, id, {
+        position: [g.x / TILE, 0, g.y / TILE],
+      });
+    }
+    engine.observeWorld(WORLD_ID);
+  }
+
   drawHUD();
   drawMaze();
   drawFruit();
@@ -1210,6 +1401,7 @@ function frame(now) {
   else drawDeath(dt);
   for (const g of ghosts) drawGhost(g);
   drawPopups(dt);
+  if (scanlines) drawScanlines();
   updateHUD();
   checkLevelComplete();
 
