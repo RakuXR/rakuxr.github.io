@@ -695,6 +695,95 @@
     color: var(--neon-cyan);
   }
 
+
+  /* ============ ACHIEVEMENTS ============ */
+  .achievements {
+    border: 3px solid var(--neon-green);
+    background: rgba(57, 255, 20, 0.04);
+    padding: 20px;
+    margin: 40px auto;
+    max-width: 720px;
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.3), inset 0 0 20px rgba(57, 255, 20, 0.05);
+  }
+  .achievements h3 {
+    font-size: 14px;
+    color: var(--neon-green);
+    text-shadow: 0 0 8px var(--neon-green);
+    text-align: center;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+  }
+  .ach-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .ach-stat {
+    border: 1px dashed rgba(57, 255, 20, 0.35);
+    padding: 10px;
+    font-size: 8px;
+  }
+  .ach-stat .label { color: #9fd8a4; display: block; margin-bottom: 4px; }
+  .ach-stat .value {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 4px var(--neon-yellow);
+    font-size: 11px;
+  }
+  .ach-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .ach-badge {
+    border: 2px solid #2a5a2a;
+    padding: 8px;
+    font-size: 7px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.4);
+  }
+  .ach-badge.unlocked {
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+    text-shadow: 0 0 4px var(--neon-green);
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+  }
+  .ach-badge .icon {
+    font-size: 14px;
+    width: 20px;
+    text-align: center;
+  }
+  .ach-badge.unlocked .icon { color: var(--neon-yellow); text-shadow: 0 0 4px var(--neon-yellow); }
+  .ach-badge .name { font-size: 8px; }
+  .ach-badge .desc { font-size: 6px; color: inherit; opacity: 0.75; display: block; margin-top: 2px; }
+
+  /* Achievement toast */
+  .ach-toast {
+    position: fixed;
+    right: 20px;
+    bottom: 60px;
+    z-index: 200;
+    background: #000;
+    border: 3px solid var(--neon-yellow);
+    box-shadow: 0 0 20px var(--neon-yellow);
+    padding: 14px 18px;
+    max-width: 280px;
+    font-size: 8px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 4px var(--neon-yellow);
+    transform: translateY(120%);
+    opacity: 0;
+    transition: all 0.35s ease;
+  }
+  .ach-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .ach-toast .title { font-size: 10px; color: var(--neon-pink); text-shadow: 0 0 6px var(--neon-pink); display: block; margin-bottom: 4px; }
+
 </style>
 </head>
 <body>
@@ -749,6 +838,13 @@
     </div>
 
     <div class="game-grid" id="game-grid"></div>
+    <div class="section-header">&gt;&gt; ACHIEVEMENTS &lt;&lt;</div>
+    <div class="achievements" id="achievements">
+      <h3>&#9733; HALL OF FAME &#9733;</h3>
+      <div class="ach-stats" id="ach-stats"></div>
+      <div class="ach-list" id="ach-list"></div>
+    </div>
+
     <div class="section-header">&gt;&gt; TOP SCORES &lt;&lt;</div>
     <div class="leaderboard" id="leaderboard">
       <h3>&#9733; HIGH SCORE LEADERBOARD &#9733;</h3>
@@ -799,6 +895,11 @@
       <input type="checkbox" id="opt-music">
     </div>
     <button type="button" class="close-opt" id="close-opt">[ CLOSE ]</button>
+  </div>
+
+  <div class="ach-toast" id="ach-toast" role="status" aria-live="polite">
+    <span class="title">ACHIEVEMENT UNLOCKED</span>
+    <span class="body" id="ach-toast-body">—</span>
   </div>
 
   <div class="game-frame-host" id="game-frame-host" role="dialog" aria-modal="true" aria-label="Game player">
@@ -1032,6 +1133,7 @@
     const g = GAMES[index];
     if (!g) return;
     currentGame = g;
+    trackGamePlayed(g.id);
     // Flash transition
     const flash = document.getElementById('launch-flash');
     flash.classList.remove('fire');
@@ -1079,7 +1181,15 @@
       case 'gameover':
         if (currentGame && typeof d.score === 'number') {
           saveHighScore(currentGame.id, d.score);
+          trackScore(d.score);
         }
+        if (typeof d.level === 'number') trackLevel(d.level);
+        break;
+      case 'level':
+        if (typeof d.level === 'number') trackLevel(d.level);
+        break;
+      case 'score':
+        if (typeof d.score === 'number') trackScore(d.score);
         break;
       case 'apicall':
         if (typeof d.path === 'string') logApi(d.method || 'GET', d.path, d.ok);
@@ -1521,6 +1631,7 @@
   }
 
   window.addEventListener('gamepadconnected', () => {
+    trackGamepad();
     logApi('GAMEPAD CONNECTED');
     if (!gpPollInterval) gpPollInterval = setInterval(pollGamepad, 100);
   });
@@ -1529,6 +1640,133 @@
   });
   // Also start polling right away in case pad is already present
   gpPollInterval = setInterval(pollGamepad, 100);
+
+
+  // ============ ACHIEVEMENTS ============
+  const ACHIEVEMENTS = [
+    { id: 'first_play',   icon: '&#127918;', name: 'INSERT COIN',    desc: 'Play your first game',             check: (st) => st.gamesPlayed >= 1 },
+    { id: 'play_5',       icon: '&#127919;', name: 'ARCADE REGULAR', desc: 'Play 5 games',                     check: (st) => st.gamesPlayed >= 5 },
+    { id: 'play_20',      icon: '&#128081;', name: 'HIGH ROLLER',    desc: 'Play 20 games',                    check: (st) => st.gamesPlayed >= 20 },
+    { id: 'sampler',      icon: '&#127775;', name: 'SAMPLER',        desc: 'Try 3 different games',            check: (st) => st.uniqueGames.length >= 3 },
+    { id: 'completionist',icon: '&#127942;', name: 'COMPLETIONIST',  desc: 'Play all 8 games',                 check: (st) => st.uniqueGames.length >= 8 },
+    { id: 'score_1k',     icon: '&#128176;', name: 'QUICK BUCK',     desc: 'Reach 1,000 points in any game',   check: (st) => st.highestScore >= 1000 },
+    { id: 'score_10k',    icon: '&#128293;', name: 'ON FIRE',        desc: 'Reach 10,000 points in any game',  check: (st) => st.highestScore >= 10000 },
+    { id: 'score_50k',    icon: '&#9889;',  name: 'LEGEND',          desc: 'Reach 50,000 points in any game',  check: (st) => st.highestScore >= 50000 },
+    { id: 'level_5',      icon: '&#127894;', name: 'CLIMBING UP',    desc: 'Reach level 5',                    check: (st) => st.highestLevel >= 5 },
+    { id: 'level_10',     icon: '&#128081;', name: 'GRANDMASTER',    desc: 'Reach level 10',                   check: (st) => st.highestLevel >= 10 },
+    { id: 'gamepad',      icon: '&#127918;', name: 'ANALOG HERO',    desc: 'Connect a gamepad',                check: (st) => st.gamepadUsed }
+  ];
+
+  const ACH_STATE_KEY = 'raku.ach.state';
+  const ACH_UNLOCKED_KEY = 'raku.ach.unlocked';
+
+  function loadAchState() {
+    try {
+      const raw = localStorage.getItem(ACH_STATE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return { gamesPlayed: 0, uniqueGames: [], highestScore: 0, highestLevel: 0, gamepadUsed: false };
+  }
+
+  function saveAchState(st) {
+    localStorage.setItem(ACH_STATE_KEY, JSON.stringify(st));
+  }
+
+  function loadUnlocked() {
+    try { return JSON.parse(localStorage.getItem(ACH_UNLOCKED_KEY) || '[]'); } catch (e) { return []; }
+  }
+
+  function saveUnlocked(list) {
+    localStorage.setItem(ACH_UNLOCKED_KEY, JSON.stringify(list));
+  }
+
+  let achState = loadAchState();
+  let unlockedIds = loadUnlocked();
+
+  function trackGamePlayed(gameId) {
+    achState.gamesPlayed++;
+    if (gameId && !achState.uniqueGames.includes(gameId)) {
+      achState.uniqueGames.push(gameId);
+    }
+    saveAchState(achState);
+    checkAchievements();
+    renderAchievements();
+  }
+
+  function trackScore(score) {
+    if (score > achState.highestScore) {
+      achState.highestScore = score;
+      saveAchState(achState);
+      checkAchievements();
+      renderAchievements();
+    }
+  }
+
+  function trackLevel(level) {
+    if (level > achState.highestLevel) {
+      achState.highestLevel = level;
+      saveAchState(achState);
+      checkAchievements();
+      renderAchievements();
+    }
+  }
+
+  function trackGamepad() {
+    if (!achState.gamepadUsed) {
+      achState.gamepadUsed = true;
+      saveAchState(achState);
+      checkAchievements();
+      renderAchievements();
+    }
+  }
+
+  function checkAchievements() {
+    ACHIEVEMENTS.forEach(a => {
+      if (!unlockedIds.includes(a.id) && a.check(achState)) {
+        unlockedIds.push(a.id);
+        saveUnlocked(unlockedIds);
+        showAchToast(a);
+        playLaunchSound();
+      }
+    });
+  }
+
+  function showAchToast(a) {
+    const toast = document.getElementById('ach-toast');
+    const body = document.getElementById('ach-toast-body');
+    if (!toast || !body) return;
+    body.innerHTML = a.icon + ' ' + a.name;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3600);
+  }
+
+  function renderAchievements() {
+    const stats = document.getElementById('ach-stats');
+    const list = document.getElementById('ach-list');
+    if (!stats || !list) return;
+
+    stats.innerHTML = `
+      <div class="ach-stat"><span class="label">GAMES PLAYED</span><span class="value">${achState.gamesPlayed}</span></div>
+      <div class="ach-stat"><span class="label">UNIQUE GAMES</span><span class="value">${achState.uniqueGames.length} / ${GAMES.length}</span></div>
+      <div class="ach-stat"><span class="label">HIGHEST SCORE</span><span class="value">${achState.highestScore.toLocaleString()}</span></div>
+      <div class="ach-stat"><span class="label">HIGHEST LEVEL</span><span class="value">${achState.highestLevel}</span></div>
+    `;
+
+    list.innerHTML = ACHIEVEMENTS.map(a => {
+      const unlocked = unlockedIds.includes(a.id);
+      return `
+        <div class="ach-badge ${unlocked ? 'unlocked' : ''}">
+          <div class="icon">${unlocked ? a.icon : '&#128274;'}</div>
+          <div>
+            <span class="name">${a.name}</span>
+            <span class="desc">${a.desc}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  renderAchievements();
 
   // Initial selection
   setSelected(0);
