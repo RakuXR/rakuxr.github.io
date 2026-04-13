@@ -950,6 +950,16 @@ function loadMaze(idx) {
     }
     grid.push(row);
   }
+  // Ensure ghost house is navigable regardless of maze layout:
+  // 1. Outer corridor row 11 (cols 9-18) must be open so blinky/pinky can reach exit col 9
+  if (grid[11]) for (let c = 9; c <= 18; c++) { if (grid[11][c] === T_WALL) grid[11][c] = T_EMPTY; }
+  // 2. Row 12 cols 13-14: carve a door so inky/clyde can exit the inner chamber upward
+  if (grid[12]) { grid[12][13] = T_DOOR; grid[12][14] = T_DOOR; }
+  // 3. Row 13 cols 13-14: must be open corridor inside the chamber
+  if (grid[13]) { if (grid[13][13] === T_WALL) grid[13][13] = T_EMPTY; if (grid[13][14] === T_WALL) grid[13][14] = T_EMPTY; }
+  // 4. All ghost spawn positions must be walkable (not inside a wall)
+  for (const s of Object.values(GHOST_SPAWN)) { if (grid[s.r]) grid[s.r][s.c] = T_EMPTY; }
+
   // Spawn a fruit for this level if applicable, at the center
   const spec = fruitForLevel(level);
   if (spec) {
@@ -1188,12 +1198,9 @@ function chooseGhostDir(g) {
   // Only pick direction when aligned with tile center to avoid jitter
   if (Math.abs(g.x - cx) > 2 || Math.abs(g.y - cy) > 2) return;
 
-  // Eyes pass through door; others cannot
-  const canPass = (cc, rr) => {
-    const t = tileAt(cc, rr);
-    if (g.eaten) return t !== T_WALL;
-    return t !== T_WALL && t !== T_DOOR;
-  };
+  // All ghosts can pass through the door tile (player cannot — isWall blocks doors for player).
+  // Eaten ghosts (eyes returning home) also pass freely.
+  const canPass = (cc, rr) => tileAt(cc, rr) !== T_WALL;
 
   const cand = [DIR.UP, DIR.LEFT, DIR.DOWN, DIR.RIGHT];
   const opts = [];
