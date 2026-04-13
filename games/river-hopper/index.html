@@ -138,7 +138,9 @@ relayApiCallsToParent(engine);
     },
     lives: 3, score: 0, level: 1,
     running: true, dead: false, deathT: 0,
-    cars: []
+    cars: [],
+    logs: [],      // river rafts + turtles the frog can ride on
+    homes: []      // home-bank slots on the top row
   };
 
   // ----------------------------------------------------------------
@@ -186,6 +188,100 @@ relayApiCallsToParent(engine);
       if (c.dir > 0 && c.x > COLS * TILE + 20) c.x = -w - 20;
       if (c.dir < 0 && c.x < -w - 20) c.x = COLS * TILE + 20;
     }
+  }
+
+  // ----------------------------------------------------------------
+  // River (logs + turtles) — rows 1..5
+  // ----------------------------------------------------------------
+  function buildRiver(level) {
+    state.logs = [];
+    var speedMul = 1 + (level - 1) * 0.15;
+    var lanes = [
+      // row 1: long log, slow right
+      { row: 1, dir:  1, speed: 1.2, len: 4, spacing: 7, kind: 'log' },
+      // row 2: turtles, left
+      { row: 2, dir: -1, speed: 2.0, len: 2, spacing: 5, kind: 'turtles' },
+      // row 3: medium log, right
+      { row: 3, dir:  1, speed: 1.6, len: 3, spacing: 6, kind: 'log' },
+      // row 4: turtles (some sinking), left
+      { row: 4, dir: -1, speed: 2.4, len: 3, spacing: 6, kind: 'turtles' },
+      // row 5: short log, right
+      { row: 5, dir:  1, speed: 2.0, len: 2, spacing: 5, kind: 'log' }
+    ];
+    for (var i = 0; i < lanes.length; i++) {
+      var L = lanes[i];
+      var spd = L.speed * speedMul;
+      var count = Math.floor(COLS / L.spacing) + 2;
+      for (var j = 0; j < count; j++) {
+        var startX = (j * L.spacing) * TILE;
+        if (L.dir < 0) startX = COLS * TILE - startX - L.len * TILE;
+        state.logs.push({
+          row: L.row,
+          x: startX,
+          dir: L.dir,
+          speed: spd,
+          len: L.len,
+          kind: L.kind
+        });
+      }
+    }
+  }
+
+  function updateLogs(dt) {
+    var margin = COLS * TILE + 60;
+    for (var i = 0; i < state.logs.length; i++) {
+      var l = state.logs[i];
+      l.x += l.dir * l.speed * TILE * dt;
+      var w = l.len * TILE;
+      if (l.dir > 0 && l.x > COLS * TILE + 30) l.x = -w - 30;
+      if (l.dir < 0 && l.x < -w - 30) l.x = COLS * TILE + 30;
+    }
+  }
+
+  function drawLogs() {
+    for (var i = 0; i < state.logs.length; i++) {
+      var l = state.logs[i];
+      var w = l.len * TILE;
+      var y = l.row * TILE;
+      if (l.kind === 'log') {
+        // A chunky brown raft
+        ctx.fillStyle = '#6b3a1a';
+        ctx.fillRect(l.x, y + 6, w, TILE - 12);
+        ctx.fillStyle = '#8b5020';
+        ctx.fillRect(l.x, y + 6, w, 4);
+        ctx.fillStyle = '#4a2410';
+        ctx.fillRect(l.x, y + TILE - 10, w, 4);
+        ctx.fillStyle = '#3a1a08';
+        for (var k = 0; k < l.len; k++) {
+          ctx.fillRect(l.x + k * TILE + TILE - 2, y + 8, 1, TILE - 16);
+        }
+      } else {
+        // turtles: each segment is one turtle
+        for (var k = 0; k < l.len; k++) {
+          var tx = l.x + k * TILE;
+          ctx.fillStyle = '#1a6b3b';
+          ctx.fillRect(tx + 4, y + 8, TILE - 8, TILE - 16);
+          ctx.fillStyle = '#2fa04f';
+          ctx.fillRect(tx + 6, y + 10, TILE - 12, TILE - 20);
+          ctx.fillStyle = '#6be08f';
+          ctx.fillRect(tx + 10, y + 13, 2, 2);
+          ctx.fillRect(tx + TILE - 12, y + 13, 2, 2);
+        }
+      }
+    }
+  }
+
+  // Returns the log the frog is currently riding (null if none).
+  function logAtFrog() {
+    if (state.frog.row < 1 || state.frog.row > 5) return null;
+    var fx = state.frog.drawX + TILE / 2;
+    for (var i = 0; i < state.logs.length; i++) {
+      var l = state.logs[i];
+      if (l.row !== state.frog.row) continue;
+      var w = l.len * TILE;
+      if (fx >= l.x && fx <= l.x + w) return l;
+    }
+    return null;
   }
 
   function drawCars() {
@@ -255,6 +351,7 @@ relayApiCallsToParent(engine);
       state.score = 0;
       state.level = 1;
       buildCars(1);
+      buildRiver(1);
     }
   }
 
@@ -320,6 +417,7 @@ relayApiCallsToParent(engine);
       state.level += 1;
       try { sound.levelup(); } catch (_) {}
       buildCars(state.level);
+      buildRiver(state.level);
       // Respawn to start row (without losing a life)
       state.frog.col = 7; state.frog.row = ROW_START;
       state.frog.drawX = 7 * TILE; state.frog.drawY = ROW_START * TILE;
@@ -437,9 +535,11 @@ relayApiCallsToParent(engine);
   // Main loop
   // ----------------------------------------------------------------
   buildCars(state.level);
+  buildRiver(state.level);
 
   var lastT = performance.now();
-  var physicsAccum = 0;
+  var apiAccum = 0;
+  var apiPhase = 0;
   function frame(now) {
     var dt = Math.min(0.05, (now - lastT) / 1000);
     lastT = now;
@@ -454,6 +554,26 @@ relayApiCallsToParent(engine);
 
     updateFrog(dt);
     updateCars(dt);
+    updateLogs(dt);
+
+    // River riding: if the frog is on a river row between hops, carry it
+    // with the log beneath it; if there's no log, it drowns.
+    if (!state.dead && state.frog.hopT >= 1.0 &&
+        state.frog.row >= 1 && state.frog.row <= 5) {
+      var l = logAtFrog();
+      if (l) {
+        state.frog.drawX += l.dir * l.speed * TILE * dt;
+        state.frog.targetX = state.frog.drawX;
+        // Snap grid col so kill/home checks stay accurate.
+        state.frog.col = Math.round(state.frog.drawX / TILE);
+        // Pushed off the edge → drown
+        if (state.frog.drawX < -TILE / 2 || state.frog.drawX > (COLS - 0.5) * TILE) {
+          killFrog('drown');
+        }
+      } else {
+        killFrog('drown');
+      }
+    }
 
     if (!state.dead && carHitsFrog()) killFrog('squash');
     if (state.dead) {
@@ -461,16 +581,26 @@ relayApiCallsToParent(engine);
       if (state.deathT > 0.8) respawnFrog();
     }
 
-    // Periodic engine physics step (~10Hz) for API surface coverage
-    physicsAccum += dt;
-    if (physicsAccum >= 0.1) {
-      try { engine.stepPhysics(WORLD_ID, physicsAccum); } catch (_) {}
-      physicsAccum = 0;
+    // API variety: rotate through different endpoints instead of only
+    // hammering stepPhysics.
+    apiAccum += dt;
+    if (apiAccum >= 0.35) {
+      apiAccum = 0;
+      try {
+        var p = (apiPhase++) % 4;
+        if (p === 0) engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
+          position: [state.frog.col, 0, state.frog.row],
+        });
+        else if (p === 1) engine.observeWorld(WORLD_ID);
+        else if (p === 2) engine.stepPhysics(WORLD_ID, 0.2);
+        else engine.captureFrame(WORLD_ID);
+      } catch (_) {}
     }
 
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     drawField();
+    drawLogs();
     drawCars();
     drawFrog();
     drawHUD();

@@ -88,7 +88,13 @@
     ensureIframeFocus();
 
     // -------- RakuEngine world --------
+    // IMPORTANT: subscribe BEFORE creating the world so the overlay catches
+    // the init calls too — otherwise they fire silently and the player
+    // sees "No API calls yet" on the overlay.
     const engine = new RakuEngine();
+    engine.on('api', (e) => overlay.log(e));
+    relayApiCallsToParent(engine);
+
     const worldRes = engine.createWorld('myriapod');
     const WORLD_ID = worldRes.world_id;
     const playerEntityRes = engine.createEntity(WORLD_ID, {
@@ -101,10 +107,14 @@
       properties: { kind: 'mushroom-grid' },
     });
     const FIELD_ENTITY_ID = mushroomFieldRes.entity_id;
+    const centipedeEntityRes = engine.createEntity(WORLD_ID, {
+      type: 'enemy', name: 'centipede', position: [0, 0, 0],
+      properties: { shape: 'segmented', color: '#d15050' },
+    });
+    const CENTIPEDE_ENTITY_ID = centipedeEntityRes.entity_id;
     engine.observeWorld(WORLD_ID);
     engine.captureFrame(WORLD_ID);
-    engine.on('api', (e) => overlay.log(e));
-    relayApiCallsToParent(engine);
+    engine.saveWorld(WORLD_ID);
 
     // -------- Config --------
     const TILE = 14;
@@ -127,6 +137,7 @@
     let gameState = STATE.TITLE;
     let stateTimer = 0;
     let physicsTimer = 0;
+    let apiPhase = 0;
     let muted = false;
 
     // -------- Input --------
@@ -726,16 +737,29 @@
           killPlayer();
         }
 
-        // Periodic RakuEngine physics step so API log stays lively.
+        // Periodic RakuEngine API traffic — rotate through a few endpoints
+        // so the overlay shows more than just stepPhysics.
         physicsTimer += dt;
         if (physicsTimer >= 200) {
           physicsTimer = 0;
+          apiPhase = (apiPhase + 1) % 5;
           try {
-            engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
-              position: [player.x / TILE, 0, player.y / TILE],
-            });
+            if (apiPhase === 0) {
+              engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
+                position: [player.x / TILE, 0, player.y / TILE],
+              });
+            } else if (apiPhase === 1) {
+              engine.setTransform(WORLD_ID, CENTIPEDE_ENTITY_ID, {
+                position: [0, 0, 0],
+              });
+            } else if (apiPhase === 2) {
+              engine.observeWorld(WORLD_ID);
+            } else if (apiPhase === 3) {
+              engine.stepPhysics(WORLD_ID, 0.2);
+            } else {
+              engine.captureFrame(WORLD_ID);
+            }
           } catch (e) { /* ignore */ }
-          try { engine.stepPhysics(WORLD_ID, 0.2); } catch (e) { /* ignore */ }
         }
       } else if (gameState === STATE.DYING) {
         updateField(dt);

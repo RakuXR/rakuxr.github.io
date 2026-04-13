@@ -92,10 +92,16 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     type: "goal", name: "princess", position: [0, 0, 0],
     properties: { shape: "box", color: "#ff66cc" },
   }).entity_id;
-  const barrelEntity = engine.createEntity(WORLD_ID, {
-    type: "hazard", name: "barrel", position: [0, 0, 0],
-    properties: { shape: "cylinder", color: "#a06020" },
-  }).entity_id;
+  // Give the gorilla a real AI agent so we exercise the agents endpoints
+  // alongside physics/entities calls.
+  let gorillaAgentId = null;
+  try {
+    gorillaAgentId = engine.createAgent(WORLD_ID, {
+      type: "villain",
+      name: "Donkey Kong",
+      personalityPrompt: "You roll barrels down the stage at the hero.",
+    }).agent_id;
+  } catch (e) { gorillaAgentId = null; }
   engine.observeWorld(WORLD_ID);
   engine.captureFrame(WORLD_ID);
   engine.on("api", (e) => overlay.log(e));
@@ -136,7 +142,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     "............P...............",
     "=============H==============",
     ".............H..............",
-    ".............H........G.....",
+    "..G..........H..............",
     "=============================",
     "H...........................",
     "H...........*...............",
@@ -171,7 +177,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     "............P...............",
     "=============H==============",
     ".............H..............",
-    ".............H........G.....",
+    "..G..........H..............",
     "=============================",
     "H...........................",
     "H...........*...............",
@@ -206,7 +212,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     "............P...............",
     "=============H==============",
     ".............H..............",
-    ".............H........G.....",
+    "..G..........H..............",
     "=============================",
     "H........L.........L........",
     "H........L.........L........",
@@ -241,7 +247,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     "............P...............",
     "r===========H==============r",
     ".............H..............",
-    ".............H........G.....",
+    "..G..........H..............",
     "r===========================r",
     "H....*......................",
     "H...........................",
@@ -651,10 +657,36 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     }
     return -1;
   }
+  // Indexed list of "main floor" rows, computed once per level. Barrels
+  // alternate direction between consecutive floors so they zig-zag down the
+  // stage just like the original Donkey Kong.
+  let floorRowsCache = null;
+  function computeFloorRows(level) {
+    const rows = [];
+    for (let y = 0; y < ROWS; y++) {
+      let hits = 0;
+      for (let x = 0; x < COLS; x++) if (isSolidTop(level.map[y][x])) hits++;
+      if (hits > COLS / 2) rows.push(y);
+    }
+    return rows;
+  }
+  function floorIndexFromRow(row) {
+    if (!floorRowsCache) return 0;
+    // Exact match, else snap to closest (barrels can land one tile below a
+    // row that is reported as a "main floor").
+    const i = floorRowsCache.indexOf(row);
+    if (i >= 0) return i;
+    let best = 0, bestDist = Infinity;
+    for (let j = 0; j < floorRowsCache.length; j++) {
+      const d = Math.abs(floorRowsCache[j] - row);
+      if (d < bestDist) { bestDist = d; best = j; }
+    }
+    return best;
+  }
   function floorDirection(row) {
-    // Even-index floors roll right, odd-index roll left (classic DK zig-zag).
-    // Use the row index to derive a stable alternation.
-    return (row % 2 === 0) ? 1 : -1;
+    // First floor (top) rolls right (+1), second rolls left (-1), etc.
+    const idx = floorIndexFromRow(row);
+    return (idx % 2 === 0) ? 1 : -1;
   }
 
   function makeBarrel(x, y, dir) {
@@ -730,24 +762,48 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     physicsTimer: 0
   };
 
+  let barrelCounter = 0;
   function loadStage(i) {
+    // Destroy any barrel entities from the previous stage so the engine
+    // API log reflects the reset.
+    for (const b of state.barrels || []) {
+      if (b.alive && b.entityId) engine.destroyEntity(WORLD_ID, b.entityId);
+    }
     state.stage = i;
     state.level = makeLevel(STAGES[i]);
+    floorRowsCache = computeFloorRows(state.level);
     state.bonus = 5000;
     state.tick = 0;
     state.barrels = [];
     state.barrelSpawnTimer = 120;
     state.hero = makeHero(state.level.spawns.hero || { x: 64, y: 400 });
+    // Persist the new world version + observe.
+    engine.saveWorld(WORLD_ID);
+    engine.observeWorld(WORLD_ID);
+    engine.captureFrame(WORLD_ID);
   }
 
   function spawnBarrel(level) {
     const g = level.spawns.gorilla;
     if (!g) return;
-    const b = makeBarrel(g.x + 8, g.y + 14, 1);
+    // Drop the barrel slightly to the right of the gorilla and give it a
+    // small initial rightward velocity so it immediately tips onto the
+    // first floor (which slopes down to the right).
+    const b = makeBarrel(g.x + 12, g.y + 14, 1);
+    // Register the new barrel as an engine entity and keep its id.
+    const res = engine.createEntity(WORLD_ID, {
+      type: "hazard", name: `barrel-${++barrelCounter}`, position: [b.x, b.y, 0],
+      properties: { shape: "cylinder", color: "#a06020" },
+    });
+    b.entityId = res.entity_id;
     state.barrels.push(b);
     sound.blip();
-    // Periodically emit an engine step so the API log gets fresh entries.
-    engine.stepPhysics(WORLD_ID, 0.016);
+    // Gorilla "acts": schedule a reward + observation so the API feed sees
+    // more than just physics/step entries.
+    if (gorillaAgentId) {
+      engine.agentAct(WORLD_ID, gorillaAgentId, { playerAction: "throw_barrel" }).catch(() => {});
+      engine.agentReward(WORLD_ID, gorillaAgentId, 1);
+    }
   }
 
   function barrelHitsHero(b, h) {
@@ -765,7 +821,8 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     state.deathTimer = 90;
     sound.death();
     launcher.notifyScore(state.score);
-    engine.stepPhysics(WORLD_ID, 0.016);
+    engine.setTransform(WORLD_ID, heroEntity, { position: [state.hero.x, state.hero.y, 0] });
+    engine.observeWorld(WORLD_ID);
   }
 
   function frame() {
@@ -773,6 +830,15 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     pollGamepad();
     if (!state.paused && state.hero.alive) {
       updateHero(state.hero, state.level);
+
+      // Stream hero position into the engine via setTransform at ~5 Hz so
+      // the API log shows movement updates alongside physics ticks.
+      if (state.tick % 12 === 0) {
+        engine.setTransform(WORLD_ID, heroEntity, {
+          position: [state.hero.x, state.hero.y, 0],
+          rotation: [0, 0, 0],
+        });
+      }
 
       // barrel spawning
       state.barrelSpawnTimer--;
@@ -783,6 +849,19 @@ import { RakuEngine } from "../../engine/raku-engine.js";
 
       // barrel updates + collision
       updateBarrels(state.level, state.barrels);
+      for (const b of state.barrels) {
+        // Push barrel transforms through the API every ~10 frames.
+        if (b.alive && b.entityId && state.tick % 10 === 0) {
+          engine.setTransform(WORLD_ID, b.entityId, { position: [b.x, b.y, 0] });
+        }
+      }
+      // Any barrels that went off-screen this tick get destroyed on the engine.
+      for (const b of state.barrels) {
+        if (!b.alive && b.entityId) {
+          engine.destroyEntity(WORLD_ID, b.entityId);
+          b.entityId = null;
+        }
+      }
       state.barrels = state.barrels.filter(b => b.alive);
       for (const b of state.barrels) {
         if (barrelHitsHero(b, state.hero)) {
@@ -791,11 +870,16 @@ import { RakuEngine } from "../../engine/raku-engine.js";
         }
       }
 
-      // periodic physics tick to keep the API log streaming
+      // periodic engine housekeeping: rotate through different endpoints
+      // so the API log shows variety instead of only physics/step.
       state.physicsTimer++;
-      if (state.physicsTimer > 60) {
+      if (state.physicsTimer >= 60) {
         state.physicsTimer = 0;
-        engine.stepPhysics(WORLD_ID, 0.016);
+        const phase = Math.floor(state.tick / 60) % 4;
+        if (phase === 0) engine.stepPhysics(WORLD_ID, 0.016);
+        else if (phase === 1) engine.observeWorld(WORLD_ID);
+        else if (phase === 2) engine.captureFrame(WORLD_ID);
+        else engine.stepPhysics(WORLD_ID, 0.016);
       }
     }
 
