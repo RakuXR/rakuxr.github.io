@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Block Drop</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <style>
   :root {
     --bg: #0a0a12;
@@ -177,11 +178,38 @@
   </div>
 </div>
 
-<script>
-(() => {
-  'use strict';
+<script type="module">
+'use strict';
+import {
+  installApiOverlay,
+  createSound,
+  installLauncherIntegration,
+  ensureIframeFocus,
+  relayApiCallsToParent,
+} from '/games/lib/game-shared.js';
+import { RakuEngine } from '/engine/raku-engine.js';
 
-  // ---------- Constants ----------
+// ---------- shared helpers: launcher / sound / API overlay ----------
+const apiOverlay = installApiOverlay({ gameName: 'Block Drop' });
+const sound = createSound();
+installLauncherIntegration('Block Drop');
+ensureIframeFocus();
+
+// ---------- RakuEngine world (for API log population) ----------
+const engine = new RakuEngine();
+const worldRes = engine.createWorld('block-drop');
+const WORLD_ID = worldRes.world_id;
+const pieceEntityRes = engine.createEntity(WORLD_ID, {
+  type: 'tetromino', name: 'active-piece', position: [0, 0, 0],
+  properties: { shape: 'tetromino', color: '#00e5ff' },
+});
+const PIECE_ENTITY_ID = pieceEntityRes.entity_id;
+engine.observeWorld(WORLD_ID);
+engine.captureFrame(WORLD_ID);
+engine.on('api', (e) => apiOverlay.log(e));
+relayApiCallsToParent(engine);
+
+// ---------- Constants ----------
   const COLS = 10;
   const ROWS = 20;
   const CELL = 30;
@@ -418,8 +446,10 @@
       }
     }
     state.current = null;
+    sound.blip();
     if (above) {
       state.gameOver = true;
+      sound.death();
       saveHighScore();
       showOverlay('GAME OVER', `Score: ${state.score}`);
       return;
@@ -427,6 +457,12 @@
     const cleared = clearLines();
     if (cleared > 0) {
       addLineScore(cleared);
+      // Log a RakuEngine API call for the line clear so the API overlay updates.
+      try {
+        engine.stepPhysics(WORLD_ID, 0.016);
+      } catch (_) {}
+      if (cleared >= 4) sound.levelup();
+      else sound.coin();
     }
     spawnNext();
   }
@@ -454,6 +490,12 @@
     const points = (LINE_SCORES[n] || 0) * state.level;
     state.score += points;
     state.lines += n;
+    const newLevel = Math.floor(state.lines / 10) + 1;
+    if (newLevel !== state.level) {
+      state.level = newLevel;
+      state.dropInterval = Math.max(80, 1000 - (state.level - 1) * 85);
+      sound.levelup();
+    }
     updateHud();
   }
 
@@ -462,6 +504,7 @@
     state.current = spawnPiece(t);
     if (collides(state.current)) {
       state.gameOver = true;
+      sound.death();
       saveHighScore();
       showOverlay('GAME OVER', `Score: ${state.score}`);
     }
@@ -479,6 +522,7 @@
     while (tryMove(0, 1)) { cells++; }
     state.score += cells * 2; // hard drop bonus
     updateHud();
+    sound.hit();
     lockPiece();
   }
 
@@ -635,12 +679,19 @@
       case 'ArrowUp':
       case 'x':
       case 'X':
-        tryRotate(1); e.preventDefault(); break;
+        if (tryRotate(1)) sound.beep(520, 30, 'square', 0.12);
+        e.preventDefault(); break;
       case 'z':
       case 'Z':
-        tryRotate(-1); e.preventDefault(); break;
+        if (tryRotate(-1)) sound.beep(520, 30, 'square', 0.12);
+        e.preventDefault(); break;
       case ' ':
         hardDrop(); e.preventDefault(); break;
+      case 'Shift':
+      case 'c':
+      case 'C':
+        sound.blip();
+        e.preventDefault(); break;
     }
   });
   window.addEventListener('keyup', (e) => {
@@ -658,7 +709,6 @@
   }
 
   init();
-})();
 </script>
 </body>
 </html>

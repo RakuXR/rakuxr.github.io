@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dot Chomper</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
   html, body {
@@ -19,26 +20,27 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     min-height: 100vh;
-    padding: 10px;
+    height: 100vh;
+    padding: 4px 10px 10px;
     box-sizing: border-box;
+    gap: 0;
   }
   h1 {
     color: #ffff00;
-    font-size: 20px;
+    font-size: 16px;
     letter-spacing: 2px;
-    margin: 6px 0 10px;
+    margin: 2px 0 4px;
     text-shadow: 2px 2px 0 #ff8800;
   }
   #hud {
     display: flex;
     justify-content: space-between;
-    width: 560px;
-    max-width: 95vw;
+    width: min(560px, 95vw);
     font-size: 10px;
     color: #fff;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
   #hud span { color: #ffff00; }
   canvas {
@@ -47,11 +49,15 @@
     display: block;
     border: 2px solid #1d2ea8;
     box-shadow: 0 0 20px rgba(29, 46, 168, 0.7);
-    max-width: 95vw;
+    /* Fit entirely within viewport: leave ~80px for title/hud/footer */
+    max-width: min(95vw, calc((100vh - 80px) * 560 / 620));
+    max-height: calc(100vh - 80px);
+    width: auto;
     height: auto;
+    aspect-ratio: 560 / 620;
   }
   #footer {
-    margin-top: 8px;
+    margin-top: 4px;
     font-size: 8px;
     color: #888;
     text-align: center;
@@ -297,6 +303,10 @@
 <script type="module">
 'use strict';
 import { RakuEngine } from '../../engine/raku-engine.js';
+import { ensureIframeFocus, relayApiCallsToParent } from '../lib/game-shared.js';
+
+// Ensure keyboard events reach us when we're loaded inside the launcher iframe.
+ensureIframeFocus();
 
 // ============================================================
 // DOT CHOMPER - A Pac-Man-style maze game
@@ -498,6 +508,8 @@ engine.on('api', (entry) => {
   if (apiEntries.length > MAX_API_ENTRIES) apiEntries.length = MAX_API_ENTRIES;
   renderApiLog();
 });
+// Forward engine API calls to the launcher's API feed when embedded.
+relayApiCallsToParent(engine);
 function toggleApiOverlay() {
   apiOverlayVisible = !apiOverlayVisible;
   apiOverlay.classList.toggle('visible', apiOverlayVisible);

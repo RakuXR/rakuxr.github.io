@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Star Bugs</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <style>
   :root { color-scheme: dark; }
   html, body {
@@ -39,19 +40,52 @@
 <body>
 <div id="wrap"><canvas id="game" width="480" height="640"></canvas></div>
 <div id="hud"><a href="../../">&lt; RAKU.AI</a> &nbsp;STAR BUGS</div>
-<script>
+<script type="module">
+import {
+  installApiOverlay,
+  createSound,
+  installLauncherIntegration,
+  ensureIframeFocus,
+  relayApiCallsToParent,
+} from "../lib/game-shared.js";
+import { RakuEngine } from "../../engine/raku-engine.js";
+
 (() => {
+  // ---------- RakuAI shared helpers ----------
+  ensureIframeFocus();
+  const overlay = installApiOverlay({ gameName: "Star Bugs" });
+  const sound = createSound();
+  const launcher = installLauncherIntegration("Star Bugs");
+
+  const engine = new RakuEngine();
+  const worldRes = engine.createWorld("star-bugs");
+  const WORLD_ID = worldRes.world_id;
+  const shipEntity = engine.createEntity(WORLD_ID, {
+    type: "ship", name: "player", position: [0, 0, 0],
+    properties: { shape: "box", color: "#cfd8ef" },
+  }).entity_id;
+  const swarmEntity = engine.createEntity(WORLD_ID, {
+    type: "swarm", name: "bugs", position: [0, 0, 0],
+    properties: { shape: "group", color: "#5cf08f" },
+  }).entity_id;
+  engine.observeWorld(WORLD_ID);
+  engine.captureFrame(WORLD_ID);
+  engine.on("api", (e) => overlay.log(e));
+  relayApiCallsToParent(engine);
+
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
 
   // ---------- Input ----------
   const keys = {};
-  addEventListener('keydown', e => {
+  const pressed = {};
+  window.addEventListener('keydown', e => {
+    if (!keys[e.code]) pressed[e.code] = true;
     keys[e.code] = true;
     if ([' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault();
   });
-  addEventListener('keyup', e => { keys[e.code] = false; });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
 
   function readInput() {
     const left  = keys['ArrowLeft']  || keys['KeyA'];
@@ -77,7 +111,9 @@
   }
 
   // ---------- State ----------
+  const MODE = { TITLE: 'title', PLAY: 'play', GAMEOVER: 'gameover' };
   const state = {
+    mode: MODE.TITLE,
     ship: { x: W/2, y: H - 60, w: 28, h: 24, cooldown: 0, alive: true },
     bullets: [],
     bugs: [],
@@ -85,13 +121,37 @@
     particles: [],
     stars: [],
     score: 0,
+    hi: 0,
     lives: 3,
     stage: 1,
     time: 0,
     diveTimer: 1.5,
     entryTimer: 0,
     spawnQueue: [],
+    gameOverTimer: 0,
+    physicsTimer: 0,
   };
+
+  function resetGame() {
+    state.score = 0;
+    state.lives = 3;
+    state.stage = 1;
+    state.bullets = [];
+    state.bugBullets = [];
+    state.particles = [];
+    state.ship.x = W / 2;
+    state.ship.alive = true;
+    spawnFormation(1);
+    sound.powerup();
+  }
+  function goToTitle() {
+    state.mode = MODE.TITLE;
+    state.bullets = [];
+    state.bugBullets = [];
+    state.particles = [];
+    state.bugs = [];
+    state.spawnQueue = [];
+  }
 
   // Starfield
   for (let i = 0; i < 80; i++) {
@@ -184,11 +244,30 @@
     return [start, c1, c2, end];
   }
 
-  spawnFormation(1);
+  // formation is seeded when the player starts the first game.
 
   // ---------- Update ----------
   function update(dt) {
     state.time += dt;
+    state.screenTimer += dt;
+
+    // Title / game-over screens handle their own input and skip normal play
+    if (state.mode === MODE.TITLE) {
+      if (pressed.Space || pressed.Enter || pressed.KeyZ) {
+        state.mode = MODE.PLAY;
+        resetGame();
+      }
+      for (const k in pressed) delete pressed[k];
+      return;
+    }
+    if (state.mode === MODE.GAMEOVER) {
+      if (state.screenTimer > 1.0 && (pressed.Space || pressed.Enter)) {
+        goToTitle();
+        state.screenTimer = 0;
+      }
+      for (const k in pressed) delete pressed[k];
+      return;
+    }
 
     // Stars
     for (const s of state.stars) {
@@ -214,7 +293,15 @@
       if (input.fire && state.ship.cooldown <= 0) {
         state.bullets.push({ x: state.ship.x, y: state.ship.y - 16, v: -520 });
         state.ship.cooldown = 0.22;
+        sound.fire();
       }
+    }
+
+    // periodic physics tick to populate API log
+    state.physicsTimer += dt;
+    if (state.physicsTimer > 0.3) {
+      state.physicsTimer = 0;
+      engine.stepPhysics(WORLD_ID, dt);
     }
 
     // Bullets
@@ -306,7 +393,15 @@
             const isDive = bug.state === 'dive' || bug.state === 'return';
             const base = bug.type === 2 ? 150 : (bug.type === 1 ? 80 : 50);
             state.score += isDive ? base * 2 : base;
+            if (state.score > state.hiscore) {
+              state.hiscore = state.score;
+              try { localStorage.setItem('raku-star-bugs-hi', String(state.hiscore)); } catch (_) {}
+            }
             burst(bug.x, bug.y, BUG_COLORS[bug.type].body);
+            sound.explode();
+            launcher.notifyScore(state.score);
+          } else {
+            sound.hit();
           }
         }
       }
@@ -343,16 +438,32 @@
     // Respawn formation when cleared
     if (aliveCount === 0 && state.spawnQueue.length === 0) {
       state.stage++;
+      sound.levelup();
+      launcher.notifyLevel(state.stage);
       spawnFormation(state.stage);
     }
+
+    // Clean up pressed edge-buffer at end of update.
+    for (const k in pressed) delete pressed[k];
   }
 
   function loseLife() {
+    if (!state.ship.alive) return;
     state.ship.alive = false;
     burst(state.ship.x, state.ship.y, '#ffd24a');
     state.lives--;
+    sound.death();
+    if (state.lives <= 0) {
+      // Transition to game over; wait a beat then drop to title.
+      setTimeout(() => {
+        state.mode = MODE.GAMEOVER;
+        state.screenTimer = 0;
+        launcher.notifyGameOver(state.score, state.stage);
+      }, 1000);
+      return;
+    }
     setTimeout(() => {
-      if (state.lives >= 0) {
+      if (state.lives > 0) {
         state.ship.x = W/2;
         state.ship.alive = true;
       }
@@ -414,12 +525,52 @@
     ctx.font = 'bold 14px "Courier New", monospace';
     ctx.textAlign = 'left';
     ctx.fillText('SCORE ' + String(state.score).padStart(6, '0'), 12, 24);
+    ctx.textAlign = 'center';
+    ctx.fillText('HI ' + String(state.hiscore).padStart(6, '0'), W / 2, 24);
     ctx.textAlign = 'right';
     ctx.fillText('STAGE ' + state.stage, W - 12, 24);
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ff5870';
     for (let i = 0; i < state.lives; i++) {
       drawShipMini(16 + i * 22, H - 14);
+    }
+
+    if (state.mode === MODE.TITLE) {
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(0, 120, W, 340);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fffb9e';
+      ctx.font = 'bold 36px "Courier New", monospace';
+      ctx.fillText('STAR BUGS', W / 2, 200);
+      ctx.fillStyle = '#7fb0ff';
+      ctx.font = 'bold 14px "Courier New", monospace';
+      ctx.fillText('POWERED BY RAKUENGINE', W / 2, 230);
+      ctx.fillStyle = '#cfd8ef';
+      ctx.font = 'bold 12px "Courier New", monospace';
+      ctx.fillText('<- -> MOVE    SPACE FIRE', W / 2, 290);
+      if (Math.floor(state.time * 2) % 2 === 0) {
+        ctx.fillStyle = '#ffd24a';
+        ctx.font = 'bold 16px "Courier New", monospace';
+        ctx.fillText('PRESS SPACE TO START', W / 2, 340);
+      }
+      ctx.fillStyle = '#7fb0ff';
+      ctx.font = 'bold 10px "Courier New", monospace';
+      ctx.fillText('HI SCORE ' + String(state.hiscore).padStart(6, '0'), W / 2, 380);
+    } else if (state.mode === MODE.GAMEOVER) {
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(0, 200, W, 180);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ff5870';
+      ctx.font = 'bold 40px "Courier New", monospace';
+      ctx.fillText('GAME OVER', W / 2, 270);
+      ctx.fillStyle = '#fffb9e';
+      ctx.font = 'bold 14px "Courier New", monospace';
+      ctx.fillText('SCORE ' + String(state.score).padStart(6, '0'), W / 2, 310);
+      if (state.screenTimer > 1.0 && Math.floor(state.time * 2) % 2 === 0) {
+        ctx.fillStyle = '#cfd8ef';
+        ctx.font = 'bold 12px "Courier New", monospace';
+        ctx.fillText('PRESS SPACE', W / 2, 355);
+      }
     }
   }
 
