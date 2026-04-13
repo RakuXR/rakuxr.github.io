@@ -993,6 +993,18 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       ctx.textAlign = "center";
       ctx.fillText("HIT!  LIVES " + state.lives, W / 2, H / 2 + 5);
     }
+    if (state.stageCompleteTimer > 0) {
+      const alpha = Math.min(1, state.stageCompleteTimer / 30);
+      ctx.fillStyle = `rgba(0,0,0,${alpha * 0.6})`;
+      ctx.fillRect(0, H / 2 - 22, W, 44);
+      ctx.fillStyle = "#ffd24a";
+      ctx.font = "bold 16px 'Courier New', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("STAGE CLEAR!", W / 2, H / 2 - 4);
+      ctx.fillStyle = "#9fe";
+      ctx.font = "bold 13px 'Courier New', monospace";
+      ctx.fillText("BONUS +" + state.bonus, W / 2, H / 2 + 14);
+    }
 
     requestAnimationFrame(frame);
   }
