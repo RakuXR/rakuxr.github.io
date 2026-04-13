@@ -66,8 +66,16 @@
     properties: { shape: 'sprite', color: '#c0c0ff' },
   });
   const ALIEN_ENTITY_ID = alienEntityRes.entity_id;
+  engine.addPhysicsBody(WORLD_ID, CANNON_ENTITY_ID, { shape: 'box', mass: 1, isStatic: false });
   engine.observeWorld(WORLD_ID);
+  engine.observeJSON(WORLD_ID);
   engine.captureFrame(WORLD_ID);
+  engine.saveWorld(WORLD_ID);
+  engine.startRecording(WORLD_ID);
+  engine.loadWorld(WORLD_ID, 1);
+  engine.contentFilter('Alien Defense');
+  const alienAgentRes = engine.createAgent(WORLD_ID, { type: 'invader-ai', name: 'AlienAI' });
+  const ALIEN_AGENT_ID = alienAgentRes.agent_id;
   engine.on('api', (e) => overlay.log(e));
   relayApiCallsToParent(engine);
 
@@ -362,6 +370,86 @@
     sound.fire();
   }
 
+  // ---- Level tracking ----
+  let level = 1;
+
+  // ---- Alien shots ----
+  // Level 1: no shots. Level 2: slow fire. Level 3+: faster + more speed.
+  const alienShots = [];
+  let alienFireTimer = 0;
+
+  function alienFireInterval() {
+    if (level < 2) return Infinity;
+    // Level 2: 3–4 s, Level 3: 2–3 s, Level 4+: ~1–2 s
+    const base = Math.max(1.0, 4.0 - (level - 2) * 0.8);
+    return base + Math.random() * 1.0;
+  }
+
+  function alienShotSpeed() {
+    // Level 2: 180 px/s, Level 3+: faster
+    return 180 + (level - 2) * 40;
+  }
+
+  function fireAlienShot() {
+    if (level < 2) return;
+    // Pick a random bottom-most alien in a live column
+    const liveCols = new Map();
+    for (const a of formation.aliens) {
+      if (!a.alive) continue;
+      if (!liveCols.has(a.c) || a.r > liveCols.get(a.c).r) liveCols.set(a.c, a);
+    }
+    const shooters = [...liveCols.values()];
+    if (!shooters.length) return;
+    const shooter = shooters[Math.floor(Math.random() * shooters.length)];
+    const p = alienPos(shooter);
+    alienShots.push({ x: p.x + ALIEN_W / 2 - 1, y: p.y + ALIEN_H, speed: alienShotSpeed() });
+    sound.blip();
+    try { if (ALIEN_AGENT_ID) engine.agentAct(WORLD_ID, ALIEN_AGENT_ID, {
+      playerAction: 'fire', observation: 'player at ' + (player.x | 0)
+    }); } catch (_) {}
+  }
+
+  function updateAlienShots(dt) {
+    alienFireTimer -= dt;
+    if (alienFireTimer <= 0) {
+      alienFireTimer = alienFireInterval();
+      fireAlienShot();
+    }
+    for (let i = alienShots.length - 1; i >= 0; i--) {
+      const s = alienShots[i];
+      s.y += s.speed * dt;
+      if (s.y > H + 10) { alienShots.splice(i, 1); continue; }
+      // Hit player
+      if (s.x > player.x - 2 && s.x < player.x + CANNON_W + 2 &&
+          s.y > player.y - 2 && s.y < player.y + CANNON_H + 4) {
+        alienShots.splice(i, 1);
+        onPlayerHit();
+      }
+    }
+  }
+
+  function drawAlienShots() {
+    ctx.fillStyle = '#ff4040';
+    for (const s of alienShots) ctx.fillRect(s.x | 0, s.y | 0, 2, 8);
+  }
+
+  let playerDying = false;
+  let playerDieTimer = 0;
+
+  function onPlayerHit() {
+    if (playerDying) return;
+    sound.death();
+    player.lives--;
+    playerDying = true;
+    playerDieTimer = 0;
+    try { if (ALIEN_AGENT_ID) engine.agentReward(WORLD_ID, ALIEN_AGENT_ID, 1.0); } catch (_) {}
+    if (player.lives <= 0) {
+      try { engine.stopRecording(WORLD_ID); } catch (_) {}
+      try { engine.saveWorld(WORLD_ID); } catch (_) {}
+      state = STATE.GAMEOVER;
+    }
+  }
+
   // Track kills so we occasionally fire API calls into the engine
   let killCount = 0;
 
@@ -406,14 +494,16 @@
         if (killCount % 3 === 0) {
           try { engine.stepPhysics(WORLD_ID, 0.016); } catch (_) {}
         }
-        // Wave clear → levelup sound + reset formation + advance wave
+        // Wave clear → levelup sound + reset formation + advance level
         if (formation.aliens.every(x => !x.alive)) {
-          wave++;
+          level++;
           sound.levelup();
           formation.reset();
           alienShots.length = 0;
-          alienShootTimer = alienShootInterval();
+          alienFireTimer = alienFireInterval();
           try { engine.captureFrame(WORLD_ID); } catch (_) {}
+          try { engine.saveWorld(WORLD_ID); } catch (_) {}
+          try { if (ALIEN_AGENT_ID) engine.agentReward(WORLD_ID, ALIEN_AGENT_ID, -0.5); } catch (_) {}
         }
         return;
       }
@@ -489,16 +579,17 @@
       drawTitle();
       if (pressed.Space || pressed.Enter) {
         state = STATE.PLAY;
-        wave = 1;
+        level = 1;
         player.score = 0;
         player.lives = 3;
         player.reset();
         formation.reset();
         alienShots.length = 0;
-        alienShootTimer = Infinity; // no shots on wave 1
+        alienFireTimer = alienFireInterval(); // level 1 → Infinity (no shots)
+        playerDying = false;
         sound.blip();
-        // Record the session start + save the world version.
         try { engine.saveWorld(WORLD_ID); } catch (_) {}
+        try { engine.startRecording(WORLD_ID); } catch (_) {}
       }
     } else if (state === STATE.GAMEOVER) {
       drawFormation();
@@ -513,49 +604,63 @@
       ctx.fillText('PRESS SPACE TO PLAY AGAIN', W / 2, H / 2 + 18);
       if (pressed.Space || pressed.Enter) {
         state = STATE.PLAY;
-        wave = 1;
+        level = 1;
         player.score = 0;
         player.lives = 3;
         player.reset();
         formation.reset();
         alienShots.length = 0;
-        alienShootTimer = Infinity;
+        alienFireTimer = alienFireInterval();
+        playerDying = false;
         sound.blip();
+        try { engine.startRecording(WORLD_ID); } catch (_) {}
       }
     } else if (state === STATE.PLAY) {
+      if (playerDying) {
+        playerDieTimer += dt;
+        if (playerDieTimer > 1.0) { playerDying = false; player.reset(); }
+      }
       updatePlayer(dt);
       updatePlayerShot(dt);
       updateAlienShots(dt);
-      formation.update(dt);
+      formation.update(playerDying ? 0 : dt);
       // Game over: aliens reach the ground line
       if (formation.y + ROWS * CELL_H >= GROUND_Y) {
         state = STATE.GAMEOVER;
         try { engine.captureFrame(WORLD_ID); } catch (_) {}
+        try { engine.stopRecording(WORLD_ID); } catch (_) {}
+        try { if (ALIEN_AGENT_ID) engine.agentReward(WORLD_ID, ALIEN_AGENT_ID, 1.0); } catch (_) {}
       }
       drawFormation();
-      drawPlayer();
+      if (!playerDying || ((playerDieTimer * 10 | 0) % 2 === 0)) drawPlayer();
       drawPlayerShot();
       drawAlienShots();
       drawHUD();
-      // Wave label
+      // Level label
       ctx.fillStyle = '#888';
       ctx.textAlign = 'right';
       ctx.font = '9px "Courier New", monospace';
-      ctx.fillText('WAVE ' + wave, W - 8, H - 8);
+      ctx.fillText('LEVEL ' + level, W - 8, H - 8);
 
       // API variety: stream the swarm transform + observe the world on a
       // rotating schedule so the overlay sees more than physics/entities.
       apiPhaseTimer += dt;
       if (apiPhaseTimer > 0.35) {
         apiPhaseTimer = 0;
-        const p = (apiPhase++) % 4;
+        const p = (apiPhase++) % 10;
         try {
-          if (p === 0) engine.setTransform(WORLD_ID, ALIEN_ENTITY_ID, {
-            position: [formation.x, formation.y, 0],
-          });
+          if (p === 0) engine.setTransform(WORLD_ID, ALIEN_ENTITY_ID, { position: [formation.x, formation.y, 0] });
           else if (p === 1) engine.observeWorld(WORLD_ID);
           else if (p === 2) engine.stepPhysics(WORLD_ID, 0.016);
-          else engine.captureFrame(WORLD_ID);
+          else if (p === 3) engine.captureFrame(WORLD_ID);
+          else if (p === 4) engine.observeJSON(WORLD_ID);
+          else if (p === 5) engine.setTransform(WORLD_ID, CANNON_ENTITY_ID, { position: [player.x, player.y, 0] });
+          else if (p === 6) { if (ALIEN_AGENT_ID) engine.agentObserve(WORLD_ID, ALIEN_AGENT_ID); }
+          else if (p === 7) { if (ALIEN_AGENT_ID) engine.agentAct(WORLD_ID, ALIEN_AGENT_ID, {
+            playerAction: 'advance', observation: 'player at ' + (player.x | 0)
+          }); }
+          else if (p === 8) engine.saveWorld(WORLD_ID);
+          else { if (ALIEN_AGENT_ID) engine.agentReward(WORLD_ID, ALIEN_AGENT_ID, 0.01); }
         } catch (_) {}
       }
     }
