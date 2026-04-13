@@ -4,32 +4,50 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>River Hopper</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <style>
   html, body {
     margin: 0; padding: 0;
     background: #0a0a14; color: #e8e8f0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
     display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
+    align-items: center; justify-content: flex-start;
     user-select: none;
+    box-sizing: border-box;
+    padding: 4px 8px 8px;
   }
   h1 {
-    margin: 12px 0 4px 0;
+    margin: 6px 0 2px 0;
     font-weight: 700; letter-spacing: 2px;
     color: #7df27d;
+    font-size: 18px;
     text-shadow: 0 0 12px rgba(125, 242, 125, 0.4);
   }
-  .sub { margin: 0 0 10px 0; font-size: 12px; color: #8a8aa0; letter-spacing: 1px; }
+  .sub { margin: 0 0 6px 0; font-size: 11px; color: #8a8aa0; letter-spacing: 1px; }
   #wrap {
     position: relative;
     border: 2px solid #2a2a3e; border-radius: 6px;
     box-shadow: 0 0 32px rgba(0, 0, 0, 0.6);
     background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 95vw;
+    max-height: calc(100vh - 80px);
   }
-  canvas { display: block; image-rendering: pixelated; }
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+    max-width: 95vw;
+    max-height: calc(100vh - 80px);
+    aspect-ratio: 560 / 640;
+    width: auto;
+    height: auto;
+  }
   .legend {
-    margin-top: 10px; font-size: 11px; color: #6a6a80;
+    margin-top: 6px; font-size: 11px; color: #6a6a80;
     letter-spacing: 0.5px; text-align: center;
     max-width: 560px; line-height: 1.5;
   }
@@ -45,7 +63,42 @@
   <div class="legend">
     <b>ARROWS</b> hop one tile &middot; <b>GAMEPAD D-PAD</b> hop &middot; <b>R</b> restart &middot; <b>M</b> mute
   </div>
-<script>
+<script type="module">
+'use strict';
+import { RakuEngine } from '../../engine/raku-engine.js';
+import {
+  installApiOverlay,
+  createSound,
+  installLauncherIntegration,
+  ensureIframeFocus,
+  relayApiCallsToParent,
+} from '../lib/game-shared.js';
+
+// ------------------------------------------------------------
+// Shared helpers: API overlay, sound, launcher, focus
+// ------------------------------------------------------------
+const overlay = installApiOverlay({ gameName: 'River Hopper' });
+const sound = createSound();
+const launcher = installLauncherIntegration('River Hopper');
+ensureIframeFocus();
+
+// ------------------------------------------------------------
+// RakuEngine integration
+// ------------------------------------------------------------
+const engine = new RakuEngine();
+const worldRes = engine.createWorld('river-hopper');
+const WORLD_ID = worldRes.world_id;
+const playerEntityRes = engine.createEntity(WORLD_ID, {
+  type: 'frog', name: 'player', position: [0, 0, 0],
+  properties: { shape: 'box', color: '#4ec44e' },
+});
+const PLAYER_ENTITY_ID = playerEntityRes.entity_id;
+engine.observeWorld(WORLD_ID);
+engine.captureFrame(WORLD_ID);
+
+engine.on('api', (e) => { try { overlay.log(e); } catch (_) {} });
+relayApiCallsToParent(engine);
+
 (function () {
   'use strict';
 
@@ -184,6 +237,10 @@
     state.dead = true;
     state.deathT = 0;
     state.cause = cause || 'squash';
+    try {
+      if (cause === 'drown') sound.hit();
+      else sound.death();
+    } catch (_) {}
   }
 
   function respawnFrog() {
@@ -255,6 +312,29 @@
     state.frog.col = nc; state.frog.row = nr;
     state.frog.targetX = nc * TILE; state.frog.targetY = nr * TILE;
     state.frog.hopT = 0; state.frog.facing = facing;
+    try { sound.jump(); } catch (_) {}
+    // Reached the home bank (top row) — score a goal and advance
+    if (nr === ROW_HOME) {
+      try { sound.coin(); } catch (_) {}
+      state.score += 50;
+      state.level += 1;
+      try { sound.levelup(); } catch (_) {}
+      buildCars(state.level);
+      // Respawn to start row (without losing a life)
+      state.frog.col = 7; state.frog.row = ROW_START;
+      state.frog.drawX = 7 * TILE; state.frog.drawY = ROW_START * TILE;
+      state.frog.targetX = 7 * TILE; state.frog.targetY = ROW_START * TILE;
+      state.frog.hopT = 1.0;
+    } else if (nr === ROW_MEDIAN || nr === ROW_START) {
+      // Safe landing
+      try { sound.blip(); } catch (_) {}
+    }
+    // Update engine-tracked player entity position
+    try {
+      engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
+        position: [state.frog.col, 0, state.frog.row],
+      });
+    } catch (_) {}
   }
 
   function updateFrog(dt) {
@@ -359,6 +439,7 @@
   buildCars(state.level);
 
   var lastT = performance.now();
+  var physicsAccum = 0;
   function frame(now) {
     var dt = Math.min(0.05, (now - lastT) / 1000);
     lastT = now;
@@ -378,6 +459,13 @@
     if (state.dead) {
       state.deathT += dt;
       if (state.deathT > 0.8) respawnFrog();
+    }
+
+    // Periodic engine physics step (~10Hz) for API surface coverage
+    physicsAccum += dt;
+    if (physicsAccum >= 0.1) {
+      try { engine.stepPhysics(WORLD_ID, physicsAccum); } catch (_) {}
+      physicsAccum = 0;
     }
 
     ctx.fillStyle = '#000';

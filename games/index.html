@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="RakuAI Arcade — 8 retro games powered by the RakuAI game engine.">
 <title>RAKUAI ARCADE</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
@@ -1163,6 +1164,18 @@
       frame.src = g.url;
       host.classList.add('open');
       document.body.classList.add('in-game');
+      // Focus the iframe once it has loaded so keyboard events reach the game.
+      const onLoad = () => {
+        try { frame.focus(); } catch (e) { /* ignore */ }
+        try {
+          if (frame.contentWindow) {
+            frame.contentWindow.focus();
+            frame.contentWindow.postMessage({ type: 'focus' }, '*');
+          }
+        } catch (e) { /* cross-origin; ignored */ }
+        frame.removeEventListener('load', onLoad);
+      };
+      frame.addEventListener('load', onLoad);
     }, 200);
   }
 

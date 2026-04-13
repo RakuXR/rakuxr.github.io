@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no,maximum-scale=1" />
   <title>Myriapod Mayhem</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
   <style>
     :root { color-scheme: dark; }
     html, body {
@@ -66,9 +67,44 @@
     <div id="tip">Arrows move (bottom zone only) &middot; Space fires &middot; Gamepad supported &middot; M mutes</div>
   </div>
 
-  <script>
+  <script type="module">
+  'use strict';
+  import {
+    installApiOverlay,
+    createSound,
+    installLauncherIntegration,
+    ensureIframeFocus,
+    relayApiCallsToParent,
+  } from '/games/lib/game-shared.js';
+  import { RakuEngine } from '/engine/raku-engine.js';
+
   (() => {
     "use strict";
+
+    // -------- Shared helpers: launcher / sound / API overlay --------
+    const overlay = installApiOverlay({ gameName: 'Myriapod' });
+    const sound = createSound();
+    installLauncherIntegration('Myriapod');
+    ensureIframeFocus();
+
+    // -------- RakuEngine world --------
+    const engine = new RakuEngine();
+    const worldRes = engine.createWorld('myriapod');
+    const WORLD_ID = worldRes.world_id;
+    const playerEntityRes = engine.createEntity(WORLD_ID, {
+      type: 'shooter', name: 'player', position: [0, 0, 0],
+      properties: { shape: 'ship', color: '#d6ffd0' },
+    });
+    const PLAYER_ENTITY_ID = playerEntityRes.entity_id;
+    const mushroomFieldRes = engine.createEntity(WORLD_ID, {
+      type: 'field', name: 'mushroom-field', position: [0, 0, 0],
+      properties: { kind: 'mushroom-grid' },
+    });
+    const FIELD_ENTITY_ID = mushroomFieldRes.entity_id;
+    engine.observeWorld(WORLD_ID);
+    engine.captureFrame(WORLD_ID);
+    engine.on('api', (e) => overlay.log(e));
+    relayApiCallsToParent(engine);
 
     // -------- Config --------
     const TILE = 14;
@@ -86,6 +122,13 @@
     const levelEl = document.getElementById("level");
     const livesEl = document.getElementById("lives");
 
+    // -------- Game state machine --------
+    const STATE = { TITLE: 'title', PLAY: 'play', DYING: 'dying', GAMEOVER: 'gameover' };
+    let gameState = STATE.TITLE;
+    let stateTimer = 0;
+    let physicsTimer = 0;
+    let muted = false;
+
     // -------- Input --------
     const keys = new Set();
     window.addEventListener("keydown", (e) => {
@@ -93,10 +136,22 @@
         e.preventDefault();
       }
       keys.add(e.key === " " ? "Space" : e.key);
+
+      // Title -> Play transition
+      if ((e.key === " " || e.key === "Space" || e.key === "Enter") &&
+          (gameState === STATE.TITLE || gameState === STATE.GAMEOVER)) {
+        startGame();
+      }
+      // Mute toggle
+      if (e.key === 'm' || e.key === 'M') {
+        muted = sound.toggleMute();
+      }
     });
     window.addEventListener("keyup", (e) => {
       keys.delete(e.key === " " ? "Space" : e.key);
     });
+    // Ensure iframe has focus so keys reach us when embedded.
+    canvas.addEventListener('pointerdown', () => { ensureIframeFocus(); });
 
     function readGamepad() {
       const pads = navigator.getGamepads ? navigator.getGamepads() : [];
@@ -110,6 +165,11 @@
         if (ay < -dead || pad.buttons[12]?.pressed) keys.add("ArrowUp"); else keys.delete("ArrowUp");
         if (ay >  dead || pad.buttons[13]?.pressed) keys.add("ArrowDown"); else keys.delete("ArrowDown");
         if (pad.buttons[0]?.pressed || pad.buttons[7]?.pressed) keys.add("Space"); else keys.delete("Space");
+        // Start button begins the game from title/gameover
+        if (pad.buttons[9]?.pressed &&
+            (gameState === STATE.TITLE || gameState === STATE.GAMEOVER)) {
+          startGame();
+        }
         return;
       }
     }
@@ -303,6 +363,7 @@
       if (keys.has("Space") && player.cooldown <= 0 && bullets.length < 2) {
         bullets.push({ x: player.x + player.w / 2 - 1, y: player.y - 4, vy: -6 });
         player.cooldown = 180;
+        sound.fire();
       }
     }
 
@@ -345,6 +406,22 @@
         b.y += b.vy;
         if (b.y < -4) { bullets.splice(i, 1); continue; }
 
+        // Centipede segment collision (check first - higher priority)
+        let hitSegment = false;
+        for (const cp of centipedes) {
+          for (let si = cp.segments.length - 1; si >= 0; si--) {
+            const s = cp.segments[si];
+            if (b.x + 2 >= s.x && b.x <= s.x + TILE &&
+                b.y + 4 >= s.y && b.y <= s.y + TILE) {
+              hitCentipedeSegment(cp, si);
+              hitSegment = true;
+              break;
+            }
+          }
+          if (hitSegment) break;
+        }
+        if (hitSegment) { bullets.splice(i, 1); continue; }
+
         const c = ((b.x + 1) / TILE) | 0;
         const r = ((b.y + 2) / TILE) | 0;
         const v = getCell(c, r);
@@ -352,11 +429,21 @@
           if (v > 0) {
             setCell(c, r, v - 1);
             bumpCell(c, r);
-            if (v - 1 === 0) addScore(1);
+            if (v - 1 === 0) {
+              addScore(1);
+              sound.blip();
+            } else {
+              sound.hit();
+            }
           } else {
             setCell(c, r, v + 1);
             bumpCell(c, r);
-            if (v + 1 === 0) addScore(5);
+            if (v + 1 === 0) {
+              addScore(5);
+              sound.blip();
+            } else {
+              sound.hit();
+            }
           }
           bullets.splice(i, 1);
           continue;
@@ -366,6 +453,184 @@
     function drawBullets() {
       ctx.fillStyle = "#ffffa0";
       for (const b of bullets) ctx.fillRect(b.x, b.y, 2, 4);
+    }
+
+    // -------- Centipede / Myriapod --------
+    // Each centipede is a chain of segments. Each segment tracks its tile
+    // column/row plus a fractional step progress 0..1 for smooth motion.
+    // dir = +1 (right) or -1 (left). When a segment hits a wall or a
+    // mushroom it steps down one row and reverses.
+    const centipedes = [];
+    const SEG_STEP_MS = 120;  // ms per tile step (lower == faster)
+
+    function makeCentipede(len, startCol, startRow, dir) {
+      const segs = [];
+      for (let i = 0; i < len; i++) {
+        // Head at index 0 is at startCol; body trails behind opposite to dir.
+        // dir = +1 (right): body to the left (col = startCol - i)
+        // dir = -1 (left):  body to the right (col = startCol + i)
+        const col = startCol - i * dir;
+        let entId = null;
+        try {
+          const r = engine.createEntity(WORLD_ID, {
+            type: 'centipede-segment',
+            name: 'seg-' + i,
+            position: [col, 0, startRow],
+            properties: { head: i === 0 },
+          });
+          entId = r.entity_id;
+        } catch (e) { /* ignore */ }
+        segs.push({
+          col, row: startRow,
+          x: col * TILE, y: startRow * TILE,
+          tcol: col, trow: startRow,         // target cell
+          dir, vdir: 1,                        // vdir: +1 down, -1 up
+          progress: 0,                         // 0..1 interpolation to target
+          head: i === 0,
+          entityId: entId,
+        });
+      }
+      centipedes.push({ segments: segs });
+    }
+
+    function spawnCentipede() {
+      // One long centipede per wave, length grows a bit with level.
+      // Head at col (len-1) moving right; body fills cols 0..len-2 in row 0.
+      const len = Math.min(12, 8 + level - 1);
+      makeCentipede(len, len - 1, 0, 1);
+    }
+
+    function segmentBlocked(col, row) {
+      if (col < 0 || col >= COLS) return true;
+      if (row < 0 || row >= ROWS) return true;
+      return Math.abs(getCell(col, row)) > 0;
+    }
+
+    function chooseNextTarget(seg) {
+      // Try to move horizontally in seg.dir. If blocked, step down (or up
+      // if at the bottom of the play area) and flip direction.
+      const nextCol = seg.col + seg.dir;
+      if (!segmentBlocked(nextCol, seg.row)) {
+        seg.tcol = nextCol;
+        seg.trow = seg.row;
+        return;
+      }
+      // Step vertically and reverse.
+      const minRow = 0;
+      const maxRow = ROWS - 1;
+      let nextRow = seg.row + seg.vdir;
+      if (nextRow > maxRow) { seg.vdir = -1; nextRow = seg.row + seg.vdir; }
+      if (nextRow < minRow) { seg.vdir = 1;  nextRow = seg.row + seg.vdir; }
+      seg.dir = -seg.dir;
+      seg.trow = nextRow;
+      seg.tcol = seg.col; // drop straight down/up into the new row
+    }
+
+    function updateCentipedes(dt) {
+      const stepMs = Math.max(45, SEG_STEP_MS - (level - 1) * 8);
+      for (let ci = centipedes.length - 1; ci >= 0; ci--) {
+        const cp = centipedes[ci];
+        for (const seg of cp.segments) {
+          if (seg.progress === 0 && seg.tcol === seg.col && seg.trow === seg.row) {
+            chooseNextTarget(seg);
+          }
+          seg.progress += dt / stepMs;
+          if (seg.progress >= 1) {
+            seg.col = seg.tcol;
+            seg.row = seg.trow;
+            seg.x = seg.col * TILE;
+            seg.y = seg.row * TILE;
+            seg.progress = 0;
+            chooseNextTarget(seg);
+          } else {
+            const fx = seg.col + (seg.tcol - seg.col) * seg.progress;
+            const fy = seg.row + (seg.trow - seg.row) * seg.progress;
+            seg.x = fx * TILE;
+            seg.y = fy * TILE;
+          }
+        }
+      }
+      // Remove any centipede with no segments left.
+      for (let ci = centipedes.length - 1; ci >= 0; ci--) {
+        if (centipedes[ci].segments.length === 0) centipedes.splice(ci, 1);
+      }
+      // Wave clear?
+      if (centipedes.length === 0 && gameState === STATE.PLAY) {
+        level++;
+        sound.levelup();
+        levelEl.textContent = level;
+        spawnCentipede();
+      }
+    }
+
+    function hitCentipedeSegment(cp, segIndex) {
+      const seg = cp.segments[segIndex];
+      // Drop a mushroom where the segment died.
+      if (!segmentBlocked(seg.col, seg.row)) {
+        setCell(seg.col, seg.row, 4);
+      }
+      addScore(seg.head ? 100 : 10);
+      sound.explode();
+      if (seg.entityId != null) {
+        try { engine.destroyEntity(WORLD_ID, seg.entityId); } catch (e) { /* ignore */ }
+      }
+
+      // Split into two centipedes at the hit point.
+      const before = cp.segments.slice(0, segIndex);
+      const after  = cp.segments.slice(segIndex + 1);
+      cp.segments.length = 0;
+      if (before.length) {
+        if (before[0]) before[0].head = true;
+        centipedes.push({ segments: before });
+      }
+      if (after.length) {
+        if (after[0]) after[0].head = true;
+        centipedes.push({ segments: after });
+      }
+    }
+
+    function drawCentipedes(time) {
+      for (const cp of centipedes) {
+        for (const seg of cp.segments) {
+          const x = seg.x, y = seg.y;
+          const cx = x + TILE / 2;
+          const cy = y + TILE / 2;
+          // Body
+          ctx.fillStyle = seg.head ? '#ff6a8a' : '#ff3a5a';
+          ctx.fillRect(x + 2, y + 2, TILE - 4, TILE - 4);
+          // Rim
+          ctx.fillStyle = '#7a0020';
+          ctx.fillRect(x + 2, y + TILE - 4, TILE - 4, 1);
+          // Eyes on head
+          if (seg.head) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(cx - 3, cy - 2, 1, 1);
+            ctx.fillRect(cx + 2, cy - 2, 1, 1);
+          }
+          // Legs wiggle
+          const wig = ((time / 80) | 0) % 2 === 0 ? 0 : 1;
+          ctx.fillStyle = '#ff90a0';
+          ctx.fillRect(x + 1, y + 4 + wig, 1, 1);
+          ctx.fillRect(x + TILE - 2, y + 4 + wig, 1, 1);
+          ctx.fillRect(x + 1, y + 9 - wig, 1, 1);
+          ctx.fillRect(x + TILE - 2, y + 9 - wig, 1, 1);
+        }
+      }
+    }
+
+    function centipedeTouchesPlayer() {
+      if (!player.alive || player.invuln > 0) return false;
+      for (const cp of centipedes) {
+        for (const seg of cp.segments) {
+          if (seg.x < player.x + player.w - 2 &&
+              seg.x + TILE > player.x + 2 &&
+              seg.y < player.y + player.h - 2 &&
+              seg.y + TILE > player.y + 2) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     // -------- Scoring & HUD --------
@@ -382,23 +647,129 @@
       livesEl.textContent = lives;
     }
 
+    function killPlayer() {
+      if (!player.alive) return;
+      player.alive = false;
+      lives--;
+      livesEl.textContent = lives;
+      sound.death();
+      gameState = STATE.DYING;
+      stateTimer = 0;
+    }
+
+    function startGame() {
+      gameState = STATE.PLAY;
+      stateTimer = 0;
+      score = 0;
+      level = 1;
+      lives = 3;
+      bullets.length = 0;
+      centipedes.length = 0;
+      seedMushrooms(40);
+      resetPlayer();
+      spawnCentipede();
+      updateHUD();
+      ensureIframeFocus();
+    }
+
+    function drawTitle() {
+      ctx.fillStyle = 'rgba(4, 10, 6, 0.72)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#9f6';
+      ctx.font = 'bold 22px ui-monospace, Menlo, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('MYRIAPOD MAYHEM', W / 2, H / 2 - 28);
+      ctx.fillStyle = '#d8f3d0';
+      ctx.font = '11px ui-monospace, Menlo, monospace';
+      ctx.fillText('Powered by RakuEngine', W / 2, H / 2 - 8);
+      ctx.fillStyle = '#5dff7a';
+      const blink = ((performance.now() / 400) | 0) % 2 === 0;
+      if (blink) ctx.fillText('PRESS SPACE / ENTER TO START', W / 2, H / 2 + 24);
+      ctx.fillStyle = '#8ad48a';
+      ctx.font = '9px ui-monospace, Menlo, monospace';
+      ctx.fillText('Arrows move · Space fires · M mutes · Esc quits', W / 2, H / 2 + 48);
+      ctx.textAlign = 'left';
+    }
+
+    function drawGameOver() {
+      ctx.fillStyle = 'rgba(4, 10, 6, 0.72)';
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#ff6a8a';
+      ctx.font = 'bold 24px ui-monospace, Menlo, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('GAME OVER', W / 2, H / 2 - 10);
+      ctx.fillStyle = '#d8f3d0';
+      ctx.font = '11px ui-monospace, Menlo, monospace';
+      ctx.fillText('SCORE  ' + score, W / 2, H / 2 + 14);
+      ctx.fillStyle = '#5dff7a';
+      const blink = ((performance.now() / 400) | 0) % 2 === 0;
+      if (blink) ctx.fillText('PRESS SPACE TO PLAY AGAIN', W / 2, H / 2 + 40);
+      ctx.textAlign = 'left';
+    }
+
     // -------- Main loop --------
     let last = performance.now();
     function frame(now) {
       const dt = Math.min(50, now - last);
       last = now;
+      stateTimer += dt;
       readGamepad();
-      updatePlayer(dt);
-      updateBullets();
-      updateField(dt);
 
+      if (gameState === STATE.PLAY) {
+        updatePlayer(dt);
+        updateBullets();
+        updateField(dt);
+        updateCentipedes(dt);
+
+        // Centipede <-> player contact
+        if (centipedeTouchesPlayer()) {
+          killPlayer();
+        }
+
+        // Periodic RakuEngine physics step so API log stays lively.
+        physicsTimer += dt;
+        if (physicsTimer >= 200) {
+          physicsTimer = 0;
+          try {
+            engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
+              position: [player.x / TILE, 0, player.y / TILE],
+            });
+          } catch (e) { /* ignore */ }
+          try { engine.stepPhysics(WORLD_ID, 0.2); } catch (e) { /* ignore */ }
+        }
+      } else if (gameState === STATE.DYING) {
+        updateField(dt);
+        if (stateTimer > 900) {
+          if (lives > 0) {
+            resetPlayer();
+            gameState = STATE.PLAY;
+            stateTimer = 0;
+          } else {
+            gameState = STATE.GAMEOVER;
+            stateTimer = 0;
+            if (window.parent !== window) {
+              window.parent.postMessage({ type: 'gameover', game: 'Myriapod', score, level }, '*');
+            }
+          }
+        }
+      } else {
+        // TITLE or GAMEOVER — still animate field subtly
+        updateField(dt);
+      }
+
+      // Draw
       ctx.fillStyle = "#05080a";
       ctx.fillRect(0, 0, W, H);
       ctx.fillStyle = "rgba(30, 80, 40, 0.08)";
       ctx.fillRect(0, H - PLAYER_ZONE_ROWS * TILE, W, PLAYER_ZONE_ROWS * TILE);
       drawField(now);
+      drawCentipedes(now);
       drawBullets();
       drawPlayer();
+
+      if (gameState === STATE.TITLE) drawTitle();
+      else if (gameState === STATE.GAMEOVER) drawGameOver();
+
       requestAnimationFrame(frame);
     }
 

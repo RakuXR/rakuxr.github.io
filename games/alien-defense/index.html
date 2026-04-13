@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
 <title>Alien Defense</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <style>
   :root { color-scheme: dark; }
   html, body {
@@ -34,9 +35,41 @@
 </head>
 <body>
 <div id="wrap"><canvas id="game" width="448" height="512"></canvas></div>
-<script>
-(() => {
+<script type="module">
   "use strict";
+  import { RakuEngine } from '../../engine/raku-engine.js';
+  import {
+    installApiOverlay,
+    createSound,
+    installLauncherIntegration,
+    ensureIframeFocus,
+    relayApiCallsToParent,
+  } from '../lib/game-shared.js';
+
+  // ---- Shared helpers (API overlay, sound, launcher, focus) ----
+  const overlay = installApiOverlay({ gameName: 'Alien Defense' });
+  const sound = createSound();
+  installLauncherIntegration('Alien Defense');
+  ensureIframeFocus();
+
+  // ---- RakuEngine world + entities ----
+  const engine = new RakuEngine();
+  const worldRes = engine.createWorld('alien-defense');
+  const WORLD_ID = worldRes.world_id;
+  const cannonEntityRes = engine.createEntity(WORLD_ID, {
+    type: 'cannon', name: 'player', position: [0, 0, 0],
+    properties: { shape: 'box', color: '#00ff00' },
+  });
+  const CANNON_ENTITY_ID = cannonEntityRes.entity_id;
+  const alienEntityRes = engine.createEntity(WORLD_ID, {
+    type: 'alien', name: 'invader', position: [0, 0, 0],
+    properties: { shape: 'sprite', color: '#c0c0ff' },
+  });
+  const ALIEN_ENTITY_ID = alienEntityRes.entity_id;
+  engine.observeWorld(WORLD_ID);
+  engine.captureFrame(WORLD_ID);
+  engine.on('api', (e) => overlay.log(e));
+  relayApiCallsToParent(engine);
 
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
@@ -49,14 +82,14 @@
   // ---- Input ----
   const keys = Object.create(null);
   const pressed = Object.create(null);
-  addEventListener("keydown", (e) => {
+  window.addEventListener("keydown", (e) => {
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " ", "Space"].includes(e.key) || e.code === "Space") {
       e.preventDefault();
     }
     if (!keys[e.code]) pressed[e.code] = true;
     keys[e.code] = true;
   });
-  addEventListener("keyup", (e) => { keys[e.code] = false; });
+  window.addEventListener("keyup", (e) => { keys[e.code] = false; });
 
   // Gamepad
   function gp() {
@@ -81,11 +114,11 @@
     gpPrev.start = start;
   }
   // Track kbd-origin so gamepad doesn't clobber it
-  addEventListener("keydown", (e) => {
+  window.addEventListener("keydown", (e) => {
     if (e.code === "ArrowLeft") keys._kbLeft = true;
     if (e.code === "ArrowRight") keys._kbRight = true;
   });
-  addEventListener("keyup", (e) => {
+  window.addEventListener("keyup", (e) => {
     if (e.code === "ArrowLeft") keys._kbLeft = false;
     if (e.code === "ArrowRight") keys._kbRight = false;
   });
@@ -229,7 +262,11 @@
     playerShot.active = true;
     playerShot.x = player.x + CANNON_W / 2 - 1;
     playerShot.y = player.y - 2;
+    sound.fire();
   }
+
+  // Track kills so we occasionally fire API calls into the engine
+  let killCount = 0;
 
   function updatePlayerShot(dt) {
     if (!playerShot.active) return;
@@ -252,6 +289,32 @@
         playerShot.active = false;
         player.score += a.points;
         if (player.score > player.hi) player.hi = player.score;
+        // Sound: hit + explode on kill
+        sound.hit();
+        sound.explode();
+        // Engine: fire API calls so the overlay populates
+        killCount++;
+        try {
+          engine.destroyEntity(WORLD_ID, ALIEN_ENTITY_ID);
+        } catch (_) { /* entity may already be gone */ }
+        // Respawn a representative alien so we can keep destroying it
+        try {
+          const r = engine.createEntity(WORLD_ID, {
+            type: 'alien', name: 'invader', position: [p.x, p.y, 0],
+            properties: { shape: 'sprite', color: a.color },
+          });
+          // keep ALIEN_ENTITY_ID rotating
+          if (r && r.entity_id) window.__alienEntityId = r.entity_id;
+        } catch (_) { /* ignore */ }
+        if (killCount % 3 === 0) {
+          try { engine.stepPhysics(WORLD_ID, 0.016); } catch (_) {}
+        }
+        // Wave clear → levelup sound + reset formation
+        if (formation.aliens.every(x => !x.alive)) {
+          sound.levelup();
+          formation.reset();
+          try { engine.captureFrame(WORLD_ID); } catch (_) {}
+        }
         return;
       }
     }
@@ -331,6 +394,7 @@
       if (pressed.Space || pressed.Enter) {
         state = STATE.PLAY;
         player.reset();
+        sound.blip();
       }
     } else if (state === STATE.PLAY) {
       updatePlayer(dt);
@@ -345,7 +409,6 @@
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
-})();
 </script>
 </body>
 </html>

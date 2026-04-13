@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Meteor Storm</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
 <style>
   :root { --fg:#fff; --bg:#000; --accent:#5effb2; }
   * { box-sizing: border-box; }
@@ -39,16 +40,43 @@
   </div>
   <div id="title"><a href="../">&lt; games</a> &nbsp;|&nbsp; METEOR STORM</div>
 
-<script>
-(function () {
-  'use strict';
-  // -------------------------------------------------------------------
-  // Meteor Storm - vector-style Asteroids clone
-  // Stage 3: rocks with procedural jagged shapes + splitting + particles
-  // -------------------------------------------------------------------
+<script type="module">
+'use strict';
+// -------------------------------------------------------------------
+// Meteor Storm - vector-style Asteroids clone
+// Stage 3: rocks with procedural jagged shapes + splitting + particles
+// -------------------------------------------------------------------
+import {
+  installApiOverlay,
+  createSound,
+  installLauncherIntegration,
+  ensureIframeFocus,
+  relayApiCallsToParent,
+} from '/games/lib/game-shared.js';
+import { RakuEngine } from '/engine/raku-engine.js';
 
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
+// ---------- shared helpers: launcher / sound / API overlay ----------
+const overlay = installApiOverlay({ gameName: 'Meteor Storm' });
+const sound = createSound();
+installLauncherIntegration('Meteor Storm');
+ensureIframeFocus();
+
+// ---------- RakuEngine world (for API log population) ----------
+const engine = new RakuEngine();
+const worldRes = engine.createWorld('meteor-storm');
+const WORLD_ID = worldRes.world_id;
+const shipEntityRes = engine.createEntity(WORLD_ID, {
+  type: 'ship', name: 'player', position: [0, 1, 0],
+  properties: { shape: 'triangle', color: '#ffffff' },
+});
+const SHIP_ENTITY_ID = shipEntityRes.entity_id;
+engine.observeWorld(WORLD_ID);
+engine.captureFrame(WORLD_ID);
+engine.on('api', (e) => overlay.log(e));
+relayApiCallsToParent(engine);
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
 
   const VW = 960;
   const VH = 720;
@@ -84,6 +112,8 @@
     shake: 0,
     tick: 0,
     highScore: 0,
+    shieldEnergy: 1,
+    physicsTimer: 0,
   };
 
   // ---------- entities ----------
@@ -98,6 +128,11 @@
     1: { radius: 12, score: 100, speed: 130 },
   };
 
+  // Shield energy: 0..1, drains while active, regenerates while off.
+  const SHIELD_DRAIN = 0.45;   // per second while held
+  const SHIELD_REGEN = 0.22;   // per second while off
+  const SHIELD_MIN_TO_ACTIVATE = 0.12;
+
   class Ship {
     constructor() {
       this.x = VW / 2;
@@ -110,6 +145,8 @@
       this.canFire = true;
       this.fireCooldown = 0;
       this.invuln = 2.5;
+      this.shieldActive = false;
+      this.thrustSndTimer = 0;
     }
     update(dt) {
       const turn = 4.2;
@@ -121,7 +158,35 @@
         const accel = 260;
         this.vx += Math.cos(this.angle) * accel * dt;
         this.vy += Math.sin(this.angle) * accel * dt;
+        // Thrust sound throttled so it doesn't hammer the audio graph.
+        this.thrustSndTimer -= dt;
+        if (this.thrustSndTimer <= 0) {
+          sound.thrust();
+          this.thrustSndTimer = 0.08;
+        }
+      } else {
+        this.thrustSndTimer = 0;
       }
+
+      // Shield handling (Down arrow) — requires energy above threshold to
+      // (re)activate, drains while active, regenerates while off.
+      const wantShield = !!keys['ArrowDown'];
+      const prevShield = this.shieldActive;
+      if (!wantShield) {
+        this.shieldActive = false;
+      } else if (prevShield) {
+        this.shieldActive = game.shieldEnergy > 0;
+      } else {
+        this.shieldActive = game.shieldEnergy >= SHIELD_MIN_TO_ACTIVATE;
+      }
+      if (this.shieldActive && !prevShield) sound.shield();
+      if (this.shieldActive) {
+        game.shieldEnergy = Math.max(0, game.shieldEnergy - SHIELD_DRAIN * dt);
+        if (game.shieldEnergy === 0) this.shieldActive = false;
+      } else {
+        game.shieldEnergy = Math.min(1, game.shieldEnergy + SHIELD_REGEN * dt);
+      }
+
       const drag = 0.994;
       this.vx *= Math.pow(drag, dt * 60);
       this.vy *= Math.pow(drag, dt * 60);
@@ -155,27 +220,41 @@
         this.vx + Math.cos(this.angle) * spd,
         this.vy + Math.sin(this.angle) * spd
       ));
+      sound.fire();
     }
     draw() {
-      if (this.invuln > 0 && (Math.floor(game.tick / 4) & 1)) return;
-      ctx.save();
-      ctx.translate(this.x, this.y);
-      ctx.rotate(this.angle);
-      ctx.beginPath();
-      ctx.moveTo(14, 0);
-      ctx.lineTo(-10, 9);
-      ctx.lineTo(-6, 0);
-      ctx.lineTo(-10, -9);
-      ctx.closePath();
-      ctx.stroke();
-      if (this.thrusting && (game.tick & 1)) {
+      const blinkOff = this.invuln > 0 && (Math.floor(game.tick / 4) & 1);
+      if (!blinkOff) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
         ctx.beginPath();
-        ctx.moveTo(-6, 4);
-        ctx.lineTo(-14, 0);
-        ctx.lineTo(-6, -4);
+        ctx.moveTo(14, 0);
+        ctx.lineTo(-10, 9);
+        ctx.lineTo(-6, 0);
+        ctx.lineTo(-10, -9);
+        ctx.closePath();
         ctx.stroke();
+        if (this.thrusting && (game.tick & 1)) {
+          ctx.beginPath();
+          ctx.moveTo(-6, 4);
+          ctx.lineTo(-14, 0);
+          ctx.lineTo(-6, -4);
+          ctx.stroke();
+        }
+        ctx.restore();
       }
-      ctx.restore();
+      // Shield ring (drawn in world coords so it wraps correctly)
+      if (this.shieldActive) {
+        ctx.save();
+        const pulse = 0.6 + 0.4 * Math.abs(Math.sin(game.tick * 0.25));
+        ctx.strokeStyle = `rgba(94,255,178,${pulse.toFixed(3)})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius + 9, 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+      }
     }
   }
 
@@ -318,8 +397,11 @@
     spawnExplosion(rock.x, rock.y, 12, 80);
     game.shake = Math.max(game.shake, rock.size * 3);
     if (rock.size > 1) {
+      sound.hit();
       rocks.push(new Rock(rock.x, rock.y, rock.size - 1));
       rocks.push(new Rock(rock.x, rock.y, rock.size - 1));
+    } else {
+      sound.explode();
     }
   }
 
@@ -381,11 +463,37 @@
       if (ship && ship.invuln <= 0) {
         for (let i = rocks.length - 1; i >= 0; i--) {
           const r = rocks[i];
-          const rr = r.radius + ship.radius - 4;
+          const shieldR = ship.shieldActive ? (ship.radius + 9) : (ship.radius - 4);
+          const rr = r.radius + shieldR;
           if (dist2(r, ship) < rr * rr) {
-            rocks.splice(i, 1);
-            splitRock(r);
-            killShip();
+            if (ship.shieldActive) {
+              // Shield deflect: shatter small rocks, bounce larger ones away.
+              const dx = r.x - ship.x;
+              const dy = r.y - ship.y;
+              const len = Math.max(1, Math.hypot(dx, dy));
+              if (r.size === 1) {
+                rocks.splice(i, 1);
+                const meta = ROCK_SIZES[r.size];
+                game.score += (meta.score / 2) | 0;
+                splitRock(r);
+              } else {
+                // Push rock outward and reflect its velocity along the normal.
+                const nx = dx / len, ny = dy / len;
+                const vdotn = r.vx * nx + r.vy * ny;
+                r.vx -= 2 * vdotn * nx;
+                r.vy -= 2 * vdotn * ny;
+                const push = r.radius + shieldR + 2;
+                r.x = ship.x + nx * push;
+                r.y = ship.y + ny * push;
+                spawnExplosion(ship.x + nx * shieldR, ship.y + ny * shieldR, 6, 70);
+                sound.hit();
+                game.shake = Math.max(game.shake, 4);
+              }
+            } else {
+              rocks.splice(i, 1);
+              splitRock(r);
+              killShip();
+            }
             break;
           }
         }
@@ -394,7 +502,15 @@
       // Check level clear
       if (rocks.length === 0 && game.state === STATE.PLAYING) {
         game.level++;
+        sound.levelup();
         spawnLevelRocks(game.level);
+      }
+
+      // Periodically step the RakuEngine physics so the API log populates.
+      game.physicsTimer += dt;
+      if (game.physicsTimer >= 0.2) {
+        game.physicsTimer = 0;
+        engine.stepPhysics(WORLD_ID, 0.2);
       }
     }
 
@@ -409,6 +525,8 @@
     spawnExplosion(ship.x, ship.y, 30, 140);
     game.shake = 14;
     game.lives--;
+    sound.death();
+    sound.boom();
     ship = null;
     if (game.lives <= 0) {
       game.state = STATE.GAMEOVER;
@@ -463,6 +581,7 @@
     ctx.font = '12px "Courier New", monospace';
     ctx.fillStyle = '#666';
     ctx.fillText('ARROWS: ROTATE / THRUST    SPACE: FIRE', VW/2, VH/2 + 70);
+    ctx.fillText('DOWN: SHIELD    F2: API DEBUG', VW/2, VH/2 + 95);
     ctx.restore();
   }
 
@@ -490,6 +609,21 @@
     ctx.fillText('LEVEL ' + game.level, VW/2, 16);
     ctx.textAlign = 'right';
     ctx.fillText('LIVES ' + game.lives, VW - 20, 16);
+
+    // Shield energy bar — bottom-left
+    const barX = 20, barY = VH - 32, barW = 180, barH = 12;
+    ctx.font = '12px "Courier New", monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#888';
+    ctx.fillText('SHIELD', barX, barY - 4);
+    ctx.strokeStyle = '#5effb2';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(barX + 0.5, barY + 0.5, barW, barH);
+    const pct = Math.max(0, Math.min(1, game.shieldEnergy));
+    const full = pct > 0.2;
+    ctx.fillStyle = full ? '#5effb2' : '#ff6666';
+    ctx.fillRect(barX + 1, barY + 1, Math.floor((barW - 1) * pct), barH - 1);
     ctx.restore();
   }
 
@@ -504,6 +638,7 @@
     game.score = 0;
     game.level = 1;
     game.lives = 3;
+    game.shieldEnergy = 1;
     bullets.length = 0;
     rocks.length = 0;
     particles.length = 0;
@@ -512,7 +647,6 @@
   }
 
   requestAnimationFrame(loop);
-})();
 </script>
 </body>
 </html>
