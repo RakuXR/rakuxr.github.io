@@ -117,9 +117,7 @@
     engine.observeJSON(WORLD_ID);
     engine.captureFrame(WORLD_ID);
     engine.saveWorld(WORLD_ID);
-    engine.loadWorld(WORLD_ID, 1);
     engine.startRecording(WORLD_ID);
-    engine.contentFilter('Myriapod');
     const centiAgentRes = engine.createAgent(WORLD_ID, { type: 'centipede-ai', name: 'CentiAI' });
     const CENTI_AGENT_ID = centiAgentRes.agent_id;
 
@@ -321,7 +319,7 @@
       y: H - TILE * 2,
       w: TILE,
       h: TILE,
-      speed: 2.2,
+      speed: 3.3,  // increased ~50% per Kevin's feedback
       cooldown: 0,
       alive: true,
       invuln: 0,
@@ -592,6 +590,7 @@
       if (seg.entityId != null) {
         try { engine.destroyEntity(WORLD_ID, seg.entityId); } catch (e) { /* ignore */ }
       }
+      try { if (CENTI_AGENT_ID) engine.agentReward(WORLD_ID, CENTI_AGENT_ID, seg.head ? -1.0 : -0.25); } catch (_) {}
 
       // Split into two centipedes at the hit point.
       const before = cp.segments.slice(0, segIndex);
@@ -749,15 +748,16 @@
         physicsTimer += dt;
         if (physicsTimer >= 200) {
           physicsTimer = 0;
-          apiPhase = (apiPhase + 1) % 9;
+          apiPhase = (apiPhase + 1) % 11;
           try {
             if (apiPhase === 0) {
               engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
                 position: [player.x / TILE, 0, player.y / TILE],
               });
             } else if (apiPhase === 1) {
+              const head = centipedes[0]?.segments[0];
               engine.setTransform(WORLD_ID, CENTIPEDE_ENTITY_ID, {
-                position: [0, 0, 0],
+                position: head ? [head.col, 0, head.row] : [0, 0, 0],
               });
             } else if (apiPhase === 2) {
               engine.observeWorld(WORLD_ID);
@@ -770,9 +770,16 @@
             } else if (apiPhase === 6) {
               if (CENTI_AGENT_ID) engine.agentObserve(WORLD_ID, CENTI_AGENT_ID);
             } else if (apiPhase === 7) {
-              if (CENTI_AGENT_ID) (async () => { try { await engine.agentAct(WORLD_ID, CENTI_AGENT_ID, { action: 'advance' }); } catch (_) {} })();
+              if (CENTI_AGENT_ID) engine.agentAct(WORLD_ID, CENTI_AGENT_ID, {
+                playerAction: 'move',
+                observation: 'player at col ' + (player.x / TILE | 0),
+              });
+            } else if (apiPhase === 8) {
+              if (CENTI_AGENT_ID) engine.agentReward(WORLD_ID, CENTI_AGENT_ID, 0.01);
+            } else if (apiPhase === 9) {
+              engine.saveWorld(WORLD_ID);
             } else {
-              if (CENTI_AGENT_ID) engine.agentReward(WORLD_ID, CENTI_AGENT_ID, player.alive ? -0.05 : 1.0);
+              engine.setTransform(WORLD_ID, FIELD_ENTITY_ID, { position: [0, 0, level] });
             }
           } catch (e) { /* ignore */ }
         }
@@ -787,8 +794,8 @@
             gameState = STATE.GAMEOVER;
             stateTimer = 0;
             try { engine.stopRecording(WORLD_ID); } catch (_) {}
-            try { engine.captureFrame(WORLD_ID); } catch (_) {}
-            try { if (CENTI_AGENT_ID) engine.agentReward(WORLD_ID, CENTI_AGENT_ID, 2.0); } catch (_) {}
+            try { engine.saveWorld(WORLD_ID); } catch (_) {}
+            try { if (CENTI_AGENT_ID) engine.agentReward(WORLD_ID, CENTI_AGENT_ID, 1.0); } catch (_) {}
             if (window.parent !== window) {
               window.parent.postMessage({ type: 'gameover', game: 'Myriapod', score, level }, '*');
             }

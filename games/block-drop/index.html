@@ -474,10 +474,9 @@ const BLOCK_AGENT_ID = blockAgentRes.agent_id;
     const cleared = clearLines();
     if (cleared > 0) {
       addLineScore(cleared);
-      // Log a RakuEngine API call for the line clear so the API overlay updates.
-      try {
-        engine.stepPhysics(WORLD_ID, 0.016);
-      } catch (_) {}
+      try { engine.stepPhysics(WORLD_ID, 0.016); } catch (_) {}
+      try { if (BLOCK_AGENT_ID) engine.agentReward(WORLD_ID, BLOCK_AGENT_ID, cleared * 0.25); } catch (_) {}
+      try { engine.saveWorld(WORLD_ID); } catch (_) {}
       if (cleared >= 4) sound.levelup();
       else sound.coin();
     }
@@ -669,11 +668,11 @@ const BLOCK_AGENT_ID = blockAgentRes.agent_id;
     if (apiAccum > 350) {
       apiAccum = 0;
       try {
-        const phase = (apiPhase++) % 9;
-        if (state.current && phase === 0) {
+        const phase = (apiPhase++) % 11;
+        if (phase === 0 && state.current) {
           engine.setTransform(WORLD_ID, PIECE_ENTITY_ID, {
             position: [state.current.x, state.current.y, 0],
-            rotation: [0, 0, state.current.r],
+            rotation: [0, 0, state.current.rot || 0],
           });
         } else if (phase === 1) {
           engine.observeWorld(WORLD_ID);
@@ -682,15 +681,22 @@ const BLOCK_AGENT_ID = blockAgentRes.agent_id;
         } else if (phase === 3) {
           engine.captureFrame(WORLD_ID);
         } else if (phase === 4) {
-          engine.setTransform(WORLD_ID, BOARD_ENTITY_ID, { position: [0, 0, 0] });
+          engine.setTransform(WORLD_ID, BOARD_ENTITY_ID, { position: [0, state.lines, 0] });
         } else if (phase === 5) {
           engine.observeJSON(WORLD_ID);
         } else if (phase === 6) {
           if (BLOCK_AGENT_ID) engine.agentObserve(WORLD_ID, BLOCK_AGENT_ID);
         } else if (phase === 7) {
-          if (BLOCK_AGENT_ID) (async () => { try { await engine.agentAct(WORLD_ID, BLOCK_AGENT_ID, { action: 'suggest_move' }); } catch (_) {} })();
+          if (BLOCK_AGENT_ID) engine.agentAct(WORLD_ID, BLOCK_AGENT_ID, {
+            playerAction: 'place',
+            observation: 'level ' + state.level + ' lines ' + state.lines,
+          });
+        } else if (phase === 8) {
+          if (BLOCK_AGENT_ID) engine.agentReward(WORLD_ID, BLOCK_AGENT_ID, state.score > 0 ? 0.01 : 0);
+        } else if (phase === 9) {
+          engine.saveWorld(WORLD_ID);
         } else {
-          if (BLOCK_AGENT_ID) engine.agentReward(WORLD_ID, BLOCK_AGENT_ID, state.lines > 0 ? 0.1 : 0.01);
+          engine.startRecording(WORLD_ID);
         }
       } catch (_) {}
     }

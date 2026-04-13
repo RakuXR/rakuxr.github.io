@@ -73,9 +73,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   engine.observeJSON(WORLD_ID);
   engine.captureFrame(WORLD_ID);
   engine.saveWorld(WORLD_ID);
-  engine.loadWorld(WORLD_ID, 1);
   engine.startRecording(WORLD_ID);
-  engine.contentFilter('Star Bugs');
   const bugAgentRes = engine.createAgent(WORLD_ID, { type: 'swarm-ai', name: 'BugAI' });
   const BUG_AGENT_ID = bugAgentRes.agent_id;
   engine.on("api", (e) => overlay.log(e));
@@ -140,7 +138,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     particles: [],
     stars: [],
     score: 0,
-    hiscore: parseInt(localStorage.getItem('raku-star-bugs-hi') || '0', 10),
+    hiscore: parseInt(localStorage.getItem('raku-star-bugs-hi') || '0', 10) || 0,
     lives: 3,
     stage: 1,
     time: 0,
@@ -149,6 +147,8 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     spawnQueue: [],
     gameOverTimer: 0,
     physicsTimer: 0,
+    screenTimer: 0,
+    apiPhase: 0,
   };
 
   function resetGame() {
@@ -344,17 +344,24 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     if (state.physicsTimer > 0.3) {
       state.physicsTimer = 0;
       try {
-        const phase = (state.apiPhase = ((state.apiPhase || 0) + 1) % 10);
-        if (phase === 0) engine.setTransform(WORLD_ID, shipEntity, { position: [state.ship.x, state.ship.y, 0] });
+        const phase = (state.apiPhase = (state.apiPhase + 1) % 10);
+        if (phase === 0) engine.setTransform(WORLD_ID, shipEntity, {
+          position: [state.ship.x, state.ship.y, 0],
+        });
         else if (phase === 1) engine.observeWorld(WORLD_ID);
         else if (phase === 2) engine.stepPhysics(WORLD_ID, dt);
         else if (phase === 3) engine.captureFrame(WORLD_ID);
         else if (phase === 4) engine.observeJSON(WORLD_ID);
-        else if (phase === 5) engine.setTransform(WORLD_ID, swarmEntity, { position: [0, 0, 0] });
+        else if (phase === 5) engine.setTransform(WORLD_ID, swarmEntity, {
+          position: [state.bugs.filter(b => b.alive).length, 0, 0],
+        });
         else if (phase === 6) { if (BUG_AGENT_ID) engine.agentObserve(WORLD_ID, BUG_AGENT_ID); }
-        else if (phase === 7) { if (BUG_AGENT_ID) (async () => { try { await engine.agentAct(WORLD_ID, BUG_AGENT_ID, { action: 'dive', alive: state.bugs.filter(b => b.alive).length }); } catch (_) {} })(); }
+        else if (phase === 7) { if (BUG_AGENT_ID) engine.agentAct(WORLD_ID, BUG_AGENT_ID, {
+          playerAction: 'attack',
+          observation: 'ship at ' + (state.ship.x | 0) + ',' + (state.ship.y | 0)
+        }); }
         else if (phase === 8) engine.saveWorld(WORLD_ID);
-        else { if (BUG_AGENT_ID) engine.agentReward(WORLD_ID, BUG_AGENT_ID, state.ship.alive ? -0.05 : 1.0); }
+        else { if (BUG_AGENT_ID) engine.agentReward(WORLD_ID, BUG_AGENT_ID, 0.01); }
       } catch (_) {}
     }
 
@@ -454,9 +461,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
             burst(bug.x, bug.y, BUG_COLORS[bug.type].body);
             sound.explode();
             launcher.notifyScore(state.score);
-            try { engine.destroyEntity(WORLD_ID, swarmEntity); } catch (_) {}
-            try { engine.createEntity(WORLD_ID, { type: 'bug', name: 'bug-spawn', position: [bug.x, bug.y, 0], properties: { shape: 'sprite', color: '#5cf08f' } }); } catch (_) {}
-            try { if (BUG_AGENT_ID) engine.agentReward(WORLD_ID, BUG_AGENT_ID, -0.5); } catch (_) {}
+            try { if (BUG_AGENT_ID) engine.agentReward(WORLD_ID, BUG_AGENT_ID, -1.0); } catch (_) {}
           } else {
             sound.hit();
           }
@@ -536,8 +541,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
         state.screenTimer = 0;
         launcher.notifyGameOver(state.score, state.stage);
         try { engine.stopRecording(WORLD_ID); } catch (_) {}
-        try { engine.captureFrame(WORLD_ID); } catch (_) {}
-        try { if (BUG_AGENT_ID) engine.agentReward(WORLD_ID, BUG_AGENT_ID, 2.0); } catch (_) {}
+        try { engine.saveWorld(WORLD_ID); } catch (_) {}
       }, 1000);
       return;
     }
