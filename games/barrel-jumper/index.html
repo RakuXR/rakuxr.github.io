@@ -127,9 +127,9 @@ import { RakuEngine } from "../../engine/raku-engine.js";
 
   // physics
   const GRAVITY = 0.35;
-  const MOVE_SPEED = 1.2;
+  const MOVE_SPEED = 2.0;
   const CLIMB_SPEED = 1.0;
-  const JUMP_VEL = -5.2;
+  const JUMP_VEL = -6.5;
   const MAX_FALL = 6.5;
 
   // ---------- level tile map ----------
@@ -138,32 +138,35 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   //   'r' rivet (stage 4)  'c' conveyor  'o' oil/fire
   //   'P' princess  'G' gorilla  'M' hero spawn  '*' hammer  'L' elevator
 
+  // Gaps at alternating platform ends let barrels zig-zag DK-style:
+  // even floor index → rolls RIGHT → gap at RIGHT (cols 24-26, col 27 solid for ladder)
+  // odd floor index  → rolls LEFT  → gap at LEFT  (cols 1-3,  col 0  solid for ladder)
   const STAGE1 = [
     "............P...............",
     "=============H==============",
     ".............H..............",
     "..G..........H..............",
-    "=============================",
+    "=...========================",   // idx 1, LEFT gap (col 0 solid for ladder)
     "H...........................",
     "H...........*...............",
     "H...........................",
-    "=============================",
+    "========================...=",   // idx 2, RIGHT gap (col 27 solid for ladder)
     "...........................H",
     "...........................H",
     "...........................H",
-    "=============================",
+    "=...========================",   // idx 3, LEFT gap
     "H...........................",
     "H...........................",
     "H...........................",
-    "=============================",
+    "========================...=",   // idx 4, RIGHT gap
     "...........................H",
     "...........................H",
     "...........................H",
-    "=============================",
+    "=...========================",   // idx 5, LEFT gap
     "H...........................",
     "H...........................",
     "H...........................",
-    "=============================",
+    "========================...=",   // idx 6, RIGHT gap
     "......H.....................",
     "......H.....................",
     "....M.H.....................",
@@ -178,27 +181,27 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     "=============H==============",
     ".............H..............",
     "..G..........H..............",
-    "=============================",
+    "=...========================",   // idx 1, LEFT gap
     "H...........................",
     "H...........*...............",
     "H...........................",
-    "cccccccccccccccccccccccccccc",
+    "cccccccccccccccccccccccc...c",   // idx 2, RIGHT gap (conveyor)
     "...........................H",
     "...........................H",
     "...........................H",
-    "cccccccccccccccccccccccccccc",
+    "c...cccccccccccccccccccccccc",   // idx 3, LEFT gap (conveyor)
     "H...........................",
     "H...........................",
     "H...........................",
-    "cccccccccccccccccccccccccccc",
+    "cccccccccccccccccccccccc...c",   // idx 4, RIGHT gap (conveyor)
     "...........................H",
     "...........................H",
     "...........................H",
-    "cccccccccccccccccccccccccccc",
+    "c...cccccccccccccccccccccccc",   // idx 5, LEFT gap (conveyor)
     "H...........................",
     "H...........................",
     "H...........................",
-    "=============================",
+    "========================...=",   // idx 6, RIGHT gap
     "......H.....................",
     "......H.....................",
     "....M.H.....................",
@@ -213,11 +216,11 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     "=============H==============",
     ".............H..............",
     "..G..........H..............",
-    "=============================",
+    "=...========================",   // idx 1, LEFT gap
     "H........L.........L........",
     "H........L.........L........",
     "H........L....*....L........",
-    "======...L.........L...=====",
+    "======...L.........L...=====",   // elevator shafts act as gaps
     ".........L.........L.......H",
     ".........L.........L.......H",
     ".........L.........L.......H",
@@ -233,7 +236,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     "H........L.........L........",
     "H........L.........L........",
     "H........L.........L........",
-    "=============================",
+    "========================...=",   // idx 6, RIGHT gap
     "......H.....................",
     "......H.....................",
     "....M.H.....................",
@@ -248,31 +251,31 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     "r===========H==============r",
     ".............H..............",
     "..G..........H..............",
-    "r===========================r",
+    "=...========================",   // idx 1, LEFT gap
     "H....*......................",
     "H...........................",
     "H...........................",
-    "r===========================r",
+    "========================...=",   // idx 2, RIGHT gap
     "...........................H",
     "...........................H",
     "...........................H",
-    "r===========================r",
+    "=...========================",   // idx 3, LEFT gap
     "H...........................",
     "H...........................",
     "H...........................",
-    "r===========================r",
+    "========================...=",   // idx 4, RIGHT gap
     "...........................H",
     "...........................H",
     "...........................H",
-    "r===========================r",
+    "=...========================",   // idx 5, LEFT gap
     "H...........................",
     "H...........................",
     "H...........................",
-    "r===========================r",
+    "========================...=",   // idx 6, RIGHT gap
     "......H.....................",
     "......H.....................",
     "....M.H.....................",
-    "r==========================r",
+    "============================",
     "...o........................",
     "............................",
     "............................"
@@ -404,6 +407,8 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     // climbing state transitions
     if (onLadder && (keys.up || keys.down)) hero.climbing = true;
     if (!onLadder) hero.climbing = false;
+    // Exit climbing when pressing left/right while standing on solid ground at ladder top
+    if (hero.climbing && hero.onGround && (keys.left || keys.right)) hero.climbing = false;
 
     // horizontal motion (disabled while pure-climbing if no ground)
     hero.vx = 0;
@@ -626,20 +631,22 @@ import { RakuEngine } from "../../engine/raku-engine.js";
 
   // ---------- HUD ----------
   function drawHUD(state) {
-    ctx.fillStyle = COL_TEXT;
-    ctx.font = "10px 'Courier New', monospace";
+    ctx.font = "bold 13px 'Courier New', monospace";
     ctx.textAlign = "left";
-    ctx.fillText("SCORE", 8, 12);
-    ctx.fillText(String(state.score).padStart(6, "0"), 8, 24);
+    ctx.fillStyle = COL_TEXT;
+    ctx.fillText("SCORE", 8, 14);
+    ctx.fillStyle = "#ffd24a";
+    ctx.fillText(String(state.score).padStart(6, "0"), 8, 28);
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffd24a";
-    ctx.fillText("STAGE " + (state.stage + 1), W / 2, 12);
+    ctx.fillText("STAGE " + (state.stage + 1), W / 2, 14);
     ctx.fillStyle = "#9fe";
-    ctx.fillText(["25M", "50M", "75M", "100M"][state.stage], W / 2, 24);
+    ctx.fillText(["25M", "50M", "75M", "100M"][state.stage] + (state.hammerMode ? "  \u{1F528}" : ""), W / 2, 28);
     ctx.textAlign = "right";
     ctx.fillStyle = COL_TEXT;
-    ctx.fillText("LIVES " + state.lives, W - 8, 12);
-    ctx.fillText("BONUS " + state.bonus, W - 8, 24);
+    ctx.fillText("LIVES " + state.lives, W - 8, 14);
+    ctx.fillStyle = "#ffd24a";
+    ctx.fillText("BONUS " + state.bonus, W - 8, 28);
   }
 
   // ---------- barrels ----------
@@ -759,7 +766,10 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     barrels: [],
     barrelSpawnTimer: 0,
     deathTimer: 0,
-    physicsTimer: 0
+    physicsTimer: 0,
+    hammerMode: false,
+    hammerTimer: 0,
+    stageCompleteTimer: 0,
   };
 
   let barrelCounter = 0;
@@ -777,6 +787,9 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     state.barrels = [];
     state.barrelSpawnTimer = 120;
     state.hero = makeHero(state.level.spawns.hero || { x: 64, y: 400 });
+    state.hammerMode = false;
+    state.hammerTimer = 0;
+    state.stageCompleteTimer = 0;
     // Persist the new world version + observe.
     engine.saveWorld(WORLD_ID);
     engine.observeWorld(WORLD_ID);
@@ -844,7 +857,38 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       state.barrelSpawnTimer--;
       if (state.barrelSpawnTimer <= 0) {
         spawnBarrel(state.level);
-        state.barrelSpawnTimer = 140 + Math.floor(Math.random() * 80);
+        // Spawn interval shrinks each stage (harder), minimum 80 frames
+        const baseInterval = Math.max(80, 140 - state.stage * 15);
+        state.barrelSpawnTimer = baseInterval + Math.floor(Math.random() * 60);
+      }
+
+      // hammer pickup
+      if (!state.hammerMode) {
+        for (const hm of state.level.hammers) {
+          if (!hm.alive) continue;
+          if (hm.x < state.hero.x + state.hero.w && hm.x + TILE > state.hero.x &&
+              hm.y < state.hero.y + state.hero.h && hm.y + TILE > state.hero.y) {
+            hm.alive = false;
+            state.hammerMode = true;
+            state.hammerTimer = 600; // ~10 seconds at 60fps
+            sound.blip();
+            engine.observeWorld(WORLD_ID);
+          }
+        }
+      }
+      if (state.hammerMode) {
+        state.hammerTimer--;
+        if (state.hammerTimer <= 0) state.hammerMode = false;
+        // smash barrels on contact
+        for (const b of state.barrels) {
+          if (!b.alive) continue;
+          if (barrelHitsHero(b, state.hero)) {
+            b.alive = false;
+            state.score += 300;
+            sound.blip();
+            if (b.entityId) { engine.destroyEntity(WORLD_ID, b.entityId); b.entityId = null; }
+          }
+        }
       }
 
       // barrel updates + collision
@@ -863,22 +907,54 @@ import { RakuEngine } from "../../engine/raku-engine.js";
         }
       }
       state.barrels = state.barrels.filter(b => b.alive);
-      for (const b of state.barrels) {
-        if (barrelHitsHero(b, state.hero)) {
-          heroDeath();
-          break;
+      if (!state.hammerMode) {
+        for (const b of state.barrels) {
+          if (barrelHitsHero(b, state.hero)) {
+            heroDeath();
+            break;
+          }
         }
       }
 
-      // periodic engine housekeeping: rotate through different endpoints
-      // so the API log shows variety instead of only physics/step.
+      // win condition: hero reaches the princess
+      if (state.stageCompleteTimer === 0) {
+        const p = state.level.spawns.princess;
+        if (p && state.hero.x < p.x + TILE && state.hero.x + state.hero.w > p.x &&
+            state.hero.y < p.y + TILE && state.hero.y + state.hero.h > p.y) {
+          state.score += state.bonus;
+          state.stageCompleteTimer = 120; // 2-second flash before advancing
+          sound.blip();
+          engine.captureFrame(WORLD_ID);
+          engine.observeWorld(WORLD_ID);
+          launcher.notifyScore(state.score);
+        }
+      }
+      if (state.stageCompleteTimer > 0) {
+        state.stageCompleteTimer--;
+        if (state.stageCompleteTimer === 0) {
+          loadStage((state.stage + 1) % STAGES.length);
+        }
+      }
+
+      // bonus countdown
+      if (state.tick % 60 === 0 && state.bonus > 0) state.bonus = Math.max(0, state.bonus - 100);
+
+      // gorilla transform update so the API log shows it moving
+      if (state.tick % 30 === 0 && state.level.spawns.gorilla) {
+        const g = state.level.spawns.gorilla;
+        engine.setTransform(WORLD_ID, gorillaEntity, { position: [g.x, g.y, 0] });
+      }
+
+      // periodic engine housekeeping: rotate through endpoints for API variety
       state.physicsTimer++;
       if (state.physicsTimer >= 60) {
         state.physicsTimer = 0;
-        const phase = Math.floor(state.tick / 60) % 4;
+        const phase = Math.floor(state.tick / 60) % 6;
         if (phase === 0) engine.stepPhysics(WORLD_ID, 0.016);
         else if (phase === 1) engine.observeWorld(WORLD_ID);
         else if (phase === 2) engine.captureFrame(WORLD_ID);
+        else if (phase === 3) engine.observeJSON(WORLD_ID);
+        else if (phase === 4) { if (gorillaAgentId) engine.agentObserve(WORLD_ID, gorillaAgentId); }
         else engine.stepPhysics(WORLD_ID, 0.016);
       }
     }
@@ -916,6 +992,18 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       ctx.font = "bold 14px 'Courier New', monospace";
       ctx.textAlign = "center";
       ctx.fillText("HIT!  LIVES " + state.lives, W / 2, H / 2 + 5);
+    }
+    if (state.stageCompleteTimer > 0) {
+      const alpha = Math.min(1, state.stageCompleteTimer / 30);
+      ctx.fillStyle = `rgba(0,0,0,${alpha * 0.6})`;
+      ctx.fillRect(0, H / 2 - 22, W, 44);
+      ctx.fillStyle = "#ffd24a";
+      ctx.font = "bold 16px 'Courier New', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("STAGE CLEAR!", W / 2, H / 2 - 4);
+      ctx.fillStyle = "#9fe";
+      ctx.font = "bold 13px 'Courier New', monospace";
+      ctx.fillText("BONUS +" + state.bonus, W / 2, H / 2 + 14);
     }
 
     requestAnimationFrame(frame);
