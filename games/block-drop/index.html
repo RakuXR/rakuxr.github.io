@@ -196,7 +196,13 @@ installLauncherIntegration('Block Drop');
 ensureIframeFocus();
 
 // ---------- RakuEngine world (for API log population) ----------
+// IMPORTANT: subscribe BEFORE creating the world so the overlay catches
+// the init calls too — otherwise the player sees "No API calls yet" until
+// gameplay actually triggers something.
 const engine = new RakuEngine();
+engine.on('api', (e) => apiOverlay.log(e));
+relayApiCallsToParent(engine);
+
 const worldRes = engine.createWorld('block-drop');
 const WORLD_ID = worldRes.world_id;
 const pieceEntityRes = engine.createEntity(WORLD_ID, {
@@ -204,10 +210,14 @@ const pieceEntityRes = engine.createEntity(WORLD_ID, {
   properties: { shape: 'tetromino', color: '#00e5ff' },
 });
 const PIECE_ENTITY_ID = pieceEntityRes.entity_id;
+const boardEntityRes = engine.createEntity(WORLD_ID, {
+  type: 'board', name: 'playfield', position: [0, 0, 0],
+  properties: { shape: 'grid', color: '#1a1a3a' },
+});
+const BOARD_ENTITY_ID = boardEntityRes.entity_id;
 engine.observeWorld(WORLD_ID);
 engine.captureFrame(WORLD_ID);
-engine.on('api', (e) => apiOverlay.log(e));
-relayApiCallsToParent(engine);
+engine.saveWorld(WORLD_ID);
 
 // ---------- Constants ----------
   const COLS = 10;
@@ -502,10 +512,21 @@ relayApiCallsToParent(engine);
   function spawnNext() {
     const t = nextType();
     state.current = spawnPiece(t);
+    // Each new piece is a fresh engine entity transform — logs a PUT call.
+    try {
+      engine.setTransform(WORLD_ID, PIECE_ENTITY_ID, {
+        position: [state.current.x, state.current.y, 0],
+        rotation: [0, 0, 0],
+      });
+    } catch (_) {}
     if (collides(state.current)) {
       state.gameOver = true;
       sound.death();
       saveHighScore();
+      try {
+        engine.destroyEntity(WORLD_ID, PIECE_ENTITY_ID);
+        engine.saveWorld(WORLD_ID);
+      } catch (_) {}
       showOverlay('GAME OVER', `Score: ${state.score}`);
     }
   }
@@ -523,6 +544,7 @@ relayApiCallsToParent(engine);
     state.score += cells * 2; // hard drop bonus
     updateHud();
     sound.hit();
+    try { engine.stepPhysics(WORLD_ID, 0.016); } catch (_) {}
     lockPiece();
   }
 
@@ -623,6 +645,8 @@ relayApiCallsToParent(engine);
   }
 
   // ---------- Game loop ----------
+  let apiPhase = 0;
+  let apiAccum = 0;
   function update(dt) {
     if (!state.started || state.gameOver || state.paused) return;
     state.dropAccumulator += dt;
@@ -630,6 +654,28 @@ relayApiCallsToParent(engine);
     while (state.dropAccumulator >= interval) {
       state.dropAccumulator -= interval;
       softDropStep();
+    }
+    // Push API variety so the overlay shows more than stepPhysics.
+    apiAccum += dt;
+    if (apiAccum > 350) {
+      apiAccum = 0;
+      try {
+        const phase = (apiPhase++) % 5;
+        if (state.current && phase === 0) {
+          engine.setTransform(WORLD_ID, PIECE_ENTITY_ID, {
+            position: [state.current.x, state.current.y, 0],
+            rotation: [0, 0, state.current.r],
+          });
+        } else if (phase === 1) {
+          engine.observeWorld(WORLD_ID);
+        } else if (phase === 2) {
+          engine.stepPhysics(WORLD_ID, 0.016);
+        } else if (phase === 3) {
+          engine.captureFrame(WORLD_ID);
+        } else if (phase === 4) {
+          engine.setTransform(WORLD_ID, BOARD_ENTITY_ID, { position: [0, 0, 0] });
+        }
+      } catch (_) {}
     }
   }
 

@@ -90,9 +90,17 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   function readInput() {
     const left  = keys['ArrowLeft']  || keys['KeyA'];
     const right = keys['ArrowRight'] || keys['KeyD'];
+    const up    = keys['ArrowUp']    || keys['KeyW'];
+    const down  = keys['ArrowDown']  || keys['KeyS'];
     const fire  = keys['Space'] || keys['KeyZ'] || keys['KeyJ'];
-    return { left, right, fire };
+    const shield = keys['ShiftLeft'] || keys['ShiftRight'] || keys['KeyX'];
+    return { left, right, up, down, fire, shield };
   }
+
+  // Shield tuning — copied from Meteor Storm per user request.
+  const SHIELD_DRAIN = 0.45;            // per second while held
+  const SHIELD_REGEN = 0.22;            // per second while off
+  const SHIELD_MIN_TO_ACTIVATE = 0.12;  // min fraction to (re)engage
 
   // ---------- Bezier helpers ----------
   function bezier(p0, p1, p2, p3, t) {
@@ -114,7 +122,10 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   const MODE = { TITLE: 'title', PLAY: 'play', GAMEOVER: 'gameover' };
   const state = {
     mode: MODE.TITLE,
-    ship: { x: W/2, y: H - 60, w: 28, h: 24, cooldown: 0, alive: true },
+    ship: {
+      x: W/2, y: H - 60, w: 28, h: 24, cooldown: 0, alive: true,
+      shieldActive: false, shieldEnergy: 1,
+    },
     bullets: [],
     bugs: [],
     bugBullets: [],
@@ -140,7 +151,10 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     state.bugBullets = [];
     state.particles = [];
     state.ship.x = W / 2;
+    state.ship.y = H - 60;
     state.ship.alive = true;
+    state.ship.shieldActive = false;
+    state.ship.shieldEnergy = 1;
     spawnFormation(1);
     sound.powerup();
   }
@@ -288,7 +302,27 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       const speed = 260;
       if (input.left)  state.ship.x -= speed * dt;
       if (input.right) state.ship.x += speed * dt;
+      // Forward / back movement — clamp to bottom half so the ship can't
+      // wander into the bug formation.
+      if (input.up)    state.ship.y -= speed * dt;
+      if (input.down)  state.ship.y += speed * dt;
       state.ship.x = Math.max(20, Math.min(W - 20, state.ship.x));
+      state.ship.y = Math.max(H * 0.55, Math.min(H - 30, state.ship.y));
+
+      // Shield — mirrors Meteor Storm behavior (discharges to 0, regens).
+      const wantShield = !!input.shield;
+      const prevShield = state.ship.shieldActive;
+      if (!wantShield) state.ship.shieldActive = false;
+      else if (prevShield) state.ship.shieldActive = state.ship.shieldEnergy > 0;
+      else state.ship.shieldActive = state.ship.shieldEnergy >= SHIELD_MIN_TO_ACTIVATE;
+      if (state.ship.shieldActive && !prevShield) sound.shield();
+      if (state.ship.shieldActive) {
+        state.ship.shieldEnergy = Math.max(0, state.ship.shieldEnergy - SHIELD_DRAIN * dt);
+        if (state.ship.shieldEnergy === 0) state.ship.shieldActive = false;
+      } else {
+        state.ship.shieldEnergy = Math.min(1, state.ship.shieldEnergy + SHIELD_REGEN * dt);
+      }
+
       state.ship.cooldown -= dt;
       if (input.fire && state.ship.cooldown <= 0) {
         state.bullets.push({ x: state.ship.x, y: state.ship.y - 16, v: -520 });
@@ -301,7 +335,15 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     state.physicsTimer += dt;
     if (state.physicsTimer > 0.3) {
       state.physicsTimer = 0;
-      engine.stepPhysics(WORLD_ID, dt);
+      try {
+        const phase = (state.apiPhase = ((state.apiPhase || 0) + 1) % 4);
+        if (phase === 0) engine.setTransform(WORLD_ID, shipEntity, {
+          position: [state.ship.x, state.ship.y, 0],
+        });
+        else if (phase === 1) engine.observeWorld(WORLD_ID);
+        else if (phase === 2) engine.stepPhysics(WORLD_ID, dt);
+        else engine.captureFrame(WORLD_ID);
+      } catch (_) {}
     }
 
     // Bullets
@@ -408,18 +450,37 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     }
     state.bullets = state.bullets.filter(b => b.y > -20);
 
-    // Bug bullets vs ship
+    // Bug bullets vs ship (shield blocks and shatters them)
     if (state.ship.alive) {
+      const shieldR = state.ship.shieldActive ? 22 : 0;
       for (const b of state.bugBullets) {
-        if (Math.abs(b.x - state.ship.x) < 10 && Math.abs(b.y - state.ship.y) < 12) {
+        const dx = b.x - state.ship.x;
+        const dy = b.y - state.ship.y;
+        if (state.ship.shieldActive && dx*dx + dy*dy < (shieldR+3) * (shieldR+3)) {
+          b.y = H + 9999;
+          burst(b.x, b.y, '#7fb0ff');
+          sound.blip();
+          continue;
+        }
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 12) {
           b.y = H + 9999;
           loseLife();
         }
       }
-      // Bug body vs ship
+      // Bug body vs ship — shield shatters divers on contact
       for (const bug of state.bugs) {
         if (!bug.alive) continue;
-        if (bug.state !== 'idle' && Math.abs(bug.x - state.ship.x) < 14 && Math.abs(bug.y - state.ship.y) < 14) {
+        if (bug.state === 'idle') continue;
+        const dx = bug.x - state.ship.x;
+        const dy = bug.y - state.ship.y;
+        if (state.ship.shieldActive && dx*dx + dy*dy < (shieldR+10) * (shieldR+10)) {
+          bug.alive = false;
+          state.score += 25;
+          burst(bug.x, bug.y, BUG_COLORS[bug.type].body);
+          sound.explode();
+          continue;
+        }
+        if (Math.abs(dx) < 14 && Math.abs(dy) < 14) {
           bug.alive = false;
           burst(bug.x, bug.y, BUG_COLORS[bug.type].body);
           loseLife();
@@ -534,6 +595,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     for (let i = 0; i < state.lives; i++) {
       drawShipMini(16 + i * 22, H - 14);
     }
+    drawShieldBar();
 
     if (state.mode === MODE.TITLE) {
       ctx.fillStyle = 'rgba(0,0,0,0.6)';
@@ -547,7 +609,8 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       ctx.fillText('POWERED BY RAKUENGINE', W / 2, 230);
       ctx.fillStyle = '#cfd8ef';
       ctx.font = 'bold 12px "Courier New", monospace';
-      ctx.fillText('<- -> MOVE    SPACE FIRE', W / 2, 290);
+      ctx.fillText('ARROWS MOVE   SPACE FIRE', W / 2, 290);
+      ctx.fillText('SHIFT/X: SHIELD', W / 2, 308);
       if (Math.floor(state.time * 2) % 2 === 0) {
         ctx.fillStyle = '#ffd24a';
         ctx.font = 'bold 16px "Courier New", monospace';
@@ -596,6 +659,35 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     ctx.fillRect(-10, 6, 3, 5);
     ctx.fillRect(7, 6, 3, 5);
     ctx.restore();
+
+    // Shield ring (drawn in world coords after local transform restore)
+    if (state.ship.shieldActive) {
+      const pulse = 0.6 + 0.4 * Math.abs(Math.sin(state.time * 8));
+      ctx.save();
+      ctx.strokeStyle = `rgba(94, 255, 178, ${pulse.toFixed(3)})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, 22, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function drawShieldBar() {
+    // Bottom-left energy meter, matching the Meteor Storm style.
+    const pct = Math.max(0, Math.min(1, state.ship.shieldEnergy));
+    const bx = 12, by = H - 32, bw = 90, bh = 6;
+    ctx.fillStyle = 'rgba(127, 176, 255, 0.25)';
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = pct > 0.25 ? '#5effb2' : '#ff5870';
+    ctx.fillRect(bx, by, Math.round(bw * pct), bh);
+    ctx.strokeStyle = '#5effb2';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+    ctx.fillStyle = '#7fb0ff';
+    ctx.font = 'bold 9px "Courier New", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('SHIELD', bx, by - 4);
   }
 
   function drawShipMini(x, y) {
