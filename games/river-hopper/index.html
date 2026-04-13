@@ -352,6 +352,9 @@ relayApiCallsToParent(engine);
       state.level = 1;
       buildCars(1);
       buildRiver(1);
+      try { engine.stopRecording(WORLD_ID); } catch (_) {}
+      try { engine.startRecording(WORLD_ID); } catch (_) {}
+      try { if (AI_AGENT_ID) engine.agentReward(WORLD_ID, AI_AGENT_ID, -1.0); } catch (_) {}
     }
   }
 
@@ -587,13 +590,22 @@ relayApiCallsToParent(engine);
     if (apiAccum >= 0.35) {
       apiAccum = 0;
       try {
-        var p = (apiPhase++) % 4;
+        var p = (apiPhase++) % 10;
         if (p === 0) engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
           position: [state.frog.col, 0, state.frog.row],
         });
         else if (p === 1) engine.observeWorld(WORLD_ID);
         else if (p === 2) engine.stepPhysics(WORLD_ID, 0.2);
-        else engine.captureFrame(WORLD_ID);
+        else if (p === 3) engine.captureFrame(WORLD_ID);
+        else if (p === 4) engine.observeJSON(WORLD_ID);
+        else if (p === 5) { if (AI_AGENT_ID) engine.agentObserve(WORLD_ID, AI_AGENT_ID); }
+        else if (p === 6) { if (AI_AGENT_ID) engine.agentAct(WORLD_ID, AI_AGENT_ID, {
+          playerAction: 'move',
+          observation: 'frog at row ' + state.frog.row + ' col ' + state.frog.col
+        }); }
+        else if (p === 7) engine.saveWorld(WORLD_ID);
+        else if (p === 8) { if (AI_AGENT_ID) engine.agentReward(WORLD_ID, AI_AGENT_ID, state.dead ? -0.1 : 0.01); }
+        else engine.startRecording(WORLD_ID);
       } catch (_) {}
     }
 
