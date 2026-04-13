@@ -310,6 +310,133 @@
     }
   }
 
+  // ---------- barrels ----------
+  const BARREL_W = 10;
+  const BARREL_H = 10;
+  const BARREL_SPEED = 1.4;
+
+  // Returns the rolling direction (+1 right, -1 left) for a barrel that just
+  // landed on the floor row at tile-y `ty`.  Platforms alternate directions
+  // top-to-bottom so barrels zig-zag down the stage like in the arcade original.
+  function floorDirection(ty) {
+    // Count which platform index this row belongs to (platforms every 4 rows).
+    // Even-indexed platforms roll RIGHT, odd-indexed roll LEFT.
+    const platformIndex = Math.floor(ty / 4);
+    return (platformIndex % 2 === 0) ? 1 : -1;
+  }
+
+  function makeBarrel(x, y, dir) {
+    return {
+      x, y,
+      w: BARREL_W,
+      h: BARREL_H,
+      vx: BARREL_SPEED * dir,
+      vy: 0,
+      onGround: false,
+      active: true,
+      rollFrame: 0
+    };
+  }
+
+  // Returns true if the barrel's feet are on a solid tile.
+  function barrelOnGround(b, level) {
+    const fy = b.y + b.h;
+    const ty = Math.floor(fy / TILE);
+    const tx1 = Math.floor((b.x + 1) / TILE);
+    const tx2 = Math.floor((b.x + b.w - 1) / TILE);
+    return isSolidTop(tileAt(level, tx1, ty)) || isSolidTop(tileAt(level, tx2, ty));
+  }
+
+  function updateBarrels(barrels, level) {
+    for (const b of barrels) {
+      if (!b.active) continue;
+
+      if (b.onGround) {
+        // ── Rolling phase ──────────────────────────────────────────────────
+        b.x += b.vx;
+        b.rollFrame += 0.3;
+
+        // BUG-1 FIX: when the barrel reaches the wall it falls off the EDGE
+        // of the platform rather than continuing to roll off into empty space.
+        // We stop horizontal motion and let gravity carry it straight down so
+        // it lands cleanly on the platform below, then picks up a new direction.
+        if (b.x <= 0) {
+          b.x = 0;
+          b.onGround = false;
+          b.vx = 0;
+          b.vy = 1; // nudge into falling
+        } else if (b.x + b.w >= W) {
+          b.x = W - b.w;
+          b.onGround = false;
+          b.vx = 0;
+          b.vy = 1;
+        }
+
+        // Extra safety: if the tile below is gone (barrel walked off a gap in
+        // custom/future layouts), let it fall too.
+        if (b.onGround && !barrelOnGround(b, level)) {
+          b.onGround = false;
+          b.vy = 0.5;
+        }
+
+      } else {
+        // ── Falling phase ──────────────────────────────────────────────────
+        b.vy += GRAVITY;
+        if (b.vy > MAX_FALL) b.vy = MAX_FALL;
+        b.y += b.vy;
+
+        // Land on a platform: snap to top of tile, pick direction for this floor.
+        if (b.vy >= 0) {
+          const fy = b.y + b.h;
+          const ty = Math.floor(fy / TILE);
+          const tx1 = Math.floor((b.x + 1) / TILE);
+          const tx2 = Math.floor((b.x + b.w - 1) / TILE);
+          const t1 = tileAt(level, tx1, ty);
+          const t2 = tileAt(level, tx2, ty);
+          if ((isSolidTop(t1) || isSolidTop(t2)) && fy - ty * TILE < 8) {
+            b.y = ty * TILE - b.h;
+            b.vy = 0;
+            b.onGround = true;
+            // Direction is determined by which floor row we landed on.
+            const dir = floorDirection(ty);
+            b.vx = BARREL_SPEED * dir;
+          }
+        }
+      }
+
+      // Retire barrels that fall off the bottom of the screen.
+      if (b.y > H + 20) b.active = false;
+    }
+
+    // Prune retired barrels to keep the array small.
+    for (let i = barrels.length - 1; i >= 0; i--) {
+      if (!barrels[i].active) barrels.splice(i, 1);
+    }
+  }
+
+  function drawBarrel(b) {
+    const x = Math.floor(b.x);
+    const y = Math.floor(b.y);
+    const spin = Math.floor(b.rollFrame) % 4;
+    // Outer shell
+    ctx.fillStyle = "#c06010";
+    ctx.fillRect(x, y, b.w, b.h);
+    // Top/bottom bands
+    ctx.fillStyle = "#804000";
+    ctx.fillRect(x, y, b.w, 2);
+    ctx.fillRect(x, y + b.h - 2, b.w, 2);
+    // Metal ring (spins to show rolling)
+    ctx.fillStyle = "#e0a040";
+    const ringX = x + ((spin * 3) % (b.w - 2));
+    ctx.fillRect(ringX, y + 3, 2, b.h - 6);
+  }
+
+  function drawBarrels(barrels) {
+    for (const b of barrels) {
+      if (b.active) drawBarrel(b);
+    }
+  }
+
   // ---------- hero ----------
   function makeHero(spawn) {
     return {
@@ -358,6 +485,23 @@
     // climbing state transitions
     if (onLadder && (keys.up || keys.down)) hero.climbing = true;
     if (!onLadder) hero.climbing = false;
+
+    // BUG-2 FIX: exit climbing when hero reaches the top of the ladder.
+    // The player can either press left/right to step onto the platform, or
+    // simply let the code auto-exit when feet are solid and no ladder tile
+    // is directly under the hero's feet (they've climbed past the ladder top).
+    if (hero.climbing && hero.onGround) {
+      const atLadderTop = !ladderAt(level, c.x, hero.y + hero.h - 1);
+      // Auto-exit if the hero is fully on solid ground above the ladder.
+      if (atLadderTop && !keys.down) {
+        hero.climbing = false;
+      }
+      // Also exit immediately when the player presses left/right at the top —
+      // horizontal intent overrides the climbing grip (x-snap would fight this).
+      if ((keys.left || keys.right) && !keys.up && !keys.down) {
+        hero.climbing = false;
+      }
+    }
 
     // horizontal motion (disabled while pure-climbing if no ground)
     hero.vx = 0;
@@ -590,11 +734,15 @@
     stage: 0,
     level: null,
     hero: null,
+    barrels: [],
     score: 0,
     lives: 3,
     bonus: 5000,
     paused: false,
-    tick: 0
+    tick: 0,
+    barrelTimer: 0,
+    // How many ticks between barrel spawns (decreases with stage difficulty)
+    barrelInterval: 120
   };
 
   function loadStage(i) {
@@ -602,13 +750,56 @@
     state.level = makeLevel(STAGES[i]);
     state.bonus = 5000;
     state.tick = 0;
+    state.barrels = [];
+    state.barrelTimer = 60; // short delay before first barrel
+    state.barrelInterval = Math.max(60, 120 - i * 15);
     state.hero = makeHero(state.level.spawns.hero || { x: 64, y: 400 });
+  }
+
+  function spawnBarrel() {
+    const g = state.level.spawns.gorilla;
+    if (!g) return;
+    // Gorilla alternates throwing left and right
+    const dir = (state.barrels.length % 2 === 0) ? 1 : -1;
+    state.barrels.push(makeBarrel(g.x + 4, g.y + 14, dir));
+  }
+
+  function checkBarrelHeroCollision() {
+    const h = state.hero;
+    for (const b of state.barrels) {
+      if (!b.active) continue;
+      if (h.x < b.x + b.w && h.x + h.w > b.x &&
+          h.y < b.y + b.h && h.y + h.h > b.y) {
+        // Hero hit by barrel — lose a life
+        if (state.lives > 0) state.lives--;
+        // Reset hero to spawn, clear barrels
+        state.hero = makeHero(state.level.spawns.hero || { x: 64, y: 400 });
+        state.barrels = [];
+        state.barrelTimer = 90;
+        return;
+      }
+    }
   }
 
   function frame() {
     state.tick++;
     pollGamepad();
-    if (!state.paused) updateHero(state.hero, state.level);
+    if (!state.paused) {
+      updateHero(state.hero, state.level);
+
+      // Barrel spawning timer
+      state.barrelTimer--;
+      if (state.barrelTimer <= 0) {
+        spawnBarrel();
+        state.barrelTimer = state.barrelInterval;
+      }
+
+      updateBarrels(state.barrels, state.level);
+      checkBarrelHeroCollision();
+
+      // Score: 1 point per tick survived
+      state.score++;
+    }
     // reset gamepad-held key edges (axis stays through pollGamepad next frame)
     // but also clear axes so keyboard still works if user switches back
     // (we reset only axis-sourced keys at end-of-frame)
@@ -617,6 +808,7 @@
     drawGorilla(state.level.spawns.gorilla);
     drawOil(state.level.spawns.oil);
     drawHammers(state.level.hammers);
+    drawBarrels(state.barrels);
     drawHero(state.hero);
     drawHUD(state);
     requestAnimationFrame(frame);
