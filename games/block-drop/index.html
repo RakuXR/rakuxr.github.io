@@ -215,9 +215,16 @@ const boardEntityRes = engine.createEntity(WORLD_ID, {
   properties: { shape: 'grid', color: '#1a1a3a' },
 });
 const BOARD_ENTITY_ID = boardEntityRes.entity_id;
+engine.addPhysicsBody(WORLD_ID, PIECE_ENTITY_ID, { shape: 'box', mass: 1, isStatic: false });
 engine.observeWorld(WORLD_ID);
+engine.observeJSON(WORLD_ID);
 engine.captureFrame(WORLD_ID);
 engine.saveWorld(WORLD_ID);
+engine.loadWorld(WORLD_ID, 1);
+engine.startRecording(WORLD_ID);
+engine.contentFilter('Block Drop');
+const blockAgentRes = engine.createAgent(WORLD_ID, { type: 'tetris-ai', name: 'BlockAI' });
+const BLOCK_AGENT_ID = blockAgentRes.agent_id;
 
 // ---------- Constants ----------
   const COLS = 10;
@@ -526,6 +533,8 @@ engine.saveWorld(WORLD_ID);
       try {
         engine.destroyEntity(WORLD_ID, PIECE_ENTITY_ID);
         engine.saveWorld(WORLD_ID);
+        engine.stopRecording(WORLD_ID);
+        if (BLOCK_AGENT_ID) engine.agentReward(WORLD_ID, BLOCK_AGENT_ID, -1.0);
       } catch (_) {}
       showOverlay('GAME OVER', `Score: ${state.score}`);
     }
@@ -660,7 +669,7 @@ engine.saveWorld(WORLD_ID);
     if (apiAccum > 350) {
       apiAccum = 0;
       try {
-        const phase = (apiPhase++) % 5;
+        const phase = (apiPhase++) % 9;
         if (state.current && phase === 0) {
           engine.setTransform(WORLD_ID, PIECE_ENTITY_ID, {
             position: [state.current.x, state.current.y, 0],
@@ -674,6 +683,14 @@ engine.saveWorld(WORLD_ID);
           engine.captureFrame(WORLD_ID);
         } else if (phase === 4) {
           engine.setTransform(WORLD_ID, BOARD_ENTITY_ID, { position: [0, 0, 0] });
+        } else if (phase === 5) {
+          engine.observeJSON(WORLD_ID);
+        } else if (phase === 6) {
+          if (BLOCK_AGENT_ID) engine.agentObserve(WORLD_ID, BLOCK_AGENT_ID);
+        } else if (phase === 7) {
+          if (BLOCK_AGENT_ID) (async () => { try { await engine.agentAct(WORLD_ID, BLOCK_AGENT_ID, { action: 'suggest_move' }); } catch (_) {} })();
+        } else {
+          if (BLOCK_AGENT_ID) engine.agentReward(WORLD_ID, BLOCK_AGENT_ID, state.lines > 0 ? 0.1 : 0.01);
         }
       } catch (_) {}
     }

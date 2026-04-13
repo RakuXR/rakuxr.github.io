@@ -112,9 +112,16 @@
       properties: { shape: 'segmented', color: '#d15050' },
     });
     const CENTIPEDE_ENTITY_ID = centipedeEntityRes.entity_id;
+    engine.addPhysicsBody(WORLD_ID, PLAYER_ENTITY_ID, { shape: 'box', mass: 1, isStatic: false });
     engine.observeWorld(WORLD_ID);
+    engine.observeJSON(WORLD_ID);
     engine.captureFrame(WORLD_ID);
     engine.saveWorld(WORLD_ID);
+    engine.loadWorld(WORLD_ID, 1);
+    engine.startRecording(WORLD_ID);
+    engine.contentFilter('Myriapod');
+    const centiAgentRes = engine.createAgent(WORLD_ID, { type: 'centipede-ai', name: 'CentiAI' });
+    const CENTI_AGENT_ID = centiAgentRes.agent_id;
 
     // -------- Config --------
     const TILE = 14;
@@ -742,7 +749,7 @@
         physicsTimer += dt;
         if (physicsTimer >= 200) {
           physicsTimer = 0;
-          apiPhase = (apiPhase + 1) % 5;
+          apiPhase = (apiPhase + 1) % 9;
           try {
             if (apiPhase === 0) {
               engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
@@ -756,8 +763,16 @@
               engine.observeWorld(WORLD_ID);
             } else if (apiPhase === 3) {
               engine.stepPhysics(WORLD_ID, 0.2);
-            } else {
+            } else if (apiPhase === 4) {
               engine.captureFrame(WORLD_ID);
+            } else if (apiPhase === 5) {
+              engine.observeJSON(WORLD_ID);
+            } else if (apiPhase === 6) {
+              if (CENTI_AGENT_ID) engine.agentObserve(WORLD_ID, CENTI_AGENT_ID);
+            } else if (apiPhase === 7) {
+              if (CENTI_AGENT_ID) (async () => { try { await engine.agentAct(WORLD_ID, CENTI_AGENT_ID, { action: 'advance' }); } catch (_) {} })();
+            } else {
+              if (CENTI_AGENT_ID) engine.agentReward(WORLD_ID, CENTI_AGENT_ID, player.alive ? -0.05 : 1.0);
             }
           } catch (e) { /* ignore */ }
         }
@@ -771,6 +786,9 @@
           } else {
             gameState = STATE.GAMEOVER;
             stateTimer = 0;
+            try { engine.stopRecording(WORLD_ID); } catch (_) {}
+            try { engine.captureFrame(WORLD_ID); } catch (_) {}
+            try { if (CENTI_AGENT_ID) engine.agentReward(WORLD_ID, CENTI_AGENT_ID, 2.0); } catch (_) {}
             if (window.parent !== window) {
               window.parent.postMessage({ type: 'gameover', game: 'Myriapod', score, level }, '*');
             }

@@ -345,8 +345,16 @@ for (const name of ['blinky', 'pinky', 'inky', 'clyde']) {
   });
   ghostEntityIds[name] = r.entity_id;
 }
+engine.addPhysicsBody(WORLD_ID, PLAYER_ENTITY_ID, { shape: 'sphere', mass: 1, isStatic: false });
 engine.observeWorld(WORLD_ID);
+engine.observeJSON(WORLD_ID);
 engine.captureFrame(WORLD_ID);
+engine.saveWorld(WORLD_ID);
+engine.loadWorld(WORLD_ID, 1);
+engine.startRecording(WORLD_ID);
+engine.contentFilter('Dot Chomper');
+const ghostAgentRes = engine.createAgent(WORLD_ID, { type: 'ghost-ai', name: 'GhostAI' });
+const GHOST_AGENT_ID = ghostAgentRes.agent_id;
 
 // ─── SOUND SYSTEM (Web Audio API) ──────────────────────────────
 const Sound = (() => {
@@ -1729,6 +1737,9 @@ function handleGhostCollisions() {
         Sound.stopWarble();
         Sound.stopSiren();
         Sound.death();
+        try { engine.stopRecording(WORLD_ID); } catch (_) {}
+        try { engine.startRecording(WORLD_ID); } catch (_) {}
+        try { if (GHOST_AGENT_ID) engine.agentReward(WORLD_ID, GHOST_AGENT_ID, 1.0); } catch (_) {}
       }
     }
   }
@@ -1930,6 +1941,8 @@ function checkLevelComplete() {
 
 let last = performance.now();
 let engineTick = 0;
+let enginePhaseTimer = 0;
+let enginePhase = 0;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
@@ -2000,6 +2013,19 @@ function frame(now) {
       });
     }
     engine.observeWorld(WORLD_ID);
+    try { engine.stepPhysics(WORLD_ID, 0.25); } catch (_) {}
+  }
+  enginePhaseTimer += dt;
+  if (enginePhaseTimer > 2.0) {
+    enginePhaseTimer = 0;
+    const p = (enginePhase++) % 5;
+    try {
+      if (p === 0) engine.observeJSON(WORLD_ID);
+      else if (p === 1) { if (GHOST_AGENT_ID) engine.agentObserve(WORLD_ID, GHOST_AGENT_ID); }
+      else if (p === 2) { if (GHOST_AGENT_ID) (async () => { try { await engine.agentAct(WORLD_ID, GHOST_AGENT_ID, { action: 'chase' }); } catch (_) {} })(); }
+      else if (p === 3) { if (GHOST_AGENT_ID) engine.agentReward(WORLD_ID, GHOST_AGENT_ID, player.alive ? -0.05 : 1.0); }
+      else engine.saveWorld(WORLD_ID);
+    } catch (_) {}
   }
 
   drawHUD();

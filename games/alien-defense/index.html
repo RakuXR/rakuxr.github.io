@@ -66,8 +66,16 @@
     properties: { shape: 'sprite', color: '#c0c0ff' },
   });
   const ALIEN_ENTITY_ID = alienEntityRes.entity_id;
+  engine.addPhysicsBody(WORLD_ID, CANNON_ENTITY_ID, { shape: 'box', mass: 1, isStatic: false });
   engine.observeWorld(WORLD_ID);
+  engine.observeJSON(WORLD_ID);
   engine.captureFrame(WORLD_ID);
+  engine.saveWorld(WORLD_ID);
+  engine.loadWorld(WORLD_ID, 1);
+  engine.startRecording(WORLD_ID);
+  engine.contentFilter('Alien Defense');
+  const alienAgentRes = engine.createAgent(WORLD_ID, { type: 'invader-ai', name: 'AlienAI' });
+  const ALIEN_AGENT_ID = alienAgentRes.agent_id;
   engine.on('api', (e) => overlay.log(e));
   relayApiCallsToParent(engine);
 
@@ -531,6 +539,8 @@
       if (formation.y + ROWS * CELL_H >= GROUND_Y) {
         state = STATE.GAMEOVER;
         try { engine.captureFrame(WORLD_ID); } catch (_) {}
+        try { engine.stopRecording(WORLD_ID); } catch (_) {}
+        try { if (ALIEN_AGENT_ID) engine.agentReward(WORLD_ID, ALIEN_AGENT_ID, 1.0); } catch (_) {}
       }
       drawFormation();
       drawPlayer();
@@ -548,14 +558,16 @@
       apiPhaseTimer += dt;
       if (apiPhaseTimer > 0.35) {
         apiPhaseTimer = 0;
-        const p = (apiPhase++) % 4;
+        const p = (apiPhase++) % 8;
         try {
-          if (p === 0) engine.setTransform(WORLD_ID, ALIEN_ENTITY_ID, {
-            position: [formation.x, formation.y, 0],
-          });
+          if (p === 0) engine.setTransform(WORLD_ID, ALIEN_ENTITY_ID, { position: [formation.x, formation.y, 0] });
           else if (p === 1) engine.observeWorld(WORLD_ID);
           else if (p === 2) engine.stepPhysics(WORLD_ID, 0.016);
-          else engine.captureFrame(WORLD_ID);
+          else if (p === 3) engine.captureFrame(WORLD_ID);
+          else if (p === 4) engine.observeJSON(WORLD_ID);
+          else if (p === 5) { if (ALIEN_AGENT_ID) engine.agentObserve(WORLD_ID, ALIEN_AGENT_ID); }
+          else if (p === 6) { if (ALIEN_AGENT_ID) (async () => { try { await engine.agentAct(WORLD_ID, ALIEN_AGENT_ID, { action: 'advance' }); } catch (_) {} })(); }
+          else { if (ALIEN_AGENT_ID) engine.agentReward(WORLD_ID, ALIEN_AGENT_ID, formation.aliens.filter(a => !a.alive).length > 0 ? -0.1 : 0.05); }
         } catch (_) {}
       }
     }
