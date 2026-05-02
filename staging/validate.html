@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validate .raku File - RakuAI</title>
+    <meta name="description" content="Paste your AI-generated .raku game file to validate structure, required fields, and schema compliance before running.">
+    <meta property="og:title" content="Validate .raku File - RakuAI">
+    <meta property="og:description" content="Instant validation for AI-generated .raku game files. Catches structural issues and suggests fixes.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/validate">
+    <link rel="canonical" href="https://rakuai.com/validate.html">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .validator-container {
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        .validator-textarea {
+            width: 100%;
+            min-height: 320px;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.85rem;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 1rem;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        .validator-textarea:focus {
+            border-color: var(--accent, #6c5ce7);
+            outline: none;
+        }
+        .validate-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 12px 32px;
+            background: var(--accent, #6c5ce7);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .validate-btn:hover { background: #5a4bd1; transform: translateY(-1px); }
+        .validate-btn:active { transform: translateY(0); }
+
+        .results-panel {
+            margin-top: 1.5rem;
+            border-radius: 10px;
+            padding: 1.5rem;
+            display: none;
+        }
+        .results-panel.show { display: block; }
+        .results-pass {
+            background: #0d3320;
+            border: 2px solid #27ae60;
+        }
+        .results-fail {
+            background: #3d1212;
+            border: 2px solid #e74c3c;
+        }
+        .results-warn {
+            background: #3d2e12;
+            border: 2px solid #f39c12;
+        }
+
+        .result-item {
+            padding: 8px 12px;
+            margin: 6px 0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        .result-error { background: rgba(231, 76, 60, 0.15); border-left: 3px solid #e74c3c; }
+        .result-warning { background: rgba(243, 156, 18, 0.15); border-left: 3px solid #f39c12; }
+        .result-ok { background: rgba(39, 174, 96, 0.15); border-left: 3px solid #27ae60; }
+        .result-info { background: rgba(52, 152, 219, 0.15); border-left: 3px solid #3498db; }
+
+        .stats-bar {
+            display: flex;
+            gap: 1.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .stat-chip {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .stat-pass { background: #27ae60; color: white; }
+        .stat-fail { background: #e74c3c; color: white; }
+        .stat-warn { background: #f39c12; color: white; }
+        .stat-info { background: #3498db; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — The Universal Runtime for World Models &nbsp;|&nbsp; <a href="index.html#for-studios">For Studios &amp; Developers →</a> &nbsp;&nbsp; Also: <a href="index.html#quickstart">Try the Consumer Demo →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="engine/">Engine</a>
+            <a href="api/">API Docs</a>
+            <a href="games/">Games</a>
+            <a href="why-rakuai.html">Why RakuAI</a>
+            <a href="developers/">Developers</a>
+            <a href="press.html">Press</a>
+            <a href="blog/">Blog</a>
+            <a href="ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero" style="padding: 60px 0 40px;">
+    <div class="container">
+        <h1>Validate Your .raku File</h1>
+        <p class="subtitle">Complete validation tools are available with SDK access.</p>
+    </div>
+</section>
+
+<div class="validator-container">
+    <div style="background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(0, 206, 201, 0.1)); border: 2px solid var(--accent); border-radius: 16px; padding: 40px; text-align: center; margin-top: 24px;">
+        <h3 style="font-size: 1.6rem; color: var(--accent-bright); margin-bottom: 16px;">Validation Tools Available with SDK</h3>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 24px;">Complete .raku file validation with auto-fix, schema compliance checking, and detailed error reporting is available with SDK access.</p>
+        <a href="index.html#create" class="btn btn-primary">Start Creating</a>
+    </div>
+</div>
+
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+        <h2>Create Games with AI</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
+            Use any AI assistant to describe your game. The SDK includes prompt templates, validation tools, and everything you need.
+        </p>
+        <div class="cta-group">
+            <a href="index.html#create" class="btn btn-primary">Start Creating</a>
+            <a href="templates.html" class="btn btn-secondary">Browse Templates</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="engine/">Engine</a>
+            <a href="api/">API</a>
+            <a href="docs.html">Docs</a>
+            <a href="games/">Arcade</a>
+            <a href="press.html">Press</a>
+            <a href="developers/">Developers</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="contact.html">Contact</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+</footer>
+
+
+</body>
+</html>

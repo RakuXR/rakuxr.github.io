@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RakuAI — Signing in...</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .callback-container {
+            text-align: center;
+            max-width: 400px;
+            padding: 2rem;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top-color: #6c5ce7;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        h2 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .status { color: #888; font-size: 0.9rem; }
+        .error {
+            color: #e74c3c;
+            background: #1a0a0a;
+            border: 1px solid #e74c3c33;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        .error a { color: #6c5ce7; text-decoration: none; }
+        .error a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div class="callback-container">
+    <div class="spinner" id="spinner"></div>
+    <h2 id="heading">Signing in with Google...</h2>
+    <p class="status" id="status">Verifying your account</p>
+    <div class="error" id="error-box">
+        <p id="error-msg"></p>
+        <p style="margin-top: 0.75rem;"><a href="/">Back to RakuAI</a></p>
+    </div>
+</div>
+
+<script>
+/**
+ * Google OAuth callback handler.
+ *
+ * Flow:
+ * 1. Google redirects here with ?code=... in the URL
+ * 2. We exchange the code for an ID token via Google's token endpoint
+ * 3. We POST the ID token to our backend at POST /api/v1/auth/google
+ * 4. Backend verifies the token and returns a JWT
+ * 5. We store the JWT in sessionStorage and redirect to the main page
+ * 6. If there's a pending prompt, generation resumes automatically
+ */
+
+// --- API base detection (same logic as index.html) ---
+var RAKU_API_BASE = (function() {
+    var host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8000';
+    if (host === 'staging.rakuai.com') return 'https://raku-backend-staging.fly.dev';
+    if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://raku-backend.fly.dev';
+    return '';
+})();
+
+// --- Google OAuth config ---
+var GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID';
+var GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+
+function showError(msg) {
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('heading').textContent = 'Sign-in failed';
+    document.getElementById('status').style.display = 'none';
+    var errorBox = document.getElementById('error-box');
+    document.getElementById('error-msg').textContent = msg;
+    errorBox.style.display = 'block';
+}
+
+function setStatus(msg) {
+    document.getElementById('status').textContent = msg;
+}
+
+(async function handleCallback() {
+    var params = new URLSearchParams(window.location.search);
+    var code = params.get('code');
+    var error = params.get('error');
+
+    // Handle Google-side errors
+    if (error) {
+        showError('Google sign-in was cancelled or failed: ' + error);
+        return;
+    }
+
+    if (!code) {
+        showError('No authorization code received from Google.');
+        return;
+    }
+
+    try {
+        // Step 1: Exchange authorization code for ID token
+        setStatus('Exchanging authorization code...');
+
+        var redirectUri = window.location.origin + '/auth/google/callback';
+        var tokenResponse = await fetch(GOOGLE_TOKEN_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                code: code,
+                client_id: GOOGLE_CLIENT_ID,
+                redirect_uri: redirectUri,
+                grant_type: 'authorization_code',
+            }),
+        });
+
+        if (!tokenResponse.ok) {
+            var tokenError = await tokenResponse.json().catch(function() { return {}; });
+            showError('Failed to exchange code: ' + (tokenError.error_description || tokenError.error || 'unknown error'));
+            return;
+        }
+
+        var tokenData = await tokenResponse.json();
+        var idToken = tokenData.id_token;
+
+        if (!idToken) {
+            showError('No ID token received from Google.');
+            return;
+        }
+
+        // Step 2: Send ID token to our backend
+        setStatus('Verifying with RakuAI...');
+
+        var authResponse = await fetch(RAKU_API_BASE + '/api/v1/auth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_token: idToken }),
+        });
+
+        if (!authResponse.ok) {
+            var authError = await authResponse.json().catch(function() { return {}; });
+            showError('Authentication failed: ' + (authError.detail || 'unable to verify Google account'));
+            return;
+        }
+
+        var authData = await authResponse.json();
+
+        // Step 3: Store JWT in sessionStorage
+        if (authData.access_token) {
+            sessionStorage.setItem('raku_access_token', authData.access_token);
+        }
+        if (authData.refresh_token) {
+            sessionStorage.setItem('raku_refresh_token', authData.refresh_token);
+        }
+        if (authData.user) {
+            sessionStorage.setItem('raku_user', JSON.stringify(authData.user));
+        }
+
+        // Step 4: Redirect back to main page
+        setStatus('Success! Redirecting...');
+
+        // If there's a pending prompt, redirect with it
+        var pendingPrompt = sessionStorage.getItem('raku_pending_prompt');
+        if (pendingPrompt) {
+            sessionStorage.removeItem('raku_pending_prompt');
+            // Redirect to index with auto-generate flag
+            window.location.href = '/?auto_generate=1';
+        } else {
+            window.location.href = '/';
+        }
+
+    } catch (err) {
+        showError('Network error: ' + err.message + '. Please check your connection and try again.');
+    }
+})();
+</script>
+</body>
+</html>

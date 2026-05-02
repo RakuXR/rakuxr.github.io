@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RakuDiag — Engine Health</title>
+<meta name="description" content="RakuDiag web UI — live engine test runner for the RakuAI native engine, 18 DLLs, C API bridge, and physics subsystems.">
+<style>
+:root {
+  --bg: #0a0a1a;
+  --bg2: #111128;
+  --bg3: #1a1a3a;
+  --text: #e8e8f0;
+  --dim: #7a7a9a;
+  --accent: #6c5ce7;
+  --bright: #a388ff;
+  --success: #00cec9;
+  --warn: #fdcb6e;
+  --danger: #ff6b6b;
+  --border: #222;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+a { color: var(--bright); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+/* Header / top bar */
+header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 0;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.topbar h1 {
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, var(--bright), var(--success));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  flex: 1 1 auto;
+}
+.topbar h1 .kanji {
+  font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+  margin-right: 4px;
+}
+.topbar .controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.topbar input[type="text"] {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  min-width: 280px;
+  font-family: 'SF Mono', Monaco, monospace;
+}
+.topbar input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 9px 22px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:hover { background: var(--bright); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.secondary {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--bright);
+}
+.btn.secondary:hover { background: rgba(108, 92, 231, 0.2); }
+nav { display: flex; gap: 16px; margin-top: 12px; font-size: 0.85rem; }
+.timestamp {
+  color: var(--dim);
+  font-size: 0.8rem;
+  font-family: 'SF Mono', Monaco, monospace;
+}
+.conn-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(30, 30, 60, 0.5);
+}
+.conn-status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #555;
+}
+.conn-status.connected .dot {
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+.conn-status.connected {
+  border-color: var(--success);
+  color: var(--success);
+}
+.conn-status.disconnected .dot {
+  background: var(--danger);
+}
+.conn-status.disconnected {
+  color: var(--danger);
+}
+.conn-status.checking .dot {
+  background: var(--warn);
+  animation: blink 1s infinite;
+}
+.conn-status.checking {
+  color: var(--warn);
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* Status cards */
+.status-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  padding: 24px 0;
+}
+.status-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 18px 22px;
+}
+.status-card .label {
+  color: var(--dim);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.status-card .value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.status-card.ok { border-left-color: var(--success); }
+.status-card.ok .value { color: var(--success); }
+.status-card.warn { border-left-color: var(--warn); }
+.status-card.warn .value { color: var(--warn); }
+.status-card.fail { border-left-color: var(--danger); }
+.status-card.fail .value { color: var(--danger); }
+.status-card.neutral { border-left-color: #444; }
+.status-card.neutral .value { color: var(--dim); }
+
+/* Section */
+.section { padding: 18px 0; }
+.section h2 {
+  font-size: 1.15rem;
+  color: var(--bright);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section h2 .hint {
+  font-size: 0.75rem;
+  color: var(--dim);
+  font-weight: normal;
+}
+
+/* DLL grid */
+.dll-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+.dll-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s;
+}
+.dll-card.loaded {
+  border-color: var(--success);
+  box-shadow: 0 0 10px rgba(0, 206, 201, 0.1);
+}
+.dll-card.missing {
+  opacity: 0.5;
+}
+.dll-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #333;
+  flex-shrink: 0;
+}
+.dll-card.loaded .dll-dot {
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+.dll-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Test results table */
+.table-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+thead {
+  background: var(--bg3);
+}
+th {
+  text-align: left;
+  padding: 12px 16px;
+  color: var(--dim);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 11px 16px;
+  border-bottom: 1px solid #1a1a2a;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: rgba(108, 92, 231, 0.05); }
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'SF Mono', Monaco, monospace;
+}
+.status-badge.pass { background: rgba(0, 206, 201, 0.15); color: var(--success); }
+.status-badge.fail { background: rgba(255, 107, 107, 0.15); color: var(--danger); }
+.status-badge.skip { background: rgba(122, 122, 154, 0.15); color: var(--dim); }
+.duration { color: var(--warn); font-family: 'SF Mono', Monaco, monospace; font-size: 0.8rem; }
+.details { color: var(--dim); font-family: 'SF Mono', Monaco, monospace; font-size: 0.78rem; }
+.subsystem { color: var(--bright); font-family: 'SF Mono', Monaco, monospace; font-size: 0.8rem; }
+
+/* Summary bar */
+.summary {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 22px;
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+.summary .pass-count { color: var(--success); font-weight: 700; }
+.summary .fail-count { color: var(--danger); font-weight: 700; }
+.summary .skip-count { color: var(--dim); font-weight: 700; }
+.summary .total { color: var(--warn); font-family: 'SF Mono', Monaco, monospace; }
+
+/* Raw JSON */
+.raw-toggle {
+  margin-top: 14px;
+}
+.raw-json {
+  background: #050510;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  font-family: 'SF Mono', Monaco, monospace;
+  font-size: 0.75rem;
+  color: var(--dim);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 500px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+.hidden { display: none; }
+
+/* Error banner */
+.error-banner {
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 14px 20px;
+  border-radius: 8px;
+  margin: 16px 0;
+  font-size: 0.9rem;
+}
+.error-banner strong { display: block; margin-bottom: 4px; }
+
+/* Loading spinner */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+footer {
+  text-align: center;
+  padding: 32px 20px;
+  color: #444;
+  font-size: 0.75rem;
+  border-top: 1px solid #151530;
+  margin-top: 32px;
+}
+footer a { color: var(--dim); }
+
+@media (max-width: 640px) {
+  .topbar h1 { font-size: 1.2rem; width: 100%; }
+  .topbar input[type="text"] { min-width: 0; width: 100%; }
+  .topbar .controls { width: 100%; }
+  .status-card .value { font-size: 1.4rem; }
+  th, td { padding: 9px 10px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="topbar">
+      <h1><span class="kanji">楽</span>AI RakuDiag &mdash; Engine Health</h1>
+      <div class="controls">
+        <input type="text" id="base-url" placeholder="API base URL" spellcheck="false">
+        <span class="conn-status" id="conn-status"><span class="dot"></span><span id="conn-label">Unknown</span></span>
+        <button class="btn" id="run-btn">Run Tests</button>
+      </div>
+    </div>
+    <nav>
+      <a href="../index.html">Home</a>
+      <a href="../engine/">Engine</a>
+      <a href="../api/">API Docs</a>
+      <a href="../games/">Games</a>
+      <a href="../why-rakuai.html">Why RakuAI</a>
+      <a href="../developers/">Developers</a>
+      <a href="../press.html">Press</a>
+    </nav>
+    <div class="timestamp" id="timestamp" style="margin-top:10px;">Last run: never</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div id="error-container"></div>
+
+  <div class="status-cards">
+    <div class="status-card neutral" id="card-overall">
+      <div class="label">Overall</div>
+      <div class="value" id="val-overall">&mdash;</div>
+    </div>
+    <div class="status-card neutral" id="card-native">
+      <div class="label">Native Engine</div>
+      <div class="value" id="val-native">&mdash;</div>
+    </div>
+    <div class="status-card neutral" id="card-bound">
+      <div class="label">Bound Functions</div>
+      <div class="value" id="val-bound">&mdash;</div>
+    </div>
+    <div class="status-card neutral" id="card-dlls">
+      <div class="label">DLLs Loaded</div>
+      <div class="value" id="val-dlls">&mdash; / 18</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Native DLL Grid <span class="hint">bridge.modules</span></h2>
+    <div class="dll-grid" id="dll-grid"></div>
+  </div>
+
+  <div class="section">
+    <h2>Test Results <span class="hint">subsystem tests from /api/rakudiag/run</span></h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Subsystem</th>
+            <th>Test Name</th>
+            <th>Status</th>
+            <th>Duration</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="results-body">
+          <tr><td colspan="5" style="text-align:center; color:var(--dim); padding:24px;">No tests run yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="summary" id="summary">
+      <div id="summary-text">&mdash;</div>
+      <div class="raw-toggle">
+        <button class="btn secondary" id="toggle-raw">View Raw JSON</button>
+      </div>
+    </div>
+    <pre class="raw-json hidden" id="raw-json"></pre>
+  </div>
+
+</div>
+
+<footer>
+  <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+  <p style="margin-top: 6px;">
+    <a href="../engine/">Engine</a> &bull;
+    <a href="../api/">API</a> &bull;
+    <a href="../docs.html">Docs</a> &bull;
+    <a href="../games/">Arcade</a> &bull;
+    <a href="../press.html">Press</a> &bull;
+    <a href="../developers/">Developers</a> &bull;
+    <a href="../privacy.html">Privacy</a> &bull;
+    <a href="../terms.html">Terms</a> &bull;
+    <a href="../contact.html">Contact</a> &bull;
+    <a href="https://github.com/RakuXR">GitHub</a>
+  </p>
+  <p class="trademark-notice">
+    RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+    <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+    5 Granted US Patents (Priority: July 2012).
+  </p>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------- Config ----------
+  const DEFAULT_BASE_URL = 'https://raku-api-staging.fly.dev/api';
+  const STORAGE_KEY = 'rakudiag.baseUrl';
+  const EXPECTED_DLLS = [
+    'RakuCore', 'RakuPhysics', 'RakuRenderer', 'RakuAudio',
+    'RakuAI', 'RakuSLM', 'RakuVoice', 'RakuScripting',
+    'RakuNetwork', 'RakuAssets', 'RakuUI', 'RakuInput',
+    'RakuScene', 'RakuAnimation', 'RakuCSG', 'RakuGameplay',
+    'RakuEditor', 'RakuXR'
+  ];
+
+  // ---------- DOM ----------
+  const $ = (id) => document.getElementById(id);
+  const baseUrlInput = $('base-url');
+  const runBtn = $('run-btn');
+  const timestampEl = $('timestamp');
+  const errorContainer = $('error-container');
+  const dllGrid = $('dll-grid');
+  const resultsBody = $('results-body');
+  const summaryText = $('summary-text');
+  const toggleRawBtn = $('toggle-raw');
+  const rawJsonEl = $('raw-json');
+
+  // ---------- Init base URL ----------
+  function getBaseUrl() {
+    try {
+      return localStorage.getItem(STORAGE_KEY) || DEFAULT_BASE_URL;
+    } catch (e) {
+      return DEFAULT_BASE_URL;
+    }
+  }
+  function setBaseUrl(url) {
+    try { localStorage.setItem(STORAGE_KEY, url); } catch (e) {}
+  }
+  const connStatus = $('conn-status');
+  const connLabel = $('conn-label');
+
+  function setConnStatus(state, label) {
+    connStatus.className = 'conn-status ' + state;
+    connLabel.textContent = label;
+  }
+
+  async function checkConnection() {
+    const base = (baseUrlInput.value || DEFAULT_BASE_URL).trim().replace(/\/+$/, '');
+    setConnStatus('checking', 'Checking...');
+    try {
+      const resp = await fetch(base + '/rakudiag/health', {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        mode: 'cors',
+        cache: 'no-store',
+        signal: AbortSignal.timeout(5000),
+      });
+      if (resp.ok) {
+        setConnStatus('connected', 'Connected');
+      } else {
+        // Still reachable but returned an error — may not have /health, try /rakudiag/run
+        setConnStatus('connected', 'Reachable (' + resp.status + ')');
+      }
+    } catch (e) {
+      setConnStatus('disconnected', 'Unreachable');
+    }
+  }
+
+  baseUrlInput.value = getBaseUrl();
+  baseUrlInput.addEventListener('change', () => {
+    const v = baseUrlInput.value.trim().replace(/\/+$/, '');
+    baseUrlInput.value = v || DEFAULT_BASE_URL;
+    setBaseUrl(baseUrlInput.value);
+    checkConnection();
+  });
+
+  // Initial connection check
+  checkConnection();
+
+  // ---------- Initial DLL grid (all missing) ----------
+  function renderDllGrid(loadedModules) {
+    const loadedSet = new Set((loadedModules || []).map(normalizeModuleName));
+    dllGrid.innerHTML = '';
+    EXPECTED_DLLS.forEach((name) => {
+      const isLoaded = loadedSet.has(name);
+      const card = document.createElement('div');
+      card.className = 'dll-card ' + (isLoaded ? 'loaded' : 'missing');
+      card.innerHTML =
+        '<div class="dll-dot"></div>' +
+        '<div class="dll-name">' + escapeHtml(name) + '</div>';
+      dllGrid.appendChild(card);
+    });
+  }
+
+  function normalizeModuleName(m) {
+    if (typeof m === 'string') {
+      return m.replace(/\.(dll|so|dylib)$/i, '').replace(/^lib/, '');
+    }
+    if (m && typeof m === 'object') {
+      return normalizeModuleName(m.name || m.module || '');
+    }
+    return String(m || '');
+  }
+
+  // ---------- Utility ----------
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function setCard(cardId, valueId, cls, value) {
+    const card = $(cardId);
+    const val = $(valueId);
+    card.className = 'status-card ' + cls;
+    val.textContent = value;
+  }
+
+  function formatDetails(details) {
+    if (details == null) return '';
+    if (typeof details === 'string') return details;
+    if (typeof details === 'object') {
+      try {
+        return Object.keys(details)
+          .map((k) => k + ': ' + (typeof details[k] === 'object' ? JSON.stringify(details[k]) : details[k]))
+          .join(', ');
+      } catch (e) {
+        return JSON.stringify(details);
+      }
+    }
+    return String(details);
+  }
+
+  function showError(title, message) {
+    errorContainer.innerHTML =
+      '<div class="error-banner"><strong>' + escapeHtml(title) + '</strong>' + escapeHtml(message) + '</div>';
+  }
+  function clearError() {
+    errorContainer.innerHTML = '';
+  }
+
+  // ---------- Render results ----------
+  function renderResults(data) {
+    // Accept several possible shapes for robustness.
+    const bridge = data.bridge || {};
+    const modules = bridge.modules || [];
+    const nativeLoaded = !!(bridge.native_loaded != null ? bridge.native_loaded : data.native_loaded);
+    const boundFns = bridge.bound_functions != null
+      ? bridge.bound_functions
+      : (data.bound_functions != null ? data.bound_functions : 0);
+
+    const tests = Array.isArray(data.tests)
+      ? data.tests
+      : (Array.isArray(data.results) ? data.results : []);
+
+    // Count DLLs
+    renderDllGrid(modules);
+    const loadedCount = Math.min(EXPECTED_DLLS.length,
+      new Set((modules || []).map(normalizeModuleName).filter((n) => EXPECTED_DLLS.indexOf(n) >= 0)).size
+    );
+
+    // Test stats
+    let pass = 0, fail = 0, skip = 0, totalMs = 0;
+    tests.forEach((t) => {
+      const s = String(t.status || '').toLowerCase();
+      if (s === 'pass' || s === 'ok' || s === 'passed') pass++;
+      else if (s === 'fail' || s === 'failed' || s === 'error') fail++;
+      else if (s === 'skip' || s === 'skipped') skip++;
+      else fail++; // unknown status counts as failure
+      totalMs += Number(t.duration_ms || t.duration || 0) || 0;
+    });
+
+    // Overall status card
+    let overallCls, overallLabel;
+    if (fail > 0) { overallCls = 'fail'; overallLabel = 'FAIL'; }
+    else if (skip > 0 || !nativeLoaded) { overallCls = 'warn'; overallLabel = 'PARTIAL'; }
+    else if (pass > 0) { overallCls = 'ok'; overallLabel = 'PASS'; }
+    else { overallCls = 'neutral'; overallLabel = 'NO DATA'; }
+    setCard('card-overall', 'val-overall', overallCls, overallLabel);
+
+    // Native engine
+    if (nativeLoaded) setCard('card-native', 'val-native', 'ok', 'LOADED');
+    else setCard('card-native', 'val-native', 'neutral', 'STUB');
+
+    // Bound functions
+    setCard('card-bound', 'val-bound',
+      boundFns > 0 ? 'ok' : 'neutral',
+      Number(boundFns).toLocaleString());
+
+    // DLLs loaded
+    setCard('card-dlls', 'val-dlls',
+      loadedCount === EXPECTED_DLLS.length ? 'ok' : (loadedCount > 0 ? 'warn' : 'neutral'),
+      loadedCount + ' / ' + EXPECTED_DLLS.length);
+
+    // Test table
+    if (tests.length === 0) {
+      resultsBody.innerHTML =
+        '<tr><td colspan="5" style="text-align:center; color:var(--dim); padding:24px;">No tests reported.</td></tr>';
+    } else {
+      resultsBody.innerHTML = tests.map((t) => {
+        const status = String(t.status || '').toLowerCase();
+        let badgeCls, badgeIcon;
+        if (status === 'pass' || status === 'ok' || status === 'passed') {
+          badgeCls = 'pass'; badgeIcon = '\u2713 PASS';
+        } else if (status === 'fail' || status === 'failed' || status === 'error') {
+          badgeCls = 'fail'; badgeIcon = '\u2717 FAIL';
+        } else if (status === 'skip' || status === 'skipped') {
+          badgeCls = 'skip'; badgeIcon = '\u25CB SKIP';
+        } else {
+          badgeCls = 'fail'; badgeIcon = '\u2717 ' + (t.status || 'UNKNOWN').toUpperCase();
+        }
+        const dur = (t.duration_ms != null ? t.duration_ms : (t.duration != null ? t.duration : 0));
+        return '<tr>' +
+          '<td class="subsystem">' + escapeHtml(t.subsystem || t.system || '-') + '</td>' +
+          '<td>' + escapeHtml(t.name || t.test || t.test_name || '-') + '</td>' +
+          '<td><span class="status-badge ' + badgeCls + '">' + badgeIcon + '</span></td>' +
+          '<td class="duration">' + dur + 'ms</td>' +
+          '<td class="details">' + escapeHtml(formatDetails(t.details || t.message || '')) + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    // Summary
+    summaryText.innerHTML =
+      '<span class="pass-count">' + pass + ' passed</span>, ' +
+      '<span class="fail-count">' + fail + ' failed</span>, ' +
+      '<span class="skip-count">' + skip + ' skipped</span> &mdash; ' +
+      'total <span class="total">' + totalMs + 'ms</span>';
+
+    // Raw JSON
+    rawJsonEl.textContent = JSON.stringify(data, null, 2);
+  }
+
+  // ---------- Set loading state ----------
+  function setLoading(on) {
+    if (on) {
+      runBtn.disabled = true;
+      runBtn.innerHTML = '<span class="spinner"></span>Running&hellip;';
+      setCard('card-overall', 'val-overall', 'neutral', 'RUNNING');
+    } else {
+      runBtn.disabled = false;
+      runBtn.textContent = 'Run Tests';
+    }
+  }
+
+  // ---------- Fetch + run ----------
+  async function runTests() {
+    clearError();
+    setLoading(true);
+    const base = (baseUrlInput.value || DEFAULT_BASE_URL).trim().replace(/\/+$/, '');
+    setBaseUrl(base);
+    const url = base + '/rakudiag/run';
+    const startedAt = Date.now();
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    try {
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        mode: 'cors',
+        cache: 'no-store',
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+      }
+      const data = await res.json();
+      renderResults(data);
+      setConnStatus('connected', 'Connected');
+      const finishedAt = new Date();
+      timestampEl.textContent = 'Last run: ' + finishedAt.toLocaleString() +
+        ' (' + (Date.now() - startedAt) + 'ms) — ' + url;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err && err.name === 'AbortError') {
+        showError('Request timed out after 15s',
+          'GET ' + url + ' did not respond within 15 seconds. The API may be overloaded or unreachable.');
+      } else {
+        showError('Could not reach RakuDiag API',
+          'GET ' + url + ' failed: ' + (err && err.message ? err.message : String(err)) +
+          '. Check the base URL, CORS headers on the API, or network connectivity.');
+      }
+      setConnStatus('disconnected', 'Unreachable');
+      setCard('card-overall', 'val-overall', 'fail', 'UNREACHABLE');
+      setCard('card-native', 'val-native', 'neutral', '—');
+      setCard('card-bound', 'val-bound', 'neutral', '—');
+      setCard('card-dlls', 'val-dlls', 'neutral', '— / 18');
+      resultsBody.innerHTML =
+        '<tr><td colspan="5" style="text-align:center; color:var(--danger); padding:24px;">API unreachable. See error above.</td></tr>';
+      summaryText.textContent = '—';
+      rawJsonEl.textContent = '';
+      timestampEl.textContent = 'Last run: ' + new Date().toLocaleString() + ' — FAILED';
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ---------- Wire up UI ----------
+  runBtn.addEventListener('click', runTests);
+  toggleRawBtn.addEventListener('click', () => {
+    rawJsonEl.classList.toggle('hidden');
+    toggleRawBtn.textContent = rawJsonEl.classList.contains('hidden') ? 'View Raw JSON' : 'Hide Raw JSON';
+  });
+
+  // Initial empty DLL grid
+  renderDllGrid([]);
+
+  // Auto-run after 500ms so the user sees loading state
+  setTimeout(runTests, 500);
+})();
+</script>
+</body>
+</html>

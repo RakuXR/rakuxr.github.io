@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Block Drop</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+  :root {
+    --bg: #0a0a12;
+    --panel: #141424;
+    --panel-border: #2a2a44;
+    --text: #e8e8ff;
+    --accent: #6cf;
+    --grid: #1c1c30;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    background: radial-gradient(ellipse at center, #161628 0%, #05050c 100%);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  #app {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 16px;
+    gap: 20px;
+  }
+  .stage {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 150px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .panel h3 {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: #8899cc;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .panel .value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  #board-wrap {
+    position: relative;
+  }
+  #board {
+    background: var(--grid);
+    border: 2px solid var(--panel-border);
+    border-radius: 8px;
+    box-shadow: 0 0 40px rgba(100, 200, 255, 0.15), inset 0 0 30px rgba(0,0,0,0.6);
+    display: block;
+  }
+  .preview-canvas {
+    display: block;
+    margin: 0 auto;
+    background: #0c0c18;
+    border-radius: 4px;
+  }
+  #title {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    color: #8cf;
+    text-align: center;
+    margin-bottom: 8px;
+    text-shadow: 0 0 10px rgba(100, 200, 255, 0.5);
+  }
+  #overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: rgba(5, 5, 15, 0.85);
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+    text-align: center;
+    padding: 20px;
+  }
+  #overlay.show { display: flex; }
+  #overlay h2 {
+    font-size: 32px;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+    color: #fff;
+    text-shadow: 0 0 16px rgba(140, 200, 255, 0.8);
+  }
+  #overlay p {
+    font-size: 14px;
+    color: #aac;
+    margin-bottom: 6px;
+  }
+  #overlay .hint {
+    font-size: 12px;
+    color: #6688aa;
+    margin-top: 16px;
+  }
+  .controls-list {
+    font-size: 10px;
+    color: #7788aa;
+    line-height: 1.6;
+  }
+  .controls-list strong { color: #bbccee; }
+  @media (max-width: 720px) {
+    .stage { flex-direction: column; align-items: center; }
+    .side { flex-direction: row; flex-wrap: wrap; justify-content: center; min-width: 0; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="stage">
+    <div class="side">
+      <div class="panel">
+        <h3>Hold</h3>
+        <canvas id="hold-canvas" class="preview-canvas" width="120" height="80"></canvas>
+      </div>
+      <div class="panel">
+        <h3>Score</h3>
+        <div class="value" id="score-val">0</div>
+      </div>
+      <div class="panel">
+        <h3>High</h3>
+        <div class="value" id="high-val">0</div>
+      </div>
+    </div>
+
+    <div id="board-wrap">
+      <div id="title">BLOCK DROP</div>
+      <canvas id="board" width="300" height="600"></canvas>
+      <div id="overlay" class="show">
+        <h2 id="overlay-title">BLOCK DROP</h2>
+        <p id="overlay-msg">Press any key to start</p>
+        <div class="hint">
+          Arrows: Move &nbsp;·&nbsp; Up/X: Rotate CW &nbsp;·&nbsp; Z: Rotate CCW<br>
+          Down: Soft drop &nbsp;·&nbsp; Space: Hard drop &nbsp;·&nbsp; Shift/C: Hold
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <h3>Next</h3>
+        <canvas id="next-canvas" class="preview-canvas" width="120" height="260"></canvas>
+      </div>
+      <div class="panel">
+        <h3>Level</h3>
+        <div class="value" id="level-val">1</div>
+      </div>
+      <div class="panel">
+        <h3>Lines</h3>
+        <div class="value" id="lines-val">0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+'use strict';
+import {
+  installApiOverlay,
+  createSound,
+  installLauncherIntegration,
+  ensureIframeFocus,
+  relayApiCallsToParent,
+} from '/games/lib/game-shared.js';
+import { RakuEngine } from '/engine/raku-engine.js';
+
+// ---------- shared helpers: launcher / sound / API overlay ----------
+const apiOverlay = installApiOverlay({ gameName: 'Block Drop' });
+const sound = createSound();
+installLauncherIntegration('Block Drop');
+ensureIframeFocus();
+
+// ---------- RakuEngine world (for API log population) ----------
+// IMPORTANT: subscribe BEFORE creating the world so the overlay catches
+// the init calls too — otherwise the player sees "No API calls yet" until
+// gameplay actually triggers something.
+const engine = new RakuEngine();
+engine.on('api', (e) => apiOverlay.log(e));
+relayApiCallsToParent(engine);
+
+const worldRes = engine.createWorld('block-drop');
+const WORLD_ID = worldRes.world_id;
+const pieceEntityRes = engine.createEntity(WORLD_ID, {
+  type: 'tetromino', name: 'active-piece', position: [0, 0, 0],
+  properties: { shape: 'tetromino', color: '#00e5ff' },
+});
+const PIECE_ENTITY_ID = pieceEntityRes.entity_id;
+const boardEntityRes = engine.createEntity(WORLD_ID, {
+  type: 'board', name: 'playfield', position: [0, 0, 0],
+  properties: { shape: 'grid', color: '#1a1a3a' },
+});
+const BOARD_ENTITY_ID = boardEntityRes.entity_id;
+engine.addPhysicsBody(WORLD_ID, PIECE_ENTITY_ID, { shape: 'box', mass: 1, isStatic: false });
+engine.observeWorld(WORLD_ID);
+engine.observeJSON(WORLD_ID);
+engine.captureFrame(WORLD_ID);
+engine.saveWorld(WORLD_ID);
+engine.loadWorld(WORLD_ID, 1);
+engine.startRecording(WORLD_ID);
+engine.contentFilter('Block Drop');
+const blockAgentRes = engine.createAgent(WORLD_ID, { type: 'tetris-ai', name: 'BlockAI' });
+const BLOCK_AGENT_ID = blockAgentRes.agent_id;
+
+// ---------- Constants ----------
+  const COLS = 10;
+  const ROWS = 20;
+  const CELL = 30;
+  const PREVIEW_CELL = 20;
+
+  const SHAPES = {
+    I: [
+      [0,0,0,0],
+      [1,1,1,1],
+      [0,0,0,0],
+      [0,0,0,0],
+    ],
+    O: [
+      [1,1],
+      [1,1],
+    ],
+    T: [
+      [0,1,0],
+      [1,1,1],
+      [0,0,0],
+    ],
+    S: [
+      [0,1,1],
+      [1,1,0],
+      [0,0,0],
+    ],
+    Z: [
+      [1,1,0],
+      [0,1,1],
+      [0,0,0],
+    ],
+    J: [
+      [1,0,0],
+      [1,1,1],
+      [0,0,0],
+    ],
+    L: [
+      [0,0,1],
+      [1,1,1],
+      [0,0,0],
+    ],
+  };
+
+  const COLORS = {
+    I: '#00e5ff',
+    O: '#ffd500',
+    T: '#b048ff',
+    S: '#00e676',
+    Z: '#ff3d57',
+    J: '#2979ff',
+    L: '#ff9100',
+  };
+
+  const TYPES = ['I','O','T','S','Z','J','L'];
+
+  const KICKS_JLSTZ = {
+    '0>1': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+    '1>0': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+    '1>2': [[0,0],[1,0],[1,-1],[0,2],[1,2]],
+    '2>1': [[0,0],[-1,0],[-1,1],[0,-2],[-1,-2]],
+    '2>3': [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
+    '3>2': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
+    '3>0': [[0,0],[-1,0],[-1,-1],[0,2],[-1,2]],
+    '0>3': [[0,0],[1,0],[1,1],[0,-2],[1,-2]],
+  };
+  const KICKS_I = {
+    '0>1': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
+    '1>0': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+    '1>2': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]],
+    '2>1': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
+    '2>3': [[0,0],[2,0],[-1,0],[2,1],[-1,-2]],
+    '3>2': [[0,0],[-2,0],[1,0],[-2,-1],[1,2]],
+    '3>0': [[0,0],[1,0],[-2,0],[1,-2],[-2,1]],
+    '0>3': [[0,0],[-1,0],[2,0],[-1,2],[2,-1]],
+  };
+
+  const LINE_SCORES = [0, 100, 300, 500, 800];
+
+  // ---------- DOM ----------
+  const boardCanvas = document.getElementById('board');
+  const ctx = boardCanvas.getContext('2d');
+  const nextCanvas = document.getElementById('next-canvas');
+  const nextCtx = nextCanvas.getContext('2d');
+  const holdCanvas = document.getElementById('hold-canvas');
+  const holdCtx = holdCanvas.getContext('2d');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlay-title');
+  const overlayMsg = document.getElementById('overlay-msg');
+  const scoreEl = document.getElementById('score-val');
+  const highEl = document.getElementById('high-val');
+  const levelEl = document.getElementById('level-val');
+  const linesEl = document.getElementById('lines-val');
+
+  // ---------- State ----------
+  const state = {
+    grid: createGrid(),
+    bag: [],
+    current: null,
+    started: false,
+    gameOver: false,
+    paused: false,
+    dropAccumulator: 0,
+    dropInterval: 1000,
+    lastTs: 0,
+    softDrop: false,
+    score: 0,
+    highScore: 0,
+    lines: 0,
+    level: 1,
+    clearAnim: null, // { rows: [...], t: 0, dur: 300 }
+  };
+
+  function createGrid() {
+    const g = [];
+    for (let r = 0; r < ROWS; r++) {
+      g.push(new Array(COLS).fill(0));
+    }
+    return g;
+  }
+
+  // ---------- 7-bag ----------
+  function refillBag() {
+    const bag = TYPES.slice();
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+    state.bag.push(...bag);
+  }
+
+  function nextType() {
+    if (state.bag.length < 7) refillBag();
+    return state.bag.shift();
+  }
+
+  function spawnPiece(type) {
+    const matrix = SHAPES[type].map(row => row.slice());
+    return {
+      type,
+      matrix,
+      rot: 0,
+      x: ((COLS - matrix[0].length) / 2) | 0,
+      y: type === 'I' ? -1 : 0,
+    };
+  }
+
+  // ---------- Collision ----------
+  function collides(piece, dx = 0, dy = 0, mat = null) {
+    const m = mat || piece.matrix;
+    for (let r = 0; r < m.length; r++) {
+      for (let c = 0; c < m[r].length; c++) {
+        if (!m[r][c]) continue;
+        const nx = piece.x + c + dx;
+        const ny = piece.y + r + dy;
+        if (nx < 0 || nx >= COLS || ny >= ROWS) return true;
+        if (ny < 0) continue;
+        if (state.grid[ny][nx]) return true;
+      }
+    }
+    return false;
+  }
+
+  function tryMove(dx, dy) {
+    if (!state.current) return false;
+    if (!collides(state.current, dx, dy)) {
+      state.current.x += dx;
+      state.current.y += dy;
+      return true;
+    }
+    return false;
+  }
+
+  function rotateMatrixCW(m) {
+    const n = m.length;
+    const out = [];
+    for (let r = 0; r < n; r++) out.push(new Array(n).fill(0));
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        out[c][n - 1 - r] = m[r][c];
+      }
+    }
+    return out;
+  }
+
+  function rotateMatrixCCW(m) {
+    const n = m.length;
+    const out = [];
+    for (let r = 0; r < n; r++) out.push(new Array(n).fill(0));
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        out[n - 1 - c][r] = m[r][c];
+      }
+    }
+    return out;
+  }
+
+  function tryRotate(dir) {
+    if (!state.current) return false;
+    const p = state.current;
+    if (p.type === 'O') return false;
+    const fromRot = p.rot;
+    const toRot = (fromRot + (dir > 0 ? 1 : 3)) % 4;
+    const newMatrix = dir > 0 ? rotateMatrixCW(p.matrix) : rotateMatrixCCW(p.matrix);
+    const table = (p.type === 'I') ? KICKS_I : KICKS_JLSTZ;
+    const tests = table[`${fromRot}>${toRot}`] || [[0,0]];
+    for (const [kx, kySRS] of tests) {
+      const ky = -kySRS;
+      if (!collides({ ...p, matrix: newMatrix }, kx, ky)) {
+        p.matrix = newMatrix;
+        p.x += kx;
+        p.y += ky;
+        p.rot = toRot;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // ---------- Lock + line clears ----------
+  function lockPiece() {
+    const p = state.current;
+    if (!p) return;
+    let above = false;
+    for (let r = 0; r < p.matrix.length; r++) {
+      for (let c = 0; c < p.matrix[r].length; c++) {
+        if (!p.matrix[r][c]) continue;
+        const gx = p.x + c;
+        const gy = p.y + r;
+        if (gy < 0) {
+          above = true;
+          continue;
+        }
+        state.grid[gy][gx] = p.type;
+      }
+    }
+    state.current = null;
+    sound.blip();
+    if (above) {
+      state.gameOver = true;
+      sound.death();
+      saveHighScore();
+      showOverlay('GAME OVER', `Score: ${state.score}`);
+      return;
+    }
+    const cleared = clearLines();
+    if (cleared > 0) {
+      addLineScore(cleared);
+      try { engine.stepPhysics(WORLD_ID, 0.016); } catch (_) {}
+      try { if (BLOCK_AGENT_ID) engine.agentReward(WORLD_ID, BLOCK_AGENT_ID, cleared * 0.25); } catch (_) {}
+      try { engine.saveWorld(WORLD_ID); } catch (_) {}
+      if (cleared >= 4) sound.levelup();
+      else sound.coin();
+    }
+    spawnNext();
+  }
+
+  function clearLines() {
+    const fullRows = [];
+    for (let r = 0; r < ROWS; r++) {
+      let full = true;
+      for (let c = 0; c < COLS; c++) {
+        if (!state.grid[r][c]) { full = false; break; }
+      }
+      if (full) fullRows.push(r);
+    }
+    if (fullRows.length === 0) return 0;
+
+    // Remove full rows and shift remaining down
+    for (const r of fullRows) {
+      state.grid.splice(r, 1);
+      state.grid.unshift(new Array(COLS).fill(0));
+    }
+    return fullRows.length;
+  }
+
+  function addLineScore(n) {
+    const points = (LINE_SCORES[n] || 0) * state.level;
+    state.score += points;
+    state.lines += n;
+    const newLevel = Math.floor(state.lines / 10) + 1;
+    if (newLevel !== state.level) {
+      state.level = newLevel;
+      state.dropInterval = Math.max(80, 1000 - (state.level - 1) * 85);
+      sound.levelup();
+    }
+    updateHud();
+  }
+
+  function spawnNext() {
+    const t = nextType();
+    state.current = spawnPiece(t);
+    // Each new piece is a fresh engine entity transform — logs a PUT call.
+    try {
+      engine.setTransform(WORLD_ID, PIECE_ENTITY_ID, {
+        position: [state.current.x, state.current.y, 0],
+        rotation: [0, 0, 0],
+      });
+    } catch (_) {}
+    if (collides(state.current)) {
+      state.gameOver = true;
+      sound.death();
+      saveHighScore();
+      try {
+        engine.destroyEntity(WORLD_ID, PIECE_ENTITY_ID);
+        engine.saveWorld(WORLD_ID);
+        engine.stopRecording(WORLD_ID);
+        if (BLOCK_AGENT_ID) engine.agentReward(WORLD_ID, BLOCK_AGENT_ID, -1.0);
+      } catch (_) {}
+      showOverlay('GAME OVER', `Score: ${state.score}`);
+    }
+  }
+
+  function softDropStep() {
+    if (!tryMove(0, 1)) {
+      lockPiece();
+    }
+  }
+
+  function hardDrop() {
+    if (!state.current) return;
+    let cells = 0;
+    while (tryMove(0, 1)) { cells++; }
+    state.score += cells * 2; // hard drop bonus
+    updateHud();
+    sound.hit();
+    try { engine.stepPhysics(WORLD_ID, 0.016); } catch (_) {}
+    lockPiece();
+  }
+
+  // ---------- HUD + storage ----------
+  function updateHud() {
+    scoreEl.textContent = state.score;
+    highEl.textContent = state.highScore;
+    levelEl.textContent = state.level;
+    linesEl.textContent = state.lines;
+  }
+
+  function loadHighScore() {
+    try {
+      const v = parseInt(localStorage.getItem('blockDropHigh') || '0', 10);
+      if (!isNaN(v)) state.highScore = v;
+    } catch (_) {}
+  }
+
+  function saveHighScore() {
+    if (state.score > state.highScore) {
+      state.highScore = state.score;
+      try { localStorage.setItem('blockDropHigh', String(state.highScore)); } catch (_) {}
+    }
+  }
+
+  // ---------- Rendering ----------
+  function drawCell(c, gx, gy, color, size = CELL, ox = 0, oy = 0) {
+    const x = gx * size + ox;
+    const y = gy * size + oy;
+    c.fillStyle = color;
+    c.fillRect(x, y, size, size);
+    c.fillStyle = 'rgba(255,255,255,0.35)';
+    c.fillRect(x, y, size, Math.max(2, size * 0.12));
+    c.fillRect(x, y, Math.max(2, size * 0.12), size);
+    c.fillStyle = 'rgba(0,0,0,0.35)';
+    c.fillRect(x, y + size - Math.max(2, size * 0.12), size, Math.max(2, size * 0.12));
+    c.fillRect(x + size - Math.max(2, size * 0.12), y, Math.max(2, size * 0.12), size);
+    c.strokeStyle = 'rgba(0,0,0,0.5)';
+    c.lineWidth = 1;
+    c.strokeRect(x + 0.5, y + 0.5, size - 1, size - 1);
+  }
+
+  function drawGridLines() {
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 1; x < COLS; x++) {
+      ctx.beginPath();
+      ctx.moveTo(x * CELL + 0.5, 0);
+      ctx.lineTo(x * CELL + 0.5, ROWS * CELL);
+      ctx.stroke();
+    }
+    for (let y = 1; y < ROWS; y++) {
+      ctx.beginPath();
+      ctx.moveTo(0, y * CELL + 0.5);
+      ctx.lineTo(COLS * CELL, y * CELL + 0.5);
+      ctx.stroke();
+    }
+  }
+
+  function drawBoard() {
+    ctx.fillStyle = '#0c0c18';
+    ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL);
+    drawGridLines();
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const v = state.grid[r][c];
+        if (v) drawCell(ctx, c, r, COLORS[v]);
+      }
+    }
+
+    const p = state.current;
+    if (p) {
+      for (let r = 0; r < p.matrix.length; r++) {
+        for (let c = 0; c < p.matrix[r].length; c++) {
+          if (!p.matrix[r][c]) continue;
+          const gx = p.x + c;
+          const gy = p.y + r;
+          if (gy < 0) continue;
+          drawCell(ctx, gx, gy, COLORS[p.type]);
+        }
+      }
+    }
+  }
+
+  function render() {
+    drawBoard();
+  }
+
+  // ---------- Overlay ----------
+  function showOverlay(title, msg) {
+    overlayTitle.textContent = title;
+    overlayMsg.textContent = msg;
+    overlay.classList.add('show');
+  }
+  function hideOverlay() {
+    overlay.classList.remove('show');
+  }
+
+  // ---------- Game loop ----------
+  let apiPhase = 0;
+  let apiAccum = 0;
+  function update(dt) {
+    if (!state.started || state.gameOver || state.paused) return;
+    state.dropAccumulator += dt;
+    const interval = state.softDrop ? Math.min(state.dropInterval, 50) : state.dropInterval;
+    while (state.dropAccumulator >= interval) {
+      state.dropAccumulator -= interval;
+      softDropStep();
+    }
+    // Push API variety so the overlay shows more than stepPhysics.
+    apiAccum += dt;
+    if (apiAccum > 350) {
+      apiAccum = 0;
+      try {
+        const phase = (apiPhase++) % 11;
+        if (phase === 0 && state.current) {
+          engine.setTransform(WORLD_ID, PIECE_ENTITY_ID, {
+            position: [state.current.x, state.current.y, 0],
+            rotation: [0, 0, state.current.rot || 0],
+          });
+        } else if (phase === 1) {
+          engine.observeWorld(WORLD_ID);
+        } else if (phase === 2) {
+          engine.stepPhysics(WORLD_ID, 0.016);
+        } else if (phase === 3) {
+          engine.captureFrame(WORLD_ID);
+        } else if (phase === 4) {
+          engine.setTransform(WORLD_ID, BOARD_ENTITY_ID, { position: [0, state.lines, 0] });
+        } else if (phase === 5) {
+          engine.observeJSON(WORLD_ID);
+        } else if (phase === 6) {
+          if (BLOCK_AGENT_ID) engine.agentObserve(WORLD_ID, BLOCK_AGENT_ID);
+        } else if (phase === 7) {
+          if (BLOCK_AGENT_ID) engine.agentAct(WORLD_ID, BLOCK_AGENT_ID, {
+            playerAction: 'place',
+            observation: 'level ' + state.level + ' lines ' + state.lines,
+          });
+        } else if (phase === 8) {
+          if (BLOCK_AGENT_ID) engine.agentReward(WORLD_ID, BLOCK_AGENT_ID, state.score > 0 ? 0.01 : 0);
+        } else if (phase === 9) {
+          engine.saveWorld(WORLD_ID);
+        } else {
+          engine.startRecording(WORLD_ID);
+        }
+      } catch (_) {}
+    }
+  }
+
+  function loop(ts) {
+    if (!state.lastTs) state.lastTs = ts;
+    const dt = ts - state.lastTs;
+    state.lastTs = ts;
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- Input ----------
+  function startGame() {
+    state.grid = createGrid();
+    state.bag = [];
+    refillBag();
+    state.current = spawnPiece(nextType());
+    state.started = true;
+    state.gameOver = false;
+    state.paused = false;
+    state.dropAccumulator = 0;
+    state.dropInterval = 1000;
+    state.score = 0;
+    state.lines = 0;
+    state.level = 1;
+    updateHud();
+    hideOverlay();
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (state.gameOver || !state.started) {
+      if (e.key.length === 1 || ['Enter','ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) {
+        startGame();
+        e.preventDefault();
+      }
+      return;
+    }
+    switch (e.key) {
+      case 'ArrowLeft':  tryMove(-1, 0); e.preventDefault(); break;
+      case 'ArrowRight': tryMove(1, 0); e.preventDefault(); break;
+      case 'ArrowDown':
+        if (tryMove(0, 1)) state.score += 1;
+        state.softDrop = true;
+        updateHud();
+        e.preventDefault(); break;
+      case 'ArrowUp':
+      case 'x':
+      case 'X':
+        if (tryRotate(1)) sound.beep(520, 30, 'square', 0.12);
+        e.preventDefault(); break;
+      case 'z':
+      case 'Z':
+        if (tryRotate(-1)) sound.beep(520, 30, 'square', 0.12);
+        e.preventDefault(); break;
+      case ' ':
+        hardDrop(); e.preventDefault(); break;
+      case 'Shift':
+      case 'c':
+      case 'C':
+        sound.blip();
+        e.preventDefault(); break;
+    }
+  });
+  window.addEventListener('keyup', (e) => {
+    if (e.key === 'ArrowDown') state.softDrop = false;
+  });
+
+  // ---------- Init ----------
+  function init() {
+    loadHighScore();
+    refillBag();
+    state.current = spawnPiece(nextType());
+    updateHud();
+    showOverlay('BLOCK DROP', 'Press any key to start');
+    requestAnimationFrame(loop);
+  }
+
+  init();
+</script>
+</body>
+</html>

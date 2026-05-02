@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dot Chomper</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    color: #fff;
+    font-family: 'Press Start 2P', 'Courier New', monospace;
+    overflow: hidden;
+    height: 100%;
+  }
+  #wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    height: 100vh;
+    padding: 4px 10px 10px;
+    box-sizing: border-box;
+    gap: 0;
+  }
+  h1 {
+    color: #ffff00;
+    font-size: 16px;
+    letter-spacing: 2px;
+    margin: 2px 0 4px;
+    text-shadow: 2px 2px 0 #ff8800;
+  }
+  #hud {
+    display: flex;
+    justify-content: space-between;
+    width: min(560px, 95vw);
+    font-size: 10px;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  #hud span { color: #ffff00; }
+  canvas {
+    background: #000;
+    image-rendering: pixelated;
+    display: block;
+    border: 2px solid #1d2ea8;
+    box-shadow: 0 0 20px rgba(29, 46, 168, 0.7);
+    /* Fit entirely within viewport: leave ~80px for title/hud/footer */
+    max-width: min(95vw, calc((100vh - 80px) * 560 / 620));
+    max-height: calc(100vh - 80px);
+    width: auto;
+    height: auto;
+    aspect-ratio: 560 / 620;
+  }
+  #footer {
+    margin-top: 4px;
+    font-size: 8px;
+    color: #888;
+    text-align: center;
+  }
+
+  /* API debug overlay */
+  #api-overlay {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    width: 280px;
+    max-height: 60vh;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    padding: 8px;
+    z-index: 20;
+    display: none;
+    box-shadow: 0 0 14px rgba(0, 255, 255, 0.4);
+    border-radius: 4px;
+  }
+  #api-overlay.visible { display: block; }
+  #api-overlay .title {
+    color: #ffff00;
+    font-weight: bold;
+    font-size: 11px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #00ffff;
+    padding-bottom: 3px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #api-overlay .title small {
+    color: #888;
+    font-weight: normal;
+    font-size: 8px;
+  }
+  #api-log {
+    max-height: calc(60vh - 40px);
+    overflow-y: auto;
+    padding-right: 3px;
+  }
+  #api-log::-webkit-scrollbar { width: 6px; }
+  #api-log::-webkit-scrollbar-thumb { background: #00ffff; }
+  #api-log .row {
+    padding: 2px 0;
+    border-bottom: 1px dashed rgba(0, 255, 255, 0.15);
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  #api-log .method { color: #ffcc00; font-weight: bold; min-width: 38px; }
+  #api-log .path { color: #fff; flex: 1 1 auto; word-break: break-all; }
+  #api-log .ms-ok { color: #66ff66; }
+  #api-log .ms-warn { color: #ffdd66; }
+  #api-log .ms-bad { color: #ff6666; }
+  #api-log .ts { color: #888; font-size: 8px; }
+
+  /* Title / options overlay */
+  #title-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.88);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 15;
+    text-align: center;
+    padding: 20px;
+    pointer-events: auto;
+  }
+  #title-overlay.hidden { display: none; }
+  #title-overlay h2 {
+    color: #ffff00;
+    font-size: 32px;
+    letter-spacing: 4px;
+    text-shadow: 4px 4px 0 #ff0000, 8px 8px 24px #aa0000;
+    margin: 0 0 16px;
+    animation: titleGlow 2s ease-in-out infinite;
+  }
+  @keyframes titleGlow {
+    0%, 100% { text-shadow: 4px 4px 0 #ff0000, 8px 8px 24px #aa0000; }
+    50%      { text-shadow: 4px 4px 0 #ff8800, 8px 8px 28px #ffaa33; }
+  }
+  #title-overlay .subtitle {
+    color: #00ffff;
+    font-size: 10px;
+    letter-spacing: 1px;
+    margin-bottom: 24px;
+  }
+  #title-overlay .press-start {
+    color: #ffff00;
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-top: 20px;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink {
+    0%, 49%  { opacity: 1; }
+    50%, 100% { opacity: 0.1; }
+  }
+  #title-overlay .hi-list {
+    margin: 10px 0 0;
+    padding: 12px 22px;
+    background: rgba(0, 0, 40, 0.7);
+    border: 1px solid #1d2ea8;
+    border-radius: 6px;
+    max-width: 300px;
+  }
+  #title-overlay .hi-list h3 {
+    color: #ff8800;
+    font-size: 11px;
+    margin: 0 0 10px;
+    letter-spacing: 1px;
+  }
+  #title-overlay .hi-list ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 9px;
+    color: #ffffff;
+  }
+  #title-overlay .hi-list li {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    gap: 12px;
+  }
+  #title-overlay .hi-list li span:last-child { color: #ffff00; }
+  #title-overlay .options {
+    margin-top: 18px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  #title-overlay .options button {
+    background: #1d2ea8;
+    color: #ffff00;
+    border: 2px solid #5a6fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 8px 14px;
+    cursor: pointer;
+    letter-spacing: 1px;
+  }
+  #title-overlay .options button:hover { background: #4a5cd8; }
+
+  /* Launcher button */
+  #launcher-btn {
+    position: fixed;
+    top: 10px;
+    left: 80px;
+    background: #000;
+    color: #ffff00;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 6px 12px;
+    border: 2px solid #ffff00;
+    border-radius: 4px;
+    cursor: pointer;
+    z-index: 25;
+    text-decoration: none;
+  }
+  #launcher-btn:hover { background: #ffff00; color: #000; }
+
+  /* Debug HUD */
+  #debug-hud {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    padding: 6px 10px;
+    border: 1px solid #00ff00;
+    z-index: 20;
+    display: none;
+    border-radius: 4px;
+    line-height: 1.5;
+  }
+  #debug-hud.visible { display: block; }
+
+  /* Pulsing API badge */
+  #api-badge {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: #00ffff;
+    color: #000;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 6px 10px;
+    z-index: 19;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+    animation: apiPulse 1.6s infinite;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+  }
+  @keyframes apiPulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(0, 255, 255, 0.7); }
+    50%      { box-shadow: 0 0 22px rgba(0, 255, 255, 1); }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1>DOT CHOMPER</h1>
+  <div id="hud">
+    <div>SCORE <span id="score">0</span></div>
+    <div>HI <span id="hi">0</span></div>
+    <div>LEVEL <span id="level">1</span></div>
+    <div>LIVES <span id="lives">3</span></div>
+  </div>
+  <canvas id="game" width="560" height="620"></canvas>
+  <div id="footer">Arrows / WASD &bull; P = Pause &bull; F2 = API Debug</div>
+</div>
+<a id="launcher-btn" href="/games/" title="Back to launcher">&larr; LAUNCHER</a>
+<button id="api-badge" title="Toggle API debug (F2)">API</button>
+<div id="api-overlay" aria-live="polite">
+  <div class="title">RakuEngine API <small>F2 to hide</small></div>
+  <div id="api-log"></div>
+</div>
+<div id="debug-hud"></div>
+<div id="title-overlay">
+  <h2>DOT CHOMPER</h2>
+  <div class="subtitle">POWERED BY RAKUENGINE</div>
+  <div class="hi-list" id="hi-list"></div>
+  <div class="press-start">PRESS START</div>
+  <div class="options">
+    <button data-action="start">PLAY</button>
+    <button data-action="mute">MUTE</button>
+    <button data-action="scanlines">SCANLINES</button>
+    <button data-action="reset-hi">RESET SCORES</button>
+  </div>
+</div>
+<script type="module">
+'use strict';
+import { RakuEngine } from '../../engine/raku-engine.js';
+import { ensureIframeFocus, relayApiCallsToParent } from '../lib/game-shared.js';
+
+// Ensure keyboard events reach us when we're loaded inside the launcher iframe.
+ensureIframeFocus();
+
+// ============================================================
+// DOT CHOMPER - A Pac-Man-style maze game
+// ============================================================
+
+const TILE = 20;
+const COLS = 28;
+const ROWS = 31;
+const W = COLS * TILE;      // 560
+const H = ROWS * TILE + 40; // 620 (40 px HUD strip at top)
+const HUD_H = 40;
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = true;
+
+// ------------------------------------------------------------
+// RakuEngine integration — creates a world and entities for the
+// player and the four ghosts, and streams live API calls into a
+// debug overlay on screen.
+// ------------------------------------------------------------
+
+const engine = new RakuEngine();
+const worldRes = engine.createWorld('dot-chomper');
+const WORLD_ID = worldRes.world_id;
+const playerEntityRes = engine.createEntity(WORLD_ID, {
+  type: 'chomper', name: 'player', position: [0, 0, 0],
+  properties: { shape: 'sphere', color: '#ffff00' },
+});
+const PLAYER_ENTITY_ID = playerEntityRes.entity_id;
+const ghostEntityIds = {};
+for (const name of ['blinky', 'pinky', 'inky', 'clyde']) {
+  const r = engine.createEntity(WORLD_ID, {
+    type: 'ghost', name, position: [0, 0, 0],
+    properties: { ghost: name },
+  });
+  ghostEntityIds[name] = r.entity_id;
+}
+engine.addPhysicsBody(WORLD_ID, PLAYER_ENTITY_ID, { shape: 'sphere', mass: 1, isStatic: false });
+engine.observeWorld(WORLD_ID);
+engine.observeJSON(WORLD_ID);
+engine.captureFrame(WORLD_ID);
+engine.saveWorld(WORLD_ID);
+engine.loadWorld(WORLD_ID, 1);
+engine.startRecording(WORLD_ID);
+engine.contentFilter('Dot Chomper');
+const ghostAgentRes = engine.createAgent(WORLD_ID, { type: 'ghost-ai', name: 'GhostAI' });
+const GHOST_AGENT_ID = ghostAgentRes.agent_id;
+
+// ─── SOUND SYSTEM (Web Audio API) ──────────────────────────────
+const Sound = (() => {
+  let actx = null;
+  let master = null;
+  let sirenOsc = null;
+  let sirenGain = null;
+  let sirenLevel = 0; // 0..4 — raised each time a ghost is eaten / each level
+  let muted = false;
+
+  function ensure() {
+    if (!actx) {
+      try {
+        actx = new (window.AudioContext || window.webkitAudioContext)();
+        master = actx.createGain();
+        master.gain.value = 0.45;
+        master.connect(actx.destination);
+      } catch (e) { /* silent */ }
+    }
+    if (actx && actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+
+  function beep(freq, ms, type = 'square', vol = 0.4) {
+    if (!ensure() || muted) return;
+    const t0 = actx.currentTime;
+    const osc = actx.createOscillator();
+    const g = actx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + ms / 1000);
+    osc.connect(g); g.connect(master);
+    osc.start(t0);
+    osc.stop(t0 + ms / 1000 + 0.02);
+  }
+
+  function slide(fromHz, toHz, ms, type = 'square', vol = 0.4) {
+    if (!ensure() || muted) return;
+    const t0 = actx.currentTime;
+    const osc = actx.createOscillator();
+    const g = actx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(fromHz, t0);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(1, toHz), t0 + ms / 1000);
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + ms / 1000);
+    osc.connect(g); g.connect(master);
+    osc.start(t0);
+    osc.stop(t0 + ms / 1000 + 0.02);
+  }
+
+  // Chomp loop — play a short blip, rate-limited
+  let lastChomp = 0;
+  function chomp() {
+    const now = performance.now();
+    if (now - lastChomp < 100) return;
+    lastChomp = now;
+    beep(720 + Math.random() * 60, 50, 'square', 0.22);
+  }
+
+  function powerPellet() {
+    slide(260, 80, 380, 'sawtooth', 0.35);
+  }
+
+  // Ghost vulnerable — warble
+  let warbleTimer = null;
+  function startWarble() {
+    if (!ensure() || muted) return;
+    stopWarble();
+    warbleTimer = setInterval(() => {
+      beep(380, 70, 'triangle', 0.18);
+      setTimeout(() => beep(520, 70, 'triangle', 0.18), 80);
+    }, 260);
+  }
+  function stopWarble() {
+    if (warbleTimer) { clearInterval(warbleTimer); warbleTimer = null; }
+  }
+
+  function ghostEaten() {
+    // boing — quick upward sweep
+    slide(200, 1200, 200, 'sine', 0.5);
+  }
+
+  function death() {
+    // Descending wail
+    slide(520, 80, 900, 'sawtooth', 0.5);
+    setTimeout(() => slide(380, 60, 700, 'square', 0.4), 400);
+  }
+
+  function levelJingle() {
+    const notes = [523, 659, 784, 1047]; // C E G C
+    notes.forEach((f, i) => setTimeout(() => beep(f, 160, 'square', 0.35), i * 160));
+  }
+
+  function intro() {
+    const notes = [262, 330, 392, 523, 392, 523];
+    notes.forEach((f, i) => setTimeout(() => beep(f, 180, 'triangle', 0.3), i * 190));
+  }
+
+  // Siren — continuous background tone that rises in pitch with sirenLevel
+  function startSiren() {
+    if (!ensure() || muted) return;
+    stopSiren();
+    sirenOsc = actx.createOscillator();
+    sirenGain = actx.createGain();
+    sirenOsc.type = 'sawtooth';
+    sirenOsc.frequency.value = sirenFreq();
+    sirenGain.gain.value = 0.06;
+    sirenOsc.connect(sirenGain); sirenGain.connect(master);
+    sirenOsc.start();
+  }
+  function stopSiren() {
+    if (sirenOsc) { try { sirenOsc.stop(); } catch {} sirenOsc = null; }
+    if (sirenGain) { try { sirenGain.disconnect(); } catch {} sirenGain = null; }
+  }
+  function sirenFreq() { return 80 + sirenLevel * 30; }
+  function setSirenLevel(lv) {
+    sirenLevel = Math.max(0, Math.min(8, lv));
+    if (sirenOsc) sirenOsc.frequency.setValueAtTime(sirenFreq(), ensure().currentTime);
+  }
+  function raiseSiren() { setSirenLevel(sirenLevel + 1); }
+
+  function toggleMute() { muted = !muted; if (master) master.gain.value = muted ? 0 : 0.45; return muted; }
+
+  return { chomp, powerPellet, startWarble, stopWarble, ghostEaten, death,
+           levelJingle, intro, startSiren, stopSiren, setSirenLevel, raiseSiren,
+           toggleMute, ensure };
+})();
+
+// ─── API DEBUG OVERLAY ─────────────────────────────────────────
+const apiLogEl = document.getElementById('api-log');
+const apiOverlay = document.getElementById('api-overlay');
+const apiBadge = document.getElementById('api-badge');
+let apiOverlayVisible = false;
+let apiEntries = [];
+const MAX_API_ENTRIES = 20;
+
+function latencyClass(ms) {
+  if (ms < 50) return 'ms-ok';
+  if (ms < 200) return 'ms-warn';
+  return 'ms-bad';
+}
+function renderApiLog() {
+  if (!apiOverlayVisible) return;
+  const rows = apiEntries.slice(0, MAX_API_ENTRIES).map(e => {
+    const ts = new Date(e.time).toLocaleTimeString().slice(-8);
+    const lat = (e.latency | 0) + 'ms';
+    const cls = latencyClass(e.latency);
+    return `<div class="row"><span class="method">${e.method}</span>` +
+           `<span class="path">${e.path}</span>` +
+           `<span class="${cls}">${lat}</span>` +
+           `<span class="ts">${ts}</span></div>`;
+  }).join('');
+  apiLogEl.innerHTML = rows || '<div style="color:#666">No API calls yet.</div>';
+}
+engine.on('api', (entry) => {
+  apiEntries.unshift(entry);
+  if (apiEntries.length > MAX_API_ENTRIES) apiEntries.length = MAX_API_ENTRIES;
+  renderApiLog();
+});
+// Forward engine API calls to the launcher's API feed when embedded.
+relayApiCallsToParent(engine);
+function toggleApiOverlay() {
+  apiOverlayVisible = !apiOverlayVisible;
+  apiOverlay.classList.toggle('visible', apiOverlayVisible);
+  renderApiLog();
+}
+apiBadge.addEventListener('click', toggleApiOverlay);
+
+// ------------------------------------------------------------
+// Maze definitions
+// Legend:
+//  # = wall
+//  . = dot
+//  o = power pellet
+//  ' ' (space) = empty corridor
+//  - = ghost house door
+// ------------------------------------------------------------
+
+const MAZE_1 = [
+  "############################",
+  "#............##............#",
+  "#.####.#####.##.#####.####.#",
+  "#o####.#####.##.#####.####o#",
+  "#.####.#####.##.#####.####.#",
+  "#..........................#",
+  "#.####.##.########.##.####.#",
+  "#.####.##.########.##.####.#",
+  "#......##....##....##......#",
+  "######.##### ## #####.######",
+  "######.##### ## #####.######",
+  "######.##          ##.######",
+  "######.## ######## ##.######",
+  "######.## #      # ##.######",
+  "      .   #      #   .      ",
+  "######.## #      # ##.######",
+  "######.## ######## ##.######",
+  "######.##          ##.######",
+  "######.## ######## ##.######",
+  "######.## ######## ##.######",
+  "#............##............#",
+  "#.####.#####.##.#####.####.#",
+  "#.####.#####.##.#####.####.#",
+  "#o..##................##..o#",
+  "###.##.##.########.##.##.###",
+  "###.##.##.########.##.##.###",
+  "#......##....##....##......#",
+  "#.##########.##.##########.#",
+  "#.##########.##.##########.#",
+  "#..........................#",
+  "############################",
+];
+
+const MAZE_2 = [
+  "############################",
+  "#............##............#",
+  "#.##########.##.##########.#",
+  "#o##########.##.##########o#",
+  "#.##########.##.##########.#",
+  "#..........................#",
+  "#.####.####.##.####.####.#.#",
+  "#.####.####.##.####.####.#.#",
+  "#......####........####....#",
+  "######.####.####.####.######",
+  "######.####.####.####.######",
+  "######.     ####     .######",
+  "######.####.####.####.######",
+  "######.####.####.####.######",
+  "      .                .    ",
+  "######.####.####.####.######",
+  "######.####.####.####.######",
+  "######.                ######",
+  "######.####.####.####.######",
+  "######.####.####.####.######",
+  "#............##............#",
+  "#.####.#####.##.#####.####.#",
+  "#.####.#####.##.#####.####.#",
+  "#o..##................##..o#",
+  "###.##.##.########.##.##.###",
+  "###.##.##.########.##.##.###",
+  "#......##....##....##......#",
+  "#.##########.##.##########.#",
+  "#.##########.##.##########.#",
+  "#..........................#",
+  "############################",
+];
+
+const MAZE_3 = [
+  "############################",
+  "#.........................##",
+  "#.#######.########.#######.#",
+  "#o#######.########.#######o#",
+  "#.#######.########.#######.#",
+  "#..........................#",
+  "#.####.###.######.###.####.#",
+  "#.####.###.######.###.####.#",
+  "#......###........###......#",
+  "######.###.######.###.######",
+  "######.###.######.###.######",
+  "######.###.######.###.######",
+  "######.               ######",
+  "######.### ######## ###.####",
+  "      .### #      # ###.    ",
+  "######.### #      # ###.####",
+  "######.### ######## ###.####",
+  "######.               ######",
+  "######.#### ###### ####.####",
+  "######.#### ###### ####.####",
+  "#............##............#",
+  "#.####.#####.##.#####.####.#",
+  "#.####.#####.##.#####.####.#",
+  "#o..##................##..o#",
+  "###.##.##.########.##.##.###",
+  "###.##.##.########.##.##.###",
+  "#......##....##....##......#",
+  "#.##########.##.##########.#",
+  "#.##########.##.##########.#",
+  "#..........................#",
+  "############################",
+];
+
+// Level 4 — Strawberry maze (tight corridors, lots of turns)
+const MAZE_4 = [
+  "############################",
+  "#o..........##............o#",
+  "#.##.#####..##..#####.####.#",
+  "#.##.#####..##..#####.####.#",
+  "#..........................#",
+  "###.####.########.####.#####",
+  "###.####.########.####.#####",
+  "#.......####..####.........#",
+  "#.####.#.##....##.#.######.#",
+  "#.####.#.##....##.#.######.#",
+  "#......#.######.#.#........#",
+  "######.#.#    #.#.######.###",
+  "######.#.#    #.#.######.###",
+  "      ...#    #...          ",
+  "######.#.######.#.######.###",
+  "######.#.######.#.######.###",
+  "#......#...##...#..........#",
+  "#.####.###.##.###.######.###",
+  "#.####.###.##.###.######.###",
+  "#......................##..#",
+  "#.####.########.####.####..#",
+  "#.####.########.####.####..#",
+  "#o..##................##..o#",
+  "###.##.##.########.##.##.###",
+  "###.##.##.########.##.##.###",
+  "#......##....##....##......#",
+  "#.##########.##.##########.#",
+  "#.##########.##.##########.#",
+  "#..........................#",
+  "#..........................#",
+  "############################",
+];
+
+// Level 5 — Orange maze (wide open center)
+const MAZE_5 = [
+  "############################",
+  "#............##............#",
+  "#.##########.##.##########.#",
+  "#o##########.##.##########o#",
+  "#.##########.##.##########.#",
+  "#..........................#",
+  "#.####.##########.##.####..#",
+  "#.####.##########.##.####..#",
+  "#......##..............##..#",
+  "######.##.############.##.##",
+  "######.##.############.##.##",
+  "######.##.            .##.##",
+  "######.##. ########## .##.##",
+  "######.##. #        # .##.##",
+  "      .... #        # ....  ",
+  "######.##. #        # .##.##",
+  "######.##. ########## .##.##",
+  "######.##.            .##.##",
+  "######.##.############.##.##",
+  "######.##.############.##.##",
+  "#............##............#",
+  "#.####.#####.##.#####.####.#",
+  "#.####.#####.##.#####.####.#",
+  "#o..........##............o#",
+  "###.########.##.########.###",
+  "###.########.##.########.###",
+  "#............##............#",
+  "#.##.############.##.####..#",
+  "#.##.############.##.####..#",
+  "#..........................#",
+  "############################",
+];
+
+// Level 6 — Apple maze (diagonal-like pattern)
+const MAZE_6 = [
+  "############################",
+  "#..........................#",
+  "#.####.####..####.####.####.",
+  "#o####.####..####.####.####o",
+  "#.####.####..####.####.####.",
+  "#..........................#",
+  "##.####.##########.####.####",
+  "##.####.##########.####.####",
+  "#......####....####........#",
+  "#.####.####.##.####.####.###",
+  "#.####.####.##.####.####.###",
+  "#...........##.............#",
+  "###.######.#### ######.#####",
+  "###.######.#  # ######.#####",
+  "      .... #  # ....        ",
+  "###.######.#  # ######.#####",
+  "###.######.#### ######.#####",
+  "#...........##.............#",
+  "#.####.####.##.####.####.###",
+  "#.####.####.##.####.####.###",
+  "#......####....####........#",
+  "##.####.##########.####.####",
+  "##.####.##########.####.####",
+  "#o.........................#",
+  "#.####.####.####.####.####.#",
+  "#.####.####.####.####.####.#",
+  "#......####......####......#",
+  "#.####.##############.####.#",
+  "#.####.##############.####.#",
+  "#..........................#",
+  "############################",
+];
+
+// Level 7 — Melon maze (complex symmetric)
+const MAZE_7 = [
+  "############################",
+  "#............##............#",
+  "#.####.#####.##.#####.####.#",
+  "#o####.#####.##.#####.####o#",
+  "#.####.#####.##.#####.####.#",
+  "#..........................#",
+  "#.##.####.#.####.#.####.##.#",
+  "#.##.####.#.####.#.####.##.#",
+  "#.##.####.#......#.####.##.#",
+  "#.##.####.########.####.##.#",
+  "#.##.####.########.####.##.#",
+  "#.##..........##..........##",
+  "#.###########.##.##########.",
+  "#.###########.##.##########.",
+  "      ....    ##    ....    ",
+  "#.###########.##.##########.",
+  "#.###########.##.##########.",
+  "#.##..........##..........##",
+  "#.##.####.########.####.##.#",
+  "#.##.####.########.####.##.#",
+  "#.##.####.#......#.####.##.#",
+  "#.##.####.#.####.#.####.##.#",
+  "#.##.####.#.####.#.####.##.#",
+  "#o....................#..o.#",
+  "###.########.##.########.###",
+  "###.########.##.########.###",
+  "#............##............#",
+  "#.##############.####.####.#",
+  "#.##############.####.####.#",
+  "#..........................#",
+  "############################",
+];
+
+// Level 8 — Galaxian maze (zig-zag channels)
+const MAZE_8 = [
+  "############################",
+  "#o........................o#",
+  "#.###.######.##.######.###.#",
+  "#.###.######.##.######.###.#",
+  "#..........................#",
+  "##.####.##.########.##.####.",
+  "##.####.##.########.##.####.",
+  "#......##..........##......#",
+  "#.####.##.########.##.####.#",
+  "#.####.##.########.##.####.#",
+  "#......##..........##......#",
+  "######.########## ##########",
+  "######.#                 ###",
+  "######.# ##############.####",
+  "      .. #              ....",
+  "######.# ##############.####",
+  "######.#                 ###",
+  "######.########## ##########",
+  "#......##..........##......#",
+  "#.####.##.########.##.####.#",
+  "#.####.##.########.##.####.#",
+  "#......##..........##......#",
+  "##.####.##.########.##.####.",
+  "##.####.##.########.##.####.",
+  "#..........................#",
+  "#.####.#####.##.#####.####.#",
+  "#.####.#####.##.#####.####.#",
+  "#o....####..........####..o#",
+  "#####.####.########.####.###",
+  "#..........................#",
+  "############################",
+];
+
+// Level 9 — Bell maze (concentric rings, harder)
+const MAZE_9 = [
+  "############################",
+  "#..........................#",
+  "#.########################.#",
+  "#o#                      #o#",
+  "#.# ####.############.## #.#",
+  "#.# #..................# #.#",
+  "#.# #.################.# #.#",
+  "#.# #.#              #.# #.#",
+  "#.# #.# ############ #.# #.#",
+  "#.# #.# #          # #.# #.#",
+  "#.# #.# # ######## # #.# #.#",
+  "#.# #.# # #      # # #.# #.#",
+  "#.# #.# # #      # # #.# #.#",
+  "      . # #      # # .      ",
+  "#.# #.# # #      # # #.# #.#",
+  "#.# #.# # ######## # #.# #.#",
+  "#.# #.# #          # #.# #.#",
+  "#.# #.# ############ #.# #.#",
+  "#.# #.#              #.# #.#",
+  "#.# #.################.# #.#",
+  "#.# #..................# #.#",
+  "#.# ##################.# #.#",
+  "#.#                    # #.#",
+  "#o######################.#o#",
+  "#..........................#",
+  "#.##.##.##.####.##.##.##.#.#",
+  "#.##.##.##.####.##.##.##.#.#",
+  "#............##............#",
+  "#.####.####..##..####.####.#",
+  "#..........................#",
+  "############################",
+];
+
+// Level 10 — Key maze (the final)
+const MAZE_10 = [
+  "############################",
+  "#o........................o#",
+  "#.########.####.#########..#",
+  "#..........####............#",
+  "#.####.###.####.###.####.###",
+  "#.####.###.####.###.####.###",
+  "#......###......###........#",
+  "######.######.######.#######",
+  "######.######.######.#######",
+  "#.....               ......#",
+  "#.### ############## #.####.",
+  "#.### #            # #.####.",
+  "#.### # ########## # #.####.",
+  "#..    # #        # #    ..#",
+  "      .. #        # ..      ",
+  "#..    # #        # #    ..#",
+  "#.### # ########## # #.####.",
+  "#.### #            # #.####.",
+  "#.### ############## #.####.",
+  "#.....               ......#",
+  "######.######.######.#######",
+  "######.######.######.#######",
+  "#......###......###........#",
+  "#.####.###.####.###.####.###",
+  "#.####.###.####.###.####.###",
+  "#..........####............#",
+  "#.########.####.#########..#",
+  "#o........................o#",
+  "#.#.#.#.#.#.##.#.#.#.#.#.#.#",
+  "#..........................#",
+  "############################",
+];
+
+const MAZES = [
+  MAZE_1, MAZE_2, MAZE_3, MAZE_4, MAZE_5,
+  MAZE_6, MAZE_7, MAZE_8, MAZE_9, MAZE_10,
+];
+
+// Level-specific maze wall colors (rotate for infinite mode)
+const MAZE_COLORS = [
+  { wall: '#1d2ea8', edge: '#5a6fff' }, // classic blue
+  { wall: '#2a1a82', edge: '#7a6fff' }, // indigo
+  { wall: '#1a5d3a', edge: '#5fff9b' }, // green
+  { wall: '#a02222', edge: '#ff6666' }, // red
+  { wall: '#a06600', edge: '#ffaa33' }, // orange
+  { wall: '#660066', edge: '#ff33ff' }, // magenta
+  { wall: '#005f7f', edge: '#33ccff' }, // teal
+  { wall: '#444444', edge: '#aaaaaa' }, // galaxian gray
+  { wall: '#7a4d00', edge: '#ffcc66' }, // bell brown-gold
+  { wall: '#3d0066', edge: '#cc66ff' }, // key purple
+];
+
+// Bonus fruit spec per level
+const FRUITS = [
+  null,                                                          // level 1
+  null,                                                          // level 2
+  { name: 'cherry',     points: 100,  color: '#ff0033' },        // level 3
+  { name: 'strawberry', points: 300,  color: '#ff3377' },        // level 4
+  { name: 'orange',     points: 500,  color: '#ff8800' },        // level 5
+  { name: 'apple',      points: 700,  color: '#ff0000' },        // level 6
+  { name: 'melon',      points: 1000, color: '#33cc33' },        // level 7
+  { name: 'galaxian',   points: 2000, color: '#4466ff' },        // level 8
+  { name: 'bell',       points: 3000, color: '#ffcc00' },        // level 9
+  { name: 'key',        points: 5000, color: '#cccccc' },        // level 10
+];
+
+function fruitForLevel(lvl) {
+  // Levels 1..10 map to FRUITS[lvl-1]; level 11+ rotates through 3..10
+  if (lvl <= FRUITS.length) return FRUITS[lvl - 1];
+  const idx = 2 + ((lvl - 3) % (FRUITS.length - 2));
+  return FRUITS[idx];
+}
+
+// Tile constants for internal grid
+const T_WALL = 1;
+const T_DOT  = 2;
+const T_PWR  = 3;
+const T_EMPTY = 0;
+const T_DOOR = 4;
+
+let grid = [];
+let mazeIndex = 0;
+let totalDots = 0;
+let dotsEaten = 0;
+let mazeColor = MAZE_COLORS[0];
+let currentFruit = null; // {x,y, spec, timer, eaten}
+
+function loadMaze(idx) {
+  const safe = idx % MAZES.length;
+  const src = MAZES[safe];
+  mazeColor = MAZE_COLORS[safe % MAZE_COLORS.length];
+  grid = [];
+  totalDots = 0;
+  dotsEaten = 0;
+  for (let r = 0; r < ROWS; r++) {
+    const row = [];
+    const line = (src[r] || '').padEnd(COLS, '#');
+    for (let c = 0; c < COLS; c++) {
+      const ch = line[c];
+      switch (ch) {
+        case '#': row.push(T_WALL); break;
+        case '.': row.push(T_DOT); totalDots++; break;
+        case 'o': row.push(T_PWR); totalDots++; break;
+        case '-': row.push(T_DOOR); break;
+        default:  row.push(T_EMPTY);
+      }
+    }
+    grid.push(row);
+  }
+  // Ensure ghost house is navigable regardless of maze layout:
+  // 1. Outer corridor row 11 (cols 9-18) must be open so blinky/pinky can reach exit col 9
+  if (grid[11]) for (let c = 9; c <= 18; c++) { if (grid[11][c] === T_WALL) grid[11][c] = T_EMPTY; }
+  // 2. Row 12 cols 13-14: carve a door so inky/clyde can exit the inner chamber upward
+  if (grid[12]) { grid[12][13] = T_DOOR; grid[12][14] = T_DOOR; }
+  // 3. Row 13 cols 13-14: must be open corridor inside the chamber
+  if (grid[13]) { if (grid[13][13] === T_WALL) grid[13][13] = T_EMPTY; if (grid[13][14] === T_WALL) grid[13][14] = T_EMPTY; }
+  // 4. All ghost spawn positions must be walkable (not inside a wall)
+  for (const s of Object.values(GHOST_SPAWN)) { if (grid[s.r]) grid[s.r][s.c] = T_EMPTY; }
+
+  // Spawn a fruit for this level if applicable, at the center
+  const spec = fruitForLevel(level);
+  if (spec) {
+    currentFruit = {
+      x: tileCenterX(13),
+      y: tileCenterY(17),
+      spec, eaten: false, timer: 30.0, spawnDelay: 8.0,
+    };
+  } else {
+    currentFruit = null;
+  }
+}
+
+function tileAt(c, r) {
+  if (r < 0 || r >= ROWS) return T_WALL;
+  if (c < 0 || c >= COLS) return T_EMPTY;
+  return grid[r][c];
+}
+
+function isWall(c, r) {
+  const t = tileAt(c, r);
+  return t === T_WALL || t === T_DOOR;
+}
+
+// ------------------------------------------------------------
+// Direction helpers (tile-based movement)
+// ------------------------------------------------------------
+
+const DIR = {
+  NONE:  { x:  0, y:  0, name: 'none' },
+  UP:    { x:  0, y: -1, name: 'up' },
+  DOWN:  { x:  0, y:  1, name: 'down' },
+  LEFT:  { x: -1, y:  0, name: 'left' },
+  RIGHT: { x:  1, y:  0, name: 'right' },
+};
+
+function dirAngle(d) {
+  if (d === DIR.RIGHT) return 0;
+  if (d === DIR.DOWN)  return Math.PI / 2;
+  if (d === DIR.LEFT)  return Math.PI;
+  if (d === DIR.UP)    return -Math.PI / 2;
+  return 0;
+}
+
+// Player moves between tile centers using pixel positions.
+// x/y are in maze-pixel space (0,0 = top-left of maze, not HUD).
+const player = {
+  x: 13.5 * TILE,
+  y: 23 * TILE + TILE / 2,
+  r: TILE * 0.45,
+  speed: 100, // px/sec
+  dir: DIR.LEFT,
+  nextDir: DIR.LEFT,
+  mouthPhase: 0,
+  alive: true,
+};
+
+function tileCenterX(c) { return c * TILE + TILE / 2; }
+function tileCenterY(r) { return r * TILE + TILE / 2; }
+function pxToCol(x) { return Math.floor(x / TILE); }
+function pxToRow(y) { return Math.floor(y / TILE); }
+
+// True if a given (col,row) tile is walkable for player/ghosts
+function canWalk(c, r) {
+  // Allow tunnels (off-grid horizontal) to wrap
+  if (c < 0 || c >= COLS) return true;
+  return !isWall(c, r);
+}
+
+// Try moving the entity one step; only commit movement if aligned enough.
+function tryStep(ent, dt) {
+  // Horizontal tunnel wrap
+  if (ent.x < -TILE / 2) ent.x = COLS * TILE + TILE / 2 - 1;
+  if (ent.x > COLS * TILE + TILE / 2) ent.x = -TILE / 2 + 1;
+
+  const curC = pxToCol(ent.x);
+  const curR = pxToRow(ent.y);
+  const cxPx = tileCenterX(curC);
+  const cyPx = tileCenterY(curR);
+
+  // If entity wants to change direction, only allow when near a tile center
+  // and the target tile is open.
+  const alignTol = 2;
+
+  if (ent.nextDir && ent.nextDir !== ent.dir) {
+    const nd = ent.nextDir;
+    const targetC = curC + nd.x;
+    const targetR = curR + nd.y;
+    // Turning 180° is always allowed
+    if (nd.x === -ent.dir.x && nd.y === -ent.dir.y) {
+      ent.dir = nd;
+    } else if (Math.abs(ent.x - cxPx) <= alignTol && Math.abs(ent.y - cyPx) <= alignTol
+               && canWalk(targetC, targetR)) {
+      ent.x = cxPx;
+      ent.y = cyPx;
+      ent.dir = nd;
+    }
+  }
+
+  // Attempt to move in current direction
+  const step = ent.speed * dt;
+  let nx = ent.x + ent.dir.x * step;
+  let ny = ent.y + ent.dir.y * step;
+
+  // If we're moving toward a wall, clamp at tile center
+  const ahead = {
+    c: pxToCol(nx + ent.dir.x * (TILE / 2 - 1)),
+    r: pxToRow(ny + ent.dir.y * (TILE / 2 - 1)),
+  };
+  if (!canWalk(ahead.c, ahead.r)) {
+    // Clamp to current tile center
+    if (ent.dir.x !== 0) nx = cxPx;
+    if (ent.dir.y !== 0) ny = cyPx;
+  }
+
+  ent.x = nx;
+  ent.y = ny;
+}
+
+// ------------------------------------------------------------
+// Ghosts
+// ------------------------------------------------------------
+
+// Scatter corners (classic Pac-Man target tiles)
+const SCATTER_TARGETS = {
+  blinky: { c: COLS - 2, r: 0 },
+  pinky:  { c: 1,        r: 0 },
+  inky:   { c: COLS - 1, r: ROWS - 1 },
+  clyde:  { c: 0,        r: ROWS - 1 },
+};
+
+// Spawn positions so a ghost can be respawned after being eaten
+const GHOST_SPAWN = {
+  blinky: { c: 13, r: 11 },
+  pinky:  { c: 14, r: 11 },
+  inky:   { c: 12, r: 14 },
+  clyde:  { c: 15, r: 14 },
+};
+
+function makeGhost(name, color, startCol, startRow) {
+  return {
+    name, color,
+    x: tileCenterX(startCol),
+    y: tileCenterY(startRow),
+    r: TILE * 0.45,
+    speed: 90,
+    dir: DIR.LEFT,
+    nextDir: DIR.LEFT,
+    vulnerable: false,
+    vulnTimer: 0,
+    eaten: false,       // true when returning home as "eyes"
+    eyeDir: DIR.LEFT,
+    releaseDelay: 0,    // seconds until ghost leaves the house
+  };
+}
+
+const ghosts = [
+  makeGhost('blinky', '#ff2020', 13, 11), // red — direct chaser
+  makeGhost('pinky',  '#ffb8de', 14, 11), // pink — 4 tiles ahead
+  makeGhost('inky',   '#00ffff', 12, 14), // cyan — flank via Blinky
+  makeGhost('clyde',  '#ff9900', 15, 14), // orange — chase/retreat
+];
+// Staggered release: Blinky out immediately, Pinky soon, Inky mid, Clyde last
+ghosts[0].releaseDelay = 0.0;
+ghosts[1].releaseDelay = 2.0;
+ghosts[2].releaseDelay = 5.0;
+ghosts[3].releaseDelay = 9.0;
+
+// Chase/Scatter phase scheduler (classic arcade cadence, compressed)
+let aiModeTimer = 0;
+let aiMode = 'scatter'; // 'scatter' or 'chase'
+// Alternating durations — 7s scatter, 20s chase (classic first phase)
+const SCATTER_SECS = 7;
+const CHASE_SECS = 20;
+
+function updateAIMode(dt) {
+  aiModeTimer += dt;
+  if (aiMode === 'scatter' && aiModeTimer >= SCATTER_SECS) {
+    aiMode = 'chase';
+    aiModeTimer = 0;
+  } else if (aiMode === 'chase' && aiModeTimer >= CHASE_SECS) {
+    aiMode = 'scatter';
+    aiModeTimer = 0;
+  }
+}
+
+function ghostTargetTile(g) {
+  // Eyes returning home
+  if (g.eaten) {
+    const s = GHOST_SPAWN[g.name] || { c: 13, r: 11 };
+    return { c: s.c, r: s.r };
+  }
+  // Vulnerable ghosts wander: pick a random legal target
+  if (g.vulnerable) {
+    return { c: Math.floor(Math.random() * COLS), r: Math.floor(Math.random() * ROWS) };
+  }
+  // Scatter: corners
+  if (aiMode === 'scatter') return SCATTER_TARGETS[g.name];
+
+  // Chase: classic per-ghost targeting
+  const pc = pxToCol(player.x);
+  const pr = pxToRow(player.y);
+  const pd = player.dir;
+  switch (g.name) {
+    case 'blinky': {
+      return { c: pc, r: pr };
+    }
+    case 'pinky': {
+      return { c: pc + pd.x * 4, r: pr + pd.y * 4 };
+    }
+    case 'inky': {
+      // 2 tiles ahead of player, then vector from Blinky doubled
+      const midC = pc + pd.x * 2;
+      const midR = pr + pd.y * 2;
+      const blinky = ghosts.find(gg => gg.name === 'blinky');
+      const bc = blinky ? pxToCol(blinky.x) : 0;
+      const br = blinky ? pxToRow(blinky.y) : 0;
+      return { c: midC + (midC - bc), r: midR + (midR - br) };
+    }
+    case 'clyde': {
+      // Distance to player
+      const gc = pxToCol(g.x), gr = pxToRow(g.y);
+      const dc = gc - pc, dr = gr - pr;
+      const dist2 = dc * dc + dr * dr;
+      if (dist2 > 8 * 8) return { c: pc, r: pr };
+      return SCATTER_TARGETS.clyde;
+    }
+  }
+  return { c: pc, r: pr };
+}
+
+function chooseGhostDir(g) {
+  const c = pxToCol(g.x);
+  const r = pxToRow(g.y);
+  const cx = tileCenterX(c), cy = tileCenterY(r);
+  // Only pick direction when aligned with tile center to avoid jitter
+  if (Math.abs(g.x - cx) > 2 || Math.abs(g.y - cy) > 2) return;
+
+  // All ghosts can pass through the door tile (player cannot — isWall blocks doors for player).
+  // Eaten ghosts (eyes returning home) also pass freely.
+  const canPass = (cc, rr) => tileAt(cc, rr) !== T_WALL;
+
+  const cand = [DIR.UP, DIR.LEFT, DIR.DOWN, DIR.RIGHT];
+  const opts = [];
+  for (const d of cand) {
+    if (d.x === -g.dir.x && d.y === -g.dir.y) continue; // no 180 at intersections
+    const nc = c + d.x, nr = r + d.y;
+    if (!canPass(nc, nr)) continue;
+    opts.push({ dir: d, c: nc, r: nr });
+  }
+  let chosen;
+  if (opts.length === 0) {
+    // dead end: force reverse
+    chosen = { dir: { x: -g.dir.x, y: -g.dir.y, name: 'rev' } };
+  } else if (opts.length === 1) {
+    chosen = opts[0];
+  } else {
+    const t = ghostTargetTile(g);
+    let best = null, bestD = Infinity;
+    // Classic tie-break order: UP > LEFT > DOWN > RIGHT (our cand order)
+    for (const o of opts) {
+      const dc = o.c - t.c, dr = o.r - t.r;
+      const d2 = dc * dc + dr * dr;
+      if (d2 < bestD) { bestD = d2; best = o; }
+    }
+    chosen = best;
+  }
+  g.nextDir = chosen.dir;
+}
+
+function updateGhosts(dt) {
+  updateAIMode(dt);
+  for (const g of ghosts) {
+    // Gate ghosts released from the house
+    if (g.releaseDelay > 0) { g.releaseDelay -= dt; continue; }
+
+    // Speed modulation
+    const baseSpeed = 90 + Math.min(30, level * 2);
+    if (g.eaten) g.speed = baseSpeed * 2.0;
+    else if (g.vulnerable) g.speed = baseSpeed * 0.55;
+    else g.speed = baseSpeed;
+
+    chooseGhostDir(g);
+    tryStep(g, dt);
+    g.eyeDir = g.dir;
+
+    // Eyes reach spawn → respawn
+    if (g.eaten) {
+      const s = GHOST_SPAWN[g.name];
+      const sx = tileCenterX(s.c), sy = tileCenterY(s.r);
+      if (Math.abs(g.x - sx) < 3 && Math.abs(g.y - sy) < 3) {
+        g.eaten = false;
+        g.vulnerable = false;
+        g.vulnTimer = 0;
+        g.releaseDelay = 1.5;
+      }
+    }
+  }
+}
+
+// ------------------------------------------------------------
+// Render
+// ------------------------------------------------------------
+
+function drawMaze() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, HUD_H, W, H - HUD_H);
+
+  const offY = HUD_H;
+  // Walls: rounded pill style. Draw filled rounded rects.
+  ctx.save();
+  ctx.translate(0, offY);
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const t = grid[r][c];
+      const x = c * TILE;
+      const y = r * TILE;
+      if (t === T_WALL) {
+        ctx.fillStyle = mazeColor.wall;
+        roundRect(ctx, x + 2, y + 2, TILE - 4, TILE - 4, 5);
+        ctx.fill();
+        ctx.strokeStyle = mazeColor.edge;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      } else if (t === T_DOOR) {
+        ctx.fillStyle = '#ffb8de';
+        ctx.fillRect(x, y + TILE / 2 - 2, TILE, 4);
+      } else if (t === T_DOT) {
+        ctx.fillStyle = '#ffb897';
+        ctx.beginPath();
+        ctx.arc(x + TILE / 2, y + TILE / 2, 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (t === T_PWR) {
+        const pulse = 4 + Math.sin(performance.now() / 150) * 2;
+        ctx.fillStyle = '#ffb897';
+        ctx.beginPath();
+        ctx.arc(x + TILE / 2, y + TILE / 2, pulse, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+  ctx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, radius) {
+  const r = Math.min(radius, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawPlayer() {
+  const px = player.x;
+  const py = player.y + HUD_H;
+  const angle = dirAngle(player.dir);
+
+  // Animated chomp: mouth opens/closes. If not moving, mouth is closed.
+  const moving = player.dir.x !== 0 || player.dir.y !== 0;
+  if (moving) player.mouthPhase += 0.2;
+  const mouth = moving ? (Math.abs(Math.sin(player.mouthPhase)) * 0.6) : 0.0;
+
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(angle);
+  ctx.fillStyle = '#ffff00';
+  ctx.beginPath();
+  ctx.arc(0, 0, player.r, mouth, Math.PI * 2 - mouth);
+  ctx.lineTo(0, 0);
+  ctx.closePath();
+  ctx.fill();
+  // Tiny eye
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(0, -player.r * 0.5, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawGhost(g) {
+  const gx = g.x;
+  const gy = g.y + HUD_H;
+  const r = g.r;
+
+  ctx.save();
+  ctx.translate(gx, gy);
+  // Body (rounded top, wavy bottom)
+  ctx.fillStyle = g.vulnerable ? '#2222ff' : g.color;
+  ctx.beginPath();
+  ctx.arc(0, -2, r, Math.PI, 0);
+  ctx.lineTo(r, r * 0.9);
+  // wavy bottom
+  const segs = 4;
+  for (let i = 0; i < segs; i++) {
+    const midX = r - (i + 0.5) * (2 * r / segs);
+    const baseX = r - (i + 1) * (2 * r / segs);
+    ctx.lineTo(midX, r * 0.6);
+    ctx.lineTo(baseX, r * 0.9);
+  }
+  ctx.closePath();
+  ctx.fill();
+
+  // Eyes
+  const eyeOff = g.eyeDir || g.dir;
+  const ex = eyeOff.x * 1.2;
+  const ey = eyeOff.y * 1.2;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-r * 0.35, -r * 0.2, r * 0.28, 0, Math.PI * 2);
+  ctx.arc( r * 0.35, -r * 0.2, r * 0.28, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = g.vulnerable ? '#ff4444' : '#0033ff';
+  ctx.beginPath();
+  ctx.arc(-r * 0.35 + ex, -r * 0.2 + ey, r * 0.14, 0, Math.PI * 2);
+  ctx.arc( r * 0.35 + ex, -r * 0.2 + ey, r * 0.14, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawHUD() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, HUD_H);
+  ctx.strokeStyle = mazeColor.edge;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, HUD_H - 1);
+  ctx.lineTo(W, HUD_H - 1);
+  ctx.stroke();
+}
+
+function drawScanlines() {
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = '#000';
+  for (let y = 0; y < H; y += 3) ctx.fillRect(0, y, W, 1);
+  ctx.restore();
+}
+
+// ─── DEBUG HUD ─────────────────────────────────────────────────
+const debugHudEl = document.getElementById('debug-hud');
+let debugHudVisible = false;
+let fpsAcc = 0, fpsFrames = 0, fpsVal = 0;
+function toggleDebugHud() {
+  debugHudVisible = !debugHudVisible;
+  debugHudEl.classList.toggle('visible', debugHudVisible);
+}
+function updateDebugHUD(dt) {
+  fpsAcc += dt; fpsFrames++;
+  if (fpsAcc >= 0.5) { fpsVal = Math.round(fpsFrames / fpsAcc); fpsAcc = 0; fpsFrames = 0; }
+  if (!debugHudVisible) return;
+  const pc = pxToCol(player.x), pr = pxToRow(player.y);
+  debugHudEl.innerHTML =
+    `FPS: ${fpsVal}<br>` +
+    `LEVEL: ${level}<br>` +
+    `DOTS: ${dotsEaten}/${totalDots}<br>` +
+    `MODE: ${aiMode}<br>` +
+    `PLAYER: (${pc},${pr})<br>` +
+    `STATE: ${gameState}`;
+}
+
+// ------------------------------------------------------------
+// Input
+// ------------------------------------------------------------
+
+const keys = {};
+let paused = false;
+let scanlines = true;
+let audioUnlocked = false;
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  Sound.ensure();
+  Sound.intro();
+  setTimeout(() => Sound.startSiren(), 1200);
+}
+window.addEventListener('pointerdown', unlockAudio, { once: false });
+
+// ── Touch swipe controls ──
+let touchStart = null;
+canvas.addEventListener('touchstart', (e) => {
+  unlockAudio();
+  const t = e.changedTouches[0];
+  touchStart = { x: t.clientX, y: t.clientY };
+}, { passive: true });
+canvas.addEventListener('touchmove', (e) => {
+  if (!touchStart) return;
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStart.x;
+  const dy = t.clientY - touchStart.y;
+  const THRESH = 18;
+  if (Math.abs(dx) < THRESH && Math.abs(dy) < THRESH) return;
+  if (Math.abs(dx) > Math.abs(dy)) {
+    player.nextDir = dx > 0 ? DIR.RIGHT : DIR.LEFT;
+  } else {
+    player.nextDir = dy > 0 ? DIR.DOWN : DIR.UP;
+  }
+  touchStart = { x: t.clientX, y: t.clientY };
+}, { passive: true });
+canvas.addEventListener('touchend', () => { touchStart = null; }, { passive: true });
+
+// ── Gamepad D-pad polling ──
+function pollGamepad() {
+  const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+  for (const gp of pads) {
+    if (!gp) continue;
+    // D-pad buttons (standard mapping): 12=up 13=down 14=left 15=right
+    if (gp.buttons[12]?.pressed) player.nextDir = DIR.UP;
+    else if (gp.buttons[13]?.pressed) player.nextDir = DIR.DOWN;
+    else if (gp.buttons[14]?.pressed) player.nextDir = DIR.LEFT;
+    else if (gp.buttons[15]?.pressed) player.nextDir = DIR.RIGHT;
+    // Left stick fallback
+    const ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
+    if (Math.abs(ax) > 0.4 || Math.abs(ay) > 0.4) {
+      if (Math.abs(ax) > Math.abs(ay)) {
+        player.nextDir = ax > 0 ? DIR.RIGHT : DIR.LEFT;
+      } else {
+        player.nextDir = ay > 0 ? DIR.DOWN : DIR.UP;
+      }
+    }
+    // Start button on title screen
+    if (gp.buttons[9]?.pressed && gameState === 'title') startGame();
+    break;
+  }
+}
+
+window.addEventListener('keydown', (e) => {
+  unlockAudio();
+  keys[e.key] = true;
+  const k = e.key.toLowerCase();
+  if (k === 'arrowup' || k === 'w') player.nextDir = DIR.UP;
+  if (k === 'arrowdown' || k === 's') player.nextDir = DIR.DOWN;
+  if (k === 'arrowleft' || k === 'a') player.nextDir = DIR.LEFT;
+  if (k === 'arrowright' || k === 'd') player.nextDir = DIR.RIGHT;
+  if (k === 'p') paused = !paused;
+  if (e.key === 'Enter' && gameState === 'title') startGame();
+  if (e.key === 'F1') { scanlines = !scanlines; e.preventDefault(); }
+  if (e.key === 'F2') { toggleApiOverlay(); toggleDebugHud(); e.preventDefault(); }
+});
+window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+
+// ------------------------------------------------------------
+// Main loop
+// ------------------------------------------------------------
+
+// Score / HUD state
+let score = 0;
+let hiScore = parseInt(localStorage.getItem('dotchomper_hi') || '0', 10);
+let lives = 3;
+let level = 1;
+document.getElementById('hi').textContent = hiScore;
+
+// Game state: 'title' | 'play'
+let gameState = 'title';
+
+// Top-5 high scores (localStorage)
+function loadHiList() {
+  try {
+    const raw = localStorage.getItem('dotchomper_hiscores');
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr.filter(e => typeof e === 'object' && typeof e.score === 'number');
+  } catch { return []; }
+}
+function saveHiList(list) {
+  try { localStorage.setItem('dotchomper_hiscores', JSON.stringify(list)); }
+  catch { /* quota */ }
+}
+function addHiScore(score, level) {
+  const list = loadHiList();
+  list.push({ score, level, date: Date.now() });
+  list.sort((a, b) => b.score - a.score);
+  const top = list.slice(0, 5);
+  saveHiList(top);
+  return top;
+}
+function renderHiList() {
+  const el = document.getElementById('hi-list');
+  const list = loadHiList();
+  const rows = list.length
+    ? list.map((e, i) =>
+        `<li><span>${i + 1}. L${e.level}</span><span>${e.score.toLocaleString()}</span></li>`
+      ).join('')
+    : '<li><span>---</span><span>0</span></li>';
+  el.innerHTML = `<h3>HIGH SCORES</h3><ol>${rows}</ol>`;
+}
+renderHiList();
+
+loadMaze(0);
+
+// Score popups
+const popups = [];
+function addPopup(x, y, text, color = '#ffffff') {
+  popups.push({ x, y, text, color, life: 1.0 });
+}
+
+function eatDots() {
+  const c = pxToCol(player.x);
+  const r = pxToRow(player.y);
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+  const t = grid[r][c];
+  if (t === T_DOT) {
+    grid[r][c] = T_EMPTY;
+    dotsEaten++;
+    score += 10;
+    Sound.chomp();
+  } else if (t === T_PWR) {
+    grid[r][c] = T_EMPTY;
+    dotsEaten++;
+    score += 50;
+    Sound.powerPellet();
+    Sound.startWarble();
+    for (const g of ghosts) {
+      g.vulnerable = true;
+      g.vulnTimer = 6.0;
+    }
+  }
+  // Fruit pickup
+  if (currentFruit && !currentFruit.eaten && currentFruit.spawnDelay <= 0) {
+    const dx = player.x - currentFruit.x;
+    const dy = player.y - currentFruit.y;
+    if (dx * dx + dy * dy < (TILE * 0.7) * (TILE * 0.7)) {
+      score += currentFruit.spec.points;
+      addPopup(currentFruit.x, currentFruit.y, '+' + currentFruit.spec.points, currentFruit.spec.color);
+      currentFruit.eaten = true;
+    }
+  }
+}
+
+function updateFruit(dt) {
+  if (!currentFruit || currentFruit.eaten) return;
+  if (currentFruit.spawnDelay > 0) { currentFruit.spawnDelay -= dt; return; }
+  currentFruit.timer -= dt;
+  if (currentFruit.timer <= 0) currentFruit.eaten = true;
+}
+
+function drawFruit() {
+  if (!currentFruit || currentFruit.eaten || currentFruit.spawnDelay > 0) return;
+  const x = currentFruit.x;
+  const y = currentFruit.y + HUD_H;
+  const spec = currentFruit.spec;
+  const pulse = 1 + Math.sin(performance.now() / 180) * 0.12;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(pulse, pulse);
+  // Fruit body
+  ctx.fillStyle = spec.color;
+  ctx.beginPath();
+  ctx.arc(0, 2, 7, 0, Math.PI * 2);
+  ctx.fill();
+  // Highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.beginPath();
+  ctx.arc(-2, 0, 2.2, 0, Math.PI * 2);
+  ctx.fill();
+  // Stem
+  ctx.strokeStyle = '#3a7a20';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(0, -5);
+  ctx.lineTo(3, -9);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawPopups(dt) {
+  for (let i = popups.length - 1; i >= 0; i--) {
+    const p = popups[i];
+    p.life -= dt * 1.2;
+    p.y -= 18 * dt;
+    if (p.life <= 0) { popups.splice(i, 1); continue; }
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.color;
+    ctx.font = 'bold 10px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.text, p.x, p.y + HUD_H);
+    ctx.restore();
+  }
+}
+
+function updateHUD() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('lives').textContent = lives;
+  document.getElementById('level').textContent = level;
+  if (score > hiScore) {
+    hiScore = score;
+    localStorage.setItem('dotchomper_hi', hiScore);
+    document.getElementById('hi').textContent = hiScore;
+  }
+}
+
+// Title overlay wiring
+const titleOverlay = document.getElementById('title-overlay');
+
+function showTitle() {
+  gameState = 'title';
+  titleOverlay.classList.remove('hidden');
+  renderHiList();
+  Sound.stopSiren();
+  Sound.stopWarble();
+}
+function startGame() {
+  gameState = 'play';
+  titleOverlay.classList.add('hidden');
+  unlockAudio();
+  // Fresh run
+  level = 1;
+  score = 0;
+  lives = 3;
+  loadMaze(0);
+  resetPositions();
+  Sound.setSirenLevel(0);
+  Sound.startSiren();
+}
+
+titleOverlay.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  if (action === 'start') startGame();
+  else if (action === 'mute') {
+    const muted = Sound.toggleMute();
+    btn.textContent = muted ? 'UNMUTE' : 'MUTE';
+  } else if (action === 'scanlines') {
+    scanlines = !scanlines;
+    btn.textContent = scanlines ? 'SCANLINES' : 'CRISP';
+  } else if (action === 'reset-hi') {
+    saveHiList([]);
+    hiScore = 0;
+    localStorage.setItem('dotchomper_hi', '0');
+    document.getElementById('hi').textContent = '0';
+    renderHiList();
+  }
+});
+
+// Ghost eat chain: 200, 400, 800, 1600 (then reset at power-pellet end)
+let ghostEatChain = 0;
+let deathTimer = 0;
+
+function handleGhostCollisions() {
+  if (!player.alive) return;
+  for (const g of ghosts) {
+    if (g.eaten) continue;
+    const dx = g.x - player.x, dy = g.y - player.y;
+    if (dx * dx + dy * dy < (TILE * 0.6) * (TILE * 0.6)) {
+      if (g.vulnerable) {
+        ghostEatChain = Math.min(4, ghostEatChain + 1);
+        const pts = 200 * (1 << (ghostEatChain - 1)); // 200/400/800/1600
+        score += pts;
+        addPopup(g.x, g.y, '+' + pts, '#00ffff');
+        g.vulnerable = false;
+        g.eaten = true;
+        Sound.ghostEaten();
+        Sound.raiseSiren();
+      } else {
+        player.alive = false;
+        deathTimer = 1.5;
+        lives--;
+        Sound.stopWarble();
+        Sound.stopSiren();
+        Sound.death();
+        try { engine.stopRecording(WORLD_ID); } catch (_) {}
+        try { engine.startRecording(WORLD_ID); } catch (_) {}
+        try { if (GHOST_AGENT_ID) engine.agentReward(WORLD_ID, GHOST_AGENT_ID, 1.0); } catch (_) {}
+      }
+    }
+  }
+}
+
+function drawDeath(dt) {
+  // Descending chomp animation
+  deathTimer -= dt;
+  const t = Math.max(0, 1 - deathTimer / 1.5); // 0..1
+  const px = player.x;
+  const py = player.y + HUD_H;
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(dirAngle(player.dir));
+  ctx.fillStyle = '#ffff00';
+  const open = Math.min(Math.PI, t * Math.PI);
+  ctx.beginPath();
+  ctx.arc(0, 0, player.r, open, Math.PI * 2 - open);
+  ctx.lineTo(0, 0);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  if (deathTimer <= 0) {
+    if (lives < 0) {
+      gameOver();
+    } else {
+      resetPositions();
+    }
+  }
+}
+
+function resetPositions() {
+  player.x = tileCenterX(13) + TILE / 2;
+  player.y = tileCenterY(23);
+  player.dir = DIR.LEFT;
+  player.nextDir = DIR.LEFT;
+  player.alive = true;
+  ghostEatChain = 0;
+  const spawns = ['blinky', 'pinky', 'inky', 'clyde'];
+  for (let i = 0; i < ghosts.length; i++) {
+    const g = ghosts[i];
+    const s = GHOST_SPAWN[g.name];
+    g.x = tileCenterX(s.c);
+    g.y = tileCenterY(s.r);
+    g.dir = DIR.LEFT;
+    g.nextDir = DIR.LEFT;
+    g.vulnerable = false;
+    g.eaten = false;
+    g.releaseDelay = [0, 1.0, 3.0, 6.0][i] || 0;
+  }
+}
+
+function gameOver() {
+  // Save high score if beaten
+  if (score > hiScore) {
+    hiScore = score;
+    localStorage.setItem('dotchomper_hi', hiScore);
+  }
+  addHiScore(score, level);
+  renderHiList();
+  Sound.stopSiren();
+  Sound.stopWarble();
+  showTitle();
+}
+
+// Cutscene state (runs between levels)
+let cutscene = null;
+
+function beginCutscene(nextLevel) {
+  cutscene = { t: 0, dur: 3.2, nextLevel, variant: nextLevel % 3 };
+  Sound.stopSiren();
+  Sound.stopWarble();
+  Sound.levelJingle();
+}
+
+function updateCutscene(dt) {
+  cutscene.t += dt;
+  // Draw blank maze background
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+  drawHUD();
+
+  // Title text
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffff00';
+  ctx.font = 'bold 18px "Press Start 2P", monospace';
+  ctx.fillText('LEVEL ' + cutscene.nextLevel, W / 2, HUD_H + 50);
+  const fruit = fruitForLevel(cutscene.nextLevel);
+  if (fruit) {
+    ctx.fillStyle = fruit.color;
+    ctx.font = 'bold 11px "Press Start 2P", monospace';
+    ctx.fillText('BONUS: ' + fruit.name.toUpperCase() + ' +' + fruit.points, W / 2, HUD_H + 80);
+  }
+  ctx.restore();
+
+  // Character chase animation across the middle
+  const cy = HUD_H + Math.floor((H - HUD_H) / 2);
+  const progress = Math.min(1, cutscene.t / cutscene.dur);
+  const startX = -30;
+  const endX = W + 30;
+  const px = startX + progress * (endX - startX);
+
+  // Variant 0: player chases ghost
+  // Variant 1: vulnerable ghost flees player
+  // Variant 2: player eats big pellet, grows
+  if (cutscene.variant === 0) {
+    // ghost in front, player chasing
+    const gx = px + 100;
+    drawGhostAt(gx, cy, ghosts[0].color);
+    drawPlayerAt(px, cy, DIR.RIGHT);
+  } else if (cutscene.variant === 1) {
+    // player chases vulnerable blue ghosts
+    drawGhostAt(px + 70, cy, '#2222ff');
+    drawGhostAt(px + 110, cy, '#2222ff');
+    drawPlayerAt(px, cy, DIR.RIGHT);
+  } else {
+    // player solo, huge chomp
+    const bigR = 14 + Math.sin(cutscene.t * 6) * 4;
+    ctx.save();
+    ctx.translate(px, cy);
+    ctx.fillStyle = '#ffff00';
+    const mouth = (Math.abs(Math.sin(cutscene.t * 9)) * 0.6);
+    ctx.beginPath();
+    ctx.arc(0, 0, bigR, mouth, Math.PI * 2 - mouth);
+    ctx.lineTo(0, 0);
+    ctx.fill();
+    ctx.restore();
+    // Trail of pellets
+    for (let i = 1; i < 6; i++) {
+      const dotX = px + i * 22;
+      if (dotX < W) {
+        ctx.fillStyle = '#ffb897';
+        ctx.beginPath();
+        ctx.arc(dotX, cy, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  if (scanlines) drawScanlines();
+
+  if (cutscene.t >= cutscene.dur) {
+    level = cutscene.nextLevel;
+    loadMaze(level - 1);
+    resetPositions();
+    Sound.setSirenLevel(Math.min(4, Math.floor(level / 2)));
+    Sound.startSiren();
+    cutscene = null;
+  }
+}
+
+function drawPlayerAt(x, y, dir) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(dirAngle(dir));
+  ctx.fillStyle = '#ffff00';
+  const mouth = 0.4 + Math.abs(Math.sin(performance.now() / 120)) * 0.3;
+  ctx.beginPath();
+  ctx.arc(0, 0, 11, mouth, Math.PI * 2 - mouth);
+  ctx.lineTo(0, 0);
+  ctx.fill();
+  ctx.restore();
+}
+function drawGhostAt(x, y, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(0, -2, 10, Math.PI, 0);
+  ctx.lineTo(10, 8);
+  for (let i = 0; i < 4; i++) {
+    const midX = 10 - (i + 0.5) * 5;
+    const baseX = 10 - (i + 1) * 5;
+    ctx.lineTo(midX, 5);
+    ctx.lineTo(baseX, 8);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-3, -3, 2.5, 0, Math.PI * 2);
+  ctx.arc( 3, -3, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#0033ff';
+  ctx.beginPath();
+  ctx.arc(-3, -3, 1.2, 0, Math.PI * 2);
+  ctx.arc( 3, -3, 1.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function checkLevelComplete() {
+  if (dotsEaten >= totalDots && totalDots > 0) {
+    beginCutscene(level + 1);
+  }
+}
+
+let last = performance.now();
+let engineTick = 0;
+let enginePhaseTimer = 0;
+let enginePhase = 0;
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  pollGamepad();
+
+  if (gameState === 'title') {
+    // Animated maze background + ghosts wandering (no player control)
+    updateGhosts(dt);
+    drawHUD();
+    drawMaze();
+    for (const g of ghosts) drawGhost(g);
+    if (scanlines) drawScanlines();
+    updateDebugHUD(dt);
+    requestAnimationFrame(frame);
+    return;
+  }
+
+  if (cutscene) {
+    updateCutscene(dt);
+    updateDebugHUD(dt);
+    requestAnimationFrame(frame);
+    return;
+  }
+
+  if (paused) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#ffff00';
+    ctx.font = 'bold 18px "Press Start 2P", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('PAUSED', W / 2, H / 2);
+    ctx.restore();
+    updateDebugHUD(dt);
+    requestAnimationFrame(frame);
+    return;
+  }
+
+  if (player.alive) tryStep(player, dt);
+  eatDots();
+  updateGhosts(dt);
+  updateFruit(dt);
+  handleGhostCollisions();
+
+  // Vulnerability timers
+  let anyVuln = false;
+  for (const g of ghosts) {
+    if (g.vulnerable) {
+      g.vulnTimer -= dt;
+      if (g.vulnTimer <= 0) { g.vulnerable = false; ghostEatChain = 0; }
+      else anyVuln = true;
+    }
+  }
+  if (!anyVuln) Sound.stopWarble();
+
+  // Throttled engine sync — pushes live transforms to RakuEngine so the
+  // API debug overlay shows continuous activity.
+  engineTick += dt;
+  if (engineTick > 0.25) {
+    engineTick = 0;
+    engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
+      position: [player.x / TILE, 0, player.y / TILE],
+    });
+    for (const g of ghosts) {
+      const id = ghostEntityIds[g.name];
+      if (id) engine.setTransform(WORLD_ID, id, {
+        position: [g.x / TILE, 0, g.y / TILE],
+      });
+    }
+    engine.observeWorld(WORLD_ID);
+    try { engine.stepPhysics(WORLD_ID, 0.25); } catch (_) {}
+  }
+  enginePhaseTimer += dt;
+  if (enginePhaseTimer > 2.0) {
+    enginePhaseTimer = 0;
+    const p = (enginePhase++) % 5;
+    try {
+      if (p === 0) engine.observeJSON(WORLD_ID);
+      else if (p === 1) { if (GHOST_AGENT_ID) engine.agentObserve(WORLD_ID, GHOST_AGENT_ID); }
+      else if (p === 2) { if (GHOST_AGENT_ID) (async () => { try { await engine.agentAct(WORLD_ID, GHOST_AGENT_ID, { action: 'chase' }); } catch (_) {} })(); }
+      else if (p === 3) { if (GHOST_AGENT_ID) engine.agentReward(WORLD_ID, GHOST_AGENT_ID, player.alive ? -0.05 : 1.0); }
+      else engine.saveWorld(WORLD_ID);
+    } catch (_) {}
+  }
+
+  drawHUD();
+  drawMaze();
+  drawFruit();
+  if (player.alive) drawPlayer();
+  else drawDeath(dt);
+  for (const g of ghosts) drawGhost(g);
+  drawPopups(dt);
+  if (scanlines) drawScanlines();
+  updateHUD();
+  updateDebugHUD(dt);
+  checkLevelComplete();
+
+  requestAnimationFrame(frame);
+}
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

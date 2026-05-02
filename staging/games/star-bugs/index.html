@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Star Bugs</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+  :root { color-scheme: dark; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: #04030a; color: #e8ecf5;
+    font-family: "Courier New", Menlo, monospace;
+    overflow: hidden;
+  }
+  #wrap {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  canvas {
+    background: #000;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    box-shadow: 0 0 40px rgba(120, 160, 255, 0.3);
+    max-width: 100%; max-height: 100%;
+    touch-action: none;
+  }
+  #hud {
+    position: fixed; top: 12px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px; letter-spacing: 2px;
+    color: #7fb0ff;
+    pointer-events: none;
+    text-shadow: 0 0 8px rgba(120, 160, 255, 0.8);
+  }
+  #hud a { color: #7fb0ff; text-decoration: none; }
+  #hud a:hover { color: #fff; }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="game" width="480" height="640"></canvas></div>
+<div id="hud"><a href="../../">&lt; RAKU.AI</a> &nbsp;STAR BUGS</div>
+<script type="module">
+import {
+  installApiOverlay,
+  createSound,
+  installLauncherIntegration,
+  ensureIframeFocus,
+  relayApiCallsToParent,
+} from "../lib/game-shared.js";
+import { RakuEngine } from "../../engine/raku-engine.js";
+
+(() => {
+  // ---------- RakuAI shared helpers ----------
+  ensureIframeFocus();
+  const overlay = installApiOverlay({ gameName: "Star Bugs" });
+  const sound = createSound();
+  const launcher = installLauncherIntegration("Star Bugs");
+
+  const engine = new RakuEngine();
+  const worldRes = engine.createWorld("star-bugs");
+  const WORLD_ID = worldRes.world_id;
+  const shipEntity = engine.createEntity(WORLD_ID, {
+    type: "ship", name: "player", position: [0, 0, 0],
+    properties: { shape: "box", color: "#cfd8ef" },
+  }).entity_id;
+  const swarmEntity = engine.createEntity(WORLD_ID, {
+    type: "swarm", name: "bugs", position: [0, 0, 0],
+    properties: { shape: "group", color: "#5cf08f" },
+  }).entity_id;
+  engine.addPhysicsBody(WORLD_ID, shipEntity, { shape: 'box', mass: 1, isStatic: false });
+  engine.observeWorld(WORLD_ID);
+  engine.observeJSON(WORLD_ID);
+  engine.captureFrame(WORLD_ID);
+  engine.saveWorld(WORLD_ID);
+  engine.startRecording(WORLD_ID);
+  const bugAgentRes = engine.createAgent(WORLD_ID, { type: 'swarm-ai', name: 'BugAI' });
+  const BUG_AGENT_ID = bugAgentRes.agent_id;
+  engine.on("api", (e) => overlay.log(e));
+  relayApiCallsToParent(engine);
+
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // ---------- Input ----------
+  const keys = {};
+  const pressed = {};
+  window.addEventListener('keydown', e => {
+    if (!keys[e.code]) pressed[e.code] = true;
+    keys[e.code] = true;
+    if ([' ', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) e.preventDefault();
+  });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+  function readInput() {
+    const left  = keys['ArrowLeft']  || keys['KeyA'];
+    const right = keys['ArrowRight'] || keys['KeyD'];
+    const up    = keys['ArrowUp']    || keys['KeyW'];
+    const down  = keys['ArrowDown']  || keys['KeyS'];
+    const fire  = keys['Space'] || keys['KeyZ'] || keys['KeyJ'];
+    const shield = keys['ShiftLeft'] || keys['ShiftRight'] || keys['KeyX'];
+    return { left, right, up, down, fire, shield };
+  }
+
+  // Shield tuning — copied from Meteor Storm per user request.
+  const SHIELD_DRAIN = 0.45;            // per second while held
+  const SHIELD_REGEN = 0.22;            // per second while off
+  const SHIELD_MIN_TO_ACTIVATE = 0.12;  // min fraction to (re)engage
+
+  // ---------- Bezier helpers ----------
+  function bezier(p0, p1, p2, p3, t) {
+    const u = 1 - t;
+    const a = u*u*u, b = 3*u*u*t, c = 3*u*t*t, d = t*t*t;
+    return {
+      x: a*p0.x + b*p1.x + c*p2.x + d*p3.x,
+      y: a*p0.y + b*p1.y + c*p2.y + d*p3.y,
+    };
+  }
+  function bezierTangent(p0, p1, p2, p3, t) {
+    const u = 1 - t;
+    const x = 3*u*u*(p1.x-p0.x) + 6*u*t*(p2.x-p1.x) + 3*t*t*(p3.x-p2.x);
+    const y = 3*u*u*(p1.y-p0.y) + 6*u*t*(p2.y-p1.y) + 3*t*t*(p3.y-p2.y);
+    return Math.atan2(y, x);
+  }
+
+  // ---------- State ----------
+  const MODE = { TITLE: 'title', PLAY: 'play', GAMEOVER: 'gameover' };
+  const state = {
+    mode: MODE.TITLE,
+    ship: {
+      x: W/2, y: H - 60, w: 28, h: 24, cooldown: 0, alive: true,
+      shieldActive: false, shieldEnergy: 1,
+    },
+    bullets: [],
+    bugs: [],
+    bugBullets: [],
+    particles: [],
+    stars: [],
+    score: 0,
+    hiscore: parseInt(localStorage.getItem('raku-star-bugs-hi') || '0', 10) || 0,
+    lives: 3,
+    stage: 1,
+    time: 0,
+    diveTimer: 1.5,
+    entryTimer: 0,
+    spawnQueue: [],
+    gameOverTimer: 0,
+    physicsTimer: 0,
+    screenTimer: 0,
+    apiPhase: 0,
+  };
+
+  function resetGame() {
+    state.score = 0;
+    state.lives = 3;
+    state.stage = 1;
+    state.bullets = [];
+    state.bugBullets = [];
+    state.particles = [];
+    state.ship.x = W / 2;
+    state.ship.y = H - 60;
+    state.ship.alive = true;
+    state.ship.shieldActive = false;
+    state.ship.shieldEnergy = 1;
+    spawnFormation(1);
+    sound.powerup();
+  }
+  function goToTitle() {
+    state.mode = MODE.TITLE;
+    state.bullets = [];
+    state.bugBullets = [];
+    state.particles = [];
+    state.bugs = [];
+    state.spawnQueue = [];
+  }
+
+  // Starfield
+  for (let i = 0; i < 80; i++) {
+    state.stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      s: Math.random() * 2 + 0.3,
+      v: Math.random() * 30 + 15,
+    });
+  }
+
+  // ---------- Bugs ----------
+  // Types: 0 = drone (green), 1 = wasp (red), 2 = boss (gold)
+  const BUG_COLORS = [
+    { body: '#5cf08f', accent: '#1a6b3b', eye: '#fff' },
+    { body: '#ff5870', accent: '#7a1425', eye: '#ffe94a' },
+    { body: '#ffd24a', accent: '#a06414', eye: '#5cf0ff' },
+  ];
+
+  function gridSlot(r, c) {
+    const cols = 8;
+    const spacingX = 42, spacingY = 36;
+    const startX = (W - (cols - 1) * spacingX) / 2;
+    const startY = 70;
+    return { x: startX + c * spacingX, y: startY + r * spacingY };
+  }
+
+  function spawnFormation(stage) {
+    state.bugs.length = 0;
+    state.spawnQueue.length = 0;
+    state.entryTimer = 0;
+    const rows = 4, cols = 8;
+    const order = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const type = r === 0 ? 2 : (r < 2 ? 1 : 0);
+        order.push({ r, c, type });
+      }
+    }
+    // 4 entry waves alternating sides
+    order.forEach((o, i) => {
+      const wave = i % 4;
+      const side = wave % 2 === 0 ? -1 : 1;
+      const slot = gridSlot(o.r, o.c);
+      const start = { x: side < 0 ? -30 : W + 30, y: -20 - (i % 4) * 15 };
+      const c1 = { x: side < 0 ? 60 : W - 60, y: 80 + (i % 5) * 30 };
+      const c2 = { x: side < 0 ? W - 100 : 100, y: 200 + (i % 4) * 25 };
+      const path = [start, c1, c2, slot];
+      state.spawnQueue.push({
+        delay: 0.12 * i,
+        bug: makeBug(o.type, o.r, o.c, slot, path),
+      });
+    });
+  }
+
+  function makeBug(type, r, c, slot, entryPath) {
+    return {
+      type,
+      row: r, col: c,
+      gridX: slot.x, gridY: slot.y,
+      x: entryPath[0].x, y: entryPath[0].y,
+      hp: type === 2 ? 2 : 1,
+      alive: true,
+      angle: Math.PI / 2,
+      // states: 'entry', 'idle', 'dive', 'return'
+      state: 'entry',
+      pathT: 0,
+      pathDur: 2.6,
+      path: entryPath,
+      divePath: null,
+      diveT: 0,
+      diveDur: 3.0,
+      fireCooldown: 1 + Math.random() * 2,
+    };
+  }
+
+  function makeDivePath(bug) {
+    const start = { x: bug.gridX, y: bug.gridY };
+    const c1 = { x: bug.gridX + (Math.random() * 200 - 100), y: bug.gridY + 80 + Math.random() * 60 };
+    const c2 = { x: state.ship.x + (Math.random() * 160 - 80), y: H - 200 + Math.random() * 60 };
+    const end = { x: state.ship.x + (Math.random() * 80 - 40), y: H + 40 };
+    return [start, c1, c2, end];
+  }
+
+  function makeReturnPath(bug) {
+    const start = { x: bug.x, y: -20 };
+    const c1 = { x: bug.gridX + 120, y: 0 };
+    const c2 = { x: bug.gridX - 60, y: 30 };
+    const end = { x: bug.gridX, y: bug.gridY };
+    return [start, c1, c2, end];
+  }
+
+  // formation is seeded when the player starts the first game.
+
+  // ---------- Update ----------
+  function update(dt) {
+    state.time += dt;
+    state.screenTimer += dt;
+
+    // Title / game-over screens handle their own input and skip normal play
+    if (state.mode === MODE.TITLE) {
+      if (pressed.Space || pressed.Enter || pressed.KeyZ) {
+        state.mode = MODE.PLAY;
+        resetGame();
+      }
+      for (const k in pressed) delete pressed[k];
+      return;
+    }
+    if (state.mode === MODE.GAMEOVER) {
+      if (state.screenTimer > 1.0 && (pressed.Space || pressed.Enter)) {
+        goToTitle();
+        state.screenTimer = 0;
+      }
+      for (const k in pressed) delete pressed[k];
+      return;
+    }
+
+    // Stars
+    for (const s of state.stars) {
+      s.y += s.v * dt;
+      if (s.y > H) { s.y = 0; s.x = Math.random() * W; }
+    }
+
+    // Spawn queue (entry timing)
+    state.entryTimer += dt;
+    while (state.spawnQueue.length && state.entryTimer >= state.spawnQueue[0].delay) {
+      const item = state.spawnQueue.shift();
+      state.bugs.push(item.bug);
+    }
+
+    // Ship
+    const input = readInput();
+    if (state.ship.alive) {
+      const speed = 260;
+      if (input.left)  state.ship.x -= speed * dt;
+      if (input.right) state.ship.x += speed * dt;
+      // Forward / back movement — clamp to bottom half so the ship can't
+      // wander into the bug formation.
+      if (input.up)    state.ship.y -= speed * dt;
+      if (input.down)  state.ship.y += speed * dt;
+      state.ship.x = Math.max(20, Math.min(W - 20, state.ship.x));
+      state.ship.y = Math.max(H * 0.55, Math.min(H - 30, state.ship.y));
+
+      // Shield — mirrors Meteor Storm behavior (discharges to 0, regens).
+      const wantShield = !!input.shield;
+      const prevShield = state.ship.shieldActive;
+      if (!wantShield) state.ship.shieldActive = false;
+      else if (prevShield) state.ship.shieldActive = state.ship.shieldEnergy > 0;
+      else state.ship.shieldActive = state.ship.shieldEnergy >= SHIELD_MIN_TO_ACTIVATE;
+      if (state.ship.shieldActive && !prevShield) sound.shield();
+      if (state.ship.shieldActive) {
+        state.ship.shieldEnergy = Math.max(0, state.ship.shieldEnergy - SHIELD_DRAIN * dt);
+        if (state.ship.shieldEnergy === 0) state.ship.shieldActive = false;
+      } else {
+        state.ship.shieldEnergy = Math.min(1, state.ship.shieldEnergy + SHIELD_REGEN * dt);
+      }
+
+      state.ship.cooldown -= dt;
+      if (input.fire && state.ship.cooldown <= 0) {
+        state.bullets.push({ x: state.ship.x, y: state.ship.y - 16, v: -520 });
+        state.ship.cooldown = 0.22;
+        sound.fire();
+      }
+    }
+
+    // periodic physics tick to populate API log
+    state.physicsTimer += dt;
+    if (state.physicsTimer > 0.3) {
+      state.physicsTimer = 0;
+      try {
+        const phase = (state.apiPhase = (state.apiPhase + 1) % 10);
+        if (phase === 0) engine.setTransform(WORLD_ID, shipEntity, {
+          position: [state.ship.x, state.ship.y, 0],
+        });
+        else if (phase === 1) engine.observeWorld(WORLD_ID);
+        else if (phase === 2) engine.stepPhysics(WORLD_ID, dt);
+        else if (phase === 3) engine.captureFrame(WORLD_ID);
+        else if (phase === 4) engine.observeJSON(WORLD_ID);
+        else if (phase === 5) engine.setTransform(WORLD_ID, swarmEntity, {
+          position: [state.bugs.filter(b => b.alive).length, 0, 0],
+        });
+        else if (phase === 6) { if (BUG_AGENT_ID) engine.agentObserve(WORLD_ID, BUG_AGENT_ID); }
+        else if (phase === 7) { if (BUG_AGENT_ID) engine.agentAct(WORLD_ID, BUG_AGENT_ID, {
+          playerAction: 'attack',
+          observation: 'ship at ' + (state.ship.x | 0) + ',' + (state.ship.y | 0)
+        }); }
+        else if (phase === 8) engine.saveWorld(WORLD_ID);
+        else { if (BUG_AGENT_ID) engine.agentReward(WORLD_ID, BUG_AGENT_ID, 0.01); }
+      } catch (_) {}
+    }
+
+    // Bullets
+    for (const b of state.bullets) b.y += b.v * dt;
+    state.bullets = state.bullets.filter(b => b.y > -20 && b.y < H + 20);
+    for (const b of state.bugBullets) { b.x += b.vx*dt; b.y += b.vy*dt; }
+    state.bugBullets = state.bugBullets.filter(b => b.y < H + 20 && b.x > -20 && b.x < W + 20);
+
+    // Bug formation idle sway
+    const sway = Math.sin(state.time * 1.2) * 12;
+
+    // Bug update
+    let aliveCount = 0;
+    let idleCount = 0;
+    for (const bug of state.bugs) {
+      if (!bug.alive) continue;
+      aliveCount++;
+      if (bug.state === 'entry') {
+        bug.pathT += dt / bug.pathDur;
+        if (bug.pathT >= 1) {
+          bug.pathT = 1;
+          bug.state = 'idle';
+        }
+        const p = bezier(bug.path[0], bug.path[1], bug.path[2], bug.path[3], bug.pathT);
+        bug.x = p.x; bug.y = p.y;
+        bug.angle = bezierTangent(bug.path[0], bug.path[1], bug.path[2], bug.path[3], bug.pathT) - Math.PI/2;
+      } else if (bug.state === 'idle') {
+        idleCount++;
+        bug.x = bug.gridX + sway;
+        bug.y = bug.gridY;
+        bug.angle = 0;
+      } else if (bug.state === 'dive') {
+        bug.diveT += dt / bug.diveDur;
+        if (bug.diveT >= 1) {
+          // wrap to top, return to slot
+          bug.state = 'return';
+          bug.divePath = makeReturnPath(bug);
+          bug.diveT = 0;
+          bug.diveDur = 1.8;
+        } else {
+          const p = bezier(bug.divePath[0], bug.divePath[1], bug.divePath[2], bug.divePath[3], bug.diveT);
+          bug.x = p.x; bug.y = p.y;
+          bug.angle = bezierTangent(bug.divePath[0], bug.divePath[1], bug.divePath[2], bug.divePath[3], bug.diveT) - Math.PI/2;
+          // fire
+          bug.fireCooldown -= dt;
+          if (bug.fireCooldown <= 0) {
+            bug.fireCooldown = 0.6;
+            const ang = Math.atan2(state.ship.y - bug.y, state.ship.x - bug.x);
+            state.bugBullets.push({ x: bug.x, y: bug.y, vx: Math.cos(ang)*180, vy: Math.sin(ang)*180 });
+          }
+        }
+      } else if (bug.state === 'return') {
+        bug.diveT += dt / bug.diveDur;
+        if (bug.diveT >= 1) {
+          bug.state = 'idle';
+          bug.x = bug.gridX; bug.y = bug.gridY;
+        } else {
+          const p = bezier(bug.divePath[0], bug.divePath[1], bug.divePath[2], bug.divePath[3], bug.diveT);
+          bug.x = p.x; bug.y = p.y;
+          bug.angle = bezierTangent(bug.divePath[0], bug.divePath[1], bug.divePath[2], bug.divePath[3], bug.diveT) - Math.PI/2;
+        }
+      }
+    }
+
+    // Trigger new dive
+    state.diveTimer -= dt;
+    if (state.diveTimer <= 0 && idleCount > 0 && state.spawnQueue.length === 0) {
+      const idle = state.bugs.filter(b => b.alive && b.state === 'idle');
+      if (idle.length) {
+        const target = idle[Math.floor(Math.random() * idle.length)];
+        target.state = 'dive';
+        target.divePath = makeDivePath(target);
+        target.diveT = 0;
+        target.diveDur = 2.8 + Math.random() * 0.6;
+        target.fireCooldown = 0.4;
+      }
+      state.diveTimer = Math.max(0.4, 1.6 - state.stage * 0.08);
+    }
+
+    // Bullet vs bug
+    for (const b of state.bullets) {
+      for (const bug of state.bugs) {
+        if (!bug.alive) continue;
+        if (Math.abs(b.x - bug.x) < 14 && Math.abs(b.y - bug.y) < 14) {
+          bug.hp--;
+          b.y = -9999;
+          if (bug.hp <= 0) {
+            bug.alive = false;
+            const isDive = bug.state === 'dive' || bug.state === 'return';
+            const base = bug.type === 2 ? 150 : (bug.type === 1 ? 80 : 50);
+            state.score += isDive ? base * 2 : base;
+            if (state.score > state.hiscore) {
+              state.hiscore = state.score;
+              try { localStorage.setItem('raku-star-bugs-hi', String(state.hiscore)); } catch (_) {}
+            }
+            burst(bug.x, bug.y, BUG_COLORS[bug.type].body);
+            sound.explode();
+            launcher.notifyScore(state.score);
+            try { if (BUG_AGENT_ID) engine.agentReward(WORLD_ID, BUG_AGENT_ID, -1.0); } catch (_) {}
+          } else {
+            sound.hit();
+          }
+        }
+      }
+    }
+    state.bullets = state.bullets.filter(b => b.y > -20);
+
+    // Bug bullets vs ship (shield blocks and shatters them)
+    if (state.ship.alive) {
+      const shieldR = state.ship.shieldActive ? 22 : 0;
+      for (const b of state.bugBullets) {
+        const dx = b.x - state.ship.x;
+        const dy = b.y - state.ship.y;
+        if (state.ship.shieldActive && dx*dx + dy*dy < (shieldR+3) * (shieldR+3)) {
+          b.y = H + 9999;
+          burst(b.x, b.y, '#7fb0ff');
+          sound.blip();
+          continue;
+        }
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 12) {
+          b.y = H + 9999;
+          loseLife();
+        }
+      }
+      // Bug body vs ship — shield shatters divers on contact
+      for (const bug of state.bugs) {
+        if (!bug.alive) continue;
+        if (bug.state === 'idle') continue;
+        const dx = bug.x - state.ship.x;
+        const dy = bug.y - state.ship.y;
+        if (state.ship.shieldActive && dx*dx + dy*dy < (shieldR+10) * (shieldR+10)) {
+          bug.alive = false;
+          state.score += 25;
+          burst(bug.x, bug.y, BUG_COLORS[bug.type].body);
+          sound.explode();
+          continue;
+        }
+        if (Math.abs(dx) < 14 && Math.abs(dy) < 14) {
+          bug.alive = false;
+          burst(bug.x, bug.y, BUG_COLORS[bug.type].body);
+          loseLife();
+        }
+      }
+    }
+
+    // Particles
+    for (const p of state.particles) {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.life -= dt;
+    }
+    state.particles = state.particles.filter(p => p.life > 0);
+
+    // Respawn formation when cleared
+    if (aliveCount === 0 && state.spawnQueue.length === 0) {
+      state.stage++;
+      sound.levelup();
+      launcher.notifyLevel(state.stage);
+      spawnFormation(state.stage);
+    }
+
+    // Clean up pressed edge-buffer at end of update.
+    for (const k in pressed) delete pressed[k];
+  }
+
+  function loseLife() {
+    if (!state.ship.alive) return;
+    state.ship.alive = false;
+    burst(state.ship.x, state.ship.y, '#ffd24a');
+    state.lives--;
+    sound.death();
+    if (state.lives <= 0) {
+      // Transition to game over; wait a beat then drop to title.
+      setTimeout(() => {
+        state.mode = MODE.GAMEOVER;
+        state.screenTimer = 0;
+        launcher.notifyGameOver(state.score, state.stage);
+        try { engine.stopRecording(WORLD_ID); } catch (_) {}
+        try { engine.saveWorld(WORLD_ID); } catch (_) {}
+      }, 1000);
+      return;
+    }
+    setTimeout(() => {
+      if (state.lives > 0) {
+        state.ship.x = W/2;
+        state.ship.alive = true;
+      }
+    }, 1200);
+  }
+
+  function burst(x, y, color) {
+    for (let i = 0; i < 22; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const s = Math.random() * 160 + 40;
+      state.particles.push({
+        x, y,
+        vx: Math.cos(a) * s,
+        vy: Math.sin(a) * s,
+        life: 0.5 + Math.random() * 0.5,
+        max: 1.0,
+        color,
+      });
+    }
+  }
+
+  // ---------- Draw ----------
+  function draw() {
+    ctx.fillStyle = '#04030a';
+    ctx.fillRect(0, 0, W, H);
+
+    // Stars
+    for (const s of state.stars) {
+      ctx.fillStyle = `rgba(200, 220, 255, ${0.3 + s.s * 0.2})`;
+      ctx.fillRect(s.x, s.y, s.s, s.s);
+    }
+
+    // Bugs
+    for (const bug of state.bugs) {
+      if (!bug.alive) continue;
+      drawBug(bug);
+    }
+
+    // Bullets
+    ctx.fillStyle = '#fffb9e';
+    for (const b of state.bullets) ctx.fillRect(b.x - 1.5, b.y - 8, 3, 10);
+    ctx.fillStyle = '#ff7be0';
+    for (const b of state.bugBullets) ctx.fillRect(b.x - 2, b.y - 2, 4, 4);
+
+    // Ship
+    if (state.ship.alive) drawShip(state.ship.x, state.ship.y);
+
+    // Particles
+    for (const p of state.particles) {
+      const a = Math.max(0, p.life / p.max);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = a;
+      ctx.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
+    }
+    ctx.globalAlpha = 1;
+
+    // HUD
+    ctx.fillStyle = '#7fb0ff';
+    ctx.font = 'bold 14px "Courier New", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('SCORE ' + String(state.score).padStart(6, '0'), 12, 24);
+    ctx.textAlign = 'center';
+    ctx.fillText('HI ' + String(state.hiscore).padStart(6, '0'), W / 2, 24);
+    ctx.textAlign = 'right';
+    ctx.fillText('STAGE ' + state.stage, W - 12, 24);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ff5870';
+    for (let i = 0; i < state.lives; i++) {
+      drawShipMini(16 + i * 22, H - 14);
+    }
+    drawShieldBar();
+
+    if (state.mode === MODE.TITLE) {
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.fillRect(0, 120, W, 340);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#fffb9e';
+      ctx.font = 'bold 36px "Courier New", monospace';
+      ctx.fillText('STAR BUGS', W / 2, 200);
+      ctx.fillStyle = '#7fb0ff';
+      ctx.font = 'bold 14px "Courier New", monospace';
+      ctx.fillText('POWERED BY RAKUENGINE', W / 2, 230);
+      ctx.fillStyle = '#cfd8ef';
+      ctx.font = 'bold 12px "Courier New", monospace';
+      ctx.fillText('ARROWS MOVE   SPACE FIRE', W / 2, 290);
+      ctx.fillText('SHIFT/X: SHIELD', W / 2, 308);
+      if (Math.floor(state.time * 2) % 2 === 0) {
+        ctx.fillStyle = '#ffd24a';
+        ctx.font = 'bold 16px "Courier New", monospace';
+        ctx.fillText('PRESS SPACE TO START', W / 2, 340);
+      }
+      ctx.fillStyle = '#7fb0ff';
+      ctx.font = 'bold 10px "Courier New", monospace';
+      ctx.fillText('HI SCORE ' + String(state.hiscore).padStart(6, '0'), W / 2, 380);
+    } else if (state.mode === MODE.GAMEOVER) {
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(0, 200, W, 180);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ff5870';
+      ctx.font = 'bold 40px "Courier New", monospace';
+      ctx.fillText('GAME OVER', W / 2, 270);
+      ctx.fillStyle = '#fffb9e';
+      ctx.font = 'bold 14px "Courier New", monospace';
+      ctx.fillText('SCORE ' + String(state.score).padStart(6, '0'), W / 2, 310);
+      if (state.screenTimer > 1.0 && Math.floor(state.time * 2) % 2 === 0) {
+        ctx.fillStyle = '#cfd8ef';
+        ctx.font = 'bold 12px "Courier New", monospace';
+        ctx.fillText('PRESS SPACE', W / 2, 355);
+      }
+    }
+  }
+
+  function drawShip(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#ff9a3c';
+    ctx.beginPath();
+    ctx.moveTo(-4, 8); ctx.lineTo(0, 16 + Math.sin(state.time*30)*2); ctx.lineTo(4, 8);
+    ctx.fill();
+    ctx.fillStyle = '#cfd8ef';
+    ctx.beginPath();
+    ctx.moveTo(0, -14);
+    ctx.lineTo(-12, 10);
+    ctx.lineTo(-4, 6);
+    ctx.lineTo(4, 6);
+    ctx.lineTo(12, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#7fb0ff';
+    ctx.fillRect(-2, -6, 4, 10);
+    ctx.fillStyle = '#ff5870';
+    ctx.fillRect(-10, 6, 3, 5);
+    ctx.fillRect(7, 6, 3, 5);
+    ctx.restore();
+
+    // Shield ring (drawn in world coords after local transform restore)
+    if (state.ship.shieldActive) {
+      const pulse = 0.6 + 0.4 * Math.abs(Math.sin(state.time * 8));
+      ctx.save();
+      ctx.strokeStyle = `rgba(94, 255, 178, ${pulse.toFixed(3)})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, 22, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  function drawShieldBar() {
+    // Bottom-left energy meter, matching the Meteor Storm style.
+    const pct = Math.max(0, Math.min(1, state.ship.shieldEnergy));
+    const bx = 12, by = H - 32, bw = 90, bh = 6;
+    ctx.fillStyle = 'rgba(127, 176, 255, 0.25)';
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = pct > 0.25 ? '#5effb2' : '#ff5870';
+    ctx.fillRect(bx, by, Math.round(bw * pct), bh);
+    ctx.strokeStyle = '#5effb2';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+    ctx.fillStyle = '#7fb0ff';
+    ctx.font = 'bold 9px "Courier New", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('SHIELD', bx, by - 4);
+  }
+
+  function drawShipMini(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#cfd8ef';
+    ctx.beginPath();
+    ctx.moveTo(0, -6); ctx.lineTo(-6, 5); ctx.lineTo(6, 5); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBug(bug) {
+    const col = BUG_COLORS[bug.type];
+    const wing = Math.sin(state.time * 8 + bug.col * 0.3) * 2;
+    ctx.save();
+    ctx.translate(bug.x, bug.y);
+    ctx.rotate(bug.angle);
+    ctx.fillStyle = col.accent;
+    ctx.beginPath();
+    ctx.ellipse(-10 - wing, 0, 7, 10, 0, 0, Math.PI * 2);
+    ctx.ellipse(10 + wing, 0, 7, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = col.body;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 10, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = col.accent;
+    ctx.fillRect(-9, -3, 18, 2);
+    ctx.fillRect(-9, 2, 18, 2);
+    ctx.fillStyle = col.eye;
+    ctx.fillRect(-5, -8, 3, 3);
+    ctx.fillRect(2, -8, 3, 3);
+    ctx.strokeStyle = col.accent;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-4, -10); ctx.lineTo(-7, -14);
+    ctx.moveTo(4, -10); ctx.lineTo(7, -14);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ---------- Loop ----------
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

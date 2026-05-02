@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<title>RakuAI API Reference — 9,500+ Endpoints Across 17 Subsystems</title>
+<meta name="description" content="Developer reference for the RakuAI platform REST API: 9,500+ endpoints across physics, renderer, XR, AI, audio, animation, networking, scripting, and more. One API for web, native, and XR targets.">
+<meta name="keywords" content="RakuAI API, spatial engine API, XR API, game engine REST API, LLM NPC API, OpenXR API, spatial computing">
+<meta property="og:title" content="RakuAI API Reference — 9,500+ Endpoints Across 17 Subsystems">
+<meta property="og:description" content="Browse the RakuAI platform REST API: physics, rendering, XR, AI, audio, animation, networking, scripting and more. One API for web, native, and XR.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rakuai.com/api/">
+<meta property="og:image" content="https://rakuai.com/og-default.png">
+<meta property="og:site_name" content="RakuAI">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="RakuAI API Reference">
+<meta name="twitter:description" content="9,500+ REST endpoints across 17 subsystems. One API for web, native, and XR.">
+<link rel="canonical" href="https://rakuai.com/api/">
+<style>
+:root {
+  --bg: #0a0a1a;
+  --bg2: #111128;
+  --bg3: #1a1a3a;
+  --text: #e8e8f0;
+  --dim: #9090b0;
+  --muted: #7a7a9a;
+  --accent: #6c5ce7;
+  --bright: #a388ff;
+  --success: #00cec9;
+  --warn: #fdcb6e;
+  --danger: #ff6b6b;
+  --border: #222;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+a { color: var(--bright); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+/* Top nav */
+.site-nav {
+  background: rgba(10, 10, 26, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.site-nav .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.site-nav .logo {
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, var(--bright), var(--success));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.site-nav .logo .kanji {
+  font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif;
+  font-size: 1.2rem;
+  margin-right: 4px;
+}
+.site-nav .links {
+  display: flex;
+  gap: 20px;
+  font-size: 0.9rem;
+}
+.site-nav .links a { color: var(--dim); }
+.site-nav .links a:hover { color: var(--bright); text-decoration: none; }
+
+/* Hero */
+.hero {
+  padding: 72px 0 48px;
+  text-align: center;
+  background: radial-gradient(1200px 500px at 50% -100px, rgba(108, 92, 231, 0.22), transparent 60%);
+}
+.hero .eyebrow {
+  display: inline-block;
+  font-size: 0.78rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--bright);
+  padding: 6px 14px;
+  border: 1px solid rgba(108, 92, 231, 0.45);
+  border-radius: 999px;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  font-size: clamp(2rem, 4.5vw, 3.1rem);
+  line-height: 1.15;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #ffffff 20%, var(--bright) 60%, var(--success));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero p.lede {
+  color: var(--dim);
+  max-width: 760px;
+  margin: 0 auto 28px;
+  font-size: 1.08rem;
+}
+
+.stats {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.stat {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 22px;
+  min-width: 140px;
+}
+.stat .n {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--bright);
+}
+.stat .l {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* Section */
+section.routers {
+  padding: 48px 0 72px;
+}
+section.routers h2 {
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+  color: var(--bright);
+}
+section.routers .sub {
+  color: var(--dim);
+  margin-bottom: 28px;
+  max-width: 780px;
+}
+
+.router-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.router-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.25s ease;
+  text-decoration: none;
+  color: inherit;
+}
+.router-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(108, 92, 231, 0.18);
+  text-decoration: none;
+}
+.router-card .head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.router-card h3 {
+  font-size: 1.05rem;
+  color: var(--text);
+}
+.router-card .tag {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--success);
+  background: rgba(0, 206, 201, 0.08);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 206, 201, 0.25);
+  white-space: nowrap;
+}
+.router-card p {
+  color: var(--dim);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.router-card .cta {
+  margin-top: auto;
+  font-size: 0.82rem;
+  color: var(--bright);
+  font-weight: 600;
+}
+.router-card:hover .cta {
+  color: var(--success);
+}
+
+/* Disclaimer / CTA */
+.cta-row {
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.12), rgba(0, 206, 201, 0.08));
+  border: 1px solid rgba(108, 92, 231, 0.35);
+  border-radius: 14px;
+  padding: 28px;
+  margin: 40px 0 0;
+  text-align: center;
+}
+.cta-row h3 {
+  color: var(--bright);
+  margin-bottom: 8px;
+}
+.cta-row p {
+  color: var(--dim);
+  margin-bottom: 18px;
+}
+.cta-row .buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn {
+  display: inline-block;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn.primary:hover { background: var(--bright); text-decoration: none; }
+.btn.ghost {
+  border: 1px solid var(--muted);
+  color: var(--dim);
+}
+.btn.ghost:hover { color: var(--bright); border-color: var(--bright); text-decoration: none; }
+
+footer {
+  text-align: center;
+  padding: 40px 24px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  border-top: 1px solid #151530;
+  margin-top: 48px;
+}
+footer a { color: var(--dim); }
+
+@media (max-width: 600px) {
+  .hero { padding: 48px 0 32px; }
+  .stat { min-width: 120px; padding: 12px 16px; }
+  .stat .n { font-size: 1.3rem; }
+}
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="container">
+    <a class="logo" href="../index.html">RAKUAI<sup>&trade;</sup></a>
+    <div class="links">
+      <a href="../index.html">Home</a>
+      <a href="../engine/">Engine</a>
+      <a href="../api/">API Docs</a>
+      <a href="../games/">Games</a>
+      <a href="../why-rakuai.html">Why RakuAI</a>
+      <a href="../developers/">Developers</a>
+      <a href="../press.html">Press</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="container">
+    <span class="eyebrow">API Reference</span>
+    <h1>One API for Web, Native, and XR</h1>
+    <p class="lede">
+      The RakuAI platform exposes 9,500+ REST endpoints across 17 subsystem routers &mdash;
+      every capability in the engine is available from any client language, on any target.
+      Browse a router to see the developer documentation for that subsystem.
+    </p>
+    <div class="stats">
+      <div class="stat"><div class="n">9,500+</div><div class="l">REST Endpoints</div></div>
+      <div class="stat"><div class="n">17</div><div class="l">Router Modules</div></div>
+      <div class="stat"><div class="n">18</div><div class="l">Native DLLs</div></div>
+      <div class="stat"><div class="n">10,328</div><div class="l">Engine Functions</div></div>
+      <div class="stat"><div class="n">5</div><div class="l">US Patents</div></div>
+    </div>
+  </div>
+</header>
+
+<section class="routers">
+  <div class="container">
+    <h2>Subsystem Routers</h2>
+    <p class="sub">
+      Each router groups related capabilities. Endpoints are consistent across targets &mdash;
+      call the same API from a browser, a native game client, or an XR headset.
+    </p>
+
+    <div class="router-grid">
+
+      <a class="router-card" href="/api/physics/">
+        <div class="head">
+          <h3>Physics</h3>
+          <span class="tag">Simulation</span>
+        </div>
+        <p>Rigid bodies, cloth, vehicles, ragdolls, fluid simulation. Collision, joints, constraints, and queries for every shape you need.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/scene/">
+        <div class="head">
+          <h3>Scene</h3>
+          <span class="tag">World</span>
+        </div>
+        <p>Node graph, prefabs, CSG, GridMap, terrain. Streaming, spatial queries, and scene composition primitives.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/renderer/">
+        <div class="head">
+          <h3>Renderer</h3>
+          <span class="tag">Graphics</span>
+        </div>
+        <p>PBR materials, lights, shadows, particles, post-processing. LOD, culling, and frame-accurate capture.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/ai/">
+        <div class="head">
+          <h3>AI</h3>
+          <span class="tag">Agents</span>
+        </div>
+        <p>Navmesh, behavior trees, NPC dialogue, utility AI, GOAP. Crowd simulation and sensory systems for believable agents.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/audio/">
+        <div class="head">
+          <h3>Audio</h3>
+          <span class="tag">Sound</span>
+        </div>
+        <p>Spatial 3D audio, HRTF, propagation, adaptive music. Bus mixing, effects chains, and procedural sound design.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/animation/">
+        <div class="head">
+          <h3>Animation</h3>
+          <span class="tag">Motion</span>
+        </div>
+        <p>Skeletal animation, blend trees, inverse kinematics, root motion. State machines and retargeting for every skeleton.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/network/">
+        <div class="head">
+          <h3>Network</h3>
+          <span class="tag">Multiplayer</span>
+        </div>
+        <p>Sessions, state sync, WebRTC, matchmaking. Lobby management, NAT traversal, and delta compression.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/input/">
+        <div class="head">
+          <h3>Input</h3>
+          <span class="tag">Controls</span>
+        </div>
+        <p>Action maps, gamepad, XR controllers, gestures. Unified input layer with haptic feedback across every platform.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/ui/">
+        <div class="head">
+          <h3>UI</h3>
+          <span class="tag">Interface</span>
+        </div>
+        <p>Canvas, widgets, layouts, accessibility. 2D and 3D widgets with theming, localization, and screen reader support.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/assets/">
+        <div class="head">
+          <h3>Assets</h3>
+          <span class="tag">Pipeline</span>
+        </div>
+        <p>Mesh import, texture compression, hot reload. Content pipeline for audio, textures, and 3D formats with streaming.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/editor/">
+        <div class="head">
+          <h3>Editor</h3>
+          <span class="tag">Tooling</span>
+        </div>
+        <p>Gizmos, inspector, profiler, debug draw. Remote tooling endpoints that power live editing and diagnostics.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/scripting/">
+        <div class="head">
+          <h3>Scripting</h3>
+          <span class="tag">Logic</span>
+        </div>
+        <p>Embedded Lua VM, event bus, quests, dialogue trees. Visual scripting hooks and hot reload for rapid iteration.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/slm/">
+        <div class="head">
+          <h3>SLM</h3>
+          <span class="tag">On-Device AI</span>
+        </div>
+        <p>On-device LLM inference for NPC dialogue, intent detection, and emotion modeling &mdash; runs without a network connection.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/xr/">
+        <div class="head">
+          <h3>XR</h3>
+          <span class="tag">Immersive</span>
+        </div>
+        <p>OpenXR, hand and eye tracking, spatial anchors. Foveated rendering and session management for every supported headset.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/voice/">
+        <div class="head">
+          <h3>Voice</h3>
+          <span class="tag">Speech</span>
+        </div>
+        <p>Speech-to-text, text-to-speech, VAD, opus codec. Real-time voice chat with noise suppression and echo cancellation.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/core/">
+        <div class="head">
+          <h3>Core</h3>
+          <span class="tag">Runtime</span>
+        </div>
+        <p>Runtime lifecycle, logging, analytics. The foundational layer every other subsystem is built on.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+      <a class="router-card" href="/api/csg/">
+        <div class="head">
+          <h3>CSG</h3>
+          <span class="tag">Geometry</span>
+        </div>
+        <p>Boolean geometry operations: union, subtract, intersect. Real-time mesh generation with UV preservation.</p>
+        <span class="cta">Read reference &rarr;</span>
+      </a>
+
+    </div>
+
+    <div class="cta-row">
+      <h3>Build with the full platform</h3>
+      <p>Request an API key to try the production endpoints, or run the browser engine to explore the surface offline.</p>
+      <div class="buttons">
+        <a class="btn primary" href="../developers/">Developer Portal</a>
+        <a class="btn ghost" href="../engine/">Browser Engine</a>
+        <a class="btn ghost" href="../why-rakuai.html">Why RakuAI</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+  <p style="margin-top: 6px;">
+    <a href="../engine/">Engine</a> &bull;
+    <a href="../api/">API</a> &bull;
+    <a href="../docs.html">Docs</a> &bull;
+    <a href="../games/">Arcade</a> &bull;
+    <a href="../press.html">Press</a> &bull;
+    <a href="../developers/">Developers</a> &bull;
+    <a href="../privacy.html">Privacy</a> &bull;
+    <a href="../terms.html">Terms</a> &bull;
+    <a href="../contact.html">Contact</a> &bull;
+    <a href="https://github.com/RakuXR">GitHub</a>
+  </p>
+  <p class="trademark-notice">
+    RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+    <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+    5 Granted US Patents (Priority: July 2012).
+  </p>
+</footer>
+
+</body>
+</html>

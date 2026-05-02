@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spatial Engine - Physics, Particles, Animation &amp; Audio - RakuAI</title>
+    <meta name="description" content="RakuAI Spatial Engine: physics, animation, visual effects, and immersive spatial audio.">
+    <meta property="og:title" content="Spatial Engine - Physics, Particles, Animation &amp; Audio - RakuAI">
+    <meta property="og:description" content="Physics, animation, visual effects, and immersive audio. The complete spatial engine for XR and desktop games.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/spatial-engine">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/spatial-engine.html">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .engine-section {
+            padding: 64px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .engine-section:last-of-type {
+            border-bottom: none;
+        }
+        .engine-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 48px;
+            align-items: start;
+        }
+        .engine-content h3 {
+            font-size: 1.8rem;
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+        }
+        .engine-content p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+        .engine-content ul {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+        .engine-content li {
+            padding: 6px 0;
+            color: var(--text-secondary);
+        }
+        .engine-content li:before {
+            content: "\2713 ";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .engine-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+        .engine-code {
+            background: #0d0d1f;
+            border: 1px solid #222244;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            overflow-x: auto;
+            color: var(--text-primary);
+        }
+        .engine-code .kw { color: #ff79c6; font-weight: 600; }
+        .engine-code .fn { color: var(--accent-bright); }
+        .engine-code .str { color: #50fa7b; }
+        .engine-code .cmt { color: #6272a4; font-style: italic; }
+        .engine-code .num { color: #bd93f9; }
+        .engine-benefit {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-top: 16px;
+        }
+        .engine-benefit strong {
+            color: var(--success);
+        }
+        .perf-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            text-align: center;
+            margin: 32px 0;
+        }
+        .perf-stat {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 32px 16px;
+        }
+        .perf-stat .number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-bright);
+            margin-bottom: 4px;
+        }
+        .perf-stat .label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        @media (max-width: 768px) {
+            .engine-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .engine-content h3 {
+                font-size: 1.4rem;
+            }
+            .perf-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — The Universal Runtime for World Models &nbsp;|&nbsp; <a href="index.html#for-studios">For Studios &amp; Developers →</a> &nbsp;&nbsp; Also: <a href="index.html#quickstart">Try the Consumer Demo →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="engine/">Engine</a>
+            <a href="api/">API Docs</a>
+            <a href="games/">Games</a>
+            <a href="why-rakuai.html">Why RakuAI</a>
+            <a href="developers/">Developers</a>
+            <a href="press.html">Press</a>
+            <a href="blog/">Blog</a>
+            <a href="ja/spatial-engine.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <div class="engine-badge">SPATIAL ENGINE</div>
+        <h1>Spatial Engine</h1>
+        <p class="subtitle">Physics, particles, animation, and spatial audio. Everything you need for immersive 3D worlds, optimized for XR.</p>
+        <div class="perf-stats">
+            <div class="perf-stat">
+                <div class="number">120 Hz</div>
+                <div class="label">XR Rendering</div>
+            </div>
+            <div class="perf-stat">
+                <div class="number">GPU</div>
+                <div class="label">Particle Compute</div>
+            </div>
+            <div class="perf-stat">
+                <div class="number">HRTF</div>
+                <div class="label">Spatial Audio</div>
+            </div>
+            <div class="perf-stat">
+                <div class="number">Sub-ms</div>
+                <div class="label">Physics Step</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+
+        <!-- Physics Engine -->
+        <div class="engine-section" id="physics">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">PHYSICS</div>
+                    <h3>Physics Engine</h3>
+                    <p>Production-grade 3D physics with rigid bodies, constraints, raycasting, and collision detection. Deterministic simulation with sub-millisecond step times even on mobile XR hardware.</p>
+                    <div class="engine-benefit">
+                        <strong>Key benefit:</strong> Consistent, reliable physics across VR, desktop, and mobile &mdash; no per-platform tuning.
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Particle System -->
+        <div class="engine-section" id="particles">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">VFX</div>
+                    <h3>Particle System</h3>
+                    <p>GPU-accelerated particle system with per-genre VFX presets. Supports emitters, attractors, collision, and LOD scaling. Automatic budget management keeps frame rates locked at 72-120 Hz on XR hardware.</p>
+                    <div class="engine-benefit">
+                        <strong>Key benefit:</strong> Cinematic VFX that scale to the hardware &mdash; no manual optimization.
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Animation System -->
+        <div class="engine-section" id="animation">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">ANIMATION</div>
+                    <h3>Animation System</h3>
+                    <p>Skeletal animation with blend trees, state machines, IK, and retargeting. Supports concurrent animated characters with smooth transitions and runtime blending.</p>
+                    <div class="engine-benefit">
+                        <strong>Key benefit:</strong> Natural, responsive character animation with zero per-character setup.
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Spatial Audio -->
+        <div class="engine-section" id="audio">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">AUDIO</div>
+                    <h3>Spatial Audio</h3>
+                    <p>HRTF-based 3D spatial audio with binaural rendering, occlusion, reverb zones, and adaptive music layers. Tuned for XR headset speakers and headphones with minimal CPU overhead.</p>
+                    <div class="engine-benefit">
+                        <strong>Key benefit:</strong> Players can locate sounds naturally in 3D space &mdash; critical for immersive XR.
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    </div>
+</section>
+
+
+
+<!-- Performance Callout -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+        <h2>Optimized for XR</h2>
+        <p style="color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.1rem;">
+            Every subsystem is optimized for the demanding frame budgets of VR and AR headsets.
+        </p>
+        <div class="features">
+            <div class="feature">
+                <h3>High-Performance VFX</h3>
+                <p>Stunning visual effects without impacting gameplay performance.</p>
+            </div>
+            <div class="feature">
+                <h3>Reliable Physics</h3>
+                <p>Consistent gameplay across all platforms.</p>
+            </div>
+            <div class="feature">
+                <h3>Immersive Audio</h3>
+                <p>Pristine spatial audio quality at all times.</p>
+            </div>
+        </div>
+        <p style="margin-top: 40px;">
+            <a href="sdk.html" class="btn btn-primary">Explore the SDK</a>
+            <a href="xr-features.html" class="btn btn-secondary" style="margin-left: 16px;">XR Features</a>
+            <a href="ai-systems.html" class="btn btn-secondary" style="margin-left: 16px;">AI Systems</a>
+        </p>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="engine/">Engine</a>
+            <a href="api/">API</a>
+            <a href="docs.html">Docs</a>
+            <a href="games/">Arcade</a>
+            <a href="press.html">Press</a>
+            <a href="developers/">Developers</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="contact.html">Contact</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+</footer>
+
+</body>
+</html>

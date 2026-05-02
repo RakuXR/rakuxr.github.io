@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TimeLens Independence Hall — Browser Demo | RakuAI</title>
+    <meta name="description" content="Experience the TimeLens Independence Hall AR tour in your browser. Move through historic waypoints, meet Benjamin Franklin, and collect stamps.">
+    <style>
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #111128;
+            --text-primary: #e8e8f0;
+            --text-secondary: #9090b0;
+            --accent: #6c5ce7;
+            --accent-bright: #a388ff;
+            --success: #00cec9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid #222244;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        #stamp-bar {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 14px 20px;
+            flex-wrap: wrap;
+        }
+
+        .stamp {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: var(--bg-secondary);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .stamp.collected {
+            border-color: var(--success);
+            background: rgba(0, 206, 201, 0.15);
+            box-shadow: 0 0 10px rgba(0, 206, 201, 0.3);
+        }
+
+        .stamp-label {
+            position: absolute;
+            bottom: -18px;
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        #game-container {
+            position: relative;
+            width: 760px;
+            height: 520px;
+            max-width: 95vw;
+            background: #0d0d24;
+            border: 1px solid #222244;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: crosshair;
+            outline: none;
+        }
+
+        #game-container:focus {
+            border-color: var(--accent);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #controls-hint {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Dialogue modal */
+        #dialogue-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #dialogue-overlay.active {
+            display: flex;
+        }
+
+        #dialogue-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 28px 32px;
+            max-width: 520px;
+            width: 90%;
+            position: relative;
+        }
+
+        #dialogue-box h3 {
+            color: var(--accent-bright);
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        #dialogue-text {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        #dialogue-responses {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        #dialogue-responses button {
+            background: rgba(108, 92, 231, 0.15);
+            border: 1px solid var(--accent);
+            color: var(--text-primary);
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-align: left;
+            transition: background 0.2s;
+        }
+
+        #dialogue-responses button:hover {
+            background: rgba(108, 92, 231, 0.35);
+        }
+
+        #stamp-award {
+            display: none;
+            color: var(--success);
+            font-weight: 600;
+            margin-top: 12px;
+            font-size: 0.9rem;
+        }
+
+        /* Tour complete banner */
+        #tour-complete {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-secondary);
+            border: 2px solid var(--success);
+            border-radius: 16px;
+            padding: 40px 48px;
+            text-align: center;
+            z-index: 200;
+            box-shadow: 0 0 60px rgba(0, 206, 201, 0.3);
+        }
+
+        #tour-complete h2 {
+            color: var(--success);
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+        }
+
+        #tour-complete p {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        #tour-complete button {
+            background: var(--success);
+            color: #0a0a1a;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        /* How it works section */
+        #how-it-works {
+            max-width: 760px;
+            width: 95%;
+            margin: 32px auto 48px;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 8px;
+            padding: 28px 32px;
+        }
+
+        #how-it-works h2 {
+            color: var(--accent-bright);
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+
+        #how-it-works p, #how-it-works li {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        #how-it-works ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .back-link {
+            color: var(--accent-bright);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>TimeLens: Independence Hall</h1>
+    <p>Browser Demo — Use arrow keys or WASD to explore</p>
+    <a href="../index.html" class="back-link">Back to RakuAI</a>
+</header>
+
+<div id="stamp-bar"></div>
+
+<div id="game-container" tabindex="0">
+    <canvas id="map-canvas"></canvas>
+</div>
+
+<div id="controls-hint">Arrow keys / WASD to move &nbsp; | &nbsp; Click the map to focus</div>
+
+<!-- Dialogue modal -->
+<div id="dialogue-overlay">
+    <div id="dialogue-box">
+        <h3 id="dialogue-npc"></h3>
+        <div id="dialogue-text"></div>
+        <div id="dialogue-responses"></div>
+        <div id="stamp-award"></div>
+    </div>
+</div>
+
+<!-- Tour complete banner -->
+<div id="tour-complete">
+    <h2>Tour Complete!</h2>
+    <p>You collected all 5 stamps from Independence Hall.</p>
+    <p>In the full AR experience, these unlock exclusive content and achievements.</p>
+    <button onclick="resetTour()">Play Again</button>
+</div>
+
+<!-- How it works -->
+<div id="how-it-works">
+    <h2>How This Works</h2>
+    <p>This browser demo simulates the <strong>TimeLens Independence Hall</strong> AR experience that runs on RakuAI's spatial engine.</p>
+    <ul>
+        <li><strong>In the real experience:</strong> You walk through Independence Hall with a phone or AR headset. GPS waypoints trigger encounters with historical figures rendered in AR at their actual locations.</li>
+        <li><strong>In this demo:</strong> The map shows the same waypoint layout, but you move a dot with your keyboard instead of walking. NPC encounters and stamp collection work the same way.</li>
+        <li><strong>What partners see:</strong> The tour flow, dialogue system, stamp collection, and completion tracking that make up the visitor experience.</li>
+    </ul>
+    <p>Interested in bringing TimeLens to your historic site? <a href="../contact.html" class="back-link">Contact us</a>.</p>
+</div>
+
+<script>
+// === WAYPOINT DATA ===
+// Real GPS coords for Independence Hall area, mapped to canvas positions
+const WAYPOINTS = [
+    {
+        id: 'assembly',
+        name: 'Assembly Room',
+        x: 380, y: 260,
+        radius: 36,
+        npc: 'Benjamin Franklin',
+        emoji: '\uD83C\uDFDB\uFE0F',
+        greeting: "Ah, a visitor! Welcome to where it all began. I am Benjamin Franklin. In this very room, we debated and signed the Declaration of Independence in 1776. The air was thick with conviction — and, I must confess, the Philadelphia summer heat.",
+        responses: [
+            { text: "What was the mood like during the signing?", reply: "Solemn, yet electric. We knew we were committing what the Crown would call treason. But as I told my colleagues: 'We must, indeed, all hang together, or most assuredly we shall all hang separately.' That got a nervous laugh or two." },
+            { text: "Tell me about Independence Hall itself.", reply: "This building was originally the Pennsylvania State House, built in 1732. The Assembly Room where you stand hosted the Continental Congress. Every brick here witnessed the birth of a nation." },
+            { text: "Thank you, Dr. Franklin!", reply: "The pleasure is mine. Do explore the rest of the hall — there is much history in these walls. And remember: an investment in knowledge pays the best interest!" }
+        ]
+    },
+    {
+        id: 'bell',
+        name: 'Liberty Bell',
+        x: 380, y: 100,
+        radius: 36,
+        npc: 'Park Ranger',
+        emoji: '\uD83D\uDD14',
+        greeting: "You've found the Liberty Bell! Cast in 1752, it cracked the first time it was rung. The inscription reads: 'Proclaim Liberty Throughout All the Land Unto All the Inhabitants Thereof.' It became a symbol of abolition and freedom movements worldwide.",
+        responses: [
+            { text: "Why is it cracked?", reply: "The bell cracked during a test ringing after its arrival from London. It was recast twice by local metalworkers John Pass and John Stow. The famous crack you see today appeared in the early 19th century — we stopped ringing it in 1846." },
+            { text: "Thanks for the history!", reply: "Of course! The bell may be silent now, but its message rings louder than ever. Enjoy the rest of your tour." }
+        ]
+    },
+    {
+        id: 'congress',
+        name: 'Congress Hall',
+        x: 160, y: 350,
+        radius: 36,
+        npc: 'George Washington',
+        emoji: '\uD83D\uDCDC',
+        greeting: "Welcome to Congress Hall. I am George Washington. Here, I took the oath for my second term as President in 1793, and here John Adams succeeded me in 1797. This building served as the seat of the United States Congress for a full decade.",
+        responses: [
+            { text: "What happened in Congress Hall?", reply: "The Bill of Rights was ratified within these walls. We admitted Vermont, Kentucky, and Tennessee to the Union. The foundations of the federal government were built here, law by law, debate by debate." },
+            { text: "An honor to meet you, President Washington.", reply: "The honor is mutual, friend. A republic endures only when its citizens remain engaged. Your presence here gives me hope." }
+        ]
+    },
+    {
+        id: 'philosophical',
+        name: 'Philosophical Hall',
+        x: 600, y: 350,
+        radius: 36,
+        npc: 'Thomas Jefferson',
+        emoji: '\uD83D\uDD2C',
+        greeting: "Greetings. I am Thomas Jefferson. This is Philosophical Hall, home of the American Philosophical Society — founded by Franklin in 1743. It is the oldest learned society in America, dedicated to 'promoting useful knowledge.'",
+        responses: [
+            { text: "What kind of research happened here?", reply: "Everything from botany to astronomy to political philosophy. Lewis and Clark prepared for their expedition here. We studied fossils, mapped the stars, and debated the nature of democracy. Knowledge and liberty are inseparable." },
+            { text: "Fascinating, Mr. Jefferson.", reply: "Curiosity is the engine of progress. Never stop asking questions — that is the true spirit of this place." }
+        ]
+    },
+    {
+        id: 'old-city',
+        name: 'Old City Hall',
+        x: 600, y: 160,
+        radius: 36,
+        npc: 'John Adams',
+        emoji: '\u2696\uFE0F',
+        greeting: "I am John Adams. This is Old City Hall, where the Supreme Court of the United States first convened in 1791. Chief Justice John Jay presided here, establishing the judiciary as an equal branch of government.",
+        responses: [
+            { text: "What cases were heard here?", reply: "Among the earliest was Chisholm v. Georgia in 1793 — it established that states could be sued in federal court, which was so controversial it led to the Eleventh Amendment. The Court was finding its footing, defining what judicial review meant for a young republic." },
+            { text: "Thank you, President Adams.", reply: "Facts are stubborn things, and the facts of history deserve remembrance. Carry them forward." }
+        ]
+    }
+];
+
+// === GAME STATE ===
+const canvas = document.getElementById('map-canvas');
+const ctx = canvas.getContext('2d');
+const container = document.getElementById('game-container');
+
+let player = { x: 380, y: 420 };
+const PLAYER_SPEED = 3;
+const TRIGGER_DISTANCE = 40;
+let collectedStamps = new Set();
+let keys = {};
+let activeDialogue = null;
+let tourComplete = false;
+
+// === CANVAS SETUP ===
+function resizeCanvas() {
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// === STAMP BAR ===
+function buildStampBar() {
+    const bar = document.getElementById('stamp-bar');
+    bar.innerHTML = '';
+    WAYPOINTS.forEach(wp => {
+        const stamp = document.createElement('div');
+        stamp.className = 'stamp' + (collectedStamps.has(wp.id) ? ' collected' : '');
+        stamp.id = 'stamp-' + wp.id;
+        stamp.innerHTML = wp.emoji + '<span class="stamp-label">' + wp.name + '</span>';
+        bar.appendChild(stamp);
+    });
+}
+buildStampBar();
+
+// === INPUT ===
+container.addEventListener('keydown', e => {
+    keys[e.key] = true;
+    e.preventDefault();
+});
+container.addEventListener('keyup', e => {
+    keys[e.key] = false;
+});
+container.addEventListener('click', () => container.focus());
+container.focus();
+
+// === DRAWING ===
+function drawGrid() {
+    ctx.strokeStyle = '#1a1a3a';
+    ctx.lineWidth = 1;
+    const step = 40;
+    for (let x = 0; x < canvas.width; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+}
+
+function drawBuildings() {
+    ctx.fillStyle = '#161638';
+    ctx.strokeStyle = '#2a2a5a';
+    ctx.lineWidth = 1;
+
+    // Independence Hall (center)
+    ctx.fillRect(310, 200, 140, 80);
+    ctx.strokeRect(310, 200, 140, 80);
+    ctx.fillStyle = '#1a1a40';
+    ctx.fillRect(355, 180, 50, 20);
+    ctx.strokeRect(355, 180, 50, 20);
+
+    // Congress Hall (left)
+    ctx.fillStyle = '#161638';
+    ctx.fillRect(100, 300, 120, 80);
+    ctx.strokeRect(100, 300, 120, 80);
+
+    // Philosophical Hall (right)
+    ctx.fillRect(540, 300, 120, 80);
+    ctx.strokeRect(540, 300, 120, 80);
+
+    // Old City Hall (upper right)
+    ctx.fillRect(540, 110, 120, 80);
+    ctx.strokeRect(540, 110, 120, 80);
+
+    // Liberty Bell Center (top center)
+    ctx.fillRect(340, 60, 80, 60);
+    ctx.strokeRect(340, 60, 60, 60);
+
+    // Building labels
+    ctx.fillStyle = '#3a3a6a';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Independence Hall', 380, 245);
+    ctx.fillText('Congress Hall', 160, 345);
+    ctx.fillText('Philosophical Hall', 600, 345);
+    ctx.fillText('Old City Hall', 600, 155);
+    ctx.fillText('Liberty Bell Center', 380, 95);
+
+    // Streets
+    ctx.fillStyle = '#0e0e22';
+    ctx.fillRect(0, 390, canvas.width, 30);  // Chestnut St
+    ctx.fillRect(0, 130, canvas.width, 20);   // Market area
+    ctx.fillStyle = '#1a1a3a';
+    ctx.font = '9px sans-serif';
+    ctx.fillText('Chestnut Street', 380, 408);
+}
+
+function drawWaypoints() {
+    WAYPOINTS.forEach(wp => {
+        const scale = canvas.width / 760;
+        const sx = wp.x * scale;
+        const sy = wp.y * (canvas.height / 520);
+
+        // Pulse ring
+        const pulse = Math.sin(Date.now() / 400) * 0.3 + 0.7;
+        ctx.beginPath();
+        ctx.arc(sx, sy, wp.radius * scale * pulse, 0, Math.PI * 2);
+        if (collectedStamps.has(wp.id)) {
+            ctx.strokeStyle = 'rgba(0, 206, 201, 0.3)';
+        } else {
+            ctx.strokeStyle = 'rgba(108, 92, 231, 0.4)';
+        }
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Inner circle
+        ctx.beginPath();
+        ctx.arc(sx, sy, 8 * scale, 0, Math.PI * 2);
+        if (collectedStamps.has(wp.id)) {
+            ctx.fillStyle = 'rgba(0, 206, 201, 0.6)';
+        } else {
+            ctx.fillStyle = 'rgba(108, 92, 231, 0.6)';
+        }
+        ctx.fill();
+
+        // Emoji
+        ctx.font = (16 * scale) + 'px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(wp.emoji, sx, sy + 5 * scale);
+    });
+}
+
+function drawPlayer() {
+    const scale = canvas.width / 760;
+    const px = player.x * scale;
+    const py = player.y * (canvas.height / 520);
+
+    // Glow
+    const gradient = ctx.createRadialGradient(px, py, 0, px, py, 18 * scale);
+    gradient.addColorStop(0, 'rgba(163, 136, 255, 0.4)');
+    gradient.addColorStop(1, 'rgba(163, 136, 255, 0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(px, py, 18 * scale, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Player dot
+    ctx.beginPath();
+    ctx.arc(px, py, 6 * scale, 0, Math.PI * 2);
+    ctx.fillStyle = '#a388ff';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
+
+function drawMinimap() {
+    // Progress text
+    ctx.fillStyle = '#555';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(collectedStamps.size + '/' + WAYPOINTS.length + ' stamps', 10, canvas.height - 10);
+}
+
+// === UPDATE ===
+function update() {
+    if (activeDialogue || tourComplete) return;
+
+    let dx = 0, dy = 0;
+    if (keys['ArrowUp'] || keys['w'] || keys['W']) dy -= PLAYER_SPEED;
+    if (keys['ArrowDown'] || keys['s'] || keys['S']) dy += PLAYER_SPEED;
+    if (keys['ArrowLeft'] || keys['a'] || keys['A']) dx -= PLAYER_SPEED;
+    if (keys['ArrowRight'] || keys['d'] || keys['D']) dx += PLAYER_SPEED;
+
+    // Normalize diagonal
+    if (dx !== 0 && dy !== 0) {
+        dx *= 0.707;
+        dy *= 0.707;
+    }
+
+    player.x = Math.max(10, Math.min(750, player.x + dx));
+    player.y = Math.max(10, Math.min(510, player.y + dy));
+
+    // Check waypoint proximity
+    WAYPOINTS.forEach(wp => {
+        if (collectedStamps.has(wp.id)) return;
+        const dist = Math.sqrt((player.x - wp.x) ** 2 + (player.y - wp.y) ** 2);
+        if (dist < TRIGGER_DISTANCE) {
+            triggerEncounter(wp);
+        }
+    });
+}
+
+// === DIALOGUE ===
+function triggerEncounter(wp) {
+    activeDialogue = wp;
+    const overlay = document.getElementById('dialogue-overlay');
+    document.getElementById('dialogue-npc').textContent = wp.npc;
+    document.getElementById('dialogue-text').textContent = wp.greeting;
+    document.getElementById('stamp-award').style.display = 'none';
+
+    const respContainer = document.getElementById('dialogue-responses');
+    respContainer.innerHTML = '';
+
+    wp.responses.forEach((r, i) => {
+        const btn = document.createElement('button');
+        btn.textContent = r.text;
+        btn.onclick = () => showReply(wp, i);
+        respContainer.appendChild(btn);
+    });
+
+    overlay.classList.add('active');
+}
+
+function showReply(wp, index) {
+    const r = wp.responses[index];
+    document.getElementById('dialogue-text').textContent = r.reply;
+
+    const respContainer = document.getElementById('dialogue-responses');
+    respContainer.innerHTML = '';
+
+    // If this is the last response option, award stamp
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Continue exploring';
+    closeBtn.onclick = () => closeDialogue(wp);
+    respContainer.appendChild(closeBtn);
+
+    // Award stamp
+    if (!collectedStamps.has(wp.id)) {
+        collectedStamps.add(wp.id);
+        const stampEl = document.getElementById('stamp-' + wp.id);
+        if (stampEl) stampEl.classList.add('collected');
+
+        const award = document.getElementById('stamp-award');
+        award.textContent = 'Stamp collected: ' + wp.name + '! (' + collectedStamps.size + '/' + WAYPOINTS.length + ')';
+        award.style.display = 'block';
+    }
+}
+
+function closeDialogue(wp) {
+    document.getElementById('dialogue-overlay').classList.remove('active');
+    activeDialogue = null;
+    container.focus();
+
+    // Check completion
+    if (collectedStamps.size >= WAYPOINTS.length) {
+        tourComplete = true;
+        document.getElementById('tour-complete').style.display = 'block';
+    }
+}
+
+function resetTour() {
+    collectedStamps.clear();
+    player = { x: 380, y: 420 };
+    tourComplete = false;
+    document.getElementById('tour-complete').style.display = 'none';
+    buildStampBar();
+    container.focus();
+}
+
+// === GAME LOOP ===
+function gameLoop() {
+    update();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawGrid();
+    drawBuildings();
+    drawWaypoints();
+    drawPlayer();
+    drawMinimap();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Alien Defense</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+  :root { color-scheme: dark; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #000;
+    color: #fff;
+    font-family: "Courier New", ui-monospace, monospace;
+    overflow: hidden;
+  }
+  #wrap {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+  canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    background: #000;
+    display: block;
+    max-width: 100vw;
+    max-height: 100vh;
+    box-shadow: 0 0 24px #0f0a;
+  }
+</style>
+</head>
+<body>
+<div id="wrap"><canvas id="game" width="448" height="512"></canvas></div>
+<script type="module">
+  "use strict";
+  import { RakuEngine } from '../../engine/raku-engine.js';
+  import {
+    installApiOverlay,
+    createSound,
+    installLauncherIntegration,
+    ensureIframeFocus,
+    relayApiCallsToParent,
+  } from '../lib/game-shared.js';
+
+  // ---- Shared helpers (API overlay, sound, launcher, focus) ----
+  const overlay = installApiOverlay({ gameName: 'Alien Defense' });
+  const sound = createSound();
+  installLauncherIntegration('Alien Defense');
+  ensureIframeFocus();
+
+  // ---- RakuEngine world + entities ----
+  const engine = new RakuEngine();
+  const worldRes = engine.createWorld('alien-defense');
+  const WORLD_ID = worldRes.world_id;
+  const cannonEntityRes = engine.createEntity(WORLD_ID, {
+    type: 'cannon', name: 'player', position: [0, 0, 0],
+    properties: { shape: 'box', color: '#00ff00' },
+  });
+  const CANNON_ENTITY_ID = cannonEntityRes.entity_id;
+  const alienEntityRes = engine.createEntity(WORLD_ID, {
+    type: 'alien', name: 'invader', position: [0, 0, 0],
+    properties: { shape: 'sprite', color: '#c0c0ff' },
+  });
+  const ALIEN_ENTITY_ID = alienEntityRes.entity_id;
+  engine.addPhysicsBody(WORLD_ID, CANNON_ENTITY_ID, { shape: 'box', mass: 1, isStatic: false });
+  engine.observeWorld(WORLD_ID);
+  engine.observeJSON(WORLD_ID);
+  engine.captureFrame(WORLD_ID);
+  engine.saveWorld(WORLD_ID);
+  engine.startRecording(WORLD_ID);
+  engine.loadWorld(WORLD_ID, 1);
+  engine.contentFilter('Alien Defense');
+  const alienAgentRes = engine.createAgent(WORLD_ID, { type: 'invader-ai', name: 'AlienAI' });
+  const ALIEN_AGENT_ID = alienAgentRes.agent_id;
+  engine.on('api', (e) => overlay.log(e));
+  relayApiCallsToParent(engine);
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+
+  const W = canvas.width;
+  const H = canvas.height;
+  const GROUND_Y = H - 24;
+
+  // ---- Input ----
+  const keys = Object.create(null);
+  const pressed = Object.create(null);
+  window.addEventListener("keydown", (e) => {
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", " ", "Space"].includes(e.key) || e.code === "Space") {
+      e.preventDefault();
+    }
+    if (!keys[e.code]) pressed[e.code] = true;
+    keys[e.code] = true;
+  });
+  window.addEventListener("keyup", (e) => { keys[e.code] = false; });
+
+  // Gamepad
+  function gp() {
+    const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+    for (const g of gps) if (g) return g;
+    return null;
+  }
+  const gpPrev = { fire: false, start: false };
+  function readGamepad() {
+    const g = gp();
+    if (!g) return;
+    const ax = g.axes[0] || 0;
+    if (ax < -0.35 || g.buttons[14]?.pressed) keys.ArrowLeft = true;
+    else if (!keys._kbLeft) keys.ArrowLeft = false;
+    if (ax > 0.35 || g.buttons[15]?.pressed) keys.ArrowRight = true;
+    else if (!keys._kbRight) keys.ArrowRight = false;
+    const fire = !!(g.buttons[0]?.pressed || g.buttons[7]?.pressed);
+    if (fire && !gpPrev.fire) pressed.Space = true;
+    gpPrev.fire = fire;
+    const start = !!g.buttons[9]?.pressed;
+    if (start && !gpPrev.start) pressed.Enter = true;
+    gpPrev.start = start;
+  }
+  // Track kbd-origin so gamepad doesn't clobber it
+  window.addEventListener("keydown", (e) => {
+    if (e.code === "ArrowLeft") keys._kbLeft = true;
+    if (e.code === "ArrowRight") keys._kbRight = true;
+  });
+  window.addEventListener("keyup", (e) => {
+    if (e.code === "ArrowLeft") keys._kbLeft = false;
+    if (e.code === "ArrowRight") keys._kbRight = false;
+  });
+
+  // ---- Starfield ----
+  const stars = [];
+  for (let i = 0; i < 60; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      s: Math.random() < 0.25 ? 2 : 1,
+      t: Math.random() * Math.PI * 2,
+    });
+  }
+  function drawStars(dt) {
+    for (const s of stars) {
+      s.t += dt * (0.8 + s.s * 0.4);
+      const a = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(s.t));
+      ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+      ctx.fillRect(s.x | 0, s.y | 0, s.s, s.s);
+    }
+  }
+
+  // ---- Sprites ----
+  const SPR = {
+    squid: [
+      ["..XX..X.",".XXXXXX.","XX.XX.XX","XXXXXXXX","X.XXXX.X","X.X..X.X","..XX.X..",".XX.XX.."],
+      ["..XX..X.",".XXXXXX.","XX.XX.XX","XXXXXXXX",".XXXXXX.","..X..X..",".XX..XX.","X..XX..X"],
+    ],
+    crab: [
+      ["..X.....","X.X.X...","XXXXXXX.","XX.XXX.X","XXXXXXXX",".XXXXX..","X.....X.",".X...X.."],
+      ["..X.....","..X.X...","XXXXXXX.","XX.XXX.X","XXXXXXXX",".XXXXX..","X.X.X.X.","X.....X."],
+    ],
+    octopus: [
+      [".XXXXXX.","XXXXXXXX","XX.XX.XX","XXXXXXXX","..X..X..",".X.XX.X.","X.X..X.X",".X....X."],
+      [".XXXXXX.","XXXXXXXX","XX.XX.XX","XXXXXXXX","..XXXX..",".XX..XX.",".X.XX.X.","X.X..X.X"],
+    ],
+    cannon: [
+      "......XX......",
+      "......XX......",
+      ".XXXXXXXXXXXX.",
+      "XXXXXXXXXXXXXX",
+      "XXXXXXXXXXXXXX",
+      "XXXXXXXXXXXXXX",
+    ],
+    cannonBoom: [
+      "X.X..X..X..X.X",
+      "..X.XX.X.XX.X.",
+      ".X.XXXXXXXX.X.",
+      "X.XXXXX.XXXXXX",
+      ".XXXXXXXXXX.X.",
+      "X..XX..X..XX.X",
+    ],
+  };
+
+  function drawBitmap(bitmap, x, y, scale, color) {
+    ctx.fillStyle = color;
+    for (let r = 0; r < bitmap.length; r++) {
+      const row = bitmap[r];
+      for (let c = 0; c < row.length; c++) {
+        if (row[c] === "X") {
+          ctx.fillRect(x + c * scale, y + r * scale, scale, scale);
+        }
+      }
+    }
+  }
+
+  // ---- Alien formation ----
+  const ROWS = 5;
+  const COLS = 11;
+  const CELL_W = 24;
+  const CELL_H = 20;
+  const ALIEN_PX = 8;
+  const ALIEN_SCALE = 2;
+  const ALIEN_W = ALIEN_PX * ALIEN_SCALE;
+  const ALIEN_H = ALIEN_PX * ALIEN_SCALE;
+
+  const ROW_INFO = [
+    { sprite: "squid",   color: "#c0c0ff", points: 30 },
+    { sprite: "crab",    color: "#a0ffa0", points: 20 },
+    { sprite: "crab",    color: "#a0ffa0", points: 20 },
+    { sprite: "octopus", color: "#ffa0a0", points: 10 },
+    { sprite: "octopus", color: "#ffa0a0", points: 10 },
+  ];
+
+  const FORMATION_BASE_SPEED = 24;   // px / second when full
+  const FORMATION_DROP       = 12;   // px per edge bounce
+  const formation = {
+    x: 24, y: 56, dir: 1, frame: 0, aliens: [], speed: FORMATION_BASE_SPEED,
+    reset() {
+      this.x = 24; this.y = 56; this.dir = 1; this.frame = 0;
+      this.speed = FORMATION_BASE_SPEED;
+      this.aliens = [];
+      for (let r = 0; r < ROWS; r++)
+        for (let c = 0; c < COLS; c++)
+          this.aliens.push({
+            r, c, alive: true,
+            type: ROW_INFO[r].sprite,
+            color: ROW_INFO[r].color,
+            points: ROW_INFO[r].points,
+          });
+    },
+    /** Move the whole swarm left/right in unison and drop one row on edge hit. */
+    update(dt) {
+      // Find live columns' extents so we bounce on the outermost alien, not
+      // on empty grid slots after kills.
+      let minX = Infinity, maxX = -Infinity;
+      for (const a of this.aliens) {
+        if (!a.alive) continue;
+        const x = this.x + a.c * CELL_W;
+        if (x < minX) minX = x;
+        if (x + ALIEN_W > maxX) maxX = x + ALIEN_W;
+      }
+      if (!isFinite(minX)) return; // no live aliens
+      // Speed scales up as the swarm is destroyed (classic).
+      const aliveCount = this.aliens.filter(a => a.alive).length;
+      const totalCount = ROWS * COLS;
+      const speedScale = 1 + (1 - aliveCount / totalCount) * 2.5;
+      const vx = this.dir * this.speed * speedScale;
+      this.x += vx * dt;
+      if (this.dir > 0 && maxX + vx * dt > W - 8) {
+        this.dir = -1;
+        this.y += FORMATION_DROP;
+      } else if (this.dir < 0 && minX + vx * dt < 8) {
+        this.dir = 1;
+        this.y += FORMATION_DROP;
+      }
+      // Frame flip synchronized with the movement beat.
+      this._frameAccum = (this._frameAccum || 0) + dt;
+      if (this._frameAccum > 0.35 / speedScale) {
+        this._frameAccum = 0;
+        this.frame ^= 1;
+      }
+    },
+  };
+  formation.reset();
+
+  function alienPos(a) {
+    return { x: formation.x + a.c * CELL_W, y: formation.y + a.r * CELL_H };
+  }
+
+  function drawFormation() {
+    for (const a of formation.aliens) {
+      if (!a.alive) continue;
+      const p = alienPos(a);
+      const frames = SPR[a.type];
+      drawBitmap(frames[formation.frame & 1], p.x, p.y, ALIEN_SCALE, a.color);
+    }
+  }
+
+  // ---- Cannon / player ----
+  const CANNON_SCALE = 2;
+  const CANNON_W = 14 * CANNON_SCALE;
+  const CANNON_H = 6 * CANNON_SCALE;
+  const player = {
+    x: W / 2 - CANNON_W / 2,
+    y: GROUND_Y - CANNON_H - 4,
+    speed: 160,
+    lives: 3,
+    score: 0,
+    hi: 0,
+    reset() {
+      this.x = W / 2 - CANNON_W / 2;
+    },
+  };
+
+  function drawPlayer() {
+    drawBitmap(SPR.cannon, player.x, player.y, CANNON_SCALE, "#0f0");
+  }
+
+  // ---- Wave / level tracking ----
+  let wave = 1; // increments on each formation clear
+
+  // ---- Shots ----
+  const playerShot = { active: false, x: 0, y: 0, w: 2, h: 10 };
+
+  // Alien shots (Level 2+)
+  const alienShots = [];
+  let alienShootTimer = 0;
+
+  function alienShootInterval() {
+    // Level 1: no shots. Level 2: 3.5s. Each additional wave cuts 0.35s, min 0.6s.
+    if (wave < 2) return Infinity;
+    return Math.max(0.6, 3.5 - (wave - 2) * 0.35);
+  }
+
+  function fireAlienShot() {
+    // Pick a random live alien from the bottom of each column.
+    const cols = {};
+    for (const a of formation.aliens) {
+      if (!a.alive) continue;
+      if (cols[a.c] === undefined || a.r > cols[a.c].r) cols[a.c] = a;
+    }
+    const candidates = Object.values(cols);
+    if (!candidates.length) return;
+    const shooter = candidates[Math.floor(Math.random() * candidates.length)];
+    const p = alienPos(shooter);
+    alienShots.push({ x: p.x + ALIEN_W / 2 - 1, y: p.y + ALIEN_H, w: 2, h: 8 });
+    sound.blip(); // placeholder — reuse blip for alien shot sound
+  }
+
+  function updateAlienShots(dt) {
+    alienShootTimer -= dt;
+    if (alienShootTimer <= 0) {
+      alienShootTimer = alienShootInterval();
+      if (isFinite(alienShootTimer)) fireAlienShot();
+    }
+    const shotSpeed = 160 + wave * 18; // faster each wave
+    for (let i = alienShots.length - 1; i >= 0; i--) {
+      const s = alienShots[i];
+      s.y += shotSpeed * dt;
+      // Off-screen
+      if (s.y > GROUND_Y + 10) { alienShots.splice(i, 1); continue; }
+      // Hit player
+      if (
+        s.x < player.x + CANNON_W && s.x + s.w > player.x &&
+        s.y < player.y + CANNON_H && s.y + s.h > player.y
+      ) {
+        alienShots.splice(i, 1);
+        player.lives--;
+        sound.explode();
+        player.reset();
+        if (player.lives <= 0) {
+          state = STATE.GAMEOVER;
+          try { engine.captureFrame(WORLD_ID); } catch (_) {}
+        }
+      }
+    }
+  }
+
+  function drawAlienShots() {
+    ctx.fillStyle = '#f88';
+    for (const s of alienShots) ctx.fillRect(s.x | 0, s.y | 0, s.w, s.h);
+  }
+
+  function firePlayerShot() {
+    if (playerShot.active) return;
+    playerShot.active = true;
+    playerShot.x = player.x + CANNON_W / 2 - 1;
+    playerShot.y = player.y - 2;
+    sound.fire();
+  }
+
+  // ---- Level tracking ----
+  let level = 1;
+
+  // ---- Alien shots ----
+  // Level 1: no shots. Level 2: slow fire. Level 3+: faster + more speed.
+  const alienShots = [];
+  let alienFireTimer = 0;
+
+  function alienFireInterval() {
+    if (level < 2) return Infinity;
+    // Level 2: 3–4 s, Level 3: 2–3 s, Level 4+: ~1–2 s
+    const base = Math.max(1.0, 4.0 - (level - 2) * 0.8);
+    return base + Math.random() * 1.0;
+  }
+
+  function alienShotSpeed() {
+    // Level 2: 180 px/s, Level 3+: faster
+    return 180 + (level - 2) * 40;
+  }
+
+  function fireAlienShot() {
+    if (level < 2) return;
+    // Pick a random bottom-most alien in a live column
+    const liveCols = new Map();
+    for (const a of formation.aliens) {
+      if (!a.alive) continue;
+      if (!liveCols.has(a.c) || a.r > liveCols.get(a.c).r) liveCols.set(a.c, a);
+    }
+    const shooters = [...liveCols.values()];
+    if (!shooters.length) return;
+    const shooter = shooters[Math.floor(Math.random() * shooters.length)];
+    const p = alienPos(shooter);
+    alienShots.push({ x: p.x + ALIEN_W / 2 - 1, y: p.y + ALIEN_H, speed: alienShotSpeed() });
+    sound.blip();
+    try { if (ALIEN_AGENT_ID) engine.agentAct(WORLD_ID, ALIEN_AGENT_ID, {
+      playerAction: 'fire', observation: 'player at ' + (player.x | 0)
+    }); } catch (_) {}
+  }
+
+  function updateAlienShots(dt) {
+    alienFireTimer -= dt;
+    if (alienFireTimer <= 0) {
+      alienFireTimer = alienFireInterval();
+      fireAlienShot();
+    }
+    for (let i = alienShots.length - 1; i >= 0; i--) {
+      const s = alienShots[i];
+      s.y += s.speed * dt;
+      if (s.y > H + 10) { alienShots.splice(i, 1); continue; }
+      // Hit player
+      if (s.x > player.x - 2 && s.x < player.x + CANNON_W + 2 &&
+          s.y > player.y - 2 && s.y < player.y + CANNON_H + 4) {
+        alienShots.splice(i, 1);
+        onPlayerHit();
+      }
+    }
+  }
+
+  function drawAlienShots() {
+    ctx.fillStyle = '#ff4040';
+    for (const s of alienShots) ctx.fillRect(s.x | 0, s.y | 0, 2, 8);
+  }
+
+  let playerDying = false;
+  let playerDieTimer = 0;
+
+  function onPlayerHit() {
+    if (playerDying) return;
+    sound.death();
+    player.lives--;
+    playerDying = true;
+    playerDieTimer = 0;
+    try { if (ALIEN_AGENT_ID) engine.agentReward(WORLD_ID, ALIEN_AGENT_ID, 1.0); } catch (_) {}
+    if (player.lives <= 0) {
+      try { engine.stopRecording(WORLD_ID); } catch (_) {}
+      try { engine.saveWorld(WORLD_ID); } catch (_) {}
+      state = STATE.GAMEOVER;
+    }
+  }
+
+  // Track kills so we occasionally fire API calls into the engine
+  let killCount = 0;
+
+  function updatePlayerShot(dt) {
+    if (!playerShot.active) return;
+    playerShot.y -= 360 * dt;
+    if (playerShot.y + playerShot.h < 28) {
+      playerShot.active = false;
+      return;
+    }
+    // Alien collision
+    for (const a of formation.aliens) {
+      if (!a.alive) continue;
+      const p = alienPos(a);
+      if (
+        playerShot.x < p.x + ALIEN_W &&
+        playerShot.x + playerShot.w > p.x &&
+        playerShot.y < p.y + ALIEN_H &&
+        playerShot.y + playerShot.h > p.y
+      ) {
+        a.alive = false;
+        playerShot.active = false;
+        player.score += a.points;
+        if (player.score > player.hi) player.hi = player.score;
+        // Sound: hit + explode on kill
+        sound.hit();
+        sound.explode();
+        // Engine: fire API calls so the overlay populates
+        killCount++;
+        try {
+          engine.destroyEntity(WORLD_ID, ALIEN_ENTITY_ID);
+        } catch (_) { /* entity may already be gone */ }
+        // Respawn a representative alien so we can keep destroying it
+        try {
+          const r = engine.createEntity(WORLD_ID, {
+            type: 'alien', name: 'invader', position: [p.x, p.y, 0],
+            properties: { shape: 'sprite', color: a.color },
+          });
+          // keep ALIEN_ENTITY_ID rotating
+          if (r && r.entity_id) window.__alienEntityId = r.entity_id;
+        } catch (_) { /* ignore */ }
+        if (killCount % 3 === 0) {
+          try { engine.stepPhysics(WORLD_ID, 0.016); } catch (_) {}
+        }
+        // Wave clear → levelup sound + reset formation + advance level
+        if (formation.aliens.every(x => !x.alive)) {
+          level++;
+          sound.levelup();
+          formation.reset();
+          alienShots.length = 0;
+          alienFireTimer = alienFireInterval();
+          try { engine.captureFrame(WORLD_ID); } catch (_) {}
+          try { engine.saveWorld(WORLD_ID); } catch (_) {}
+          try { if (ALIEN_AGENT_ID) engine.agentReward(WORLD_ID, ALIEN_AGENT_ID, -0.5); } catch (_) {}
+        }
+        return;
+      }
+    }
+  }
+
+  function drawPlayerShot() {
+    if (!playerShot.active) return;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(playerShot.x | 0, playerShot.y | 0, playerShot.w, playerShot.h);
+  }
+
+  // ---- Game state ----
+  const STATE = { TITLE: 0, PLAY: 1, GAMEOVER: 2 };
+  let state = STATE.TITLE;
+
+  function updatePlayer(dt) {
+    if (keys.ArrowLeft) player.x -= player.speed * dt;
+    if (keys.ArrowRight) player.x += player.speed * dt;
+    const minX = 8;
+    const maxX = W - 8 - CANNON_W;
+    if (player.x < minX) player.x = minX;
+    if (player.x > maxX) player.x = maxX;
+    if (pressed.Space) firePlayerShot();
+  }
+
+  // ---- HUD ----
+  function drawHUD() {
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 14px 'Courier New', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("SCORE " + String(player.score).padStart(5, "0"), 8, 18);
+    ctx.textAlign = "center";
+    ctx.fillText("HI " + String(player.hi).padStart(5, "0"), W / 2, 18);
+    ctx.textAlign = "right";
+    ctx.fillText("LIVES " + player.lives, W - 8, 18);
+    ctx.fillStyle = "#0f0";
+    ctx.fillRect(0, 26, W, 1);
+    ctx.fillRect(0, GROUND_Y + 4, W, 1);
+  }
+
+  function drawTitle() {
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.font = "bold 28px 'Courier New', monospace";
+    ctx.fillText("ALIEN DEFENSE", W / 2, 160);
+    ctx.font = "bold 12px 'Courier News', monospace";
+    ctx.fillStyle = "#0f0";
+    ctx.fillText("<- -> MOVE    SPACE FIRE", W / 2, 260);
+    ctx.fillStyle = "#fff";
+    ctx.fillText("PRESS SPACE TO START", W / 2, 300);
+  }
+
+  // ---- Main loop ----
+  let last = performance.now();
+  let frameTimer = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+
+    readGamepad();
+
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, W, H);
+    drawStars(dt);
+
+    if (state === STATE.TITLE) {
+      // Gentle idle sway for the title screen.
+      formation.update(dt * 0.4);
+      drawFormation();
+      drawPlayer();
+      drawHUD();
+      drawTitle();
+      if (pressed.Space || pressed.Enter) {
+        state = STATE.PLAY;
+        level = 1;
+        player.score = 0;
+        player.lives = 3;
+        player.reset();
+        formation.reset();
+        alienShots.length = 0;
+        alienFireTimer = alienFireInterval(); // level 1 → Infinity (no shots)
+        playerDying = false;
+        sound.blip();
+        try { engine.saveWorld(WORLD_ID); } catch (_) {}
+        try { engine.startRecording(WORLD_ID); } catch (_) {}
+      }
+    } else if (state === STATE.GAMEOVER) {
+      drawFormation();
+      drawPlayer();
+      drawHUD();
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 22px "Courier New", monospace';
+      ctx.fillText('GAME OVER', W / 2, H / 2 - 10);
+      ctx.font = 'bold 11px "Courier New", monospace';
+      ctx.fillStyle = '#0f0';
+      ctx.fillText('PRESS SPACE TO PLAY AGAIN', W / 2, H / 2 + 18);
+      if (pressed.Space || pressed.Enter) {
+        state = STATE.PLAY;
+        level = 1;
+        player.score = 0;
+        player.lives = 3;
+        player.reset();
+        formation.reset();
+        alienShots.length = 0;
+        alienFireTimer = alienFireInterval();
+        playerDying = false;
+        sound.blip();
+        try { engine.startRecording(WORLD_ID); } catch (_) {}
+      }
+    } else if (state === STATE.PLAY) {
+      if (playerDying) {
+        playerDieTimer += dt;
+        if (playerDieTimer > 1.0) { playerDying = false; player.reset(); }
+      }
+      updatePlayer(dt);
+      updatePlayerShot(dt);
+      updateAlienShots(dt);
+      formation.update(playerDying ? 0 : dt);
+      // Game over: aliens reach the ground line
+      if (formation.y + ROWS * CELL_H >= GROUND_Y) {
+        state = STATE.GAMEOVER;
+        try { engine.captureFrame(WORLD_ID); } catch (_) {}
+        try { engine.stopRecording(WORLD_ID); } catch (_) {}
+        try { if (ALIEN_AGENT_ID) engine.agentReward(WORLD_ID, ALIEN_AGENT_ID, 1.0); } catch (_) {}
+      }
+      drawFormation();
+      if (!playerDying || ((playerDieTimer * 10 | 0) % 2 === 0)) drawPlayer();
+      drawPlayerShot();
+      drawAlienShots();
+      drawHUD();
+      // Level label
+      ctx.fillStyle = '#888';
+      ctx.textAlign = 'right';
+      ctx.font = '9px "Courier New", monospace';
+      ctx.fillText('LEVEL ' + level, W - 8, H - 8);
+
+      // API variety: stream the swarm transform + observe the world on a
+      // rotating schedule so the overlay sees more than physics/entities.
+      apiPhaseTimer += dt;
+      if (apiPhaseTimer > 0.35) {
+        apiPhaseTimer = 0;
+        const p = (apiPhase++) % 10;
+        try {
+          if (p === 0) engine.setTransform(WORLD_ID, ALIEN_ENTITY_ID, { position: [formation.x, formation.y, 0] });
+          else if (p === 1) engine.observeWorld(WORLD_ID);
+          else if (p === 2) engine.stepPhysics(WORLD_ID, 0.016);
+          else if (p === 3) engine.captureFrame(WORLD_ID);
+          else if (p === 4) engine.observeJSON(WORLD_ID);
+          else if (p === 5) engine.setTransform(WORLD_ID, CANNON_ENTITY_ID, { position: [player.x, player.y, 0] });
+          else if (p === 6) { if (ALIEN_AGENT_ID) engine.agentObserve(WORLD_ID, ALIEN_AGENT_ID); }
+          else if (p === 7) { if (ALIEN_AGENT_ID) engine.agentAct(WORLD_ID, ALIEN_AGENT_ID, {
+            playerAction: 'advance', observation: 'player at ' + (player.x | 0)
+          }); }
+          else if (p === 8) engine.saveWorld(WORLD_ID);
+          else { if (ALIEN_AGENT_ID) engine.agentReward(WORLD_ID, ALIEN_AGENT_ID, 0.01); }
+        } catch (_) {}
+      }
+    }
+
+    for (const k in pressed) delete pressed[k];
+    requestAnimationFrame(frame);
+  }
+  let apiPhase = 0;
+  let apiPhaseTimer = 0;
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>

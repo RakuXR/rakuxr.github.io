@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>River Hopper</title>
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    background: #0a0a14; color: #e8e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    height: 100vh;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    user-select: none;
+    box-sizing: border-box;
+    padding: 4px 8px 8px;
+  }
+  h1 {
+    margin: 6px 0 2px 0;
+    font-weight: 700; letter-spacing: 2px;
+    color: #7df27d;
+    font-size: 18px;
+    text-shadow: 0 0 12px rgba(125, 242, 125, 0.4);
+  }
+  .sub { margin: 0 0 6px 0; font-size: 11px; color: #8a8aa0; letter-spacing: 1px; }
+  #wrap {
+    position: relative;
+    border: 2px solid #2a2a3e; border-radius: 6px;
+    box-shadow: 0 0 32px rgba(0, 0, 0, 0.6);
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 95vw;
+    max-height: calc(100vh - 80px);
+  }
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+    max-width: 95vw;
+    max-height: calc(100vh - 80px);
+    aspect-ratio: 560 / 640;
+    width: auto;
+    height: auto;
+  }
+  .legend {
+    margin-top: 6px; font-size: 11px; color: #6a6a80;
+    letter-spacing: 0.5px; text-align: center;
+    max-width: 560px; line-height: 1.5;
+  }
+  .legend b { color: #9a9ab0; }
+</style>
+</head>
+<body>
+  <h1>RIVER HOPPER</h1>
+  <div class="sub">HOP ACROSS THE ROAD AND RIVER</div>
+  <div id="wrap">
+    <canvas id="game" width="560" height="640"></canvas>
+  </div>
+  <div class="legend">
+    <b>ARROWS</b> hop one tile &middot; <b>GAMEPAD D-PAD</b> hop &middot; <b>R</b> restart &middot; <b>M</b> mute
+  </div>
+<script type="module">
+'use strict';
+import { RakuEngine } from '../../engine/raku-engine.js';
+import {
+  installApiOverlay,
+  createSound,
+  installLauncherIntegration,
+  ensureIframeFocus,
+  relayApiCallsToParent,
+} from '../lib/game-shared.js';
+
+// ------------------------------------------------------------
+// Shared helpers: API overlay, sound, launcher, focus
+// ------------------------------------------------------------
+const overlay = installApiOverlay({ gameName: 'River Hopper' });
+const sound = createSound();
+const launcher = installLauncherIntegration('River Hopper');
+ensureIframeFocus();
+
+// ------------------------------------------------------------
+// RakuEngine integration
+// ------------------------------------------------------------
+const engine = new RakuEngine();
+const worldRes = engine.createWorld('river-hopper');
+const WORLD_ID = worldRes.world_id;
+const playerEntityRes = engine.createEntity(WORLD_ID, {
+  type: 'frog', name: 'player', position: [0, 0, 0],
+  properties: { shape: 'box', color: '#4ec44e' },
+});
+const PLAYER_ENTITY_ID = playerEntityRes.entity_id;
+engine.observeWorld(WORLD_ID);
+engine.captureFrame(WORLD_ID);
+
+engine.on('api', (e) => { try { overlay.log(e); } catch (_) {} });
+relayApiCallsToParent(engine);
+
+(function () {
+  'use strict';
+
+  var canvas = document.getElementById('game');
+  var ctx = canvas.getContext('2d');
+
+  var TILE = 40;
+  var COLS = 14;
+  var ROWS = 16;
+  canvas.width = COLS * TILE;
+  canvas.height = ROWS * TILE;
+
+  var FIELD_ROWS = 13;
+  var HUD_HEIGHT = (ROWS - FIELD_ROWS) * TILE;
+  var FIELD_HEIGHT = FIELD_ROWS * TILE;
+
+  // Row semantics (field = rows 0..12):
+  //   0      home bank (goal row)
+  //   1-5    river (4 logs/turtles bands)  -- wired later
+  //   6      median (safe)
+  //   7-11   road (5 car lanes)
+  //   12     start / safe
+  var ROW_HOME = 0;
+  var ROW_MEDIAN = 6;
+  var ROAD_ROWS = [7, 8, 9, 10, 11];
+  var ROW_START = 12;
+
+  // ----------------------------------------------------------------
+  // State
+  // ----------------------------------------------------------------
+  var state = {
+    frog: {
+      col: 7, row: 12,
+      drawX: 7 * TILE, drawY: 12 * TILE,
+      targetX: 7 * TILE, targetY: 12 * TILE,
+      hopT: 1.0, facing: 0
+    },
+    lives: 3, score: 0, level: 1,
+    running: true, dead: false, deathT: 0,
+    cars: [],
+    logs: [],      // river rafts + turtles the frog can ride on
+    homes: []      // home-bank slots on the top row
+  };
+
+  // ----------------------------------------------------------------
+  // Car lanes
+  // ----------------------------------------------------------------
+  // Each lane: row, direction (+1 right, -1 left), speed (tiles/sec),
+  // length (tiles), spacing (tiles), color.
+  function buildCars(level) {
+    state.cars = [];
+    var speedMul = 0.40 + (level - 1) * 0.18; // Level 1=0.40×, Level 4≈1×, Level 7+=fast
+    var lanes = [
+      // row, dir, speed, len, spacing, color, label
+      { row: 11, dir: -1, speed: 2.2,  len: 1, spacing: 4.0, color: '#f25a4e', kind: 'car' },
+      { row: 10, dir:  1, speed: 2.8,  len: 1, spacing: 4.5, color: '#f2d24e', kind: 'car' },
+      { row:  9, dir: -1, speed: 3.6,  len: 1, spacing: 5.0, color: '#6ed4f0', kind: 'car' },
+      { row:  8, dir:  1, speed: 1.6,  len: 2, spacing: 6.0, color: '#d88a3a', kind: 'truck' },
+      { row:  7, dir: -1, speed: 4.0,  len: 1, spacing: 5.5, color: '#c48af0', kind: 'car' }
+    ];
+    for (var i = 0; i < lanes.length; i++) {
+      var L = lanes[i];
+      var spd = L.speed * speedMul;
+      // Populate lane at even spacing offsets
+      var count = Math.floor(COLS / L.spacing) + 1;
+      for (var j = 0; j < count; j++) {
+        var startX = (j * L.spacing) * TILE;
+        if (L.dir < 0) startX = COLS * TILE - startX - L.len * TILE;
+        state.cars.push({
+          row: L.row,
+          x: startX,
+          dir: L.dir,
+          speed: spd,
+          len: L.len,
+          color: L.color,
+          kind: L.kind
+        });
+      }
+    }
+  }
+
+  function updateCars(dt) {
+    for (var i = 0; i < state.cars.length; i++) {
+      var c = state.cars[i];
+      c.x += c.dir * c.speed * TILE * dt;
+      var w = c.len * TILE;
+      if (c.dir > 0 && c.x > COLS * TILE + 20) c.x = -w - 20;
+      if (c.dir < 0 && c.x < -w - 20) c.x = COLS * TILE + 20;
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // River (logs + turtles) — rows 1..5
+  // ----------------------------------------------------------------
+  function buildRiver(level) {
+    state.logs = [];
+    var speedMul = 0.40 + (level - 1) * 0.18; // Level 1=0.40×, Level 4≈1×, Level 7+=fast
+    var lanes = [
+      // row 1: long log, slow right
+      { row: 1, dir:  1, speed: 1.2, len: 4, spacing: 7, kind: 'log' },
+      // row 2: turtles, left
+      { row: 2, dir: -1, speed: 2.0, len: 2, spacing: 5, kind: 'turtles' },
+      // row 3: medium log, right
+      { row: 3, dir:  1, speed: 1.6, len: 3, spacing: 6, kind: 'log' },
+      // row 4: turtles (some sinking), left
+      { row: 4, dir: -1, speed: 2.4, len: 3, spacing: 6, kind: 'turtles' },
+      // row 5: short log, right
+      { row: 5, dir:  1, speed: 2.0, len: 2, spacing: 5, kind: 'log' }
+    ];
+    for (var i = 0; i < lanes.length; i++) {
+      var L = lanes[i];
+      var spd = L.speed * speedMul;
+      var count = Math.floor(COLS / L.spacing) + 2;
+      for (var j = 0; j < count; j++) {
+        var startX = (j * L.spacing) * TILE;
+        if (L.dir < 0) startX = COLS * TILE - startX - L.len * TILE;
+        state.logs.push({
+          row: L.row,
+          x: startX,
+          dir: L.dir,
+          speed: spd,
+          len: L.len,
+          kind: L.kind
+        });
+      }
+    }
+  }
+
+  function updateLogs(dt) {
+    var margin = COLS * TILE + 60;
+    for (var i = 0; i < state.logs.length; i++) {
+      var l = state.logs[i];
+      l.x += l.dir * l.speed * TILE * dt;
+      var w = l.len * TILE;
+      if (l.dir > 0 && l.x > COLS * TILE + 30) l.x = -w - 30;
+      if (l.dir < 0 && l.x < -w - 30) l.x = COLS * TILE + 30;
+    }
+  }
+
+  function drawLogs() {
+    for (var i = 0; i < state.logs.length; i++) {
+      var l = state.logs[i];
+      var w = l.len * TILE;
+      var y = l.row * TILE;
+      if (l.kind === 'log') {
+        // A chunky brown raft
+        ctx.fillStyle = '#6b3a1a';
+        ctx.fillRect(l.x, y + 6, w, TILE - 12);
+        ctx.fillStyle = '#8b5020';
+        ctx.fillRect(l.x, y + 6, w, 4);
+        ctx.fillStyle = '#4a2410';
+        ctx.fillRect(l.x, y + TILE - 10, w, 4);
+        ctx.fillStyle = '#3a1a08';
+        for (var k = 0; k < l.len; k++) {
+          ctx.fillRect(l.x + k * TILE + TILE - 2, y + 8, 1, TILE - 16);
+        }
+      } else {
+        // turtles: each segment is one turtle
+        for (var k = 0; k < l.len; k++) {
+          var tx = l.x + k * TILE;
+          ctx.fillStyle = '#1a6b3b';
+          ctx.fillRect(tx + 4, y + 8, TILE - 8, TILE - 16);
+          ctx.fillStyle = '#2fa04f';
+          ctx.fillRect(tx + 6, y + 10, TILE - 12, TILE - 20);
+          ctx.fillStyle = '#6be08f';
+          ctx.fillRect(tx + 10, y + 13, 2, 2);
+          ctx.fillRect(tx + TILE - 12, y + 13, 2, 2);
+        }
+      }
+    }
+  }
+
+  // Returns the log the frog is currently riding (null if none).
+  function logAtFrog() {
+    if (state.frog.row < 1 || state.frog.row > 5) return null;
+    var fx = state.frog.drawX + TILE / 2;
+    for (var i = 0; i < state.logs.length; i++) {
+      var l = state.logs[i];
+      if (l.row !== state.frog.row) continue;
+      var w = l.len * TILE;
+      if (fx >= l.x && fx <= l.x + w) return l;
+    }
+    return null;
+  }
+
+  function drawCars() {
+    for (var i = 0; i < state.cars.length; i++) {
+      var c = state.cars[i];
+      var w = c.len * TILE;
+      var y = c.row * TILE;
+      // shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(c.x + 2, y + 6, w - 4, TILE - 10);
+      // body
+      ctx.fillStyle = c.color;
+      ctx.fillRect(c.x + 2, y + 4, w - 4, TILE - 10);
+      // cab highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      if (c.kind === 'truck') {
+        var cabW = 10;
+        var cabX = c.dir > 0 ? c.x + w - 4 - cabW : c.x + 4;
+        ctx.fillRect(cabX, y + 8, cabW, TILE - 18);
+      } else {
+        ctx.fillRect(c.x + 6, y + 8, w - 14, 6);
+      }
+      // wheels
+      ctx.fillStyle = '#111';
+      ctx.fillRect(c.x + 4, y + TILE - 8, 6, 4);
+      ctx.fillRect(c.x + w - 12, y + TILE - 8, 6, 4);
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // Collisions
+  // ----------------------------------------------------------------
+  function carHitsFrog() {
+    if (state.dead) return false;
+    if (state.frog.row < 7 || state.frog.row > 11) return false;
+    var fx = state.frog.col * TILE;
+    var fy = state.frog.row * TILE;
+    for (var i = 0; i < state.cars.length; i++) {
+      var c = state.cars[i];
+      if (c.row !== state.frog.row) continue;
+      var w = c.len * TILE;
+      if (c.x + w > fx + 6 && c.x < fx + TILE - 6) return true;
+    }
+    return false;
+  }
+
+  function killFrog(cause) {
+    if (state.dead) return;
+    state.dead = true;
+    state.deathT = 0;
+    state.cause = cause || 'squash';
+    try {
+      if (cause === 'drown') sound.hit();
+      else sound.death();
+    } catch (_) {}
+  }
+
+  function respawnFrog() {
+    state.frog.col = 7; state.frog.row = 12;
+    state.frog.drawX = 7 * TILE; state.frog.drawY = 12 * TILE;
+    state.frog.targetX = 7 * TILE; state.frog.targetY = 12 * TILE;
+    state.frog.hopT = 1.0;
+    state.dead = false;
+    state.lives--;
+    if (state.lives < 0) {
+      state.lives = 3;
+      state.score = 0;
+      state.level = 1;
+      buildCars(1);
+      buildRiver(1);
+      try { engine.stopRecording(WORLD_ID); } catch (_) {}
+      try { engine.startRecording(WORLD_ID); } catch (_) {}
+      try { if (AI_AGENT_ID) engine.agentReward(WORLD_ID, AI_AGENT_ID, -1.0); } catch (_) {}
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // Input
+  // ----------------------------------------------------------------
+  var pressedOnce = {};
+  var heldKeys = {};
+  window.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight' || k === ' ') {
+      e.preventDefault();
+    }
+    if (!heldKeys[k]) pressedOnce[k] = true;
+    heldKeys[k] = true;
+  });
+  window.addEventListener('keyup', function (e) { heldKeys[e.key] = false; });
+  function consumePress(k) {
+    if (pressedOnce[k]) { pressedOnce[k] = false; return true; }
+    return false;
+  }
+
+  var padPrev = { up: false, down: false, left: false, right: false };
+  function pollGamepad() {
+    var out = { up: false, down: false, left: false, right: false };
+    if (!navigator.getGamepads) return out;
+    var pads = navigator.getGamepads();
+    for (var i = 0; i < pads.length; i++) {
+      var p = pads[i];
+      if (!p) continue;
+      var up    = (p.buttons[12] && p.buttons[12].pressed) || (p.axes[1] && p.axes[1] < -0.5);
+      var down  = (p.buttons[13] && p.buttons[13].pressed) || (p.axes[1] && p.axes[1] >  0.5);
+      var left  = (p.buttons[14] && p.buttons[14].pressed) || (p.axes[0] && p.axes[0] < -0.5);
+      var right = (p.buttons[15] && p.buttons[15].pressed) || (p.axes[0] && p.axes[0] >  0.5);
+      out.up = out.up || up; out.down = out.down || down;
+      out.left = out.left || left; out.right = out.right || right;
+    }
+    var edges = {
+      up: out.up && !padPrev.up, down: out.down && !padPrev.down,
+      left: out.left && !padPrev.left, right: out.right && !padPrev.right
+    };
+    padPrev = out;
+    return edges;
+  }
+
+  // ----------------------------------------------------------------
+  // Frog
+  // ----------------------------------------------------------------
+  function tryHop(dc, dr, facing) {
+    if (state.dead) return;
+    if (state.frog.hopT < 1.0) return;
+    var nc = state.frog.col + dc;
+    var nr = state.frog.row + dr;
+    if (nc < 0 || nc >= COLS || nr < 0 || nr >= FIELD_ROWS) return;
+    state.frog.col = nc; state.frog.row = nr;
+    state.frog.targetX = nc * TILE; state.frog.targetY = nr * TILE;
+    state.frog.hopT = 0; state.frog.facing = facing;
+    try { sound.jump(); } catch (_) {}
+    // Reached the home bank (top row) — score a goal and advance
+    if (nr === ROW_HOME) {
+      try { sound.coin(); } catch (_) {}
+      state.score += 50;
+      state.level += 1;
+      try { sound.levelup(); } catch (_) {}
+      buildCars(state.level);
+      buildRiver(state.level);
+      // Respawn to start row (without losing a life)
+      state.frog.col = 7; state.frog.row = ROW_START;
+      state.frog.drawX = 7 * TILE; state.frog.drawY = ROW_START * TILE;
+      state.frog.targetX = 7 * TILE; state.frog.targetY = ROW_START * TILE;
+      state.frog.hopT = 1.0;
+    } else if (nr === ROW_MEDIAN || nr === ROW_START) {
+      // Safe landing
+      try { sound.blip(); } catch (_) {}
+    }
+    // Update engine-tracked player entity position
+    try {
+      engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
+        position: [state.frog.col, 0, state.frog.row],
+      });
+    } catch (_) {}
+  }
+
+  function updateFrog(dt) {
+    if (state.frog.hopT < 1.0) {
+      state.frog.hopT = Math.min(1.0, state.frog.hopT + dt * 10);
+      state.frog.drawX += (state.frog.targetX - state.frog.drawX) * 0.4;
+      state.frog.drawY += (state.frog.targetY - state.frog.drawY) * 0.4;
+      if (state.frog.hopT >= 1.0) {
+        state.frog.drawX = state.frog.targetX;
+        state.frog.drawY = state.frog.targetY;
+      }
+    }
+  }
+
+  // ----------------------------------------------------------------
+  // Drawing
+  // ----------------------------------------------------------------
+  function drawField() {
+    ctx.fillStyle = '#0d2a5e';
+    ctx.fillRect(0, 1 * TILE, COLS * TILE, 5 * TILE);
+    ctx.fillStyle = 'rgba(255,255,255,0.03)';
+    for (var y = 1; y < 6; y++) {
+      for (var x = 0; x < COLS; x += 2) {
+        ctx.fillRect(x * TILE, y * TILE + (x % 4 === 0 ? 6 : 18), TILE, 4);
+      }
+    }
+    // Home bank
+    ctx.fillStyle = '#0f3d1a';
+    ctx.fillRect(0, 0, COLS * TILE, TILE);
+    // Median
+    ctx.fillStyle = '#16401e';
+    ctx.fillRect(0, 6 * TILE, COLS * TILE, TILE);
+    // Road
+    ctx.fillStyle = '#1a1a20';
+    ctx.fillRect(0, 7 * TILE, COLS * TILE, 5 * TILE);
+    // Lane dashes (between rows)
+    ctx.fillStyle = 'rgba(255, 220, 60, 0.35)';
+    for (var lr = 8; lr <= 11; lr++) {
+      for (var lx = 0; lx < COLS; lx++) {
+        if (lx % 2 === 0) ctx.fillRect(lx * TILE + 12, lr * TILE - 2, 16, 4);
+      }
+    }
+    // Road edge stripes
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 7 * TILE - 2, COLS * TILE, 2);
+    ctx.fillRect(0, 12 * TILE, COLS * TILE, 2);
+    // Start row
+    ctx.fillStyle = '#16401e';
+    ctx.fillRect(0, 12 * TILE, COLS * TILE, TILE);
+    // HUD
+    ctx.fillStyle = '#05050a';
+    ctx.fillRect(0, FIELD_HEIGHT, COLS * TILE, HUD_HEIGHT);
+    ctx.fillStyle = '#1a1a2a';
+    ctx.fillRect(0, FIELD_HEIGHT, COLS * TILE, 2);
+  }
+
+  function drawFrog() {
+    var x = state.frog.drawX;
+    var y = state.frog.drawY;
+    var lift = 0;
+    if (state.frog.hopT < 1.0) lift = Math.sin(state.frog.hopT * Math.PI) * 6;
+    if (state.dead) {
+      // Simple splat: red X
+      ctx.fillStyle = '#e24a4a';
+      ctx.fillRect(x + 8, y + 14, TILE - 16, 4);
+      ctx.fillRect(x + 14, y + 8, 4, TILE - 16);
+      return;
+    }
+    ctx.fillStyle = '#4ec44e';
+    ctx.fillRect(x + 6, y + 8 - lift, TILE - 12, TILE - 16);
+    ctx.fillStyle = '#2f8a2f';
+    ctx.fillRect(x + 10, y + 6 - lift, TILE - 20, 8);
+    ctx.fillStyle = '#3ea83e';
+    ctx.fillRect(x + 2,  y + 14 - lift, 6, 10);
+    ctx.fillRect(x + TILE - 8, y + 14 - lift, 6, 10);
+    ctx.fillRect(x + 4,  y + TILE - 10 - lift, 6, 6);
+    ctx.fillRect(x + TILE - 10, y + TILE - 10 - lift, 6, 6);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x + 12, y + 4 - lift, 5, 5);
+    ctx.fillRect(x + TILE - 17, y + 4 - lift, 5, 5);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(x + 13, y + 5 - lift, 3, 3);
+    ctx.fillRect(x + TILE - 16, y + 5 - lift, 3, 3);
+  }
+
+  function drawHUD() {
+    ctx.fillStyle = '#7df27d';
+    ctx.font = 'bold 16px monospace';
+    ctx.textBaseline = 'middle';
+    var hudY = FIELD_HEIGHT + HUD_HEIGHT / 2;
+    ctx.textAlign = 'left';
+    ctx.fillText('SCORE ' + state.score, 12, hudY);
+    ctx.textAlign = 'center';
+    ctx.fillText('LEVEL ' + state.level, COLS * TILE / 2, hudY);
+    ctx.textAlign = 'right';
+    ctx.fillText('LIVES ' + state.lives, COLS * TILE - 12, hudY);
+  }
+
+  // ----------------------------------------------------------------
+  // Main loop
+  // ----------------------------------------------------------------
+  buildCars(state.level);
+  buildRiver(state.level);
+
+  var lastT = performance.now();
+  var apiAccum = 0;
+  var apiPhase = 0;
+  function frame(now) {
+    var dt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+
+    if (!state.dead) {
+      var pad = pollGamepad();
+      if (consumePress('ArrowUp')    || pad.up)    tryHop(0, -1, 0);
+      if (consumePress('ArrowRight') || pad.right) tryHop(1,  0, 1);
+      if (consumePress('ArrowDown')  || pad.down)  tryHop(0,  1, 2);
+      if (consumePress('ArrowLeft')  || pad.left)  tryHop(-1, 0, 3);
+    }
+
+    updateFrog(dt);
+    updateCars(dt);
+    updateLogs(dt);
+
+    // River riding: if the frog is on a river row between hops, carry it
+    // with the log beneath it; if there's no log, it drowns.
+    if (!state.dead && state.frog.hopT >= 1.0 &&
+        state.frog.row >= 1 && state.frog.row <= 5) {
+      var l = logAtFrog();
+      if (l) {
+        state.frog.drawX += l.dir * l.speed * TILE * dt;
+        state.frog.targetX = state.frog.drawX;
+        // Snap grid col so kill/home checks stay accurate.
+        state.frog.col = Math.round(state.frog.drawX / TILE);
+        // Pushed off the edge → drown
+        if (state.frog.drawX < -TILE / 2 || state.frog.drawX > (COLS - 0.5) * TILE) {
+          killFrog('drown');
+        }
+      } else {
+        killFrog('drown');
+      }
+    }
+
+    if (!state.dead && carHitsFrog()) killFrog('squash');
+    if (state.dead) {
+      state.deathT += dt;
+      if (state.deathT > 0.8) respawnFrog();
+    }
+
+    // API variety: rotate through different endpoints instead of only
+    // hammering stepPhysics.
+    apiAccum += dt;
+    if (apiAccum >= 0.35) {
+      apiAccum = 0;
+      try {
+        var p = (apiPhase++) % 10;
+        if (p === 0) engine.setTransform(WORLD_ID, PLAYER_ENTITY_ID, {
+          position: [state.frog.col, 0, state.frog.row],
+        });
+        else if (p === 1) engine.observeWorld(WORLD_ID);
+        else if (p === 2) engine.stepPhysics(WORLD_ID, 0.2);
+        else if (p === 3) engine.captureFrame(WORLD_ID);
+        else if (p === 4) engine.observeJSON(WORLD_ID);
+        else if (p === 5) { if (AI_AGENT_ID) engine.agentObserve(WORLD_ID, AI_AGENT_ID); }
+        else if (p === 6) { if (AI_AGENT_ID) engine.agentAct(WORLD_ID, AI_AGENT_ID, {
+          playerAction: 'move',
+          observation: 'frog at row ' + state.frog.row + ' col ' + state.frog.col
+        }); }
+        else if (p === 7) engine.saveWorld(WORLD_ID);
+        else if (p === 8) { if (AI_AGENT_ID) engine.agentReward(WORLD_ID, AI_AGENT_ID, state.dead ? -0.1 : 0.01); }
+        else engine.startRecording(WORLD_ID);
+      } catch (_) {}
+    }
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    drawField();
+    drawLogs();
+    drawCars();
+    drawFrog();
+    drawHUD();
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

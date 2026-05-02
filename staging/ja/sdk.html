@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raku SDK - ゲームスタジオ＆XR開発者向け空間エンジン</title>
+    <meta name="description" content="Raku SDK：AI ネイティブアーキテクチャ、XRサポート、オンデバイスML を備えたモジュラー空間エンジン。">
+    <meta property="og:title" content="Raku SDK - ゲームスタジオ＆XR開発者向け空間エンジン">
+    <meta property="og:description" content="モジュラー空間エンジン。AIネイティブアーキテクチャ。XR対応。オンデバイスML。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/sdk">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/sdk">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        /* SDK-specific styles */
+        .arch-diagram {
+            background: #0d0d1f;
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 32px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--text-primary);
+            margin: 32px 0;
+        }
+        .arch-diagram .hl { color: var(--accent-bright); font-weight: 700; }
+        .arch-diagram .hl-cyan { color: var(--success); font-weight: 700; }
+        .arch-diagram .hl-green { color: #50fa7b; }
+        .arch-diagram .dim { color: #555577; }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            margin: 32px 0;
+        }
+        .module-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .module-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .module-card h4 {
+            color: var(--accent-bright);
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        .module-card .module-size {
+            color: var(--success);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .module-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+        .platform-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .platform-card h4 { color: var(--accent-bright); margin-bottom: 8px; }
+        .platform-card .platform-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .platform-card .platform-status.ready { background: var(--success); color: var(--bg-primary); }
+        .platform-card .platform-status.beta { background: var(--accent); color: white; }
+        .platform-card .platform-status.preview { background: #ff79c6; color: var(--bg-primary); }
+
+        .ai-flow {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            gap: 0;
+            align-items: center;
+            margin: 40px 0;
+        }
+        .ai-flow-box {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .ai-flow-box h4 { color: var(--accent-bright); margin-bottom: 8px; }
+        .ai-flow-arrow {
+            text-align: center;
+            color: var(--success);
+            font-size: 2rem;
+            font-weight: 800;
+            padding: 0 8px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+        }
+        .comparison-table th {
+            background: var(--accent);
+            color: white;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .comparison-table td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #222244;
+            color: var(--text-secondary);
+        }
+        .comparison-table tr:nth-child(even) { background: var(--bg-secondary); }
+        .comparison-table .check { color: var(--success); font-weight: 700; }
+        .comparison-table .cross { color: #555577; }
+
+        .target-badge {
+            display: inline-block;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            color: var(--accent-bright);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 4px;
+        }
+
+        .sdk-hero-brand {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 8px;
+        }
+        .sdk-hero-brand .kanji-logo {
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sdk-hero-brand .xr-badge {
+            font-size: 1.8rem;
+            color: var(--success);
+            font-weight: 700;
+            -webkit-text-fill-color: var(--success);
+            background: none;
+            letter-spacing: 0.1em;
+        }
+
+        .patent-bar {
+            background: linear-gradient(135deg, #1a1a3a, #111128);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            margin: 24px auto;
+            max-width: 800px;
+            flex-wrap: wrap;
+        }
+        .patent-bar span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .patent-bar strong {
+            color: var(--accent-bright);
+        }
+
+        @media (max-width: 768px) {
+            .ai-flow { grid-template-columns: 1fr; gap: 16px; }
+            .ai-flow-arrow { transform: rotate(90deg); font-size: 1.5rem; }
+            .sdk-hero-brand { font-size: 2.5rem; }
+            .arch-diagram { font-size: 0.65rem; padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> 公開中 — ゲームを説明して、すぐにプレイ | <a href="index.html#quickstart">楽AIを試す →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">ホーム</a>
+            <a href="../engine/">エンジン</a>
+            <a href="../api/">API ドキュメント</a>
+            <a href="../games/">ゲーム</a>
+            <a href="../why-rakuai.html">なぜ RakuAI</a>
+            <a href="../developers/">開発者</a>
+            <a href="../press.html">プレス</a>
+            <a href="../sdk.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<!-- SDK Beta Notice -->
+<div class="sdk-beta-notice">
+    SDKベータ &mdash; GA リリース（2026年6月30日）前にAPIが変更される可能性があります
+</div>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <div class="beta-badge">SDK デベロッパープレビュー</div>
+        <div class="sdk-hero-brand">
+            <span class="kanji-logo">&#x697D;</span><span class="xr-badge">XR</span><sup class="tm">™</sup>
+        </div>
+        <h1>空間エンジンSDK</h1>
+        <p class="subtitle">
+            モジュラーアーキテクチャ。AIネイティブ設計。
+            単一コードベースからPC、コンソール、XR向けの空間ゲームを構築。
+        </p>
+        <div class="cta-group">
+            <a href="contact.html" class="btn btn-primary">SDKアクセスをリクエスト</a>
+            <a href="docs.html" class="btn btn-secondary">ドキュメントを見る</a>
+        </div>
+        <div class="patent-bar">
+            <span><strong>5</strong> 件の取得済み特許</span>
+            <span><strong>100%</strong> テスト合格率</span>
+            <span><strong>0</strong> クラウド依存</span>
+        </div>
+        <div style="margin-top: 16px;">
+            <span class="target-badge">ゲームスタジオ</span>
+            <span class="target-badge">コンソールメーカー</span>
+            <span class="target-badge">XRプラットフォーム</span>
+            <span class="target-badge">AI企業</span>
+            <span class="target-badge">インディー開発者</span>
+        </div>
+    </div>
+</section>
+
+<!-- How RakuAI Execution Works -->
+<section class="section" id="execution" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>RakuAI&trade;の仕組み</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            RakuAIはゲーム定義とエンジン実行を分離します。AIがゲームロジックを生成し、
+            ランタイムがコンパイル済みネイティブモジュールを通じてリアルタイムに実行します。
+        </p>
+
+        <div class="ai-flow">
+            <div class="ai-flow-box">
+                <h4>説明する</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">あなたのゲームコンセプト</p>
+            </div>
+            <div class="ai-flow-arrow">&rarr;</div>
+            <div class="ai-flow-box" style="border-color: var(--success);">
+                <h4 style="color: var(--success);">AIネイティブエンジン</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">リアルタイム実行</p>
+            </div>
+            <div class="ai-flow-arrow">&rarr;</div>
+            <div class="ai-flow-box">
+                <h4>プレイする</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">適応型ゲームプレイ</p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- Architecture -->
+<section class="section" id="architecture">
+    <div class="container">
+        <h2>モジュラー AIネイティブ アーキテクチャ</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            レンダリング、物理、オーディオ、AI、XR、ネットワーキングなどをカバーする専用モジュラーエンジン。
+            クラウド依存なしの軽量ランタイム。必要なものだけをロード。
+        </p>
+        <div style="text-align: center; margin-top: 32px;">
+            <a href="contact.html" class="btn btn-primary">アーキテクチャの詳細はSDKアクセスで</a>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- Why RakuAI -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>RakuAIが選ばれる理由</h2>
+        <div class="platform-grid">
+            <div class="platform-card">
+                <h4>クロスプラットフォーム</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">単一コードベースからPC、コンソール、XRにデプロイ</p>
+            </div>
+            <div class="platform-card">
+                <h4>AIネイティブ設計</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">AI駆動ゲーム制作と適応型ゲームプレイのためにゼロから構築</p>
+            </div>
+            <div class="platform-card">
+                <h4>モジュラーエンジン</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">プロジェクトに必要なモジュールのみを使用し、超軽量フットプリントを実現</p>
+            </div>
+            <div class="platform-card">
+                <h4>XR対応</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">ハンドトラッキング、アイトラッキング、空間アンカーによるフルXRサポート</p>
+            </div>
+            <div class="platform-card">
+                <h4>主要エンジン対応</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">業界をリードするゲームエンジンとネイティブツールチェーンと統合</p>
+            </div>
+            <div class="platform-card">
+                <h4>オンデバイスAI</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">すべてのAI処理はローカルで実行。クラウド不要。プライバシーバイデザイン。</p>
+            </div>
+            <div class="platform-card">
+                <h4>ネットワーキング</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">コネクテッド体験のための内蔵マルチプレイヤーとセッション管理</p>
+            </div>
+            <div class="platform-card">
+                <h4>アダプティブオーディオ</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">ゲームプレイにリアルタイムで反応する空間オーディオとアダプティブミュージック</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- CTA -->
+<section class="section" id="download">
+    <div class="container" style="text-align: center;">
+        <h2>SDKへのアクセス</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">
+            次世代の空間ゲームを構築する準備はできていますか？今すぐSDKアクセスをリクエストしてください。エンジン統合、サンプルプロジェクト、完全なドキュメントが含まれています。
+        </p>
+        <div class="cta-group" style="margin-bottom: 24px;">
+            <a href="contact.html" class="btn btn-primary">SDKアクセスをリクエスト</a>
+            <a href="docs.html" class="btn btn-secondary">ドキュメントを読む</a>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 24px;">
+            エンタープライズライセンスおよびパートナーシップに関するお問い合わせ：
+            <a href="contact.html" style="color: var(--accent-bright);">お問い合わせ</a>
+        </p>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="privacy.html">プライバシー</a>
+            <a href="terms.html">利用規約</a>
+            <a href="contact.html">お問い合わせ</a>
+            <a href="../press.html">プレス</a>
+            <a href="../developers/">開発者</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 取得済み米国特許5件（優先日：2012年7月） &bull; Powered by RakuAI Engine</p>
+        <p class="trademark-notice">RakuAI&trade; および RakuXR&trade; は RakuAI, LLC の商標です。<span class="kanji-logo">&#x697D;</span>AI と <span class="kanji-logo">&#x697D;</span>XR は RakuAI, LLC のスタイル化された商標です。</p>
+    </div>
+</footer>
+
+</body>
+</html>
