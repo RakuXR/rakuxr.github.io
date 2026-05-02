@@ -41,7 +41,13 @@ def slugify(value: str) -> str:
 
 
 def parse_simple_yaml(text: str) -> dict:
-    """Tiny YAML subset for frontmatter — keys, strings, dates, lists."""
+    """Tiny YAML subset for frontmatter — keys, strings, dates, lists.
+
+    Intentionally not a full YAML parser. Scope: top-level `key: value` lines,
+    inline lists `[a, b, c]` (commas inside quoted items are NOT supported),
+    ISO dates, ints, booleans, and quoted strings. No nested maps, no block
+    lists, no anchors. If a post needs anything richer, switch to PyYAML.
+    """
     data: dict = {}
     for line in text.splitlines():
         if not line.strip() or line.lstrip().startswith("#"):
@@ -218,6 +224,20 @@ def build_post(post: dict, all_posts: list, series: dict, post_template: str) ->
     else:
         og_image_abs = og_image
 
+    author = post.get("author") or ""
+    if author:
+        escaped_author = html.escape(author)
+        author_meta = f'<meta name="author" content="{escaped_author}">'
+        author_og_meta = f'<meta property="article:author" content="{escaped_author}">'
+        author_byline = (
+            f'<span class="post-meta-sep">&middot;</span>'
+            f'<span class="post-author">{escaped_author}</span>'
+        )
+    else:
+        author_meta = ""
+        author_og_meta = ""
+        author_byline = ""
+
     html_out = render_template(
         post_template,
         TITLE=html.escape(post["title"]),
@@ -226,7 +246,9 @@ def build_post(post: dict, all_posts: list, series: dict, post_template: str) ->
         OG_IMAGE=og_image_abs,
         DATE_DISPLAY=format_date(post["date"]),
         DATE_ISO=iso_date(post["date"]),
-        AUTHOR=html.escape(post.get("author", "RakuAI")),
+        AUTHOR_META=author_meta,
+        AUTHOR_OG_META=author_og_meta,
+        AUTHOR_BYLINE=author_byline,
         BREADCRUMB=breadcrumb,
         BODY=body_html,
         TAGS=tags_html,
@@ -354,10 +376,16 @@ def load_posts() -> list:
             stem = path.stem
             stem = re.sub(r"^\d{4}-\d{2}-\d{2}-", "", stem)
             slug = slugify(stem)
+        post_date = fm.get("date")
+        if not post_date:
+            raise ValueError(
+                f"{path.relative_to(ROOT)}: missing or unparseable 'date' in frontmatter. "
+                "Set 'date: YYYY-MM-DD' so the publish date isn't whatever day the build runs."
+            )
         post = {
             "slug": slug,
             "title": fm.get("title", slug),
-            "date": fm.get("date") or date.today(),
+            "date": post_date,
             "author": fm.get("author", ""),
             "description": fm.get("description", ""),
             "tags": fm.get("tags", []),
