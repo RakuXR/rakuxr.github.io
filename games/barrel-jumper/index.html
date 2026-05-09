@@ -119,11 +119,16 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   // colors
   const COL_BG = "#000";
   const COL_GIRDER = "#ff3a1d";
-  const COL_GIRDER_HL = "#ff7a5c";
+  const COL_GIRDER_HL = "#ffb09a";
+  const COL_GIRDER_DK = "#8b0000";
   const COL_RIVET = "#ffd24a";
-  const COL_LADDER = "#4aa8ff";
-  const COL_LADDER_RUNG = "#cfe8ff";
+  const COL_LADDER = "#3aa0ff";
+  const COL_LADDER_HL = "#a8d8ff";
+  const COL_LADDER_RUNG = "#e8f4ff";
   const COL_TEXT = "#fff";
+
+  // gameplay
+  const HAMMER_DURATION = 600; // frames (~10s at 60fps)
 
   // physics
   const GRAVITY = 0.35;
@@ -137,40 +142,46 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   //   '.' empty  '=' girder  'H' ladder  'h' broken ladder
   //   'r' rivet (stage 4)  'c' conveyor  'o' oil/fire
   //   'P' princess  'G' gorilla  'M' hero spawn  '*' hammer  'L' elevator
+  //
+  // Layout philosophy (DK arcade rules):
+  //   - Floors alternate roll direction (top floor +1, next -1, etc.)
+  //   - A floor that rolls right TERMINATES short of the right edge so the
+  //     barrel falls off the END of the platform. Same for left.
+  //   - Ladders sit ON the floor itself (no isolated 1-tile islands).
+  //   - The ladder HOLE in the upper floor is a single 'H' cell; barrels
+  //     roll over it (see updateBarrels — ladder cells in floor rows are
+  //     treated as solid for barrel ground checks).
 
-  // Gaps at alternating platform ends let barrels zig-zag DK-style:
-  // even floor index → rolls RIGHT → gap at RIGHT (cols 24-26, col 27 solid for ladder)
-  // odd floor index  → rolls LEFT  → gap at LEFT  (cols 1-3,  col 0  solid for ladder)
   const STAGE1 = [
     "............P...............",
-    "=============H==============",
-    ".............H..............",
-    "..G..........H..............",
-    "=...========================",   // idx 1, LEFT gap (col 0 solid for ladder)
-    "H...........................",
-    "H...........*...............",
-    "H...........................",
-    "========================...=",   // idx 2, RIGHT gap (col 27 solid for ladder)
-    "...........................H",
-    "...........................H",
-    "...........................H",
-    "=...========================",   // idx 3, LEFT gap
-    "H...........................",
-    "H...........................",
-    "H...........................",
-    "========================...=",   // idx 4, RIGHT gap
-    "...........................H",
-    "...........................H",
-    "...........................H",
-    "=...========================",   // idx 5, LEFT gap
-    "H...........................",
-    "H...........................",
-    "H...........................",
-    "========================...=",   // idx 6, RIGHT gap
+    "============H===============",   // floor 0 (idx 0, full, top)
+    "............H...............",
+    "..G.........H...............",
+    "..H=========================",   // floor 1 (idx 1, rolls left, gap cols 0-1)
+    "..H.........................",
+    "..H.........*...............",
+    "..H.........................",
+    "=========================H..",   // floor 2 (idx 2, rolls right, gap cols 26-27)
+    ".........................H..",
+    ".........................H..",
+    ".........................H..",
+    "..H=========================",   // floor 3 (idx 3, rolls left)
+    "..H.........................",
+    "..H.........................",
+    "..H.........................",
+    "=========================H..",   // floor 4 (idx 4, rolls right)
+    ".........................H..",
+    ".........................H..",
+    ".........................H..",
+    "..H=========================",   // floor 5 (idx 5, rolls left)
+    "..H.........................",
+    "..H.........................",
+    "..H.........................",
+    "======H===================..",   // floor 6 (idx 6, rolls right, ladder col 6)
     "......H.....................",
     "......H.....................",
     "....M.H.....................",
-    "============================",
+    "============================",   // floor 7 (idx 7, full, Mario start)
     "...o........................",
     "............................",
     "............................"
@@ -178,30 +189,30 @@ import { RakuEngine } from "../../engine/raku-engine.js";
 
   const STAGE2 = [
     "............P...............",
-    "=============H==============",
-    ".............H..............",
-    "..G..........H..............",
-    "=...========================",   // idx 1, LEFT gap
-    "H...........................",
-    "H...........*...............",
-    "H...........................",
-    "cccccccccccccccccccccccc...c",   // idx 2, RIGHT gap (conveyor)
-    "...........................H",
-    "...........................H",
-    "...........................H",
-    "c...cccccccccccccccccccccccc",   // idx 3, LEFT gap (conveyor)
-    "H...........................",
-    "H...........................",
-    "H...........................",
-    "cccccccccccccccccccccccc...c",   // idx 4, RIGHT gap (conveyor)
-    "...........................H",
-    "...........................H",
-    "...........................H",
-    "c...cccccccccccccccccccccccc",   // idx 5, LEFT gap (conveyor)
-    "H...........................",
-    "H...........................",
-    "H...........................",
-    "========================...=",   // idx 6, RIGHT gap
+    "============H===============",
+    "............H...............",
+    "..G.........H...............",
+    "..H=========================",
+    "..H.........................",
+    "..H.........*...............",
+    "..H.........................",
+    "ccccccccccccccccccccccccch..",   // conveyor floor (rolls right)
+    ".........................H..",
+    ".........................H..",
+    ".........................H..",
+    "..hccccccccccccccccccccccccc",   // conveyor floor (rolls left)
+    "..H.........................",
+    "..H.........................",
+    "..H.........................",
+    "ccccccccccccccccccccccccch..",
+    ".........................H..",
+    ".........................H..",
+    ".........................H..",
+    "..hccccccccccccccccccccccccc",
+    "..H.........................",
+    "..H.........................",
+    "..H.........................",
+    "======H===================..",
     "......H.....................",
     "......H.....................",
     "....M.H.....................",
@@ -213,14 +224,14 @@ import { RakuEngine } from "../../engine/raku-engine.js";
 
   const STAGE3 = [
     "............P...............",
-    "=============H==============",
-    ".............H..............",
-    "..G..........H..............",
-    "=...========================",   // idx 1, LEFT gap
-    "H........L.........L........",
-    "H........L.........L........",
-    "H........L....*....L........",
-    "======...L.........L...=====",   // elevator shafts act as gaps
+    "============H===============",
+    "............H...............",
+    "..G.........H...............",
+    "..H=========================",
+    "..H......L.........L........",
+    "..H......L....*....L........",
+    "..H......L.........L........",
+    "======...L.........L...=====",   // elevator-shaft floor (gaps for shafts)
     ".........L.........L.......H",
     ".........L.........L.......H",
     ".........L.........L.......H",
@@ -232,11 +243,11 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     ".........L.........L.......H",
     ".........L.........L.......H",
     ".........L.........L.......H",
-    "======...L.........L...=====",
-    "H........L.........L........",
-    "H........L.........L........",
-    "H........L.........L........",
-    "========================...=",   // idx 6, RIGHT gap
+    "..H=========================",
+    "..H.........................",
+    "..H.........................",
+    "..H.........................",
+    "======H===================..",
     "......H.....................",
     "......H.....................",
     "....M.H.....................",
@@ -248,30 +259,30 @@ import { RakuEngine } from "../../engine/raku-engine.js";
 
   const STAGE4 = [
     "............P...............",
-    "r===========H==============r",
-    ".............H..............",
-    "..G..........H..............",
-    "=...========================",   // idx 1, LEFT gap
-    "H....*......................",
-    "H...........................",
-    "H...........................",
-    "========================...=",   // idx 2, RIGHT gap
-    "...........................H",
-    "...........................H",
-    "...........................H",
-    "=...========================",   // idx 3, LEFT gap
-    "H...........................",
-    "H...........................",
-    "H...........................",
-    "========================...=",   // idx 4, RIGHT gap
-    "...........................H",
-    "...........................H",
-    "...........................H",
-    "=...========================",   // idx 5, LEFT gap
-    "H...........................",
-    "H...........................",
-    "H...........................",
-    "========================...=",   // idx 6, RIGHT gap
+    "r===========H==============r",   // top floor with rivets at edges
+    "............H...............",
+    "..G.........H...............",
+    "r.H========================r",   // rivets bookend the floor
+    "..H.........................",
+    "..H.........*...............",
+    "..H.........................",
+    "r========================H.r",
+    ".........................H..",
+    ".........................H..",
+    ".........................H..",
+    "r.H========================r",
+    "..H.........................",
+    "..H.........................",
+    "..H.........................",
+    "r========================H.r",
+    ".........................H..",
+    ".........................H..",
+    ".........................H..",
+    "r.H========================r",
+    "..H.........................",
+    "..H.........................",
+    "..H.........................",
+    "r=====H===================.r",
     "......H.....................",
     "......H.....................",
     "....M.H.....................",
@@ -385,7 +396,6 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   }
 
   function groundBelow(level, hx, hy, hw, hh) {
-    // sample 2 feet points just under the bbox
     const fy = hy + hh;
     const fx1 = hx + 2;
     const fx2 = hx + hw - 2;
@@ -398,19 +408,15 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   }
 
   function updateHero(hero, level) {
-    // climbing check
     const c = heroCenter(hero);
     const onLadder =
       ladderAt(level, c.x, c.y) ||
       ladderAt(level, c.x, hero.y + hero.h - 1);
 
-    // climbing state transitions
     if (onLadder && (keys.up || keys.down)) hero.climbing = true;
     if (!onLadder) hero.climbing = false;
-    // Exit climbing when pressing left/right while standing on solid ground at ladder top
     if (hero.climbing && hero.onGround && (keys.left || keys.right)) hero.climbing = false;
 
-    // horizontal motion (disabled while pure-climbing if no ground)
     hero.vx = 0;
     if (keys.left) { hero.vx = -MOVE_SPEED; hero.facing = -1; }
     else if (keys.right) { hero.vx = MOVE_SPEED; hero.facing = 1; }
@@ -419,35 +425,28 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       hero.vy = 0;
       if (keys.up) hero.vy = -CLIMB_SPEED;
       else if (keys.down) hero.vy = CLIMB_SPEED;
-      // snap x to ladder center for feel
       const tx = Math.floor(c.x / TILE);
       const targetX = tx * TILE + (TILE - hero.w) / 2;
       hero.x += (targetX - hero.x) * 0.3;
-      // stop climbing when we reach top (ground) and press up no more
       if (!keys.up && !keys.down && hero.onGround) hero.climbing = false;
     } else {
-      // jumping
       if (jumpEdge && hero.onGround) {
         hero.vy = JUMP_VEL;
         hero.onGround = false;
         sound.jump();
       }
-      // variable jump height: cut vel when jump released rising
       if (!keys.jump && hero.vy < -2) hero.vy = -2;
       hero.vy += GRAVITY;
       if (hero.vy > MAX_FALL) hero.vy = MAX_FALL;
     }
     jumpEdge = false;
 
-    // integrate x with simple bounds
     hero.x += hero.vx;
     if (hero.x < 0) hero.x = 0;
     if (hero.x + hero.w > W) hero.x = W - hero.w;
 
-    // integrate y with tile collision
     hero.y += hero.vy;
 
-    // ground test (solid top)
     if (hero.vy >= 0) {
       const fy = hero.y + hero.h;
       const ty = Math.floor(fy / TILE);
@@ -457,7 +456,6 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       const t2 = tileAt(level, tx2, ty);
       const hit = isSolidTop(t1) || isSolidTop(t2);
       const topOfTile = ty * TILE;
-      // allow pass-through when climbing down
       if (hit && fy - topOfTile < 6 && !(hero.climbing && keys.down)) {
         hero.y = topOfTile - hero.h;
         hero.vy = 0;
@@ -468,67 +466,94 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       }
     }
 
-    // also clamp to bottom of screen
     if (hero.y + hero.h > H) {
       hero.y = H - hero.h;
       hero.vy = 0;
       hero.onGround = true;
     }
 
-    // walk frame
     if (hero.vx !== 0 && hero.onGround && !hero.climbing) hero.walkFrame += 0.2;
     else hero.walkFrame = 0;
   }
 
   // ---------- rendering ----------
-  // Per-tile vertical offset that creates a slanted-girder look. The offset
-  // is a gentle zig-zag: row 0 slopes +, row 1 slopes -, etc. so barrels
-  // visually flow back-and-forth down the stage matching their physics.
-  function girderSlant(tx, ty) {
-    const dir = floorDirection(ty);
-    // slant range: up to ~5 px over the width of the floor
-    const frac = tx / (COLS - 1);
-    return Math.round((dir > 0 ? frac : 1 - frac) * 5 - 2);
-  }
   function drawGirder(x, y, tx, ty) {
-    const slant = girderSlant(tx, ty);
+    // Solid steel-girder look with diagonal cross-hatch and rivets.
     ctx.fillStyle = COL_GIRDER;
-    ctx.fillRect(x, y + slant, TILE, TILE);
+    ctx.fillRect(x, y, TILE, TILE);
+    // top highlight
     ctx.fillStyle = COL_GIRDER_HL;
-    ctx.fillRect(x, y + slant, TILE, 2);
-    ctx.fillStyle = "#8b0000";
-    ctx.fillRect(x, y + TILE - 2 + slant, TILE, 2);
+    ctx.fillRect(x, y, TILE, 1);
+    ctx.fillRect(x, y + 1, TILE, 1);
+    // bottom shadow
+    ctx.fillStyle = COL_GIRDER_DK;
+    ctx.fillRect(x, y + TILE - 2, TILE, 2);
+    // diagonal lattice (DK girder texture)
+    ctx.fillStyle = COL_GIRDER_DK;
+    const phase = (tx + ty) & 1;
+    if (phase === 0) {
+      ctx.fillRect(x + 3, y + 5, 2, 2);
+      ctx.fillRect(x + 8, y + 8, 2, 2);
+      ctx.fillRect(x + 13, y + 5, 2, 2);
+    } else {
+      ctx.fillRect(x + 3, y + 8, 2, 2);
+      ctx.fillRect(x + 8, y + 5, 2, 2);
+      ctx.fillRect(x + 13, y + 8, 2, 2);
+    }
+    // edge rivets
     ctx.fillStyle = COL_RIVET;
-    ctx.fillRect(x + 2, y + 6 + slant, 2, 2);
-    ctx.fillRect(x + TILE - 4, y + 6 + slant, 2, 2);
+    ctx.fillRect(x + 1, y + 3, 2, 2);
+    ctx.fillRect(x + TILE - 3, y + 3, 2, 2);
   }
   function drawConveyor(x, y, phase) {
-    ctx.fillStyle = "#3a3a3a";
+    // Belt with moving chevrons.
+    ctx.fillStyle = "#2a2a2a";
     ctx.fillRect(x, y, TILE, TILE);
-    ctx.fillStyle = "#888";
+    ctx.fillStyle = "#7a7a7a";
     ctx.fillRect(x, y, TILE, 2);
-    ctx.fillStyle = "#bbb";
-    const p = Math.floor(phase) % 4;
-    for (let i = -p; i < TILE; i += 4) {
-      if (i + 2 <= TILE && i >= 0) ctx.fillRect(x + i, y + 4, 2, 2);
-    }
     ctx.fillStyle = "#222";
     ctx.fillRect(x, y + TILE - 2, TILE, 2);
+    // moving chevrons (proper edge clipping so they don't pop in)
+    ctx.fillStyle = "#cfcfcf";
+    const p = ((phase | 0) % 4 + 4) % 4;
+    for (let i = -p; i < TILE + 4; i += 4) {
+      const cx = x + i;
+      const x1 = Math.max(x, cx);
+      const x2 = Math.min(x + TILE, cx + 2);
+      if (x2 > x1) ctx.fillRect(x1, y + 5, x2 - x1, 2);
+    }
+    ctx.fillStyle = "#888";
+    for (let i = -p + 2; i < TILE + 4; i += 4) {
+      const cx = x + i;
+      const x1 = Math.max(x, cx);
+      const x2 = Math.min(x + TILE, cx + 2);
+      if (x2 > x1) ctx.fillRect(x1, y + 9, x2 - x1, 2);
+    }
   }
-  function drawLadder(x, y) {
+  function drawLadder(x, y, broken) {
+    // Side rails
     ctx.fillStyle = COL_LADDER;
     ctx.fillRect(x + 3, y, 2, TILE);
     ctx.fillRect(x + TILE - 5, y, 2, TILE);
+    // Rail highlight (left side of each rail)
+    ctx.fillStyle = COL_LADDER_HL;
+    ctx.fillRect(x + 3, y, 1, TILE);
+    ctx.fillRect(x + TILE - 5, y, 1, TILE);
+    // Rungs
     ctx.fillStyle = COL_LADDER_RUNG;
-    ctx.fillRect(x + 3, y + 4, TILE - 8, 2);
-    ctx.fillRect(x + 3, y + 11, TILE - 8, 2);
+    if (!broken || ((y / TILE) & 1)) ctx.fillRect(x + 3, y + 3, TILE - 8, 2);
+    if (!broken || (((y / TILE) + 1) & 1)) ctx.fillRect(x + 3, y + 10, TILE - 8, 2);
   }
   function drawElevator(x, y) {
-    ctx.fillStyle = "#222";
+    // Cable/shaft
+    ctx.fillStyle = "#1a1a1a";
     ctx.fillRect(x + 6, y, 4, TILE);
-    ctx.fillStyle = "#555";
-    ctx.fillRect(x + 5, y, 1, TILE);
-    ctx.fillRect(x + 10, y, 1, TILE);
+    ctx.fillStyle = "#3a3a3a";
+    ctx.fillRect(x + 7, y, 2, TILE);
+    // Highlight specks
+    ctx.fillStyle = "#888";
+    if ((y / TILE) & 1) ctx.fillRect(x + 7, y + 4, 2, 1);
+    else ctx.fillRect(x + 7, y + 11, 2, 1);
   }
   function drawLevel(level, t) {
     ctx.fillStyle = COL_BG;
@@ -539,94 +564,236 @@ import { RakuEngine } from "../../engine/raku-engine.js";
         const px = x * TILE;
         const py = y * TILE;
         if (tile === "=") drawGirder(px, py, x, y);
-        else if (tile === "c") drawConveyor(px, py, t * 0.1);
-        else if (tile === "H" || tile === "h") drawLadder(px, py);
+        else if (tile === "c") drawConveyor(px, py, t * 0.25 * -floorDirection(y));
+        else if (tile === "H") drawLadder(px, py, false);
+        else if (tile === "h") drawLadder(px, py, true);
         else if (tile === "L") drawElevator(px, py);
       }
     }
   }
   function drawHero(h) {
-    // 12x14 hero: red cap, blue overalls, skin face
     const x = Math.floor(h.x);
     const y = Math.floor(h.y);
-    // cap
-    ctx.fillStyle = "#ff2020";
-    ctx.fillRect(x + 2, y, 8, 3);
+    const facing = h.facing;
+    // Cap (red) - peaked
+    ctx.fillStyle = "#e8281c";
+    ctx.fillRect(x + 3, y, 7, 1);
     ctx.fillRect(x + 1, y + 1, 10, 2);
-    // face
-    ctx.fillStyle = "#ffd1a1";
+    // Cap brim (front)
+    ctx.fillStyle = "#a0140c";
+    if (facing > 0) ctx.fillRect(x + 8, y + 2, 4, 1);
+    else ctx.fillRect(x + 0, y + 2, 4, 1);
+    // Face (skin)
+    ctx.fillStyle = "#ffcc99";
     ctx.fillRect(x + 2, y + 3, 8, 4);
-    // mustache
-    ctx.fillStyle = "#402010";
+    // Sideburns
+    ctx.fillStyle = "#3a1a08";
+    ctx.fillRect(x + 1, y + 4, 1, 3);
+    ctx.fillRect(x + 10, y + 4, 1, 3);
+    // Eye
+    ctx.fillStyle = "#000";
+    ctx.fillRect(x + (facing > 0 ? 7 : 4), y + 4, 2, 2);
+    // Mustache
+    ctx.fillStyle = "#3a1a08";
     ctx.fillRect(x + 3, y + 6, 6, 1);
-    // body overalls
-    ctx.fillStyle = "#2060ff";
-    ctx.fillRect(x + 1, y + 7, 10, 5);
-    // shirt stripe
-    ctx.fillStyle = "#ff2020";
+    // Shirt (red) — shoulders
+    ctx.fillStyle = "#e8281c";
     ctx.fillRect(x + 1, y + 7, 10, 1);
     ctx.fillRect(x, y + 8, 12, 2);
-    // legs (alternating on walk frame)
+    // Overalls (blue)
+    ctx.fillStyle = "#2050d4";
+    ctx.fillRect(x + 1, y + 9, 10, 3);
+    // Strap
+    ctx.fillStyle = "#1838a0";
+    ctx.fillRect(x + 3, y + 7, 2, 3);
+    ctx.fillRect(x + 7, y + 7, 2, 3);
+    // Buttons
+    ctx.fillStyle = "#ffd24a";
+    ctx.fillRect(x + 3, y + 9, 1, 1);
+    ctx.fillRect(x + 8, y + 9, 1, 1);
+    // Legs / shoes
     const f = Math.floor(h.walkFrame) & 1;
-    ctx.fillStyle = "#402010";
-    if (f === 0) {
+    ctx.fillStyle = "#3a1a08";
+    if (h.climbing) {
+      ctx.fillRect(x + 3, y + 12, 2, 2);
+      ctx.fillRect(x + 7, y + 12, 2, 2);
+    } else if (!h.onGround) {
+      ctx.fillRect(x + 2, y + 12, 3, 2);
+      ctx.fillRect(x + 7, y + 12, 3, 2);
+    } else if (f === 0) {
       ctx.fillRect(x + 2, y + 12, 3, 2);
       ctx.fillRect(x + 7, y + 12, 3, 2);
     } else {
       ctx.fillRect(x + 1, y + 12, 3, 2);
       ctx.fillRect(x + 8, y + 12, 3, 2);
     }
-    // face direction hint (eye)
-    ctx.fillStyle = "#000";
-    ctx.fillRect(x + (h.facing > 0 ? 7 : 4), y + 4, 1, 1);
   }
   function drawHammers(list) {
     for (const hm of list) {
       if (!hm.alive) continue;
+      // Handle
       ctx.fillStyle = "#a06020";
-      ctx.fillRect(hm.x + 7, hm.y + 4, 2, 10);
-      ctx.fillStyle = "#c0c0c0";
-      ctx.fillRect(hm.x + 4, hm.y + 2, 8, 5);
-      ctx.fillStyle = "#eee";
-      ctx.fillRect(hm.x + 4, hm.y + 2, 8, 1);
+      ctx.fillRect(hm.x + 7, hm.y + 6, 2, 9);
+      ctx.fillStyle = "#704010";
+      ctx.fillRect(hm.x + 7, hm.y + 6, 1, 9);
+      // Head
+      ctx.fillStyle = "#888";
+      ctx.fillRect(hm.x + 3, hm.y + 1, 10, 6);
+      ctx.fillStyle = "#ddd";
+      ctx.fillRect(hm.x + 3, hm.y + 1, 10, 1);
+      ctx.fillRect(hm.x + 3, hm.y + 2, 1, 4);
+      ctx.fillStyle = "#444";
+      ctx.fillRect(hm.x + 3, hm.y + 6, 10, 1);
+      ctx.fillRect(hm.x + 12, hm.y + 1, 1, 6);
     }
   }
-  function drawPrincess(p) {
+  function drawPrincess(p, t) {
     if (!p) return;
-    const x = p.x, y = p.y;
-    ctx.fillStyle = "#ffd1a1";
-    ctx.fillRect(x + 4, y + 2, 6, 4);
+    const x = p.x, y = p.y - 4; // raised slightly
+    // Hair (blonde)
     ctx.fillStyle = "#ffd24a";
-    ctx.fillRect(x + 3, y, 8, 3);
+    ctx.fillRect(x + 2, y + 2, 12, 4);
+    ctx.fillRect(x + 3, y + 1, 10, 1);
+    ctx.fillRect(x + 1, y + 4, 1, 4);
+    ctx.fillRect(x + 14, y + 4, 1, 4);
+    // Crown
+    ctx.fillStyle = "#ffaa00";
+    ctx.fillRect(x + 5, y, 1, 2);
+    ctx.fillRect(x + 7, y, 1, 2);
+    ctx.fillRect(x + 9, y, 1, 2);
+    // Face
+    ctx.fillStyle = "#ffd1a1";
+    ctx.fillRect(x + 4, y + 5, 8, 4);
+    // Eyes
+    ctx.fillStyle = "#000";
+    ctx.fillRect(x + 6, y + 6, 1, 2);
+    ctx.fillRect(x + 9, y + 6, 1, 2);
+    // Lips
+    ctx.fillStyle = "#c01040";
+    ctx.fillRect(x + 7, y + 8, 2, 1);
+    // Dress
     ctx.fillStyle = "#ff66cc";
-    ctx.fillRect(x + 3, y + 6, 8, 8);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(x + 5, y + 3, 1, 1);
-    ctx.fillRect(x + 8, y + 3, 1, 1);
+    ctx.fillRect(x + 3, y + 9, 10, 5);
+    ctx.fillStyle = "#ff99e0";
+    ctx.fillRect(x + 3, y + 9, 10, 1);
+    // Dress trim
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(x + 3, y + 13, 10, 1);
+    // "HELP!" bubble blink
+    if (((t / 30) | 0) & 1) {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(x - 14, y - 6, 16, 8);
+      ctx.fillStyle = "#000";
+      ctx.font = "bold 7px 'Courier New', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("HELP!", x - 6, y);
+    }
   }
-  function drawGorilla(g) {
+  function drawGorilla(g, t) {
     if (!g) return;
-    const x = g.x, y = g.y;
-    ctx.fillStyle = "#8a4a1a";
-    ctx.fillRect(x - 4, y, 20, 14);
-    ctx.fillStyle = "#ffd1a1";
-    ctx.fillRect(x, y + 4, 12, 6);
+    const x = g.x - 6, y = g.y - 4;
+    const arm = ((t / 12) | 0) & 1;
+    // Body (dark brown)
+    ctx.fillStyle = "#5a2d0a";
+    ctx.fillRect(x + 3, y + 6, 18, 12);
+    // Body highlight
+    ctx.fillStyle = "#7a3d12";
+    ctx.fillRect(x + 4, y + 6, 16, 2);
+    // Head
+    ctx.fillStyle = "#5a2d0a";
+    ctx.fillRect(x + 5, y, 14, 8);
+    // Ears
+    ctx.fillRect(x + 3, y + 2, 2, 3);
+    ctx.fillRect(x + 19, y + 2, 2, 3);
+    // Face cream
+    ctx.fillStyle = "#e8b88a";
+    ctx.fillRect(x + 7, y + 3, 10, 5);
+    // Eyebrows (angry)
     ctx.fillStyle = "#000";
-    ctx.fillRect(x + 3, y + 6, 2, 2);
-    ctx.fillRect(x + 7, y + 6, 2, 2);
-    ctx.fillStyle = "#6a2a0a";
-    ctx.fillRect(x - 4, y + 10, 4, 4);
-    ctx.fillRect(x + 12, y + 10, 4, 4);
+    ctx.fillRect(x + 7, y + 3, 3, 1);
+    ctx.fillRect(x + 14, y + 3, 3, 1);
+    // Eyes
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(x + 8, y + 4, 2, 2);
+    ctx.fillRect(x + 14, y + 4, 2, 2);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(x + 9, y + 4, 1, 2);
+    ctx.fillRect(x + 15, y + 4, 1, 2);
+    // Nostrils
+    ctx.fillStyle = "#000";
+    ctx.fillRect(x + 10, y + 6, 1, 1);
+    ctx.fillRect(x + 13, y + 6, 1, 1);
+    // Mouth
+    ctx.fillStyle = "#000";
+    ctx.fillRect(x + 9, y + 7, 6, 1);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(x + 10, y + 7, 1, 1);
+    ctx.fillRect(x + 13, y + 7, 1, 1);
+    // Arms (animated raise — throwing barrel)
+    ctx.fillStyle = "#5a2d0a";
+    if (arm === 0) {
+      ctx.fillRect(x, y + 6, 4, 6);
+      ctx.fillRect(x + 20, y + 6, 4, 6);
+    } else {
+      ctx.fillRect(x, y + 4, 4, 6);
+      ctx.fillRect(x + 20, y + 4, 4, 6);
+    }
+    // Hands
+    ctx.fillStyle = "#3a1d04";
+    if (arm === 0) {
+      ctx.fillRect(x, y + 11, 4, 2);
+      ctx.fillRect(x + 20, y + 11, 4, 2);
+    } else {
+      ctx.fillRect(x, y + 9, 4, 2);
+      ctx.fillRect(x + 20, y + 9, 4, 2);
+    }
+    // Chest patch
+    ctx.fillStyle = "#e8b88a";
+    ctx.fillRect(x + 8, y + 9, 8, 5);
+    // Tie/belt
+    ctx.fillStyle = "#c8102e";
+    ctx.fillRect(x + 11, y + 9, 2, 5);
   }
-  function drawOil(o) {
+  function drawOil(o, t) {
     if (!o) return;
-    ctx.fillStyle = "#3070c0";
-    ctx.fillRect(o.x + 2, o.y + 2, 12, 14);
-    ctx.fillStyle = "#60a0ff";
-    ctx.fillRect(o.x + 2, o.y + 2, 12, 2);
+    // Drum
+    ctx.fillStyle = "#1850c0";
+    ctx.fillRect(o.x, o.y + 4, 16, 12);
+    // Drum bands
+    ctx.fillStyle = "#2070e0";
+    ctx.fillRect(o.x, o.y + 4, 16, 2);
+    ctx.fillRect(o.x, o.y + 14, 16, 2);
+    // OIL label
     ctx.fillStyle = "#ffd24a";
-    ctx.fillRect(o.x + 4, o.y - 2, 3, 4);
-    ctx.fillRect(o.x + 9, o.y - 2, 3, 4);
+    ctx.fillRect(o.x + 4, o.y + 8, 8, 4);
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 4px 'Courier New', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("OIL", o.x + 8, o.y + 12);
+    // Flame (animated)
+    const f = ((t / 6) | 0) & 1;
+    ctx.fillStyle = "#ff6020";
+    if (f === 0) {
+      ctx.fillRect(o.x + 4, o.y, 8, 4);
+      ctx.fillRect(o.x + 5, o.y - 2, 6, 2);
+    } else {
+      ctx.fillRect(o.x + 5, o.y, 6, 4);
+      ctx.fillRect(o.x + 6, o.y - 3, 4, 3);
+    }
+    ctx.fillStyle = "#ffd24a";
+    ctx.fillRect(o.x + 6, o.y + 1, 4, 2);
+  }
+  function drawRivets(list) {
+    for (const r of list) {
+      if (!r.alive) continue;
+      ctx.fillStyle = "#ffd24a";
+      ctx.fillRect(r.x + 5, r.y + 5, 6, 6);
+      ctx.fillStyle = "#fff8c0";
+      ctx.fillRect(r.x + 5, r.y + 5, 3, 3);
+      ctx.fillStyle = "#a07000";
+      ctx.fillRect(r.x + 5, r.y + 10, 6, 1);
+      ctx.fillRect(r.x + 10, r.y + 5, 1, 6);
+    }
   }
 
   // ---------- HUD ----------
@@ -637,11 +804,27 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     ctx.fillText("SCORE", 8, 14);
     ctx.fillStyle = "#ffd24a";
     ctx.fillText(String(state.score).padStart(6, "0"), 8, 28);
+    // Hammer indicator (upper-left, below score)
+    if (state.hammerMode) {
+      // Hammer icon
+      ctx.fillStyle = "#a06020";
+      ctx.fillRect(8, 36, 2, 8);
+      ctx.fillStyle = "#bbb";
+      ctx.fillRect(4, 32, 10, 5);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(4, 32, 10, 1);
+      // Timer bar
+      const frac = Math.max(0, state.hammerTimer / HAMMER_DURATION);
+      ctx.fillStyle = "#444";
+      ctx.fillRect(20, 36, 40, 5);
+      ctx.fillStyle = "#ff6020";
+      ctx.fillRect(20, 36, Math.floor(40 * frac), 5);
+    }
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffd24a";
     ctx.fillText("STAGE " + (state.stage + 1), W / 2, 14);
     ctx.fillStyle = "#9fe";
-    ctx.fillText(["25M", "50M", "75M", "100M"][state.stage] + (state.hammerMode ? "  \u{1F528}" : ""), W / 2, 28);
+    ctx.fillText(["25M", "50M", "75M", "100M"][state.stage], W / 2, 28);
     ctx.textAlign = "right";
     ctx.fillStyle = COL_TEXT;
     ctx.fillText("LIVES " + state.lives, W - 8, 14);
@@ -650,10 +833,6 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   }
 
   // ---------- barrels ----------
-  // Floor rows identified by scanning the map for rows that are mostly girder.
-  // Each barrel rolls horizontally along a floor until it drops off the end
-  // (or a hole) and then falls to the next floor below. Direction alternates
-  // per floor, matching classic Donkey Kong.
   function floorRowForY(level, py) {
     const ty = Math.floor(py / TILE);
     for (let y = ty; y < ROWS; y++) {
@@ -664,9 +843,6 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     }
     return -1;
   }
-  // Indexed list of "main floor" rows, computed once per level. Barrels
-  // alternate direction between consecutive floors so they zig-zag down the
-  // stage just like the original Donkey Kong.
   let floorRowsCache = null;
   function computeFloorRows(level) {
     const rows = [];
@@ -677,10 +853,11 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     }
     return rows;
   }
+  function isFloorRow(ty) {
+    return floorRowsCache && floorRowsCache.indexOf(ty) >= 0;
+  }
   function floorIndexFromRow(row) {
     if (!floorRowsCache) return 0;
-    // Exact match, else snap to closest (barrels can land one tile below a
-    // row that is reported as a "main floor").
     const i = floorRowsCache.indexOf(row);
     if (i >= 0) return i;
     let best = 0, bestDist = Infinity;
@@ -691,13 +868,24 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     return best;
   }
   function floorDirection(row) {
-    // First floor (top) rolls right (+1), second rolls left (-1), etc.
     const idx = floorIndexFromRow(row);
     return (idx % 2 === 0) ? 1 : -1;
   }
 
   function makeBarrel(x, y, dir) {
     return { x, y, vx: 0.9 * dir, vy: 0, w: 12, h: 12, rot: 0, alive: true, onFloor: false };
+  }
+
+  // Treat ladder cells embedded in a floor row as solid for barrels — this
+  // prevents the rare "barrel takes a shortcut down a ladder" bug where a
+  // barrel rolling along a floor crosses the H tile that punches the floor
+  // for the player ladder access.
+  function barrelGroundHit(level, ty, tx1, tx2) {
+    const t1 = tileAt(level, tx1, ty);
+    const t2 = tileAt(level, tx2, ty);
+    if (isSolidTop(t1) || isSolidTop(t2)) return true;
+    if (isFloorRow(ty) && (isLadder(t1) || isLadder(t2))) return true;
+    return false;
   }
 
   function updateBarrels(level, barrels) {
@@ -709,19 +897,15 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       if (b.vy > 5) b.vy = 5;
       b.y += b.vy;
 
-      // ground check (two feet)
       const fy = b.y + b.h;
       const ty = Math.floor(fy / TILE);
       const tx1 = Math.floor((b.x + 1) / TILE);
       const tx2 = Math.floor((b.x + b.w - 1) / TILE);
-      const t1 = tileAt(level, tx1, ty);
-      const t2 = tileAt(level, tx2, ty);
-      const hit = isSolidTop(t1) || isSolidTop(t2);
+      const hit = barrelGroundHit(level, ty, tx1, tx2);
       if (hit && b.vy >= 0) {
         b.y = ty * TILE - b.h;
         b.vy = 0;
         if (!b.onFloor) {
-          // Landed on a floor: set rolling direction from row parity.
           b.vx = 0.9 * floorDirection(ty);
           b.onFloor = true;
         }
@@ -729,7 +913,6 @@ import { RakuEngine } from "../../engine/raku-engine.js";
         b.onFloor = false;
       }
 
-      // Off screen → retire
       if (b.x < -20 || b.x > W + 20 || b.y > H + 40) b.alive = false;
     }
   }
@@ -742,13 +925,27 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       ctx.save();
       ctx.translate(cx, cy);
       ctx.rotate(b.rot);
-      ctx.fillStyle = "#a06020";
+      // Body
+      ctx.fillStyle = "#b87030";
       ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h);
-      ctx.fillStyle = "#6a3a10";
-      ctx.fillRect(-b.w / 2, -b.h / 2 + 2, b.w, 2);
-      ctx.fillRect(-b.w / 2, b.h / 2 - 4, b.w, 2);
-      ctx.fillStyle = "#d09060";
-      ctx.fillRect(-b.w / 2 + 2, -b.h / 2 + 5, b.w - 4, 2);
+      // Wood grain stripes
+      ctx.fillStyle = "#8a4a18";
+      ctx.fillRect(-b.w / 2, -b.h / 2 + 2, b.w, 1);
+      ctx.fillRect(-b.w / 2, -b.h / 2 + 6, b.w, 1);
+      ctx.fillRect(-b.w / 2, -b.h / 2 + 9, b.w, 1);
+      // Metal bands top + bottom
+      ctx.fillStyle = "#444";
+      ctx.fillRect(-b.w / 2, -b.h / 2, b.w, 2);
+      ctx.fillRect(-b.w / 2, b.h / 2 - 2, b.w, 2);
+      // Band rivets
+      ctx.fillStyle = "#bbb";
+      ctx.fillRect(-b.w / 2 + 2, -b.h / 2, 1, 1);
+      ctx.fillRect(b.w / 2 - 3, -b.h / 2, 1, 1);
+      ctx.fillRect(-b.w / 2 + 2, b.h / 2 - 1, 1, 1);
+      ctx.fillRect(b.w / 2 - 3, b.h / 2 - 1, 1, 1);
+      // Highlight
+      ctx.fillStyle = "#e0a060";
+      ctx.fillRect(-b.w / 2 + 2, -b.h / 2 + 4, b.w - 4, 1);
       ctx.restore();
     }
   }
@@ -774,8 +971,6 @@ import { RakuEngine } from "../../engine/raku-engine.js";
 
   let barrelCounter = 0;
   function loadStage(i) {
-    // Destroy any barrel entities from the previous stage so the engine
-    // API log reflects the reset.
     for (const b of state.barrels || []) {
       if (b.alive && b.entityId) engine.destroyEntity(WORLD_ID, b.entityId);
     }
@@ -790,7 +985,6 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     state.hammerMode = false;
     state.hammerTimer = 0;
     state.stageCompleteTimer = 0;
-    // Persist the new world version + observe.
     engine.saveWorld(WORLD_ID);
     engine.observeWorld(WORLD_ID);
     engine.captureFrame(WORLD_ID);
@@ -799,11 +993,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   function spawnBarrel(level) {
     const g = level.spawns.gorilla;
     if (!g) return;
-    // Drop the barrel slightly to the right of the gorilla and give it a
-    // small initial rightward velocity so it immediately tips onto the
-    // first floor (which slopes down to the right).
     const b = makeBarrel(g.x + 12, g.y + 14, 1);
-    // Register the new barrel as an engine entity and keep its id.
     const res = engine.createEntity(WORLD_ID, {
       type: "hazard", name: `barrel-${++barrelCounter}`, position: [b.x, b.y, 0],
       properties: { shape: "cylinder", color: "#a06020" },
@@ -811,8 +1001,6 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     b.entityId = res.entity_id;
     state.barrels.push(b);
     sound.blip();
-    // Gorilla "acts": schedule a reward + observation so the API feed sees
-    // more than just physics/step entries.
     if (gorillaAgentId) {
       engine.agentAct(WORLD_ID, gorillaAgentId, { playerAction: "throw_barrel" }).catch(() => {});
       engine.agentReward(WORLD_ID, gorillaAgentId, 1);
@@ -844,8 +1032,6 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     if (!state.paused && state.hero.alive) {
       updateHero(state.hero, state.level);
 
-      // Stream hero position into the engine via setTransform at ~5 Hz so
-      // the API log shows movement updates alongside physics ticks.
       if (state.tick % 12 === 0) {
         engine.setTransform(WORLD_ID, heroEntity, {
           position: [state.hero.x, state.hero.y, 0],
@@ -853,16 +1039,13 @@ import { RakuEngine } from "../../engine/raku-engine.js";
         });
       }
 
-      // barrel spawning
       state.barrelSpawnTimer--;
       if (state.barrelSpawnTimer <= 0) {
         spawnBarrel(state.level);
-        // Spawn interval shrinks each stage (harder), minimum 80 frames
         const baseInterval = Math.max(80, 140 - state.stage * 15);
         state.barrelSpawnTimer = baseInterval + Math.floor(Math.random() * 60);
       }
 
-      // hammer pickup
       if (!state.hammerMode) {
         for (const hm of state.level.hammers) {
           if (!hm.alive) continue;
@@ -870,7 +1053,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
               hm.y < state.hero.y + state.hero.h && hm.y + TILE > state.hero.y) {
             hm.alive = false;
             state.hammerMode = true;
-            state.hammerTimer = 600; // ~10 seconds at 60fps
+            state.hammerTimer = HAMMER_DURATION;
             sound.blip();
             engine.observeWorld(WORLD_ID);
           }
@@ -879,7 +1062,6 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       if (state.hammerMode) {
         state.hammerTimer--;
         if (state.hammerTimer <= 0) state.hammerMode = false;
-        // smash barrels on contact
         for (const b of state.barrels) {
           if (!b.alive) continue;
           if (barrelHitsHero(b, state.hero)) {
@@ -891,15 +1073,12 @@ import { RakuEngine } from "../../engine/raku-engine.js";
         }
       }
 
-      // barrel updates + collision
       updateBarrels(state.level, state.barrels);
       for (const b of state.barrels) {
-        // Push barrel transforms through the API every ~10 frames.
         if (b.alive && b.entityId && state.tick % 10 === 0) {
           engine.setTransform(WORLD_ID, b.entityId, { position: [b.x, b.y, 0] });
         }
       }
-      // Any barrels that went off-screen this tick get destroyed on the engine.
       for (const b of state.barrels) {
         if (!b.alive && b.entityId) {
           engine.destroyEntity(WORLD_ID, b.entityId);
@@ -916,13 +1095,12 @@ import { RakuEngine } from "../../engine/raku-engine.js";
         }
       }
 
-      // win condition: hero reaches the princess
       if (state.stageCompleteTimer === 0) {
         const p = state.level.spawns.princess;
         if (p && state.hero.x < p.x + TILE && state.hero.x + state.hero.w > p.x &&
             state.hero.y < p.y + TILE && state.hero.y + state.hero.h > p.y) {
           state.score += state.bonus;
-          state.stageCompleteTimer = 120; // 2-second flash before advancing
+          state.stageCompleteTimer = 120;
           sound.blip();
           engine.captureFrame(WORLD_ID);
           engine.observeWorld(WORLD_ID);
@@ -936,16 +1114,13 @@ import { RakuEngine } from "../../engine/raku-engine.js";
         }
       }
 
-      // bonus countdown
       if (state.tick % 60 === 0 && state.bonus > 0) state.bonus = Math.max(0, state.bonus - 100);
 
-      // gorilla transform update so the API log shows it moving
       if (state.tick % 30 === 0 && state.level.spawns.gorilla) {
         const g = state.level.spawns.gorilla;
         engine.setTransform(WORLD_ID, gorillaEntity, { position: [g.x, g.y, 0] });
       }
 
-      // periodic engine housekeeping: rotate through endpoints for API variety
       state.physicsTimer++;
       if (state.physicsTimer >= 60) {
         state.physicsTimer = 0;
@@ -959,7 +1134,6 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       }
     }
 
-    // death / respawn
     if (!state.hero.alive) {
       state.deathTimer--;
       if (state.deathTimer <= 0) {
@@ -977,9 +1151,10 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     }
 
     drawLevel(state.level, state.tick);
-    drawPrincess(state.level.spawns.princess);
-    drawGorilla(state.level.spawns.gorilla);
-    drawOil(state.level.spawns.oil);
+    drawRivets(state.level.rivets);
+    drawPrincess(state.level.spawns.princess, state.tick);
+    drawGorilla(state.level.spawns.gorilla, state.tick);
+    drawOil(state.level.spawns.oil, state.tick);
     drawHammers(state.level.hammers);
     drawBarrels(state.barrels);
     if (state.hero.alive) drawHero(state.hero);
