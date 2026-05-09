@@ -56,27 +56,60 @@
             </p>
         </header>
         <div class="post-body">
-<blockquote>
-<p>Placeholder — Kevin will paste the final post body here before merge.</p>
-</blockquote>
-<p>This is the published location for the post <strong>AI as Nervous System, Not AI as Factory</strong>.
-The MVP scaffold around it (index, series landing, RSS, OG tags, prev/next, syntax
-highlighting) is ready. Replace this body with the final Markdown.</p>
-<h2 id="what-goes-here">What goes here</h2>
-<p>A short orientation paragraph for readers who land on this page mid-series, then the
-main argument. Code blocks like the one below render with build-time syntax highlighting
-(Pygments) — no runtime JS:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Example: AI as a runtime primitive, not a panel</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">agents</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">:</span>
-        <span class="n">intent</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="n">world</span><span class="p">)</span>   <span class="c1"># AI is in the loop</span>
-        <span class="n">world</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">agent</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">intent</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">world</span>
+<p>Most engines that say <em>AI-native</em> in 2026 mean they bolted a chat panel onto an editor. You type a prompt, an LLM emits a script, you paste the script into a scene. The model is a <strong>factory</strong> — it produces things, then leaves. The runtime never knew it was there.</p>
+
+<p>RakuAI is built on the opposite premise. AI is not a tool that <em>made</em> the world. It is part of how the world <em>runs</em>. Every tick, agents observe, decide, and act through the same API that physics and rendering use. The model is a <strong>nervous system</strong> — wired into the engine, not standing beside it.</p>
+
+<p>The distinction is not academic. It changes what you can ship.</p>
+
+<h2 id="factory">The factory pattern</h2>
+
+<p>In factory-style "AI-native" engines, the loop looks like this:</p>
+
+<ol>
+<li>Designer prompts a model.</li>
+<li>Model produces an asset — a script, a mesh, a dialogue tree, a behaviour state machine.</li>
+<li>Asset is committed to the project.</li>
+<li>Game ships. Model is gone.</li>
+</ol>
+
+<p>This is useful. It is also limited in a specific way: anything the asset cannot anticipate, the asset cannot do. NPCs return to scripted patrols when the player surprises them. Generated dialogue branches collapse into the nearest matching template. The world is as smart as the day it was built.</p>
+
+<p>The factory metaphor encourages a particular bug: people start asking the model to predict every situation in advance, and the resulting assets get bigger and brittler. You end up with a 40,000-line behaviour tree generated from a paragraph of intent — a frozen photograph of how an AI <em>thought</em> the world might play out, baked into the build.</p>
+
+<h2 id="nervous-system">The nervous system pattern</h2>
+
+<p>In RakuAI, the engine exposes a small, stable API — <code>createEntity</code>, <code>setTransform</code>, <code>observeWorld</code>, <code>stepPhysics</code>, <code>agentAct</code>, <code>agentReward</code>, <code>captureFrame</code>. Game code calls it. Physics calls it. Agents call it. There is no privileged caller.</p>
+
+<p>The result is symmetry: an agent inside a running game has the same vocabulary as the editor that built it. An NPC observing the world is doing the same thing the prototype tool did when it placed that NPC in the level. Both are clients of one runtime. The model that helped author the world is still on the call list when the world starts running.</p>
+
+<p>That symmetry is what turns "AI-native" from a marketing phrase into a working architecture.</p>
+
+<div class="highlight"><pre><span></span><code><span class="c1"># Engine tick: agents are first-class participants, not post-hoc decoration</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+    <span class="n">world</span><span class="o">.</span><span class="n">step_physics</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">agents</span><span class="p">:</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">world</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span>      <span class="c1"># same call the editor uses</span>
+        <span class="n">intent</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">decide</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>      <span class="c1"># model in the loop</span>
+        <span class="n">world</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">agent</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">intent</span><span class="p">))</span>  <span class="c1"># same call physics uses</span>
+    <span class="n">world</span><span class="o">.</span><span class="n">capture_frame</span><span class="p">()</span>
 </code></pre></div>
 
-<p>Inline <code>code</code> and <strong>emphasis</strong> also pick up the article styles. Links look
-<a href="https://rakuai.com/">like this</a>, and the typography targets long-form reading: serif
-body, 19px, generous line height, 680px column.</p>
+<h2 id="latency">Why this changes what ships</h2>
+
+<p>A factory-shaped engine optimizes for one number: tokens per asset. A nervous-system engine has a harder budget — milliseconds per agent decision, in line with the frame loop. That constraint forces a different model strategy. Smaller, distilled, often local. Cached observations. Speculative actions. Reward signals that bend behaviour without round-tripping through a writer.</p>
+
+<p>The interesting consequence is that <em>persistence</em> becomes free. Because every agent action goes through the same world API as a player action, the world's transcript already contains everything the agent did. You can replay it. You can train on it. You can hand it to a different agent and ask "what would you have done?" Worlds that learn over time are a side-effect of the architecture, not a feature you build on top.</p>
+
+<h2 id="practical">What this looks like in our games</h2>
+
+<p>Open the API panel on any game at <a href="https://rakuai.com/games/">rakuai.com/games</a>. You will see <code>setTransform</code>, <code>observeWorld</code>, <code>stepPhysics</code>, <code>captureFrame</code>, <code>agentAct</code>, <code>agentReward</code> streaming as the game plays. The Donkey-Kong-style barrel jumper does not have AI bolted on — its gorilla is registered as an agent with a personality prompt, throwing barrels through the same calls the player's hero uses to move and climb. The boundary between "scripted enemy" and "model-driven enemy" is a runtime configuration, not an engine fork. Tomorrow's gorilla can be a smarter gorilla without a rebuild.</p>
+
+<h2 id="closing">Closing</h2>
+
+<p>If you remember one thing from this post: the question to ask any AI-native engine in 2026 is not <em>"can your model write a script?"</em> Most can. The question is <em>"is your model a caller of the runtime, or a stranger to it?"</em> If the model has to leave the building before the game ships, you bought a factory. If the model is still on the call list at frame N + 1, you have a nervous system.</p>
+
+<p>The next post in this series gets concrete: what the agent loop looks like in production, why we chose a JSON world API over function calling, and what we learned by building the same Donkey-Kong-style level four times in four different shapes — and why the fourth one is the one that actually plays right.</p>
         </div>
         <ul class="post-tags"><li>architecture</li><li>positioning</li><li>ai-native</li><li>spatial-computing</li></ul>
         <nav class="post-series-nav"></nav>
