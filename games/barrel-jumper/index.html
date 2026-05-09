@@ -127,6 +127,9 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   const COL_LADDER_RUNG = "#e8f4ff";
   const COL_TEXT = "#fff";
 
+  // gameplay
+  const HAMMER_DURATION = 600; // frames (~10s at 60fps)
+
   // physics
   const GRAVITY = 0.35;
   const MOVE_SPEED = 2.0;
@@ -510,21 +513,21 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     ctx.fillRect(x, y, TILE, 2);
     ctx.fillStyle = "#222";
     ctx.fillRect(x, y + TILE - 2, TILE, 2);
-    // moving chevrons
+    // moving chevrons (proper edge clipping so they don't pop in)
     ctx.fillStyle = "#cfcfcf";
     const p = ((phase | 0) % 4 + 4) % 4;
     for (let i = -p; i < TILE + 4; i += 4) {
       const cx = x + i;
-      if (cx + 2 > x && cx < x + TILE) {
-        ctx.fillRect(Math.max(x, cx), y + 5, Math.min(2, x + TILE - cx), 2);
-      }
+      const x1 = Math.max(x, cx);
+      const x2 = Math.min(x + TILE, cx + 2);
+      if (x2 > x1) ctx.fillRect(x1, y + 5, x2 - x1, 2);
     }
     ctx.fillStyle = "#888";
     for (let i = -p + 2; i < TILE + 4; i += 4) {
       const cx = x + i;
-      if (cx + 2 > x && cx < x + TILE) {
-        ctx.fillRect(Math.max(x, cx), y + 9, Math.min(2, x + TILE - cx), 2);
-      }
+      const x1 = Math.max(x, cx);
+      const x2 = Math.min(x + TILE, cx + 2);
+      if (x2 > x1) ctx.fillRect(x1, y + 9, x2 - x1, 2);
     }
   }
   function drawLadder(x, y, broken) {
@@ -561,7 +564,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
         const px = x * TILE;
         const py = y * TILE;
         if (tile === "=") drawGirder(px, py, x, y);
-        else if (tile === "c") drawConveyor(px, py, t * 0.25);
+        else if (tile === "c") drawConveyor(px, py, t * 0.25 * -floorDirection(y));
         else if (tile === "H") drawLadder(px, py, false);
         else if (tile === "h") drawLadder(px, py, true);
         else if (tile === "L") drawElevator(px, py);
@@ -811,7 +814,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
       ctx.fillStyle = "#fff";
       ctx.fillRect(4, 32, 10, 1);
       // Timer bar
-      const frac = Math.max(0, state.hammerTimer / 600);
+      const frac = Math.max(0, state.hammerTimer / HAMMER_DURATION);
       ctx.fillStyle = "#444";
       ctx.fillRect(20, 36, 40, 5);
       ctx.fillStyle = "#ff6020";
@@ -1050,7 +1053,7 @@ import { RakuEngine } from "../../engine/raku-engine.js";
               hm.y < state.hero.y + state.hero.h && hm.y + TILE > state.hero.y) {
             hm.alive = false;
             state.hammerMode = true;
-            state.hammerTimer = 600;
+            state.hammerTimer = HAMMER_DURATION;
             sound.blip();
             engine.observeWorld(WORLD_ID);
           }

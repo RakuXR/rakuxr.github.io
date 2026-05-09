@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <title>AI as Nervous System, Not AI as Factory &mdash; RakuAI Blog</title>
-    <meta name="description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently — AI is a runtime primitive, not a feature next to the engine.">
+    <meta name="description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently. AI is a runtime primitive, not a feature next to the engine.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/ai-as-nervous-system-not-ai-as-factory/">
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
     <meta property="og:title" content="AI as Nervous System, Not AI as Factory">
-    <meta property="og:description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently — AI is a runtime primitive, not a feature next to the engine.">
+    <meta property="og:description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently. AI is a runtime primitive, not a feature next to the engine.">
     <meta property="og:url" content="https://rakuai.com/blog/ai-as-nervous-system-not-ai-as-factory/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -21,7 +21,7 @@
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="AI as Nervous System, Not AI as Factory">
-    <meta name="twitter:description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently — AI is a runtime primitive, not a feature next to the engine.">
+    <meta name="twitter:description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently. AI is a runtime primitive, not a feature next to the engine.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -56,60 +56,68 @@
             </p>
         </header>
         <div class="post-body">
-<p>Most engines that say <em>AI-native</em> in 2026 mean they bolted a chat panel onto an editor. You type a prompt, an LLM emits a script, you paste the script into a scene. The model is a <strong>factory</strong> — it produces things, then leaves. The runtime never knew it was there.</p>
-
-<p>RakuAI is built on the opposite premise. AI is not a tool that <em>made</em> the world. It is part of how the world <em>runs</em>. Every tick, agents observe, decide, and act through the same API that physics and rendering use. The model is a <strong>nervous system</strong> — wired into the engine, not standing beside it.</p>
-
-<p>The distinction is not academic. It changes what you can ship.</p>
-
-<h2 id="factory">The factory pattern</h2>
-
-<p>In factory-style "AI-native" engines, the loop looks like this:</p>
-
-<ol>
-<li>Designer prompts a model.</li>
-<li>Model produces an asset — a script, a mesh, a dialogue tree, a behaviour state machine.</li>
-<li>Asset is committed to the project.</li>
-<li>Game ships. Model is gone.</li>
-</ol>
-
-<p>This is useful. It is also limited in a specific way: anything the asset cannot anticipate, the asset cannot do. NPCs return to scripted patrols when the player surprises them. Generated dialogue branches collapse into the nearest matching template. The world is as smart as the day it was built.</p>
-
-<p>The factory metaphor encourages a particular bug: people start asking the model to predict every situation in advance, and the resulting assets get bigger and brittler. You end up with a 40,000-line behaviour tree generated from a paragraph of intent — a frozen photograph of how an AI <em>thought</em> the world might play out, baked into the build.</p>
-
-<h2 id="nervous-system">The nervous system pattern</h2>
-
-<p>In RakuAI, the engine exposes a small, stable API — <code>createEntity</code>, <code>setTransform</code>, <code>observeWorld</code>, <code>stepPhysics</code>, <code>agentAct</code>, <code>agentReward</code>, <code>captureFrame</code>. Game code calls it. Physics calls it. Agents call it. There is no privileged caller.</p>
-
-<p>The result is symmetry: an agent inside a running game has the same vocabulary as the editor that built it. An NPC observing the world is doing the same thing the prototype tool did when it placed that NPC in the level. Both are clients of one runtime. The model that helped author the world is still on the call list when the world starts running.</p>
-
-<p>That symmetry is what turns "AI-native" from a marketing phrase into a working architecture.</p>
-
-<div class="highlight"><pre><span></span><code><span class="c1"># Engine tick: agents are first-class participants, not post-hoc decoration</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
-    <span class="n">world</span><span class="o">.</span><span class="n">step_physics</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">world</span><span class="o">.</span><span class="n">agents</span><span class="p">:</span>
-        <span class="n">obs</span> <span class="o">=</span> <span class="n">world</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="n">agent</span><span class="p">)</span>      <span class="c1"># same call the editor uses</span>
-        <span class="n">intent</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">decide</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>      <span class="c1"># model in the loop</span>
-        <span class="n">world</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">agent</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">intent</span><span class="p">))</span>  <span class="c1"># same call physics uses</span>
-    <span class="n">world</span><span class="o">.</span><span class="n">capture_frame</span><span class="p">()</span>
+<p>Most game engines and spatial-computing runtimes that call themselves &ldquo;AI-native&rdquo; in 2026 mean roughly the same thing. There is a chat panel somewhere in the editor. There is a button that asks a remote model to generate an asset. The model produces a thing. The thing gets dropped into a project. The runtime, which existed before AI showed up, runs the thing.</p>
+<p>That is the factory pattern. A request goes out. An artifact comes back. The engine is the consumer.</p>
+<p>RakuAI is not built that way. AI is not a station on the assembly line. It is a primitive in the runtime. Closer in spirit to a nervous system than to a factory. Continuously present, in the loop on every frame, observing, deciding, reacting. Removing it does not remove a feature. It removes the thing that makes the rest of the engine make sense.</p>
+<p>This post is the orientation for everything else in this series. If you read one piece on what &ldquo;AI-native&rdquo; means at the architecture layer, this is it.</p>
+<h2 id="two-patterns-drawn-out">Two patterns, drawn out</h2>
+<p>Here is the factory pattern, condensed to its honest minimum:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Factory: AI produces artifacts. The runtime consumes them.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">author_session</span><span class="p">(</span><span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Asset</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">remote_model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+    <span class="n">asset</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+    <span class="n">save_to_project</span><span class="p">(</span><span class="n">asset</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">asset</span>
 </code></pre></div>
 
-<h2 id="latency">Why this changes what ships</h2>
+<p>The lifecycle is straightforward. Human types. Model produces. File lands on disk. Runtime loads the file later. The model is a content vendor. The runtime never talks to it after the artifact is delivered. If the model goes offline, you still have a working engine. You just have one fewer place to buy assets.</p>
+<p>Now here is the nervous-system pattern:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Nervous system: AI is wired into the simulation step itself.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">agents</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">:</span>
+        <span class="n">observation</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">senses</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">world</span><span class="p">)</span>        <span class="c1"># what is around me</span>
+        <span class="n">intent</span>      <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>  <span class="c1"># AI is in the loop</span>
+        <span class="n">action</span>      <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">policy</span><span class="o">.</span><span class="n">choose</span><span class="p">(</span><span class="n">intent</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>   <span class="c1"># constrained by deterministic rules</span>
+        <span class="n">world</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">world</span>
+</code></pre></div>
 
-<p>A factory-shaped engine optimizes for one number: tokens per asset. A nervous-system engine has a harder budget — milliseconds per agent decision, in line with the frame loop. That constraint forces a different model strategy. Smaller, distilled, often local. Cached observations. Speculative actions. Reward signals that bend behaviour without round-tripping through a writer.</p>
-
-<p>The interesting consequence is that <em>persistence</em> becomes free. Because every agent action goes through the same world API as a player action, the world's transcript already contains everything the agent did. You can replay it. You can train on it. You can hand it to a different agent and ask "what would you have done?" Worlds that learn over time are a side-effect of the architecture, not a feature you build on top.</p>
-
-<h2 id="practical">What this looks like in our games</h2>
-
-<p>Open the API panel on any game at <a href="https://rakuai.com/games/">rakuai.com/games</a>. You will see <code>setTransform</code>, <code>observeWorld</code>, <code>stepPhysics</code>, <code>captureFrame</code>, <code>agentAct</code>, <code>agentReward</code> streaming as the game plays. The Donkey-Kong-style barrel jumper does not have AI bolted on — its gorilla is registered as an agent with a personality prompt, throwing barrels through the same calls the player's hero uses to move and climb. The boundary between "scripted enemy" and "model-driven enemy" is a runtime configuration, not an engine fork. Tomorrow's gorilla can be a smarter gorilla without a rebuild.</p>
-
-<h2 id="closing">Closing</h2>
-
-<p>If you remember one thing from this post: the question to ask any AI-native engine in 2026 is not <em>"can your model write a script?"</em> Most can. The question is <em>"is your model a caller of the runtime, or a stranger to it?"</em> If the model has to leave the building before the game ships, you bought a factory. If the model is still on the call list at frame N + 1, you have a nervous system.</p>
-
-<p>The next post in this series gets concrete: what the agent loop looks like in production, why we chose a JSON world API over function calling, and what we learned by building the same Donkey-Kong-style level four times in four different shapes — and why the fourth one is the one that actually plays right.</p>
+<p>Different lifecycle. Every frame, every agent, the model contributes to the next state of the world. The model is not a vendor. It is a participant. Remove it and the simulation stops being interesting in a way no asset library can patch over.</p>
+<p>These are two completely different architectures. The choice you make at this layer constrains everything above it.</p>
+<h2 id="what-the-factory-pattern-buys-you">What the factory pattern buys you</h2>
+<p>Honesty first. The factory pattern is real, useful, and shipping today. It buys you four things.</p>
+<p>It buys you <strong>velocity</strong> on content. Generating a tree, a building, a level layout, a piece of dialogue. Real productivity wins, and the artifact-on-disk pattern is the simplest way to get them.</p>
+<p>It buys you <strong>provider independence</strong>. Because the artifact lives on disk, you can swap which model authored it without changing your runtime. That is a hedge worth having.</p>
+<p>It buys you <strong>deterministic playback</strong>. The artifact is fixed once written. Two players in the same level see the same level.</p>
+<p>It buys you <strong>a clean failure mode</strong>. If the model is unavailable, the engine still runs. You just author less.</p>
+<p>These are real wins. If your product is &ldquo;tools that help humans make games,&rdquo; the factory pattern is probably the right call. The cost is hidden. It only shows up when you try to do something the factory pattern cannot do.</p>
+<h2 id="what-the-factory-pattern-cannot-do">What the factory pattern cannot do</h2>
+<p>The factory pattern cannot make a world that reacts to the player in ways the author did not foresee. By construction, every artifact in a factory-pattern engine was authored before the player arrived. The space of behaviors is the cartesian product of the artifact library and the engine&rsquo;s scripted logic. Big space, but bounded. The boundaries are visible in play within an hour.</p>
+<p>The factory pattern cannot give you NPCs that meaningfully reason about a world they have not been pre-scripted in. Plug in an LLM-driven dialogue system and you get a flavor of conversation that is locally compelling and globally inert. The NPC will say new things. The world does not change in response. The dialogue system and the simulation are two trains on parallel tracks. They never meet.</p>
+<p>The factory pattern cannot adapt the experience to the actual GPS coordinates of the actual user standing in an actual physical place. That last point is the one I care about most. If you are building real-world-anchored XR, where the experience happens at a specific spot on Earth, you cannot pre-author every possible interaction. The world is too big. The contexts too varied. The player&rsquo;s path too unpredictable. You either react in the loop, or you ship a tour brochure.</p>
+<p>This is the structural reason RakuAI is not a factory.</p>
+<h2 id="what-nervous-system-buys-you-concretely">What &ldquo;nervous system&rdquo; buys you, concretely</h2>
+<p>Three things, in order of how interesting they get.</p>
+<p><strong>One: NPCs that observe before they speak.</strong> When an agent&rsquo;s brain runs every frame, sees the world the player is actually in, and decides what to do based on what it sees, the result is qualitatively different from a dialogue tree with an LLM bolted on. The agent can react to the rain. To the time of day. To the fact that the player has been standing in front of it for ninety seconds without doing anything. None of that is in the dialogue. All of it is in the simulation, and the model is reading the simulation directly.</p>
+<p><strong>Two: experiences that re-form around the place they are happening in.</strong> The engine itself queries the model. Given this terrain, this weather, this time of day, this set of nearby points of interest, what should the next encounter look like. The experience is no longer a recording. It is a function of the player&rsquo;s actual context. Two players in different cities playing the same .raku experience get different play sessions, and both are coherent.</p>
+<p><strong>Three: behaviors that emerge from the architecture.</strong> This is the one that surprised me when it started showing up. When AI is a primitive, when every system in the engine can call out to it and have its decisions shaped by it, the systems start interacting in ways no single subsystem author designed. An agent that observes terrain influences the pathing system. Pathing influences crowd behavior. Crowd behavior becomes input to the next agent&rsquo;s observation. Loops form. Some of them are interesting. The interesting ones are why anyone bothered with this architecture in the first place.</p>
+<h2 id="the-cost-paid-up-front">The cost, paid up front</h2>
+<p>The architecture has a price, and it is not small.</p>
+<p>You pay for <strong>on-device inference</strong>. AI that runs on the simulation&rsquo;s critical path cannot make a network round-trip every frame. That means model weights live on the device. It means quantization, batching, careful memory budgeting, and a deployment story that contemplates the player&rsquo;s hardware. RakuAI is built around this constraint. Small models, on device, near the hot loop. The constraint is real and architectural.</p>
+<p>You pay for <strong>reliability discipline</strong>. A model that hallucinates inside a content factory produces a weird tree. A model that hallucinates inside the simulation step produces a weird <em>world</em>. The contracts between the model layer and the deterministic layer have to be designed, validated, and audited. This is not an afterthought. It is the work.</p>
+<p>You pay for <strong>observability you do not get for free with traditional engines</strong>. When AI is a participant in every frame, you need to see what it is doing, when, with what inputs, producing what outputs. Logging. Tracing. Replay. All the things you would build for any distributed system, except now they live in the simulation loop.</p>
+<p>These costs are why most engines pick the factory pattern. The factory pattern is genuinely cheaper to build. It is also genuinely less interesting, in a way that becomes visible only after you have spent time inside an engine that made the other choice.</p>
+<h2 id="where-this-series-goes-from-here">Where this series goes from here</h2>
+<p>This is post one in <em>Learning to Code with AI</em>. The series is about building production software side by side with AI agents, written from the inside of a project that took the nervous-system bet. Future posts will go into:</p>
+<ul>
+<li>How the runtime exposes the AI primitive to subsystems without coupling them to a specific model.</li>
+<li>The .raku file format. Structured experience definitions that validate, version, and ship like code, with explicit hooks for runtime AI.</li>
+<li>What changes in the dev loop when the architecture itself depends on AI being present.</li>
+<li>The honest failure modes. Where the nervous-system pattern does not help, and where the factory pattern is the right answer for a given problem.</li>
+</ul>
+<p>If you are building a game, an XR experience, or any other interactive system in 2026, and you are wondering whether the AI question is &ldquo;which model do I integrate&rdquo; or something deeper, this series is written for you.</p>
+<p>The short version of the answer: it is something deeper. You can feel it the first time you try to make the factory pattern do something it was not built to do.</p>
+<p>The long version is the rest of this series.</p>
         </div>
         <ul class="post-tags"><li>architecture</li><li>positioning</li><li>ai-native</li><li>spatial-computing</li></ul>
         <nav class="post-series-nav"></nav>
