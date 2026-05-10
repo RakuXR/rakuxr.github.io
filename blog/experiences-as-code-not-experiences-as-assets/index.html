@@ -56,8 +56,7 @@
             </p>
         </header>
         <div class="post-body">
-<p>Last post, I made the abstract argument. AI as nervous system, not AI as factory. AI is a runtime primitive in our engine, not a feature next to it.</p>
-<p>That post drew the picture. This one shows the file.</p>
+<p>AI is a runtime primitive in our engine, not a feature bolted on next to it. That is the architectural argument. This post is about the file format that makes it concrete.</p>
 <p>If you build a game on most engines, the artifact you ship is a binary, a project bundle, an asset database, or some combination of all three. What you author lives inside a proprietary editor. What you ship is opaque to the tools your team already uses. Diffing two versions of an experience means firing up the same editor twice and hoping the change log is honest.</p>
 <p>We took the other path. A RakuAI experience is a <code>.raku</code> file. The file is JSON. You can open it in any editor. You can diff two versions in any code-review tool. You can validate it against a schema. You can version it in git. You can review it in a PR. You can hot-reload it. You can write an experience by hand if you want to.</p>
 <p>The file format is not glamorous. It is load-bearing.</p>
@@ -152,11 +151,8 @@
 <p>JSON does not have comments. We compensate with sidecar <code>.md</code> files for design intent and with descriptive field names, but it is a real friction.</p>
 <p>The schema has to evolve carefully. We bumped from <code>schema_version: 1.0</code> to <code>2.0</code> once when world generation outgrew the original shape. Every existing file in the wild needed a migration path. That work is part of the job, and it is not free.</p>
 <p>There is a temptation to keep adding fields. We resist it harder than it sounds. Every field added is a contract the runtime must honor in perpetuity. The bias is to keep the file small and put complexity in the runtime, not in the file.</p>
-<p>And finally: text-based experience definitions only matter if the runtime actually does something interesting with them. The file format is downstream of the architectural decision in Series #1. If the engine is a factory, the file is just a manifest. If the engine is a nervous system, the file is the score.</p>
-<h2 id="whats-next-in-the-series">What&rsquo;s next in the series</h2>
-<p>This is post two. The series goes on.</p>
-<p>Coming up: how the runtime exposes the AI primitive to subsystems without coupling the engine to any specific model. Then the dev loop with parallel AI agents working against the same <code>.raku</code> files at the same time. Then the honest failure modes. Where the nervous-system pattern does not help and where the factory pattern is the right answer.</p>
-<p>If you want to read the file format end to end, the schema lives in the public docs and the sample files ship in the repo. Pull one open. Read it as code, because that is what it is.</p>
+<p>And finally: text-based experience definitions only matter if the runtime actually does something interesting with them. The file format is downstream of the architectural decision underneath it. If the engine treats AI as a content factory, the file is just a manifest. If the engine treats AI as a runtime primitive, the file is the score.</p>
+<p>If you want to read the format end to end, the schema lives in the public docs and the sample files ship in the repo. Pull one open. Read it as code, because that is what it is.</p>
 <p>Back to building.</p>
         </div>
         <ul class="post-tags"><li>architecture</li><li>ai-native</li><li>raku-files</li><li>dev-workflow</li></ul>

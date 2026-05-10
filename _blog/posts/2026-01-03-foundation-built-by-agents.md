@@ -3,26 +3,16 @@ title: "Foundation Built BY Agents, Not Foundation Built FOR Agents"
 date: 2026-01-03
 author: Kevin Griffin
 tags: [foundation, dev-workflow, ai-native, history]
-description: "The week before AI subsystems landed in the runtime, an autonomous agent shipped ten foundational engine subsystems in a single Saturday. The foundation that made AI-as-runtime-primitive possible was already being built BY agents, before AI was a primitive at all."
+description: "An autonomous agent shipped ten foundational engine subsystems in a single Saturday. The engine's foundation is being built BY agents, in a workflow that treats agent-authored diffs as a first-class part of the dev loop."
 series: learning-to-code-with-ai
 slug: foundation-built-by-agents-not-for-agents
 ---
 
-When people read Series #1 and ask how the engine got into a state where AI could land as a runtime primitive instead of a bolt-on, the assumption underneath the question is usually that the foundation was built one way, and then AI was added on top of it.
+When people ask me what it actually looks like to build a 3D runtime with AI agents on the team, they usually assume one of two things. Either the agents are autocomplete dressed up with a chat panel, or they are a feature you add later, once the "real" engine has been built by humans.
 
-That is not what happened.
+Neither is the version I am sitting inside right now.
 
-The foundation was built BY agents, before there were any AI subsystems in the runtime to call. The dev workflow forged in late 2025 and early 2026 was already parallel-agent shaped. The architectural decisions, the modularity, the code-review-as-design discipline, the boring infrastructure that makes the rest of the engine possible. All of it was being shipped by AI agents working alongside one human, in a workflow that looked like every parallel-agent pattern Series #4 described, except without any of the runtime AI Series #1 talked about.
-
-This is the prequel.
-
-## A Saturday before the AI subsystems landed
-
-Saturday, January 3, 2026. The runtime repo took 139 commits that day. 110 of them were authored by an autonomous agent. 20 were under the founding-era BladeWireless account. 10 were mine.
-
-Two days later, the AI subsystems integration commit landed in the runtime. The post that became Series #1 of this series is about that moment. But Series #1 starts mid-story. The interesting question is what was happening 48 hours before.
-
-Ten subsystem pull requests merged on that Saturday. The boring, load-bearing subsystems an engine needs before AI has anything interesting to do.
+Today the runtime repo took 139 commits. 110 of them were authored by an autonomous agent. 20 were under the founding-era BladeWireless account. 10 were mine. Across those 139 commits, ten subsystem pull requests landed:
 
 - Skeletal animation system
 - Runtime scene editing API
@@ -35,71 +25,59 @@ Ten subsystem pull requests merged on that Saturday. The boring, load-bearing su
 - Terrain and environment systems
 - Post-processing pipeline
 
-None of those subsystems are AI. None of them mention models or behaviors. They are the foundation a 3D runtime needs to be a 3D runtime. And they shipped on a single Saturday, in parallel branches, mostly authored by an agent running autonomously.
+None of those subsystems are AI. They are the boring, load-bearing pieces a 3D runtime needs to be a 3D runtime. And they shipped on a single Saturday, in parallel branches, mostly authored by an agent running autonomously while I framed, reviewed, and merged.
 
-## What that meant for the AI work that followed
+This is the post about what it means that the foundation is being built BY agents, not built FOR agents.
 
-Here is the thing most engine teams misjudge. They imagine a sequence: build the engine, then add AI. The AI is a feature you tack on.
+## The difference is in every architectural decision
 
-When you build the foundation that way, AI lands as a feature. It bolts on. It lives outside the engine because the engine was not designed to host it. That is the factory pattern Series #1 was about.
+There is a version of this story where you build a "normal" engine the way engines have always been built, and then you add AI on top. The AI lands as a feature. It bolts on. It lives outside the engine because the engine was not designed to host it. That is the dominant pattern in the industry right now, and it is not a wrong pattern. It is just the one you get when you decide what the engine should look like before AI is on the dev team.
 
-When you build the foundation with parallel AI agents already on the team, the engine's shape comes out different. Three things change.
+When AI agents are on the team from day one, the engine's shape comes out different. Three things change.
 
-**One. Every subsystem ships through code review.** Because agents have to participate in the review loop, the loop has to accept agent-authored diffs. Every PR. Every diff. Every merge. That discipline does not just enable agents. It also turns out to be exactly the discipline you need when AI is a runtime primitive and `.raku` files get reviewed the same way code does.
+**One. Every subsystem ships through code review.** Because agents have to participate in the review loop, the loop has to accept agent-authored diffs. Every PR. Every diff. Every merge. That discipline does not just enable agents. It also turns out to be exactly the discipline you want if AI is ever going to be a runtime primitive instead of an editor feature. The same review pipeline that catches an agent's typo in a culling header will catch the agent's typo in a behavior tree. The pipeline does not care which layer of the stack it lives in.
 
-**Two. Every subsystem has clean public interfaces.** Because multiple agents work on multiple subsystems in parallel, the boundaries between subsystems have to be sharp. Two agents stepping on each other across a fuzzy boundary produces unmergeable conflict every time. The remedy is to draw the boundaries hard before anyone writes code. Those same hard boundaries are what let the AI primitive plug into the engine later without coupling.
+**Two. Every subsystem has clean public interfaces.** Multiple agents working on multiple subsystems in parallel produce unmergeable conflict every time the boundaries are fuzzy. The remedy is to draw the boundaries hard before anyone writes code. Once the boundaries are hard, the subsystems become addressable from anywhere, which is exactly what you need if you want the engine to host AI behaviors that can call into the rest of the runtime without coupling.
 
-**Three. Every subsystem is independently testable.** Because an agent merging a 200-PR Saturday cannot manually QA each one, the tests have to ship with the diff. Tests are how the human in the loop trusts the diff at all. That same test surface is what lets the AI subsystems land two days later without breaking the rest of the runtime.
+**Three. Every subsystem is independently testable.** A 139-commit Saturday cannot be QA'd by hand. The tests have to ship with the diff or the diff does not land. That is how the human in the loop trusts the diff at all. The side effect is a test surface that lets you swap implementations without rewriting callers, which is the discipline an engine needs to evolve at all.
 
-The foundation was not built FOR agents. It was built BY agents. The difference is in every architectural decision.
+None of these are AI features. They are dev-process consequences of having agents on the team. The dev process shapes the architecture.
 
-## What the actual workflow looked like
+## What the workflow actually looks like
 
-The pattern on that January 3 Saturday is the same one I am running now, with refinements. The shape:
+The pattern that produced today's Saturday:
 
 - I framed which subsystems the engine needed next.
-- An autonomous agent was running in parallel across ten branches, each implementing one subsystem.
+- An autonomous agent ran in parallel across ten branches, each implementing one subsystem.
 - Every branch produced a PR with implementation, tests, and docs.
 - I reviewed and merged. Where the agent got something wrong, I closed the PR or asked for changes.
 
-What is striking, reading the history back, is how much was working already. The dev loop was the dev loop. The agent was doing the work I would have hired ten people to do five years ago. I was doing the architectural judgment and the merge decisions.
+What strikes me, sitting here at the end of the day, is how much of it is already working. The dev loop is the dev loop. The agent is doing the work I would have hired ten people to do five years ago. I am doing the architectural judgment and the merge decisions. It is a different kind of long day than the long days I used to have.
 
-The autonomous agent on that particular Saturday was not a multi-vendor stack of four assistants the way the workflow looks today. It was a single agent (Copilot's SWE agent) running across many parallel tasks. The four-assistant rotation came later. The pattern was already there.
+The autonomous agent on this particular Saturday is not a multi-vendor stack of four assistants. It is a single agent (Copilot's SWE agent) running across many parallel tasks. I expect the multi-assistant pattern to come, and to come fast. The pattern is already here in single-agent form.
 
-## Why this matters for the rest of the series
+## What is hard
 
-Series #1 said AI is a runtime primitive. That depends on the engine being shaped to receive it.
+Honest about it, because it is genuinely hard.
 
-Series #2 said `.raku` experiences ship as code. That depends on the dev loop already accepting AI-authored code.
+**Agents are not free.** A 139-commit Saturday has a 139-commit review cost. Every PR needs real attention because the subsystems are unfamiliar and I cannot skim them. I am tired. The fatigue is real and worth budgeting for.
 
-Series #3 said the AI primitive does not couple to a specific model. That depends on clean subsystem boundaries that were already enforced by the workflow.
-
-Series #4 said the dev loop runs on parallel agents. That depends on having lived inside a parallel-agent dev loop long enough to know what works.
-
-None of those decisions would have been right if the foundation had been built the old way. The architecture and the workflow co-evolved. You cannot bolt one onto the other after the fact.
-
-## What was hard
-
-Honest about it.
-
-**Agents are not free.** A 139-commit Saturday has a 139-commit review cost. I have been honest in earlier posts about review fatigue. The version of that fatigue at the foundation stage was the worst, because the subsystems were unfamiliar and I could not skim the diffs. Every PR needed real attention.
-
-**Trusting an autonomous agent on novel work is a skill.** The Copilot SWE agent that shipped most of these subsystems is good. It is not infallible. The skill is knowing when to merge fast, when to slow down, and when to throw a draft out. Early on I merged things I should have rerolled. I learned by paying the cost.
+**Trusting an autonomous agent on novel work is a skill.** The Copilot SWE agent that shipped most of today's subsystems is good. It is not infallible. The skill is knowing when to merge fast, when to slow down, and when to throw a draft out. I have already merged things I should have rerolled. I am learning by paying the cost.
 
 **The architecture has to be sketched before the agents run.** Hand an agent the prompt "build me a renderer" and you will get a renderer that does not fit the rest of your engine. Hand it "implement an occlusion culling subsystem that exports this C API and integrates with the scene graph through these handles" and you get something that lands cleanly. The framing work is the work. The agent does the typing.
 
-## What I would do differently
+**Tests are non-negotiable.** I almost let one of today's PRs land with thin test coverage. That is a future regression I am quietly committing to fight. The remedy is to make the test requirement part of the agent's prompt from the first line.
 
-Two things.
+## What I am taking away from today
 
-**Start the test discipline earlier.** Not every subsystem in those first months shipped with the test coverage it should have. We paid for the gap in regressions later. The remedy is to make the test requirement non-negotiable in the agent prompt from day one.
+Two observations.
 
-**Pair agents on the hardest subsystems sooner.** The single-agent pattern works for well-defined subsystems. It struggles on subsystems that touch a lot of the engine at once. The fix is two agents on the same problem with different prompts, plus a third reviewing. That pattern is now standard. It was not standard in early January.
+The agents are obviously going to keep getting better. Faster, more accurate, capable of holding more of the engine in one head. That is the easy prediction.
 
-## Where the series goes from here
+The less easy prediction is what happens to the human role inside this workflow. It is already not the role I trained for as a senior engineer. Less typing, more framing. Less synthesis, more selection. Less "I am the bottleneck on this line of code" and more "I am the bottleneck on the architectural call that decides whether this branch was worth running at all."
 
-This is the prequel post. Series #1 through #4 told the forward story. This one tells the foundation it sits on. There is still one more post promised, and it is the inverse of all of this: the honest failure modes. Where the nervous-system pattern does not help, where the interface boundary breaks, where parallel agents make things worse, and where the right answer is the old factory pattern after all.
+That is a different job. It uses different muscles. I think the muscles it uses are unusually fungible across domains, and I think the people who develop them over the next two years are going to look at the rest of the industry the way the industry currently looks at people who still build with no version control.
 
-Coming up next.
+That is more than enough thinking for one Saturday.
 
 Back to building.

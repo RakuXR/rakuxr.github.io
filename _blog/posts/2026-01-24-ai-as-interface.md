@@ -3,12 +3,12 @@ title: "AI as Interface, Not AI as Dependency"
 date: 2026-01-24
 author: Kevin Griffin
 tags: [architecture, ai-native, interfaces, runtime]
-description: "Series #1 said AI is a runtime primitive in the engine. That sounds like we married a specific model. We did not. Here is how the AI layer is exposed through interfaces instead of imports, and why that decision keeps getting more valuable."
+description: "If AI is a runtime primitive in the engine, you might assume the engine is locked to whichever model we wired in. It is not. Here is how the AI layer is exposed through interfaces instead of imports, and why that decision keeps getting more valuable."
 series: learning-to-code-with-ai
 slug: ai-as-interface-not-ai-as-dependency
 ---
 
-A reader of Series #1 sent me a sharp question. "If AI is a runtime primitive, then your engine is locked to whichever model you wired in. The next time the model vendor moves, you have to rewrite the engine."
+Someone asked me a sharp question this week. "If AI is a runtime primitive inside your engine, then the engine is locked to whichever model you wired in. The next time the model vendor moves, you have to rewrite the engine."
 
 Fair concern. And wrong, but fair.
 
@@ -28,7 +28,7 @@ The AI layer in our runtime is not one thing. It is five.
 
 Each one is its own subsystem. Each one ships as its own DLL. Each one has a public C API. None of them imports a specific model. They all talk to the rest of the engine through their respective interfaces, and they talk to each other the same way.
 
-When a Series #2 `.raku` file says `"ai_behavior": "strafe"`, it is not naming a model. It is naming a registered behavior. The runtime resolves the string. The string maps to an implementation. The implementation can be a behavior tree, a decision tree, a learned policy, or a hand-written heuristic. The caller does not know. The file does not know. The implementation can be swapped without touching either.
+When a `.raku` experience file says `"ai_behavior": "strafe"`, it is not naming a model. It is naming a registered behavior. The runtime resolves the string. The string maps to an implementation. The implementation can be a behavior tree, a decision tree, a learned policy, or a hand-written heuristic. The caller does not know. The file does not know. The implementation can be swapped without touching either.
 
 That is the whole trick.
 
@@ -51,7 +51,7 @@ This is unglamorous infrastructure work. It is also what lets us not panic when 
 
 ## The boundary protects the file format too
 
-Look back at the `.raku` file from Series #2. The `ai` block had keys like:
+Take a look at the `ai` block at the top of any `.raku` experience file. It has keys like:
 
 ```json
 "ai": {
@@ -87,10 +87,8 @@ The honest costs.
 
 **Sometimes you actually want the dependency.** This is the heretical one. There are cases where a specific model has a specific capability that no generic interface can express. The honest move is to extend the interface so the capability becomes generic, not to leak the model into the caller. We have caught ourselves wanting to take the shortcut more than once.
 
-## Where this fits in the series
+The architectural argument is straightforward. AI is a runtime primitive. The file format that drives it names capabilities, not models. The runtime resolves capabilities to whatever subsystem currently delivers them. The wire between the three layers is the interface. The interface is small, stable, and stupid on purpose.
 
-Series #1 made the architectural argument that AI is a runtime primitive. Series #2 showed the file format that addresses it. This post is the missing piece between them: how the file format can name an `ai_behavior` as a string and not care which model implements it, because the runtime layer was built around interfaces from day one.
-
-Coming up: the dev loop with parallel AI agents working against the same `.raku` files at the same time, and the honest failure modes where this whole approach does not help.
+That is the whole post.
 
 Back to building.
