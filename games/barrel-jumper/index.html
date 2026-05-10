@@ -196,19 +196,19 @@ import { RakuEngine } from "../../engine/raku-engine.js";
     "..H.........................",
     "..H.........*...............",
     "..H.........................",
-    "ccccccccccccccccccccccccch..",   // conveyor floor (rolls right)
+    "cccccccccccccccccccccccccH..",
     ".........................H..",
     ".........................H..",
     ".........................H..",
-    "..hccccccccccccccccccccccccc",   // conveyor floor (rolls left)
+    "..Hccccccccccccccccccccccccc",
     "..H.........................",
     "..H.........................",
     "..H.........................",
-    "ccccccccccccccccccccccccch..",
+    "cccccccccccccccccccccccccH..",
     ".........................H..",
     ".........................H..",
     ".........................H..",
-    "..hccccccccccccccccccccccccc",
+    "..Hccccccccccccccccccccccccc",
     "..H.........................",
     "..H.........................",
     "..H.........................",
@@ -564,6 +564,11 @@ import { RakuEngine } from "../../engine/raku-engine.js";
         const px = x * TILE;
         const py = y * TILE;
         if (tile === "=") drawGirder(px, py, x, y);
+        // The chevron-render loop reads INCREASING phase as a leftward
+        // shift (`for i = -p` decreases the start x as p grows), so to make
+        // the belt flow in the same direction as floorDirection (the
+        // direction barrels roll on this floor) the phase must DECREASE
+        // when floorDirection is positive — hence the negation.
         else if (tile === "c") drawConveyor(px, py, t * 0.25 * -floorDirection(y));
         else if (tile === "H") drawLadder(px, py, false);
         else if (tile === "h") drawLadder(px, py, true);
@@ -879,12 +884,14 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   // Treat ladder cells embedded in a floor row as solid for barrels — this
   // prevents the rare "barrel takes a shortcut down a ladder" bug where a
   // barrel rolling along a floor crosses the H tile that punches the floor
-  // for the player ladder access.
+  // for the player ladder access. Checked against the literal H/h tile
+  // characters rather than isLadder() so the climbable-ladder predicate
+  // can be tightened independently of barrel ground physics.
   function barrelGroundHit(level, ty, tx1, tx2) {
     const t1 = tileAt(level, tx1, ty);
     const t2 = tileAt(level, tx2, ty);
     if (isSolidTop(t1) || isSolidTop(t2)) return true;
-    if (isFloorRow(ty) && (isLadder(t1) || isLadder(t2))) return true;
+    if (isFloorRow(ty) && (t1 === "H" || t1 === "h" || t2 === "H" || t2 === "h")) return true;
     return false;
   }
 
@@ -1092,6 +1099,34 @@ import { RakuEngine } from "../../engine/raku-engine.js";
             heroDeath();
             break;
           }
+        }
+      }
+
+      // Rivet stage (stage 4): walking over a rivet pops it. Clearing every
+      // rivet on the stage completes the level — the DK-arcade rivet-stage
+      // win condition. The rivet array is empty on stages without rivets,
+      // so the "all cleared" check is skipped there.
+      if (state.stageCompleteTimer === 0 && state.level.rivets.length > 0) {
+        let anyAlive = false;
+        for (const r of state.level.rivets) {
+          if (!r.alive) continue;
+          if (state.hero.x < r.x + TILE && state.hero.x + state.hero.w > r.x &&
+              state.hero.y < r.y + TILE && state.hero.y + state.hero.h > r.y) {
+            r.alive = false;
+            state.score += 100;
+            sound.blip();
+            engine.observeWorld(WORLD_ID);
+          } else {
+            anyAlive = true;
+          }
+        }
+        if (!anyAlive) {
+          state.score += state.bonus;
+          state.stageCompleteTimer = 120;
+          sound.blip();
+          engine.captureFrame(WORLD_ID);
+          engine.observeWorld(WORLD_ID);
+          launcher.notifyScore(state.score);
         }
       }
 
