@@ -45,13 +45,13 @@ It is more like being a tech lead with a team of four than being a senior IC wit
 
 ## Where this combines with .raku files
 
-Series #2 walked through `.raku` files: JSON, schema-versioned, validatable, reviewable as code. That format was designed with this parallel-agent workflow in mind.
+The experience files our engine runs are `.raku` files: JSON, schema-versioned, validatable, reviewable as code. The format was designed with this parallel-agent workflow in mind.
 
 When an agent edits a `.raku` file, the diff shows up the same way a code diff does. A second agent can review the first agent's work. I can run a third agent to spot-check both. The merge call is mine. The whole thing fits inside the same pull-request discipline I use for the runtime.
 
 If `.raku` had been a binary asset, none of this would work. The format choice and the workflow choice are downstream of the same architectural call: experiences are code, dev work is code review, agents participate in the loop because the loop accepts code.
 
-This is what I meant in the Series #2 wrap-up about the file format being load-bearing. The file format is what lets the team scale through agents instead of headcount.
+The file format is load-bearing. It is what lets the team scale through agents instead of headcount.
 
 ## What works in practice
 
@@ -82,9 +82,5 @@ Honest about what does not work.
 If your team is running the sequential model with AI bolted on, the next step up is not "use a better model." It is "use multiple agents at once." The capability ceiling is higher. The skill ceiling is also higher, and it moves the senior role from production to framing, validation, and selection. That is the same direction-of-travel I see in every other discipline running AI well right now.
 
 The teams that figure out parallel-agent workflows over the next two years will look unrecognizable to teams still running the sequential model. The shape of the work is what changes. Not the tooling.
-
-## Where the series goes next
-
-This is post four in *Learning to Code with AI*. Coming up: the honest failure modes. Where the nervous-system pattern does not help, where the interface abstraction breaks, where parallel agents make things worse, and where the right answer is the old factory pattern after all.
 
 Back to building.
