@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Agents as Team, Not Agents as Tool &mdash; RakuAI Blog</title>
+    <meta name="description" content="The dev loop with parallel AI agents working against the same codebase at the same time. The bottleneck is no longer typing. It is deciding which four problems are worth working on simultaneously, and which two of the four results are good enough to keep.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/agents-as-team-not-agents-as-tool/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Agents as Team, Not Agents as Tool">
+    <meta property="og:description" content="The dev loop with parallel AI agents working against the same codebase at the same time. The bottleneck is no longer typing. It is deciding which four problems are worth working on simultaneously, and which two of the four results are good enough to keep.">
+    <meta property="og:url" content="https://rakuai.com/blog/agents-as-team-not-agents-as-tool/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-03-14T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Agents as Team, Not Agents as Tool">
+    <meta name="twitter:description" content="The dev loop with parallel AI agents working against the same codebase at the same time. The bottleneck is no longer typing. It is deciding which four problems are worth working on simultaneously, and which two of the four results are good enough to keep.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Agents as Team, Not Agents as Tool</h1>
+            <p class="post-meta">
+                <time datetime="2026-03-14T00:00:00+00:00">March 14, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>The first version of my dev loop with AI was simple. Ask the assistant to do thing A. Wait. Review the diff. Move to thing B. The assistant was a faster pair-programming partner. Still a pair. Still one thing at a time.</p>
+<p>That model lasted about three months. It is not how I work now.</p>
+<p>What I do now is run multiple AI coding assistants in parallel against the same codebase, each in its own git worktree, each on its own branch, each working on a different problem at the same time. At any given moment there are five to ten active branches across the repos. Different agents pushing on different parts of the engine simultaneously. I review and merge instead of writing and waiting.</p>
+<p>The shift in my job is the post.</p>
+<h2 id="what-a-real-saturday-looks-like">What a real Saturday looks like</h2>
+<p>A Saturday in mid-March. Across the five repos, 112 commits landed between breakfast and dinner. 66 had an AI as the author of record. 47 had me. The rest were merges and review-driven cleanups.</p>
+<p>The work was not one project. It was five. WASM ports for nine genres. iOS Metal renderer integration. A content-pack runner with twenty-one assets through a seven-stage pipeline. Card-battle genre stages five through seven. Performance optimizations for the web build. All of it happened on the same Saturday in parallel branches that landed throughout the afternoon and evening.</p>
+<p>No single human types 112 commits in a day at a kitchen-table desk on the weekend. No single human can hold five parallel workstreams in one head and write the code for each of them. The model I had three months earlier could not have produced this Saturday.</p>
+<p>The model I have now does.</p>
+<h2 id="the-bottleneck-moves">The bottleneck moves</h2>
+<p>When work is sequential, the bottleneck is typing. The next line of code does not exist until somebody writes it. AI made that line faster. It did not change which step was slow.</p>
+<p>When work is parallel, the bottleneck is selection. Four agents come back with four diffs. Two of them are good. One is in the right direction but needs work. One should not have been written. The slow step is deciding which is which and merging the two that survive.</p>
+<p>That is a completely different job from the one I trained for. Less typing. More triage. Less synthesis. More selection.</p>
+<p>The shape of the day:</p>
+<ul>
+<li><strong>Morning</strong>: framing. What four problems are worth four parallel attempts. What is the success criterion for each. What is the rough shape of an acceptable answer.</li>
+<li><strong>Throughout the day</strong>: spot-check. Are the agents on track? Did one of them confidently produce something wrong in the first thirty minutes? Is anyone stuck?</li>
+<li><strong>Late afternoon</strong>: review and merge. Four diffs come in. Read each one with the success criterion in mind. Merge the two that hit. Reroll or close the two that did not. Capture what the failed attempts taught me about the problem.</li>
+<li><strong>End of day</strong>: write down what the day shipped and what the next four problems are.</li>
+</ul>
+<p>It is more like being a tech lead with a team of four than being a senior IC with a copilot. It uses different muscles. The ones it uses are unusually fungible across domains.</p>
+<h2 id="where-this-combines-with-raku-files">Where this combines with .raku files</h2>
+<p>Series #2 walked through <code>.raku</code> files: JSON, schema-versioned, validatable, reviewable as code. That format was designed with this parallel-agent workflow in mind.</p>
+<p>When an agent edits a <code>.raku</code> file, the diff shows up the same way a code diff does. A second agent can review the first agent&rsquo;s work. I can run a third agent to spot-check both. The merge call is mine. The whole thing fits inside the same pull-request discipline I use for the runtime.</p>
+<p>If <code>.raku</code> had been a binary asset, none of this would work. The format choice and the workflow choice are downstream of the same architectural call: experiences are code, dev work is code review, agents participate in the loop because the loop accepts code.</p>
+<p>This is what I meant in the Series #2 wrap-up about the file format being load-bearing. The file format is what lets the team scale through agents instead of headcount.</p>
+<h2 id="what-works-in-practice">What works in practice</h2>
+<p>Three patterns I have settled into.</p>
+<p><strong>One: pair agents on a problem.</strong> When something is non-trivial, two assistants with different training tend to disagree productively. I run them on separate branches with the same prompt, then diff their answers. The disagreements are where the real review attention goes.</p>
+<p><strong>Two: dedicate one agent to review.</strong> I keep one of the four assistants in a review-only role on any given day. It never writes the first draft. It only critiques diffs the others produce. The cost of running a dedicated reviewer is small. The bug-catch rate is significant.</p>
+<p><strong>Three: keep agent context narrow.</strong> A single agent on a single branch on a single problem is fast. A single agent on a sprawling problem with five hours of context drifts and produces lower-quality work. The fix is to break problems into smaller pieces and rotate context frequently.</p>
+<h2 id="what-breaks">What breaks</h2>
+<p>Honest about what does not work.</p>
+<p><strong>Coordination overhead is real.</strong> Two agents on the same file at the same time produce merge conflicts that I have to resolve. The cost is small per conflict but adds up. Mitigation: keep agents on different files when possible, and accept that the convergence step is part of the workflow.</p>
+<p><strong>Review fatigue is real.</strong> Reviewing four diffs at the end of the day is harder than reviewing four sequential diffs across four days. The decisions are denser. I cut the workday earlier on parallel-agent days than I did when work was sequential.</p>
+<p><strong>The temptation to keep everything is real.</strong> When two agents both produce something reasonable, the lazy move is to merge both. The disciplined move is to pick one. Merging both pollutes the codebase with two ways to do the same thing, which costs more than just rerolling the loser would have.</p>
+<p><strong>Context drift across long-running parallel sessions is real.</strong> A branch that has been open for a day accumulates assumptions the agent made about the codebase at the moment it started. By evening, those assumptions can be stale. The fix is short-lived branches, ruthlessly.</p>
+<p><strong>Not everything parallelizes.</strong> Cross-cutting refactors with subtle invariants want a single careful pass, not four parallel attempts. The skill is knowing which problems split cleanly and which do not. Some days are still sequential days.</p>
+<h2 id="what-this-means-for-engineering-leaders">What this means for engineering leaders</h2>
+<p>If your team is running the sequential model with AI bolted on, the next step up is not &ldquo;use a better model.&rdquo; It is &ldquo;use multiple agents at once.&rdquo; The capability ceiling is higher. The skill ceiling is also higher, and it moves the senior role from production to framing, validation, and selection. That is the same direction-of-travel I see in every other discipline running AI well right now.</p>
+<p>The teams that figure out parallel-agent workflows over the next two years will look unrecognizable to teams still running the sequential model. The shape of the work is what changes. Not the tooling.</p>
+<h2 id="where-the-series-goes-next">Where the series goes next</h2>
+<p>This is post four in <em>Learning to Code with AI</em>. Coming up: the honest failure modes. Where the nervous-system pattern does not help, where the interface abstraction breaks, where parallel agents make things worse, and where the right answer is the old factory pattern after all.</p>
+<p>Back to building.</p>
+        </div>
+        <ul class="post-tags"><li>dev-workflow</li><li>ai-native</li><li>parallel-agents</li><li>worktrees</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/experiences-as-code-not-experiences-as-assets/" rel="prev">&larr; Experiences as Code, Not Experiences as Assets</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>
