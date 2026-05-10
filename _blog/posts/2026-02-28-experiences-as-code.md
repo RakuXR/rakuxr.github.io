@@ -1,6 +1,6 @@
 ---
 title: "Experiences as Code, Not Experiences as Assets"
-date: 2026-05-05
+date: 2026-02-28
 author: Kevin Griffin
 tags: [architecture, ai-native, raku-files, dev-workflow]
 description: "The .raku file is a JSON document. That choice is load-bearing. Here is what a real one looks like, why we picked JSON over a custom DSL, and how the file format becomes the contract between the human author and the AI runtime."
