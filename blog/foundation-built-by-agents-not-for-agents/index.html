@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Foundation Built BY Agents, Not Foundation Built FOR Agents &mdash; RakuAI Blog</title>
+    <meta name="description" content="The week before AI subsystems landed in the runtime, an autonomous agent shipped ten foundational engine subsystems in a single Saturday. The foundation that made AI-as-runtime-primitive possible was already being built BY agents, before AI was a primitive at all.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/foundation-built-by-agents-not-for-agents/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Foundation Built BY Agents, Not Foundation Built FOR Agents">
+    <meta property="og:description" content="The week before AI subsystems landed in the runtime, an autonomous agent shipped ten foundational engine subsystems in a single Saturday. The foundation that made AI-as-runtime-primitive possible was already being built BY agents, before AI was a primitive at all.">
+    <meta property="og:url" content="https://rakuai.com/blog/foundation-built-by-agents-not-for-agents/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-01-03T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Foundation Built BY Agents, Not Foundation Built FOR Agents">
+    <meta name="twitter:description" content="The week before AI subsystems landed in the runtime, an autonomous agent shipped ten foundational engine subsystems in a single Saturday. The foundation that made AI-as-runtime-primitive possible was already being built BY agents, before AI was a primitive at all.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Foundation Built BY Agents, Not Foundation Built FOR Agents</h1>
+            <p class="post-meta">
+                <time datetime="2026-01-03T00:00:00+00:00">January 3, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>When people read Series #1 and ask how the engine got into a state where AI could land as a runtime primitive instead of a bolt-on, the assumption underneath the question is usually that the foundation was built one way, and then AI was added on top of it.</p>
+<p>That is not what happened.</p>
+<p>The foundation was built BY agents, before there were any AI subsystems in the runtime to call. The dev workflow forged in late 2025 and early 2026 was already parallel-agent shaped. The architectural decisions, the modularity, the code-review-as-design discipline, the boring infrastructure that makes the rest of the engine possible. All of it was being shipped by AI agents working alongside one human, in a workflow that looked like every parallel-agent pattern Series #4 described, except without any of the runtime AI Series #1 talked about.</p>
+<p>This is the prequel.</p>
+<h2 id="a-saturday-before-the-ai-subsystems-landed">A Saturday before the AI subsystems landed</h2>
+<p>Saturday, January 3, 2026. The runtime repo took 139 commits that day. 110 of them were authored by an autonomous agent. 20 were under the founding-era BladeWireless account. 10 were mine.</p>
+<p>Two days later, the AI subsystems integration commit landed in the runtime. The post that became Series #1 of this series is about that moment. But Series #1 starts mid-story. The interesting question is what was happening 48 hours before.</p>
+<p>Ten subsystem pull requests merged on that Saturday. The boring, load-bearing subsystems an engine needs before AI has anything interesting to do.</p>
+<ul>
+<li>Skeletal animation system</li>
+<li>Runtime scene editing API</li>
+<li>Scene serialization</li>
+<li>Occlusion culling</li>
+<li>Level streaming</li>
+<li>Prefab system</li>
+<li>GPU particle systems</li>
+<li>Advanced rendering</li>
+<li>Terrain and environment systems</li>
+<li>Post-processing pipeline</li>
+</ul>
+<p>None of those subsystems are AI. None of them mention models or behaviors. They are the foundation a 3D runtime needs to be a 3D runtime. And they shipped on a single Saturday, in parallel branches, mostly authored by an agent running autonomously.</p>
+<h2 id="what-that-meant-for-the-ai-work-that-followed">What that meant for the AI work that followed</h2>
+<p>Here is the thing most engine teams misjudge. They imagine a sequence: build the engine, then add AI. The AI is a feature you tack on.</p>
+<p>When you build the foundation that way, AI lands as a feature. It bolts on. It lives outside the engine because the engine was not designed to host it. That is the factory pattern Series #1 was about.</p>
+<p>When you build the foundation with parallel AI agents already on the team, the engine&rsquo;s shape comes out different. Three things change.</p>
+<p><strong>One. Every subsystem ships through code review.</strong> Because agents have to participate in the review loop, the loop has to accept agent-authored diffs. Every PR. Every diff. Every merge. That discipline does not just enable agents. It also turns out to be exactly the discipline you need when AI is a runtime primitive and <code>.raku</code> files get reviewed the same way code does.</p>
+<p><strong>Two. Every subsystem has clean public interfaces.</strong> Because multiple agents work on multiple subsystems in parallel, the boundaries between subsystems have to be sharp. Two agents stepping on each other across a fuzzy boundary produces unmergeable conflict every time. The remedy is to draw the boundaries hard before anyone writes code. Those same hard boundaries are what let the AI primitive plug into the engine later without coupling.</p>
+<p><strong>Three. Every subsystem is independently testable.</strong> Because an agent merging a 200-PR Saturday cannot manually QA each one, the tests have to ship with the diff. Tests are how the human in the loop trusts the diff at all. That same test surface is what lets the AI subsystems land two days later without breaking the rest of the runtime.</p>
+<p>The foundation was not built FOR agents. It was built BY agents. The difference is in every architectural decision.</p>
+<h2 id="what-the-actual-workflow-looked-like">What the actual workflow looked like</h2>
+<p>The pattern on that January 3 Saturday is the same one I am running now, with refinements. The shape:</p>
+<ul>
+<li>I framed which subsystems the engine needed next.</li>
+<li>An autonomous agent was running in parallel across ten branches, each implementing one subsystem.</li>
+<li>Every branch produced a PR with implementation, tests, and docs.</li>
+<li>I reviewed and merged. Where the agent got something wrong, I closed the PR or asked for changes.</li>
+</ul>
+<p>What is striking, reading the history back, is how much was working already. The dev loop was the dev loop. The agent was doing the work I would have hired ten people to do five years ago. I was doing the architectural judgment and the merge decisions.</p>
+<p>The autonomous agent on that particular Saturday was not a multi-vendor stack of four assistants the way the workflow looks today. It was a single agent (Copilot&rsquo;s SWE agent) running across many parallel tasks. The four-assistant rotation came later. The pattern was already there.</p>
+<h2 id="why-this-matters-for-the-rest-of-the-series">Why this matters for the rest of the series</h2>
+<p>Series #1 said AI is a runtime primitive. That depends on the engine being shaped to receive it.</p>
+<p>Series #2 said <code>.raku</code> experiences ship as code. That depends on the dev loop already accepting AI-authored code.</p>
+<p>Series #3 said the AI primitive does not couple to a specific model. That depends on clean subsystem boundaries that were already enforced by the workflow.</p>
+<p>Series #4 said the dev loop runs on parallel agents. That depends on having lived inside a parallel-agent dev loop long enough to know what works.</p>
+<p>None of those decisions would have been right if the foundation had been built the old way. The architecture and the workflow co-evolved. You cannot bolt one onto the other after the fact.</p>
+<h2 id="what-was-hard">What was hard</h2>
+<p>Honest about it.</p>
+<p><strong>Agents are not free.</strong> A 139-commit Saturday has a 139-commit review cost. I have been honest in earlier posts about review fatigue. The version of that fatigue at the foundation stage was the worst, because the subsystems were unfamiliar and I could not skim the diffs. Every PR needed real attention.</p>
+<p><strong>Trusting an autonomous agent on novel work is a skill.</strong> The Copilot SWE agent that shipped most of these subsystems is good. It is not infallible. The skill is knowing when to merge fast, when to slow down, and when to throw a draft out. Early on I merged things I should have rerolled. I learned by paying the cost.</p>
+<p><strong>The architecture has to be sketched before the agents run.</strong> Hand an agent the prompt &ldquo;build me a renderer&rdquo; and you will get a renderer that does not fit the rest of your engine. Hand it &ldquo;implement an occlusion culling subsystem that exports this C API and integrates with the scene graph through these handles&rdquo; and you get something that lands cleanly. The framing work is the work. The agent does the typing.</p>
+<h2 id="what-i-would-do-differently">What I would do differently</h2>
+<p>Two things.</p>
+<p><strong>Start the test discipline earlier.</strong> Not every subsystem in those first months shipped with the test coverage it should have. We paid for the gap in regressions later. The remedy is to make the test requirement non-negotiable in the agent prompt from day one.</p>
+<p><strong>Pair agents on the hardest subsystems sooner.</strong> The single-agent pattern works for well-defined subsystems. It struggles on subsystems that touch a lot of the engine at once. The fix is two agents on the same problem with different prompts, plus a third reviewing. That pattern is now standard. It was not standard in early January.</p>
+<h2 id="where-the-series-goes-from-here">Where the series goes from here</h2>
+<p>This is the prequel post. Series #1 through #4 told the forward story. This one tells the foundation it sits on. There is still one more post promised, and it is the inverse of all of this: the honest failure modes. Where the nervous-system pattern does not help, where the interface boundary breaks, where parallel agents make things worse, and where the right answer is the old factory pattern after all.</p>
+<p>Coming up next.</p>
+<p>Back to building.</p>
+        </div>
+        <ul class="post-tags"><li>foundation</li><li>dev-workflow</li><li>ai-native</li><li>history</li></ul>
+        <nav class="post-series-nav"><a class="nav-next" href="/blog/ai-as-nervous-system-not-ai-as-factory/" rel="next">AI as Nervous System, Not AI as Factory &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>
