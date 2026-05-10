@@ -8,9 +8,7 @@ series: learning-to-code-with-ai
 slug: experiences-as-code-not-experiences-as-assets
 ---
 
-Last post, I made the abstract argument. AI as nervous system, not AI as factory. AI is a runtime primitive in our engine, not a feature next to it.
-
-That post drew the picture. This one shows the file.
+AI is a runtime primitive in our engine, not a feature bolted on next to it. That is the architectural argument. This post is about the file format that makes it concrete.
 
 If you build a game on most engines, the artifact you ship is a binary, a project bundle, an asset database, or some combination of all three. What you author lives inside a proprietary editor. What you ship is opaque to the tools your team already uses. Diffing two versions of an experience means firing up the same editor twice and hoping the change log is honest.
 
@@ -147,14 +145,8 @@ The schema has to evolve carefully. We bumped from `schema_version: 1.0` to `2.0
 
 There is a temptation to keep adding fields. We resist it harder than it sounds. Every field added is a contract the runtime must honor in perpetuity. The bias is to keep the file small and put complexity in the runtime, not in the file.
 
-And finally: text-based experience definitions only matter if the runtime actually does something interesting with them. The file format is downstream of the architectural decision in Series #1. If the engine is a factory, the file is just a manifest. If the engine is a nervous system, the file is the score.
+And finally: text-based experience definitions only matter if the runtime actually does something interesting with them. The file format is downstream of the architectural decision underneath it. If the engine treats AI as a content factory, the file is just a manifest. If the engine treats AI as a runtime primitive, the file is the score.
 
-## What's next in the series
-
-This is post two. The series goes on.
-
-Coming up: how the runtime exposes the AI primitive to subsystems without coupling the engine to any specific model. Then the dev loop with parallel AI agents working against the same `.raku` files at the same time. Then the honest failure modes. Where the nervous-system pattern does not help and where the factory pattern is the right answer.
-
-If you want to read the file format end to end, the schema lives in the public docs and the sample files ship in the repo. Pull one open. Read it as code, because that is what it is.
+If you want to read the format end to end, the schema lives in the public docs and the sample files ship in the repo. Pull one open. Read it as code, because that is what it is.
 
 Back to building.

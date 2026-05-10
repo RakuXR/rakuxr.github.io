@@ -14,7 +14,7 @@ That is the factory pattern. A request goes out. An artifact comes back. The eng
 
 RakuAI is not built that way. AI is not a station on the assembly line. It is a primitive in the runtime. Closer in spirit to a nervous system than to a factory. Continuously present, in the loop on every frame, observing, deciding, reacting. Removing it does not remove a feature. It removes the thing that makes the rest of the engine make sense.
 
-This post is the orientation for everything else in this series. If you read one piece on what "AI-native" means at the architecture layer, this is it.
+If you read one piece on what "AI-native" actually means at the architecture layer, I want it to be this one.
 
 ## Two patterns, drawn out
 
@@ -94,17 +94,6 @@ You pay for **observability you do not get for free with traditional engines**. 
 
 These costs are why most engines pick the factory pattern. The factory pattern is genuinely cheaper to build. It is also genuinely less interesting, in a way that becomes visible only after you have spent time inside an engine that made the other choice.
 
-## Where this series goes from here
+If you are building a game, an XR experience, or any other interactive system and you are wondering whether the AI question is "which model do I integrate" or something deeper, the answer is that it is something deeper. You can feel it the first time you try to make the factory pattern do something it was not built to do.
 
-This is post one in *Learning to Code with AI*. The series is about building production software side by side with AI agents, written from the inside of a project that took the nervous-system bet. Future posts will go into:
-
-- How the runtime exposes the AI primitive to subsystems without coupling them to a specific model.
-- The .raku file format. Structured experience definitions that validate, version, and ship like code, with explicit hooks for runtime AI.
-- What changes in the dev loop when the architecture itself depends on AI being present.
-- The honest failure modes. Where the nervous-system pattern does not help, and where the factory pattern is the right answer for a given problem.
-
-If you are building a game, an XR experience, or any other interactive system in 2026, and you are wondering whether the AI question is "which model do I integrate" or something deeper, this series is written for you.
-
-The short version of the answer: it is something deeper. You can feel it the first time you try to make the factory pattern do something it was not built to do.
-
-The long version is the rest of this series.
+Back to building.
