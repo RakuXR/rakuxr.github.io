@@ -4,42 +4,37 @@
 - **Org**: RakuXR
 - **Repo**: rakuxr.github.io (GitHub Pages site)
 - **Live URL**: https://rakuai.com (production)
-- **Staging URL**: https://rakuai.com/staging/ (staging)
 - **Purpose**: Public website for RakuAI prompt-to-game platform
 - **Type**: Static HTML/CSS/JS (no build step — files deploy as-is)
 - **Master strategy**: `raku-governance/STRATEGY.md`
 
 ## Deployment Architecture
 
-This repo uses a **staging → production** deployment model with GitHub Pages.
+Single-environment deploy. Push to `main` → GitHub Pages → `https://rakuai.com/`.
+
+The `staging` branch and `/staging/` subdirectory are **deprecated** — review happens in the Claude Code chat window before changes land on `main`. Do not push to `staging` or open PRs against it.
 
 ### Branches
 | Branch | Purpose | Auto-deploys to |
 |--------|---------|-----------------|
-| `main` | Production-ready code | `rakuai.com/` (root) |
-| `staging` | Testing & review | `rakuai.com/staging/` |
-| Feature branches | Development | Nothing (PR into staging) |
-
-### Deployment Flow
-```
-feature-branch → PR → staging → owner approval → main (production)
-```
+| `main` | Production code | `rakuai.com/` (root) |
+| Feature branches | Development | Nothing (PR into `main`) |
 
 ### Workflows
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
 | `deploy-production.yml` | Push to `main` | Deploys to GitHub Pages root |
-| `deploy-staging.yml` | Push to `staging` | Deploys to `/staging/` subdirectory |
-| `promote-staging-to-production.yml` | Manual or API dispatch | Merges staging → main |
+
+`deploy-staging.yml` and `promote-staging-to-production.yml` are obsolete and should be removed when convenient.
 
 ## AI Agent Deployment Workflow
 
 **CRITICAL**: Claude and GitHub Copilot MUST follow this workflow for ALL website changes.
 
-### Step 1: Develop on Feature Branch
+### Step 1: Develop on a Feature Branch
 ```bash
-git checkout staging
-git pull origin staging
+git checkout main
+git pull origin main
 git checkout -b <feature-branch>
 # ... make changes ...
 git add <files>
@@ -47,61 +42,28 @@ git commit -m "description of changes"
 git push -u origin <feature-branch>
 ```
 
-### Step 2: Merge to Staging
-```bash
-git checkout staging
-git pull origin staging
-git merge <feature-branch>
-git push origin staging
-# This auto-deploys to rakuai.com/staging/
-```
-Or create a PR from feature-branch → staging and merge it.
+### Step 2: Review in Chat
+Summarize the change in the Claude Code chat window — what files changed, why, and any test/verification steps. The owner reviews here. Iterate on the feature branch and push again if anything needs adjusting.
 
-### Step 3: Verify on Staging
-After merge to staging, verify the changes at `https://rakuai.com/staging/`.
-- Check all modified pages render correctly
-- Verify no broken links or missing assets
-- Test on mobile viewport if UI changes were made
+### Step 3: Open a PR to `main` (after owner approval)
+Once the owner says "ship it" / "looks good" / "merge it", open a PR with `base: main` using `mcp__github__create_pull_request` (or `gh pr create --base main`).
 
-### Step 4: Request Owner Approval
-**AI agents MUST NOT promote staging to production without explicit owner approval.**
+### Step 4: Merge
+- **Default**: owner merges via the GitHub UI.
+- **If the owner explicitly authorizes Claude to merge**, use `mcp__github__merge_pull_request` (squash for small fixes, merge commit for multi-commit features).
 
-Tell the user:
-> "Changes are deployed to staging at https://rakuai.com/staging/. Please review and confirm when ready to promote to production."
+After merge, `deploy-production.yml` fires and the change appears at `https://rakuai.com/`.
 
-### Step 5: Promote to Production (after owner approval)
-Once the owner explicitly approves (e.g., "looks good, push to production", "promote it", "ship it"):
-
-**Option A — Git merge (preferred for AI agents):**
-```bash
-git checkout main
-git pull origin main
-git merge staging --no-ff -m "Promote staging to production: <summary>"
-git push origin main
-```
-
-**Option B — GitHub API dispatch:**
-```bash
-gh api repos/RakuXR/rakuxr.github.io/dispatches \
-  -f event_type=promote-staging \
-  -f client_payload='{"actor":"claude"}'
-```
-
-**Option C — GitHub Actions UI:**
-Go to Actions → "Promote Staging to Production" → Run workflow → Type "promote"
-
-### Step 6: Verify Production
-After promotion, verify at `https://rakuai.com/`.
+### Step 5: Verify Production
+After deploy completes, verify the change at `https://rakuai.com/<path>`.
 
 ## Rules for AI Agents
 
-1. **NEVER push directly to main** — all changes go through staging first
-2. **NEVER promote staging→production without explicit owner approval**
-3. **ALWAYS verify staging URL before requesting approval**
-4. **Feature branches merge into staging, not main**
-5. **After major phase completion** (Phase 2, 3, 4, 5), staging MUST be reviewed by owner before production promotion
-6. **Hotfixes**: Only owner-approved critical fixes may skip staging (must still get explicit approval)
-7. **The old `deploy.yml` workflow is superseded** by `deploy-production.yml` — delete `deploy.yml` after confirming new workflows are operational
+1. **NEVER push directly to `main`** — all changes go through a feature branch + PR.
+2. **NEVER merge a PR to `main` without explicit owner approval** in the chat.
+3. **NEVER use `staging`** — branch is deprecated. PR base is always `main`.
+4. **One logical change per feature branch.**
+5. **Hotfixes still require owner approval** (which can be granted in the same chat turn).
 
 ## File Structure
 
