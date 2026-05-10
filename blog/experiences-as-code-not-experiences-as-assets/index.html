@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Experiences as Code, Not Experiences as Assets &mdash; RakuAI Blog</title>
+    <meta name="description" content="The .raku file is a JSON document. That choice is load-bearing. Here is what a real one looks like, why we picked JSON over a custom DSL, and how the file format becomes the contract between the human author and the AI runtime.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/experiences-as-code-not-experiences-as-assets/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Experiences as Code, Not Experiences as Assets">
+    <meta property="og:description" content="The .raku file is a JSON document. That choice is load-bearing. Here is what a real one looks like, why we picked JSON over a custom DSL, and how the file format becomes the contract between the human author and the AI runtime.">
+    <meta property="og:url" content="https://rakuai.com/blog/experiences-as-code-not-experiences-as-assets/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-05-05T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Experiences as Code, Not Experiences as Assets">
+    <meta name="twitter:description" content="The .raku file is a JSON document. That choice is load-bearing. Here is what a real one looks like, why we picked JSON over a custom DSL, and how the file format becomes the contract between the human author and the AI runtime.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Experiences as Code, Not Experiences as Assets</h1>
+            <p class="post-meta">
+                <time datetime="2026-05-05T00:00:00+00:00">May 5, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>Last post, I made the abstract argument. AI as nervous system, not AI as factory. AI is a runtime primitive in our engine, not a feature next to it.</p>
+<p>That post drew the picture. This one shows the file.</p>
+<p>If you build a game on most engines, the artifact you ship is a binary, a project bundle, an asset database, or some combination of all three. What you author lives inside a proprietary editor. What you ship is opaque to the tools your team already uses. Diffing two versions of an experience means firing up the same editor twice and hoping the change log is honest.</p>
+<p>We took the other path. A RakuAI experience is a <code>.raku</code> file. The file is JSON. You can open it in any editor. You can diff two versions in any code-review tool. You can validate it against a schema. You can version it in git. You can review it in a PR. You can hot-reload it. You can write an experience by hand if you want to.</p>
+<p>The file format is not glamorous. It is load-bearing.</p>
+<h2 id="what-a-real-raku-file-looks-like">What a real .raku file looks like</h2>
+<p>Here is a real game definition, trimmed for the post:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;game&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;My Space Shooter&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;genre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;space_shooter&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;template&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;space_shooter&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prototype&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;max_players&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;ai&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;dda_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;target_flow_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;profiler_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;emotional_tracking&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;adaptive_music&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;entities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;player_ship&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;shield&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;speed&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">22.0</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;fire_rate&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.09</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enemy_wave&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;strafe&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;enemy_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;interceptor&quot;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boss&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boss_pattern&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>That is most of an experience. A schema-versioned header. A game block with the surface metadata. An <code>ai</code> block with runtime AI configuration. An <code>entities</code> array describing what is in the world and how each entity behaves.</p>
+<p>A few things worth pointing at.</p>
+<h2 id="the-ai-block-is-the-runtime-contract">The <code>ai</code> block is the runtime contract</h2>
+<p>Look at this part again:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;ai&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;dda_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;target_flow_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;profiler_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;emotional_tracking&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;adaptive_music&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>This is where the file says &ldquo;the AI nervous system is on.&rdquo; Not &ldquo;ask GPT to write me a level.&rdquo; On. At the runtime layer, every frame, while the player is playing.</p>
+<p><code>dda_enabled</code> turns on dynamic difficulty adjustment. The runtime profiles what the player is doing and reshapes encounters in flight. <code>target_flow_state: 0.7</code> is the difficulty band the runtime aims for. <code>profiler_mode: "active"</code> says the AI is reading the player&rsquo;s behavior, not just sampling it. <code>emotional_tracking</code> and <code>adaptive_music</code> are the same idea applied to other subsystems.</p>
+<p>A factory-pattern engine could not have these knobs at the file level. There is no runtime AI for the file to address. In our engine, these knobs are how an author tells the nervous system what kind of experience to be.</p>
+<p>You can review this block in a PR. You can A/B-test two values in CI. A producer who has never seen an editor can read this and have a conversation with engineering about what target flow state means. The file format makes the design decision visible.</p>
+<h2 id="per-entity-ai-behavior-is-a-string-not-an-integration">Per-entity AI behavior is a string, not an integration</h2>
+<p>Each entity in the file can carry an <code>ai_behavior</code> field:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enemy_wave&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;strafe&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><code>"strafe"</code> is not a model invocation. It is a registered behavior in the runtime that the nervous-system layer drives. The same entity can be <code>"patrol"</code> or <code>"boss_pattern"</code> or anything else the runtime knows how to do. The file does not import a model. It addresses a capability.</p>
+<p>This is how you decouple the file format from a specific model. The author writes intent. The runtime decides which model, which weights, which deterministic fallback to use to deliver that intent. Swap the model out next quarter and the .raku files do not change.</p>
+<p>That separation matters more than it sounds. Every team I have talked to that bolted a specific LLM into an engine has had to redo the integration when the model vendor moved. We do not.</p>
+<h2 id="why-json">Why JSON</h2>
+<p>This is the question I get the most when I show the file format. Why JSON and not a custom DSL with a nicer syntax for math expressions and inline scripting and reactive bindings?</p>
+<p>Three reasons.</p>
+<p><strong>One: every tool already speaks JSON.</strong> Code review. Diff tools. Version control. Linters. Schema validators. CI pipelines. Static analysis. Every editor on every platform. We did not have to build any of that. We picked it up for free.</p>
+<p><strong>Two: humans read JSON well enough.</strong> The file above is not pretty, but a senior designer can read it without training. Compare that to a DSL that takes a week to learn before anyone can review a PR.</p>
+<p><strong>Three: AI assistants read JSON extremely well.</strong> This one matters more in 2026 than it did three years ago. When a designer asks an AI assistant to &ldquo;tweak the boss to feel scarier,&rdquo; the assistant can read the file, propose a diff, and the human can accept or reject the diff. A custom DSL would require teaching every assistant a new grammar.</p>
+<p>The cost is real. JSON is verbose. It does not have inline math, comments, or shorthand. We give up expressiveness in exchange for tooling ubiquity. So far the trade has paid for itself many times over.</p>
+<h2 id="what-this-enables">What this enables</h2>
+<p>A few things change once your experience is text.</p>
+<p><strong>PR review for game design.</strong> A designer changes <code>target_flow_state</code> from 0.7 to 0.5. The change shows up as a one-line diff in a pull request. Engineering and design review the change together. The conversation in the PR is a record of why the experience plays the way it does. Six months later, when someone asks why the difficulty curve feels the way it does, the answer is in the commit log.</p>
+<p><strong>CI for experiences.</strong> A <code>.raku</code> file fails schema validation. The build fails before the change ships. The same CI that runs your unit tests runs your experience definitions.</p>
+<p><strong>Hot reload.</strong> The file changes on disk. The runtime notices. The world updates without a restart. The dev loop tightens to seconds.</p>
+<p><strong>Rollback.</strong> A change broke the boss fight. Revert the commit. The experience reverts. No editor, no asset rebuild, no weeklong round-trip.</p>
+<p><strong>Authoring by AI.</strong> A team member describes what they want in natural language. An AI assistant writes the .raku diff. A human reviewer approves it. The diff is auditable, versionable, and falls under the same review discipline as any other code change.</p>
+<p>These are not exotic capabilities. They are what every modern software team takes for granted for the rest of their codebase. We extended them to game design.</p>
+<h2 id="what-is-hard">What is hard</h2>
+<p>The honest costs.</p>
+<p>JSON does not have comments. We compensate with sidecar <code>.md</code> files for design intent and with descriptive field names, but it is a real friction.</p>
+<p>The schema has to evolve carefully. We bumped from <code>schema_version: 1.0</code> to <code>2.0</code> once when world generation outgrew the original shape. Every existing file in the wild needed a migration path. That work is part of the job, and it is not free.</p>
+<p>There is a temptation to keep adding fields. We resist it harder than it sounds. Every field added is a contract the runtime must honor in perpetuity. The bias is to keep the file small and put complexity in the runtime, not in the file.</p>
+<p>And finally: text-based experience definitions only matter if the runtime actually does something interesting with them. The file format is downstream of the architectural decision in Series #1. If the engine is a factory, the file is just a manifest. If the engine is a nervous system, the file is the score.</p>
+<h2 id="whats-next-in-the-series">What&rsquo;s next in the series</h2>
+<p>This is post two. The series goes on.</p>
+<p>Coming up: how the runtime exposes the AI primitive to subsystems without coupling the engine to any specific model. Then the dev loop with parallel AI agents working against the same <code>.raku</code> files at the same time. Then the honest failure modes. Where the nervous-system pattern does not help and where the factory pattern is the right answer.</p>
+<p>If you want to read the file format end to end, the schema lives in the public docs and the sample files ship in the repo. Pull one open. Read it as code, because that is what it is.</p>
+<p>Back to building.</p>
+        </div>
+        <ul class="post-tags"><li>architecture</li><li>ai-native</li><li>raku-files</li><li>dev-workflow</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/ai-as-nervous-system-not-ai-as-factory/" rel="prev">&larr; AI as Nervous System, Not AI as Factory</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>
