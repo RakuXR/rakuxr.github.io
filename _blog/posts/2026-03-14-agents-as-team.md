@@ -16,13 +16,13 @@ What I do now is run multiple AI coding assistants in parallel against the same 
 
 The shift in my job is the post.
 
-## What a real day looks like
+## What a real Saturday looks like
 
-A Monday in mid-March. The runtime repo took 172 commits that day. Of those, 41 had me as the author of record. 41 had Claude. 8 had GitHub Copilot. The rest were merges and review-driven cleanups.
+A Saturday in mid-March. Across the five repos, 112 commits landed between breakfast and dinner. 66 had an AI as the author of record. 47 had me. The rest were merges and review-driven cleanups.
 
-The work was not one project. It was five. WASM ports for nine genres. iOS Metal renderer integration. A content-pack runner with twenty-one assets through a seven-stage pipeline. Card-battle genre stages five through seven. Performance optimizations for the web build. All of it happened on the same day in parallel branches that landed throughout the afternoon and evening.
+The work was not one project. It was five. WASM ports for nine genres. iOS Metal renderer integration. A content-pack runner with twenty-one assets through a seven-stage pipeline. Card-battle genre stages five through seven. Performance optimizations for the web build. All of it happened on the same Saturday in parallel branches that landed throughout the afternoon and evening.
 
-No single human types 172 commits a day. No single human can hold five parallel workstreams in one head and write the code for each of them. The model I had three months earlier could not have produced this Monday.
+No single human types 112 commits in a day at a kitchen-table desk on the weekend. No single human can hold five parallel workstreams in one head and write the code for each of them. The model I had three months earlier could not have produced this Saturday.
 
 The model I have now does.
 
