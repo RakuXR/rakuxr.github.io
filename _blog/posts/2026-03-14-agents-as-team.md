@@ -20,7 +20,7 @@ The shift in my job is the post.
 
 A Saturday in mid-March. Across the five repos, 112 commits landed between breakfast and dinner. 66 had an AI as the author of record. 47 had me. The rest were merges and review-driven cleanups.
 
-The work was not one project. It was five. WASM ports for nine genres. iOS Metal renderer integration. A content-pack runner with twenty-one assets through a seven-stage pipeline. Card-battle genre stages five through seven. Performance optimizations for the web build. All of it happened on the same Saturday in parallel branches that landed throughout the afternoon and evening.
+The work was not one project. It was five separate threads. Renderer work. Platform-port work. Content pipeline work. Gameplay-system work. Web-perf work. All of it happened on the same Saturday in parallel branches that landed throughout the afternoon and evening.
 
 No single human types 112 commits in a day at a kitchen-table desk on the weekend. No single human can hold five parallel workstreams in one head and write the code for each of them. The model I had three months earlier could not have produced this Saturday.
 

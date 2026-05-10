@@ -61,74 +61,23 @@
 <p>We took the other path. A RakuAI experience is a <code>.raku</code> file. The file is JSON. You can open it in any editor. You can diff two versions in any code-review tool. You can validate it against a schema. You can version it in git. You can review it in a PR. You can hot-reload it. You can write an experience by hand if you want to.</p>
 <p>The file format is not glamorous. It is load-bearing.</p>
 <h2 id="what-a-real-raku-file-looks-like">What a real .raku file looks like</h2>
-<p>Here is a real game definition, trimmed for the post:</p>
+<p>The shape, illustrated (specific keys generalized, real schema is more detailed):</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;game&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;My Space Shooter&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;genre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;space_shooter&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;template&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;space_shooter&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prototype&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;max_players&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;ai&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;dda_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;target_flow_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;profiler_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;emotional_tracking&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;adaptive_music&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;entities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;player_ship&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;shield&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;speed&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">22.0</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;fire_rate&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.09</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enemy_wave&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;strafe&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;enemy_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;interceptor&quot;</span><span class="w"> </span><span class="p">}</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boss&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boss_pattern&quot;</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">]</span>
+<span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;game&quot;</span><span class="p">:</span><span class="w">     </span><span class="p">{</span><span class="w"> </span><span class="cm">/* surface metadata: title, genre, mode, players, ... */</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;ai&quot;</span><span class="p">:</span><span class="w">       </span><span class="p">{</span><span class="w"> </span><span class="cm">/* runtime-AI knobs that drive the nervous system    */</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">&quot;entities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="cm">/* what&#39;s in the world and how each thing behaves    */</span><span class="w"> </span><span class="p">]</span>
 <span class="p">}</span>
 </code></pre></div>
 
-<p>That is most of an experience. A schema-versioned header. A game block with the surface metadata. An <code>ai</code> block with runtime AI configuration. An <code>entities</code> array describing what is in the world and how each entity behaves.</p>
+<p>A schema-versioned header. A game block with surface metadata. An <code>ai</code> block where the runtime AI is configured at the experience level. An <code>entities</code> array describing what is in the world and how each entity behaves.</p>
 <p>A few things worth pointing at.</p>
 <h2 id="the-ai-block-is-the-runtime-contract">The <code>ai</code> block is the runtime contract</h2>
-<p>Look at this part again:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;ai&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;dda_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;target_flow_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;profiler_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;emotional_tracking&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;adaptive_music&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
-<span class="p">}</span>
-</code></pre></div>
-
-<p>This is where the file says &ldquo;the AI nervous system is on.&rdquo; Not &ldquo;ask GPT to write me a level.&rdquo; On. At the runtime layer, every frame, while the player is playing.</p>
-<p><code>dda_enabled</code> turns on dynamic difficulty adjustment. The runtime profiles what the player is doing and reshapes encounters in flight. <code>target_flow_state: 0.7</code> is the difficulty band the runtime aims for. <code>profiler_mode: "active"</code> says the AI is reading the player&rsquo;s behavior, not just sampling it. <code>emotional_tracking</code> and <code>adaptive_music</code> are the same idea applied to other subsystems.</p>
-<p>A factory-pattern engine could not have these knobs at the file level. There is no runtime AI for the file to address. In our engine, these knobs are how an author tells the nervous system what kind of experience to be.</p>
-<p>You can review this block in a PR. You can A/B-test two values in CI. A producer who has never seen an editor can read this and have a conversation with engineering about what target flow state means. The file format makes the design decision visible.</p>
+<p>The <code>ai</code> block at the file level is where the experience tells the runtime nervous system what kind of experience to be. Difficulty adjustment that adapts to the player in flight. Flow-state targeting. Profiling depth. Music and pacing that respond to what is actually happening. None of those are model invocations. They are knobs on a runtime that is already in the loop on every frame while the player is playing.</p>
+<p>A factory-pattern engine could not have these knobs at the file level. There is no runtime AI for the file to address. In an engine where AI is a primitive, these knobs are the contract between the human author and the system that runs the experience.</p>
+<p>You can review this block in a PR. You can A/B-test two values in CI. A producer who has never seen an editor can read it and have a conversation with engineering about what each knob means. The file format makes the design decision visible.</p>
 <h2 id="per-entity-ai-behavior-is-a-string-not-an-integration">Per-entity AI behavior is a string, not an integration</h2>
-<p>Each entity in the file can carry an <code>ai_behavior</code> field:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enemy_wave&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;strafe&quot;</span>
-<span class="p">}</span>
-</code></pre></div>
-
-<p><code>"strafe"</code> is not a model invocation. It is a registered behavior in the runtime that the nervous-system layer drives. The same entity can be <code>"patrol"</code> or <code>"boss_pattern"</code> or anything else the runtime knows how to do. The file does not import a model. It addresses a capability.</p>
+<p>Each entity in the file can name a behavior the runtime knows how to execute. The shape is roughly <code>"ai_behavior": "&lt;name&gt;"</code>. The name is not a model invocation. It is a registered behavior the runtime resolves at load time. The same entity can wear different behaviors across the catalog the runtime ships, and the implementation behind each behavior can be a deterministic tree, a learned policy, or a hand-written heuristic. The file does not import a model. It addresses a capability.</p>
 <p>This is how you decouple the file format from a specific model. The author writes intent. The runtime decides which model, which weights, which deterministic fallback to use to deliver that intent. Swap the model out next quarter and the .raku files do not change.</p>
 <p>That separation matters more than it sounds. Every team I have talked to that bolted a specific LLM into an engine has had to redo the integration when the model vendor moved. We do not.</p>
 <h2 id="why-json">Why JSON</h2>
@@ -140,7 +89,7 @@
 <p>The cost is real. JSON is verbose. It does not have inline math, comments, or shorthand. We give up expressiveness in exchange for tooling ubiquity. So far the trade has paid for itself many times over.</p>
 <h2 id="what-this-enables">What this enables</h2>
 <p>A few things change once your experience is text.</p>
-<p><strong>PR review for game design.</strong> A designer changes <code>target_flow_state</code> from 0.7 to 0.5. The change shows up as a one-line diff in a pull request. Engineering and design review the change together. The conversation in the PR is a record of why the experience plays the way it does. Six months later, when someone asks why the difficulty curve feels the way it does, the answer is in the commit log.</p>
+<p><strong>PR review for game design.</strong> A designer tweaks the difficulty-target knob. The change shows up as a one-line diff in a pull request. Engineering and design review the change together. The conversation in the PR is a record of why the experience plays the way it does. Six months later, when someone asks why the difficulty curve feels the way it does, the answer is in the commit log.</p>
 <p><strong>CI for experiences.</strong> A <code>.raku</code> file fails schema validation. The build fails before the change ships. The same CI that runs your unit tests runs your experience definitions.</p>
 <p><strong>Hot reload.</strong> The file changes on disk. The runtime notices. The world updates without a restart. The dev loop tightens to seconds.</p>
 <p><strong>Rollback.</strong> A change broke the boss fight. Revert the commit. The experience reverts. No editor, no asset rebuild, no weeklong round-trip.</p>

@@ -3,7 +3,7 @@ title: "Foundation Built BY Agents, Not Foundation Built FOR Agents"
 date: 2026-01-03
 author: Kevin Griffin
 tags: [foundation, dev-workflow, ai-native, history]
-description: "An autonomous agent shipped ten foundational engine subsystems in a single Saturday. The engine's foundation is being built BY agents, in a workflow that treats agent-authored diffs as a first-class part of the dev loop."
+description: "An autonomous coding agent shipped ten foundational engine subsystems in a single Saturday. The engine's foundation is being built BY agents, in a workflow that treats agent-authored diffs as a first-class part of the dev loop."
 series: learning-to-code-with-ai
 slug: foundation-built-by-agents-not-for-agents
 ---
@@ -12,20 +12,7 @@ When people ask me what it actually looks like to build a 3D runtime with AI age
 
 Neither is the version I am sitting inside right now.
 
-Today the runtime repo took 139 commits. 110 of them were authored by an autonomous agent. 20 were under the founding-era BladeWireless account. 10 were mine. Across those 139 commits, ten subsystem pull requests landed:
-
-- Skeletal animation system
-- Runtime scene editing API
-- Scene serialization
-- Occlusion culling
-- Level streaming
-- Prefab system
-- GPU particle systems
-- Advanced rendering
-- Terrain and environment systems
-- Post-processing pipeline
-
-None of those subsystems are AI. They are the boring, load-bearing pieces a 3D runtime needs to be a 3D runtime. And they shipped on a single Saturday, in parallel branches, mostly authored by an agent running autonomously while I framed, reviewed, and merged.
+Today the runtime repo took 139 commits. 110 of them were authored by an autonomous coding agent. 20 were under the founding-era org account. 10 were mine. Across those 139 commits, roughly ten subsystem-sized pull requests landed. Animation. Scene management. Environment. Rendering. Content-pipeline pieces. The kind of boring, load-bearing surface area a 3D runtime needs to be a 3D runtime. None of them is AI. And all of them shipped on a single Saturday, in parallel branches, mostly authored by an agent running autonomously while I framed, reviewed, and merged.
 
 This is the post about what it means that the foundation is being built BY agents, not built FOR agents.
 
@@ -48,13 +35,13 @@ None of these are AI features. They are dev-process consequences of having agent
 The pattern that produced today's Saturday:
 
 - I framed which subsystems the engine needed next.
-- An autonomous agent ran in parallel across ten branches, each implementing one subsystem.
+- An autonomous coding agent ran in parallel across many branches, each implementing one subsystem.
 - Every branch produced a PR with implementation, tests, and docs.
 - I reviewed and merged. Where the agent got something wrong, I closed the PR or asked for changes.
 
 What strikes me, sitting here at the end of the day, is how much of it is already working. The dev loop is the dev loop. The agent is doing the work I would have hired ten people to do five years ago. I am doing the architectural judgment and the merge decisions. It is a different kind of long day than the long days I used to have.
 
-The autonomous agent on this particular Saturday is not a multi-vendor stack of four assistants. It is a single agent (Copilot's SWE agent) running across many parallel tasks. I expect the multi-assistant pattern to come, and to come fast. The pattern is already here in single-agent form.
+The setup today is a single autonomous agent running across many parallel tasks. I expect the multi-assistant pattern to come, and to come fast. The pattern is already here in single-agent form.
 
 ## What is hard
 
@@ -62,9 +49,9 @@ Honest about it, because it is genuinely hard.
 
 **Agents are not free.** A 139-commit Saturday has a 139-commit review cost. Every PR needs real attention because the subsystems are unfamiliar and I cannot skim them. I am tired. The fatigue is real and worth budgeting for.
 
-**Trusting an autonomous agent on novel work is a skill.** The Copilot SWE agent that shipped most of today's subsystems is good. It is not infallible. The skill is knowing when to merge fast, when to slow down, and when to throw a draft out. I have already merged things I should have rerolled. I am learning by paying the cost.
+**Trusting an autonomous agent on novel work is a skill.** The agent that shipped most of today's subsystems is good. It is not infallible. The skill is knowing when to merge fast, when to slow down, and when to throw a draft out. I have already merged things I should have rerolled. I am learning by paying the cost.
 
-**The architecture has to be sketched before the agents run.** Hand an agent the prompt "build me a renderer" and you will get a renderer that does not fit the rest of your engine. Hand it "implement an occlusion culling subsystem that exports this C API and integrates with the scene graph through these handles" and you get something that lands cleanly. The framing work is the work. The agent does the typing.
+**The architecture has to be sketched before the agents run.** Hand an agent the prompt "build me a renderer" and you will get a renderer that does not fit the rest of your engine. Hand it a sharply-scoped subsystem request with the public surface and integration points spelled out, and you get something that lands cleanly. The framing work is the work. The agent does the typing.
 
 **Tests are non-negotiable.** I almost let one of today's PRs land with thin test coverage. That is a future regression I am quietly committing to fight. The remedy is to make the test requirement part of the agent's prompt from the first line.
 

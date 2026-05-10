@@ -18,88 +18,32 @@ The file format is not glamorous. It is load-bearing.
 
 ## What a real .raku file looks like
 
-Here is a real game definition, trimmed for the post:
+The shape, illustrated (specific keys generalized, real schema is more detailed):
 
 ```json
 {
-  "schema_version": "1.0",
-  "game": {
-    "title": "My Space Shooter",
-    "genre": "space_shooter",
-    "template": "space_shooter",
-    "mode": "prototype",
-    "max_players": 1
-  },
-  "ai": {
-    "dda_enabled": true,
-    "target_flow_state": 0.7,
-    "profiler_mode": "active",
-    "emotional_tracking": true,
-    "adaptive_music": true
-  },
-  "entities": [
-    {
-      "type": "player_ship",
-      "health": 100,
-      "shield": 80,
-      "speed": 22.0,
-      "fire_rate": 0.09
-    },
-    {
-      "type": "enemy_wave",
-      "count": 8,
-      "health": 15,
-      "ai_behavior": "strafe",
-      "properties": { "enemy_id": "interceptor" }
-    },
-    {
-      "type": "boss",
-      "health": 500,
-      "ai_behavior": "boss_pattern"
-    }
-  ]
+  "schema_version": "...",
+  "game":     { /* surface metadata: title, genre, mode, players, ... */ },
+  "ai":       { /* runtime-AI knobs that drive the nervous system    */ },
+  "entities": [ /* what's in the world and how each thing behaves    */ ]
 }
 ```
 
-That is most of an experience. A schema-versioned header. A game block with the surface metadata. An `ai` block with runtime AI configuration. An `entities` array describing what is in the world and how each entity behaves.
+A schema-versioned header. A game block with surface metadata. An `ai` block where the runtime AI is configured at the experience level. An `entities` array describing what is in the world and how each entity behaves.
 
 A few things worth pointing at.
 
 ## The `ai` block is the runtime contract
 
-Look at this part again:
+The `ai` block at the file level is where the experience tells the runtime nervous system what kind of experience to be. Difficulty adjustment that adapts to the player in flight. Flow-state targeting. Profiling depth. Music and pacing that respond to what is actually happening. None of those are model invocations. They are knobs on a runtime that is already in the loop on every frame while the player is playing.
 
-```json
-"ai": {
-  "dda_enabled": true,
-  "target_flow_state": 0.7,
-  "profiler_mode": "active",
-  "emotional_tracking": true,
-  "adaptive_music": true
-}
-```
+A factory-pattern engine could not have these knobs at the file level. There is no runtime AI for the file to address. In an engine where AI is a primitive, these knobs are the contract between the human author and the system that runs the experience.
 
-This is where the file says "the AI nervous system is on." Not "ask GPT to write me a level." On. At the runtime layer, every frame, while the player is playing.
-
-`dda_enabled` turns on dynamic difficulty adjustment. The runtime profiles what the player is doing and reshapes encounters in flight. `target_flow_state: 0.7` is the difficulty band the runtime aims for. `profiler_mode: "active"` says the AI is reading the player's behavior, not just sampling it. `emotional_tracking` and `adaptive_music` are the same idea applied to other subsystems.
-
-A factory-pattern engine could not have these knobs at the file level. There is no runtime AI for the file to address. In our engine, these knobs are how an author tells the nervous system what kind of experience to be.
-
-You can review this block in a PR. You can A/B-test two values in CI. A producer who has never seen an editor can read this and have a conversation with engineering about what target flow state means. The file format makes the design decision visible.
+You can review this block in a PR. You can A/B-test two values in CI. A producer who has never seen an editor can read it and have a conversation with engineering about what each knob means. The file format makes the design decision visible.
 
 ## Per-entity AI behavior is a string, not an integration
 
-Each entity in the file can carry an `ai_behavior` field:
-
-```json
-{
-  "type": "enemy_wave",
-  "count": 8,
-  "ai_behavior": "strafe"
-}
-```
-
-`"strafe"` is not a model invocation. It is a registered behavior in the runtime that the nervous-system layer drives. The same entity can be `"patrol"` or `"boss_pattern"` or anything else the runtime knows how to do. The file does not import a model. It addresses a capability.
+Each entity in the file can name a behavior the runtime knows how to execute. The shape is roughly `"ai_behavior": "<name>"`. The name is not a model invocation. It is a registered behavior the runtime resolves at load time. The same entity can wear different behaviors across the catalog the runtime ships, and the implementation behind each behavior can be a deterministic tree, a learned policy, or a hand-written heuristic. The file does not import a model. It addresses a capability.
 
 This is how you decouple the file format from a specific model. The author writes intent. The runtime decides which model, which weights, which deterministic fallback to use to deliver that intent. Swap the model out next quarter and the .raku files do not change.
 
@@ -123,7 +67,7 @@ The cost is real. JSON is verbose. It does not have inline math, comments, or sh
 
 A few things change once your experience is text.
 
-**PR review for game design.** A designer changes `target_flow_state` from 0.7 to 0.5. The change shows up as a one-line diff in a pull request. Engineering and design review the change together. The conversation in the PR is a record of why the experience plays the way it does. Six months later, when someone asks why the difficulty curve feels the way it does, the answer is in the commit log.
+**PR review for game design.** A designer tweaks the difficulty-target knob. The change shows up as a one-line diff in a pull request. Engineering and design review the change together. The conversation in the PR is a record of why the experience plays the way it does. Six months later, when someone asks why the difficulty curve feels the way it does, the answer is in the commit log.
 
 **CI for experiences.** A `.raku` file fails schema validation. The build fails before the change ships. The same CI that runs your unit tests runs your experience definitions.
 
