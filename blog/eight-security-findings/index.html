@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Eight Security Findings on a Saturday Morning &mdash; RakuAI Blog</title>
+    <meta name="description" content="A security audit report landed in the inbox late this past week. Enterprise due-diligence pass on the API surface had surfaced eight critical and high findings. Spent Saturday triaging and fixing each one. Here is what the categories were, what got fixed, and what an agent-driven codebase has to be especially careful about.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/eight-security-findings/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Eight Security Findings on a Saturday Morning">
+    <meta property="og:description" content="A security audit report landed in the inbox late this past week. Enterprise due-diligence pass on the API surface had surfaced eight critical and high findings. Spent Saturday triaging and fixing each one. Here is what the categories were, what got fixed, and what an agent-driven codebase has to be especially careful about.">
+    <meta property="og:url" content="https://rakuai.com/blog/eight-security-findings/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-03-21T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Eight Security Findings on a Saturday Morning">
+    <meta name="twitter:description" content="A security audit report landed in the inbox late this past week. Enterprise due-diligence pass on the API surface had surfaced eight critical and high findings. Spent Saturday triaging and fixing each one. Here is what the categories were, what got fixed, and what an agent-driven codebase has to be especially careful about.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Eight Security Findings on a Saturday Morning</h1>
+            <p class="post-meta">
+                <time datetime="2026-03-21T00:00:00+00:00">March 21, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>The audit landed in the inbox late last week. By Saturday morning I had the report open on one screen and the codebase open on the other. Eight critical or high findings. The kind of inbox content that defines a weekend.</p>
+<p>This was enterprise due diligence. A potential partner had asked their security team to run a pass on the public API surface before they would let their lawyers move forward. The findings were specific, well-explained, and entirely fair. They were also the kind of things that an agent-driven workflow makes you especially vulnerable to if you are not deliberate about defending against them.</p>
+<p>By the end of Saturday, every finding had a PR landing it. This is the post about what each one was.</p>
+<h2 id="what-the-categories-were">What the categories were</h2>
+<p>I am going to talk about categories rather than specific exploit details because the specifics are now fixed and not interesting to a competitor; the categories are what other teams will want to defend against.</p>
+<p><strong>One: input validation on the public REST surface.</strong> Several endpoints were trusting their inputs more than they should have. Specifically, length bounds on string inputs, range bounds on numeric inputs, and structural validation on JSON payloads. None of the missing validation was catastrophic on its own. The combination of &ldquo;no length bound here plus no rate limit there plus no auth check on this admin endpoint&rdquo; is the kind of stack that becomes catastrophic once an attacker has discovered the surface.</p>
+<p><strong>Two: a hardcoded credential in a configuration file.</strong> Different from the HMAC finding a few weekends ago. This was a configuration template that had a real credential committed in the example version. The intent had been to ship an example credential that was a placeholder; what got shipped was an example credential that was a real value from a developer&rsquo;s local environment. Rotation, removal from the example, addition to the secrets-scanning CI pass.</p>
+<p><strong>Three: insecure cipher suite negotiation.</strong> A subsystem that negotiates TLS with an external service was accepting cipher suites that should not be acceptable in 2026. Specifically, several pre-TLS-1.3 suites with known weaknesses. The fix was to constrain the cipher-suite list to a TLS-1.3-only set, with a documented escape hatch (an explicit flag) for testing against legacy partner systems.</p>
+<p><strong>Four: a use-after-free in the C API boundary.</strong> The C API of one of the runtime DLLs had a function that returned a pointer to internal state, which the caller could continue to use after the internal state had been freed by a subsequent call on the same handle. Classic C-API foot-gun. The fix was to switch from &ldquo;caller-held pointer&rdquo; semantics to &ldquo;caller-held opaque-handle with a get-by-handle accessor&rdquo; semantics. The accessor returns a fresh pointer-copy for the duration of the call and the underlying memory is not exposed.</p>
+<p><strong>Five: a thread-safety hole in the licensing layer.</strong> Two threads could race on the same licensing-state object during concurrent verification calls. Under load, one thread could see a partially-updated state and reach incorrect conclusions about license validity. The fix was a proper read-write lock around the state, with the verification path optimized for the common case (license valid, no state change needed).</p>
+<p><strong>Six: an authorization bypass on an admin endpoint.</strong> One of the admin endpoints had an authentication check but not an authorization check. Any authenticated user could call it, including users without the admin role. The fix was to add the role check, write a unit test that exercises both &ldquo;authenticated-as-admin allowed&rdquo; and &ldquo;authenticated-but-not-admin denied&rdquo; paths, and audit every other admin endpoint for the same pattern. Three other endpoints had the same issue. All four are now correct.</p>
+<p><strong>Seven: insufficient logging on auth failures.</strong> When a user tried to authenticate and failed, the runtime logged the attempt but did not log enough context to investigate a brute-force or credential-stuffing pattern. The fix was to add structured logging on every auth failure with the IP address, the rate-limited counter for that IP, and the auth-method attempted. Privacy-preserving (no password content is logged), but enough context to investigate when an investigation becomes necessary.</p>
+<p><strong>Eight: dependency-update lag.</strong> Several of the third-party dependencies the runtime pulls in had known-vulnerable versions pinned in the manifest. The fix was to update each one to the latest patched version, run the test suite against the updates, and resolve the small number of API-shape changes that the updates required. Two of the eight updates required adapter changes in our code; the other six were drop-in. Dependabot is now configured to flag this automatically.</p>
+<h2 id="what-i-learned-from-a-weekend-of-security-work">What I learned from a weekend of security work</h2>
+<p>Three things. Not surprising. Worth saying.</p>
+<p><strong>Security findings cluster.</strong> Eight findings is a lot to surface at once. The pattern, looking back, is that they all share a common root: the runtime had been growing fast in an agent-driven workflow, with the agents implementing things correctly-in-isolation. Cross-cutting concerns like security are exactly the kind of thing that escapes per-PR review. The audit catches what review missed. Schedule the audits.</p>
+<p><strong>Some findings are agent-driven failure modes.</strong> The use-after-free in the C API is the kind of thing an agent writes when the prompt says &ldquo;expose this internal state to the caller&rdquo; without specifying ownership semantics. The thread-safety hole in the licensing layer is similar. Both are catching the same pattern: agents that are not asked about ownership and concurrency will produce code that ignores both.</p>
+<p><strong>Some findings are pace-driven failure modes.</strong> The dependency-update lag is not an agent problem. It is a &ldquo;shipping fast and not having a person whose job is to keep dependencies fresh&rdquo; problem. The fix is process (Dependabot) and discipline (act on Dependabot&rsquo;s alerts). The fix is not &ldquo;be smarter.&rdquo;</p>
+<h2 id="the-new-defenses">The new defenses</h2>
+<p>Permanent guardrails landed this weekend.</p>
+<p><strong>A security-scanner pass in CI.</strong> Static analysis for input validation, secret scanning, and cipher-suite policy. Every PR runs the scan. PRs that introduce new findings are flagged for review.</p>
+<p><strong>An admin-endpoint test pattern.</strong> Every admin endpoint in the API now has a paired test that exercises both the admin-allowed path and the non-admin-denied path. The pattern is enforced by a CI check that scans for <code>@admin_required</code> decorators and fails the build if the decorator is present without a corresponding paired test.</p>
+<p><strong>A thread-safety annotation on shared state.</strong> Every shared-state object in the runtime now has an explicit annotation about its concurrency model: immutable, lock-protected, lock-free with explicit happens-before, or single-threaded. The annotation is part of the type. Code that touches the state has to satisfy the annotation. The compiler enforces it for the lock-protected and immutable cases; the rest is on review.</p>
+<p><strong>A monthly security audit on the calendar.</strong> Not waiting for a partner to ask. The audit is a standing item the second Saturday of every month. The first one runs in April.</p>
+<h2 id="what-partners-and-builders-should-take-from-this">What partners and builders should take from this</h2>
+<p>If you are evaluating an engine for partnership and you are about to ask for an audit, this team will welcome it. Audits surface things. Things get fixed. The codebase gets better. The partner relationship gets better. The discipline of welcoming the audit is more important than any specific finding.</p>
+<p>If you are an enterprise security professional reading this, I am open to suggestions on the audit cadence and on the specific things you wish more engine teams audited. The findings this weekend were the obvious ones. The non-obvious ones are the next ones I want to find.</p>
+<p>If you are running an agent-driven workflow and you have not done a security audit recently, do one. The pattern of &ldquo;agent writes correct-in-isolation code that misses cross-cutting concerns&rdquo; is universal in this workflow shape. The audit is how you catch the cross-cutting concerns. There is no other way I have found.</p>
+<p>End-of-weekend check. Eight findings closed. Six new defenses landed. The next audit is on the calendar. The partner relationship moves forward.</p>
+<p>Back to building.</p>
+        </div>
+        <ul class="post-tags"><li>security</li><li>audit</li><li>due-diligence</li><li>enterprise</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/agents-as-team-not-agents-as-tool/" rel="prev">&larr; The Bottleneck Was Never Typing</a><a class="nav-next" href="/blog/the-test-that-couldnt-find-dxcompiler/" rel="next">The Test That Couldn&#x27;t Find dxcompiler.dll &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

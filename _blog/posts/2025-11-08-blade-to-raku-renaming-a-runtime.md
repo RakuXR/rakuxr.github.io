@@ -1,9 +1,9 @@
 ---
-title: "Blade to Raku: Renaming the Runtime in a Weekend"
+title: "Blade to Raku: A Saturday Rename Across the Codebase"
 date: 2025-11-08
 author: Kevin Griffin
 tags: [rebrand, naming, ar-glasses, history, weekend-build]
-description: "Woke up Saturday with the placeholder name finally ready to come off. By Sunday evening every reference in every repo had been swept from Blade and ar1-runtime to Raku. The brand has been waiting in the wings for years; the engineering finally caught up."
+description: "The placeholder name was finally ready to come off this Saturday. By the end of the weekend every reference in every repo had been swept from Blade and ar1-runtime to Raku. The brand has been waiting in the wings for years; the engineering finally caught up."
 series: learning-to-code-with-ai
 slug: blade-to-raku-renaming-a-runtime
 ---
@@ -46,7 +46,7 @@ Three things, each useful for anyone planning a sweep through an agent-built cod
 
 **Rename PRs want to be small even when they touch everything.** The two PRs that did the rename were not subtle. They each touched dozens of files. They were small in the sense that they did only one thing. Each PR was renames-only, no functional changes mixed in. Mixing a rename with even one small functional change makes the PR un-reviewable, because the human reviewer has to read every line to make sure the functional change is just the functional change. Pure renames can be reviewed in fifteen minutes.
 
-**The brand has to be ready before the rename ships.** Half of the work this weekendend was not in the codebase. It was choosing the new name, registering domains, securing handles, getting the kanji set right, designing the logo. The rename of the codebase is the last step, not the first. If you do the codebase rename and then realize the brand is not done, you are stuck with another rename round.
+**The brand has to be ready before the rename ships.** Half of the work this weekend was not in the codebase. It was choosing the new name, registering domains, securing handles, getting the kanji set right, designing the logo. The rename of the codebase is the last step, not the first. If you do the codebase rename and then realize the brand is not done, you are stuck with another rename round.
 
 ## What did not change
 

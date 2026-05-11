@@ -3,12 +3,12 @@ title: "Meta Quest Is Now a Target"
 date: 2025-11-15
 author: Kevin Griffin
 tags: [meta-quest, horizon-os, openxr, passthrough, partnerships, ar-glasses, weekend-build]
-description: "Spent this weekendendend lighting up Meta Quest as a target platform. OpenXR with Horizon OS, passthrough AR mode with composition layers, stereo rendering with 6DoF tracking. The engine now reaches one of the largest installed bases in spatial computing. The partner-meeting context this weekendend made it worth going hard."
+description: "Spent this Saturday lighting up Meta Quest as a target platform. OpenXR with Horizon OS, passthrough AR mode with composition layers, stereo rendering with 6DoF tracking. The engine now reaches one of the largest installed bases in spatial computing. The partner-meeting context this weekend made it worth going hard."
 series: learning-to-code-with-ai
 slug: meta-quest-is-now-a-target
 ---
 
-Woke up Saturday after a partner meeting late this past week that made the next move obvious. The eventual product target for Raku is AR glasses. The product target today is also AR glasses, but the AR glasses we want to ship on do not yet exist in a form anyone can buy. That gap is real. It is also frustrating, because the experiences we want people to have on this engine should not have to wait for hardware.
+A partner meeting late last week made the next move obvious. The eventual product target for Raku is AR glasses. The product target today is also AR glasses, but the AR glasses we want to ship on do not yet exist in a form anyone can buy. That gap is real. It is also frustrating, because the experiences we want people to have on this engine should not have to wait for hardware.
 
 This weekend we closed the gap a different way. The runtime now runs on Meta Quest headsets with Horizon OS, in passthrough AR mode, through the OpenXR layer Meta exposes. The Quest is not the form factor we are ultimately optimizing for. It is the form factor people already own.
 
@@ -44,13 +44,13 @@ The alpha blending is the subtle part. Premultiplied alpha matters. Lighting est
 
 Meta's permission model for passthrough AR is more involved than most developers expect coming from desktop VR. The runtime has to declare the right manifest entries, request the right runtime permissions, and gracefully degrade when a user denies one of them. The documentation PR that landed midweek (#149 in the runtime, plus matching SDK docs) is meant to keep developers building on Raku from running into the permission cliff Meta has built around the camera feed for privacy reasons.
 
-The privacy story matters. The cameras on a Quest are seeing the user's home. Anything the engine does with that camera feed has to be opt-in, transparent, and audit-able. That is true on Quest. It will be more true on AR glasses people wear in public. The work we are doing this weekendend to handle the Quest's permission model correctly will carry forward to every more sensitive deployment later.
+The privacy story matters. The cameras on a Quest are seeing the user's home. Anything the engine does with that camera feed has to be opt-in, transparent, and audit-able. That is true on Quest. It will be more true on AR glasses people wear in public. The work we are doing this weekend to handle the Quest's permission model correctly will carry forward to every more sensitive deployment later.
 
 ## The partner-meeting context
 
-A note about the governance docs PR. Meta's developer-relations team and I have been talking. I am not going to summarize the content of those conversations on the public blog, because the conversations are still in progress. What I will say is that the engineering this weekendend was informed by what they care about, and the OpenXR-first approach we have been taking lines up with where their platform is going.
+A note about the governance docs PR. Meta's developer-relations team and I have been talking. I am not going to summarize the content of those conversations on the public blog, because the conversations are still in progress. What I will say is that the engineering this weekend was informed by what they care about, and the OpenXR-first approach we have been taking lines up with where their platform is going.
 
-The strategic-document integration in the governance repo this weekendend captures the meeting notes and where the engineering is responding to them. The repo is private; the engineering response is public. The PRs that landed this weekendend are the public artifact.
+The strategic-document integration in the governance repo this weekend captures the meeting notes and where the engineering is responding to them. The repo is private; the engineering response is public. The PRs that landed this weekend are the public artifact.
 
 ## What this does and does not mean
 
@@ -62,7 +62,7 @@ What it does not mean: we are forking the engine for the Quest. Every Quest-spec
 
 ## What I want partners and builders to take from this
 
-If you are at Meta and you are reading this: the engineering this weekendend is responsive to the conversation. We want to be a serious developer of Quest-targeted AR experiences in 2026. The OpenXR work is the foundation. The next steps are on us.
+If you are at Meta and you are reading this: the engineering this weekend is responsive to the conversation. We want to be a serious developer of Quest-targeted AR experiences in 2026. The OpenXR work is the foundation. The next steps are on us.
 
 If you are an experienced Quest developer thinking about what Raku adds on top of native Horizon OS development: the answer is the AI runtime layer and the cross-platform portability. The AI nervous system that lives inside the engine on the simulation step is the same one whether you ship to the Quest or to glasses-class hardware. Building on Raku now gets you to AR glasses for free when AR glasses arrive.
 

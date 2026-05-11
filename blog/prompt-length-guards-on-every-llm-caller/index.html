@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Every LLM Caller Got Prompt-Length Guards Today &mdash; RakuAI Blog</title>
+    <meta name="description" content="Spent this Saturday auditing every place in the runtime that talks to an LLM. Found that many of them could send unbounded prompts, with no length check, no truncation, no defense against an upstream caller that decided to attach the entire scene state to a request. Added guards to all of them. The audit and the guards are the post.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/prompt-length-guards-on-every-llm-caller/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Every LLM Caller Got Prompt-Length Guards Today">
+    <meta property="og:description" content="Spent this Saturday auditing every place in the runtime that talks to an LLM. Found that many of them could send unbounded prompts, with no length check, no truncation, no defense against an upstream caller that decided to attach the entire scene state to a request. Added guards to all of them. The audit and the guards are the post.">
+    <meta property="og:url" content="https://rakuai.com/blog/prompt-length-guards-on-every-llm-caller/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-04-11T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Every LLM Caller Got Prompt-Length Guards Today">
+    <meta name="twitter:description" content="Spent this Saturday auditing every place in the runtime that talks to an LLM. Found that many of them could send unbounded prompts, with no length check, no truncation, no defense against an upstream caller that decided to attach the entire scene state to a request. Added guards to all of them. The audit and the guards are the post.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Every LLM Caller Got Prompt-Length Guards Today</h1>
+            <p class="post-meta">
+                <time datetime="2026-04-11T00:00:00+00:00">April 11, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>The runtime calls LLMs in more places than I had been tracking. There is the obvious one (the XRAssistantService that drives voice-based AR experiences). There is the less obvious one (the NPC behavior layer, where the brain of an agent in the world is partially an LLM call). There is the least obvious one (development-time tools that have started to creep into the runtime build: schema validators, debug analyzers, an automatic playtest summarizer).</p>
+<p>Each of those places has been written independently over the last six months. Each was reviewed at PR time. None of them, until this weekend, had a uniform discipline about prompt length.</p>
+<p>This is the post about why that became a problem, what the audit found, and what the new guardrails look like.</p>
+<h2 id="how-the-problem-surfaced">How the problem surfaced</h2>
+<p>The trigger was a routine cost-monitoring check. Looking at the daily LLM-API spend, one specific dev environment was spending fifteen times what the others were. Same agent count, same test workload, same model. Fifteen times the cost.</p>
+<p>Tracing the spike led to the playtest-summarizer code path. The summarizer takes a finished playtest session, packs the relevant scene state into a prompt, sends it to a cloud LLM, and gets back a structured analysis of the session. The function had been written when scenes were small. The &ldquo;relevant scene state&rdquo; was a structured summary of what happened. Over time, the summary had grown. A specific dev environment had been running long playtests that produced enormous summaries. The summarizer was sending those summaries unchecked to the model. The model was charging by the token.</p>
+<p>The fix for that single caller was obvious. Cap the summary length. Truncate if needed. Log when the truncation happens.</p>
+<p>The deeper question was the one I asked next: how many other callers in the runtime have the same vulnerability? I went looking. The audit was the actual work.</p>
+<h2 id="what-the-audit-found">What the audit found</h2>
+<p>Eleven places in the runtime that call an LLM. Of those eleven:</p>
+<ul>
+<li>Two had explicit length checks and reasonable behavior on overflow (truncate, log, retry with smaller context). These were fine.</li>
+<li>Five had no length check at all. They sent whatever the caller handed them.</li>
+<li>Three had a length check but it was too generous to be useful (a hundred thousand tokens, well above any sane usage but well below catastrophic).</li>
+<li>One was a debug path that should not have been in the production binary at all; it had a length check but it was easily bypassed via a debug flag.</li>
+</ul>
+<p>The five with no length check were the urgent ones. They covered: the playtest summarizer (already identified), the NPC behavior brain (potentially huge if an NPC could observe a complex scene), the schema validator (could be handed an arbitrary file), the world-state describer (could describe an arbitrarily large world chunk), and one of the developer-facing diagnostic tools.</p>
+<p>Each of these had landed in a separate PR. Each PR had been reasonable in isolation. The aggregated discipline of &ldquo;every LLM caller has a length cap&rdquo; had been nobody&rsquo;s job. So nobody had done it.</p>
+<h2 id="what-the-guards-look-like">What the guards look like</h2>
+<p>A small piece of infrastructure landed Saturday morning and got applied to every caller across the day.</p>
+<p><strong>A shared <code>LLMCallGuard</code> utility.</strong> Every place that talks to an LLM now goes through this utility instead of constructing requests directly. The utility takes a prompt template, a context payload, and a target model. It enforces a length cap (configurable per model, with sensible defaults based on the model&rsquo;s documented context window). It logs the actual prompt length used at INFO level for the budgeted case, at WARNING level when it has to truncate, and at ERROR level when truncation fails to fit the cap.</p>
+<p><strong>Per-caller budgets.</strong> Each LLM caller in the runtime now has an explicit per-call token budget. The budget is below the model&rsquo;s context window because we want to leave headroom for the response and we want to fail loud before the model fails silently. Budgets range from a few thousand tokens (the schema validator) to twenty thousand tokens (the playtest summarizer, with a real cap that prevents the original incident).</p>
+<p><strong>Telemetry.</strong> Every LLM call now records the prompt size, the response size, the model, the budget consumed, and the latency. The telemetry is what lets me notice the next incident before the bill comes.</p>
+<p><strong>A failure-mode hierarchy.</strong> When a caller&rsquo;s payload exceeds the budget, the utility tries a sequence of fixes in order. First, it attempts to truncate intelligently (preserve the most recent context, drop the oldest, keep the system prompt intact). Second, if intelligent truncation still does not fit, it tries a coarser truncation (drop entire sections). Third, if no truncation fits, it fails loudly with a clear error rather than sending an oversized request that the model will reject. The hierarchy means most cases recover gracefully, edge cases fail in an observable way, and no caller ever sends an unbounded payload.</p>
+<p><strong>A CI check that prevents regression.</strong> New code that talks to an LLM has to go through <code>LLMCallGuard</code>. The CI scan finds any new direct LLM call that bypasses the utility and flags the PR. The pattern is the same one the security audit used a few weekends ago for admin endpoints: enforce the discipline at the build, not at review.</p>
+<h2 id="what-i-learned">What I learned</h2>
+<p>Three things.</p>
+<p><strong>Discipline that is nobody&rsquo;s job is discipline that does not happen.</strong> The eleven LLM callers had each been reasonable at PR time. The collective behavior had not been reviewed because nobody owned the cross-cutting concern. The fix was to make the cross-cutting concern a piece of infrastructure that every caller has to go through, which makes the discipline impossible to forget.</p>
+<p><strong>Cost is a security concern.</strong> I had been thinking of &ldquo;unbounded prompts&rdquo; as a correctness or robustness concern. The dev-environment cost spike taught me to think of it as a security concern. An attacker who can influence the contents of an LLM call from the runtime can run up arbitrary cost on the operator. The same defenses (length caps, budget enforcement, telemetry) protect against both robustness failures and cost-amplification attacks.</p>
+<p><strong>Audit on a cadence.</strong> Today&rsquo;s audit found five vulnerabilities that PR review had missed. The next audit will find others. The discipline of running a scheduled audit pass over a specific cross-cutting concern is the only reliable way I have found to surface the things review misses.</p>
+<h2 id="what-partners-and-builders-should-take-from-this">What partners and builders should take from this</h2>
+<p>If you are running anything that calls an LLM from production code and you have not audited every caller for prompt-length discipline, do it. The audit is small. The findings are likely. The cost of doing it today is much smaller than the cost of doing it after an incident.</p>
+<p>If you are an AI lab building agents that call other LLMs, the metric to optimize for is &ldquo;does the agent flag when it is constructing an unbounded prompt.&rdquo; Most agents do not. The ones that do are the ones I trust on serious work.</p>
+<p>If you are evaluating an engine for partnership and the engine integrates with cloud LLMs, ask about prompt-length discipline. The right answer is &ldquo;every caller goes through a shared utility, with per-caller budgets, with telemetry, with a CI guard.&rdquo; The wrong answer is &ldquo;we have not seen that problem yet.&rdquo;</p>
+<p>Saturday afternoon. Every LLM caller in the runtime now goes through the same guard. The next audit cadence is on the calendar.</p>
+<p>Back to building.</p>
+        </div>
+        <ul class="post-tags"><li>llm</li><li>security</li><li>audit</li><li>guardrails</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/all-eighteen-dlls-green-on-linux/" rel="prev">&larr; All Eighteen DLLs Green on Linux</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

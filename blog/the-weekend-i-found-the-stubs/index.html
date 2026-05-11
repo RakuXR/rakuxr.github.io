@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <title>The Weekend I Found the Stubs &mdash; RakuAI Blog</title>
-    <meta name="description" content="Woke up Saturday wanting to write unit tests against the runtime&#x27;s growing C API and feel good about coverage. Discovered something I should have caught earlier. A lot of what looked like implemented code was stub-shaped scaffolding the agents had landed without flagging. Spent the rest of the weekend writing the audit, the tests, and the discipline that has to come with them.">
+    <title>The Saturday I Found the Stubs &mdash; RakuAI Blog</title>
+    <meta name="description" content="Sat down this Saturday wanting to write unit tests against the runtime&#x27;s growing C API and feel good about coverage. Discovered something I should have caught earlier. A lot of what looked like implemented code was stub-shaped scaffolding the agents had landed without flagging. Spent the rest of the day writing the audit, the tests, and the discipline that has to come with them.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/the-weekend-i-found-the-stubs/">
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
-    <meta property="og:title" content="The Weekend I Found the Stubs">
-    <meta property="og:description" content="Woke up Saturday wanting to write unit tests against the runtime&#x27;s growing C API and feel good about coverage. Discovered something I should have caught earlier. A lot of what looked like implemented code was stub-shaped scaffolding the agents had landed without flagging. Spent the rest of the weekend writing the audit, the tests, and the discipline that has to come with them.">
+    <meta property="og:title" content="The Saturday I Found the Stubs">
+    <meta property="og:description" content="Sat down this Saturday wanting to write unit tests against the runtime&#x27;s growing C API and feel good about coverage. Discovered something I should have caught earlier. A lot of what looked like implemented code was stub-shaped scaffolding the agents had landed without flagging. Spent the rest of the day writing the audit, the tests, and the discipline that has to come with them.">
     <meta property="og:url" content="https://rakuai.com/blog/the-weekend-i-found-the-stubs/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -20,8 +20,8 @@
     <meta property="article:published_time" content="2025-12-13T00:00:00+00:00">
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="The Weekend I Found the Stubs">
-    <meta name="twitter:description" content="Woke up Saturday wanting to write unit tests against the runtime&#x27;s growing C API and feel good about coverage. Discovered something I should have caught earlier. A lot of what looked like implemented code was stub-shaped scaffolding the agents had landed without flagging. Spent the rest of the weekend writing the audit, the tests, and the discipline that has to come with them.">
+    <meta name="twitter:title" content="The Saturday I Found the Stubs">
+    <meta name="twitter:description" content="Sat down this Saturday wanting to write unit tests against the runtime&#x27;s growing C API and feel good about coverage. Discovered something I should have caught earlier. A lot of what looked like implemented code was stub-shaped scaffolding the agents had landed without flagging. Spent the rest of the day writing the audit, the tests, and the discipline that has to come with them.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -50,13 +50,13 @@
     <article class="post">
         <header class="post-header">
             <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
-            <h1>The Weekend I Found the Stubs</h1>
+            <h1>The Saturday I Found the Stubs</h1>
             <p class="post-meta">
                 <time datetime="2025-12-13T00:00:00+00:00">December 13, 2025</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
             </p>
         </header>
         <div class="post-body">
-<p>Woke up this Saturday ready to write tests.</p>
+<p>Today is supposed to be the day I write tests.</p>
 <p>That is a sentence I never thought I would say. The plan was to take the C API the runtime now exposes, write a serious unit-test suite against it, watch the coverage number climb, and feel a kind of professional pride that the engine is no longer &ldquo;agent-coded with vibes&rdquo; and is now &ldquo;agent-coded with tests.&rdquo;</p>
 <p>The plan lasted about two hours.</p>
 <h2 id="what-i-found">What I found</h2>
@@ -71,7 +71,7 @@
 <p><strong>My review process was not catching it.</strong> I had been reading PRs for shape, not for execution. &ldquo;Does the API match the issue? Does the test exist? Does CI pass?&rdquo; Three checks, all green, none of which actually inspected whether the implementation did anything. The agent-driven workflow had let me lower my standard for what review meant. The discipline I had been telling everyone about was thinner than I had been claiming.</p>
 <p><strong>The CI did not catch it because the tests did not exist yet.</strong> The test harness was running. The handful of tests in it were passing. Nothing was running against the new functions because nothing was asserting anything meaningful about them. CI green meant CI green. It did not mean working.</p>
 <p>This is the textbook way an agent-driven codebase gets into trouble. It is the failure mode I had read about and thought I was guarding against. I was not guarding against it well enough.</p>
-<h2 id="what-i-did-with-the-rest-of-the-weekend">What I did with the rest of the weekend</h2>
+<h2 id="what-i-did-with-the-rest-of-the-day">What I did with the rest of the day</h2>
 <p>A few things, in order.</p>
 <p><strong>An audit pass.</strong> Wrote a small script that walks the runtime&rsquo;s public surface, finds every function in every header, and grep-scores the implementations against a few signature patterns (&ldquo;return 0,&rdquo; &ldquo;return nullptr,&rdquo; &ldquo;TODO,&rdquo; &ldquo;PLACEHOLDER&rdquo;). Forty-seven hits, give or take. Filed each one as a GitHub issue with the function name, the file path, the original PR that introduced it, and a fresh acceptance criterion.</p>
 <p><strong>A real implementation queue.</strong> Refiled all forty-seven as priority-tagged issues for the agents to pick up. The acceptance criterion this time is explicit. The implementation has to do real work. The test that exercises it has to make a non-trivial assertion. The PR cannot land without both. I will not merge a PR whose tests are tautologies.</p>
@@ -93,7 +93,7 @@
 <p>Back to building.</p>
         </div>
         <ul class="post-tags"><li>unit-tests</li><li>stubs</li><li>technical-debt</li><li>best-practices</li><li>weekend-build</li></ul>
-        <nav class="post-series-nav"><a class="nav-prev" href="/blog/claude-writes-gemini-reviews-chatgpt-rubber-ducks/" rel="prev">&larr; Claude Writes, Gemini Reviews, ChatGPT Rubber-Ducks</a><a class="nav-next" href="/blog/the-day-visual-studio-2026-hated-our-code/" rel="next">The Weekend Visual Studio 2026 Hated Our Code &rarr;</a></nav>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/claude-writes-gemini-reviews-chatgpt-rubber-ducks/" rel="prev">&larr; Claude Writes, Gemini Reviews, ChatGPT Rubber-Ducks</a><a class="nav-next" href="/blog/the-day-visual-studio-2026-hated-our-code/" rel="next">The Saturday Visual Studio 2026 Hated Our Code &rarr;</a></nav>
     </article>
     <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
 </main>

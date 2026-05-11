@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <title>Slowing the Agents Down on Purpose &mdash; RakuAI Blog</title>
-    <meta name="description" content="Thirty-seven commits this weekendendend instead of the eighty I had been used to. I deliberately cut the agent queue and slowed the pace down so I could actually read what was landing. The codebase is in better shape because of it. Here is why throttling the agents was the right move.">
+    <meta name="description" content="Thirty-seven commits this Saturday instead of the eighty I had been used to. I deliberately cut the agent queue and slowed the pace down so I could actually read what was landing. The codebase is in better shape because of it. Here is why throttling the agents was the right move.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/the-slow-week-was-the-right-week/">
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
     <meta property="og:title" content="Slowing the Agents Down on Purpose">
-    <meta property="og:description" content="Thirty-seven commits this weekendendend instead of the eighty I had been used to. I deliberately cut the agent queue and slowed the pace down so I could actually read what was landing. The codebase is in better shape because of it. Here is why throttling the agents was the right move.">
+    <meta property="og:description" content="Thirty-seven commits this Saturday instead of the eighty I had been used to. I deliberately cut the agent queue and slowed the pace down so I could actually read what was landing. The codebase is in better shape because of it. Here is why throttling the agents was the right move.">
     <meta property="og:url" content="https://rakuai.com/blog/the-slow-week-was-the-right-week/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -21,7 +21,7 @@
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Slowing the Agents Down on Purpose">
-    <meta name="twitter:description" content="Thirty-seven commits this weekendendend instead of the eighty I had been used to. I deliberately cut the agent queue and slowed the pace down so I could actually read what was landing. The codebase is in better shape because of it. Here is why throttling the agents was the right move.">
+    <meta name="twitter:description" content="Thirty-seven commits this Saturday instead of the eighty I had been used to. I deliberately cut the agent queue and slowed the pace down so I could actually read what was landing. The codebase is in better shape because of it. Here is why throttling the agents was the right move.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -56,23 +56,23 @@
             </p>
         </header>
         <div class="post-body">
-<p>Woke up Saturday morning with a different plan than the last few weekends. The last few have been throughput weekends. Eighty commits, seventy commits, two hundred eighty-two before that. The trend was up. I was riding the agent queue wide open and watching the lines of code pile up.</p>
+<p>Different plan this Saturday than the last few weekends. The last few have been throughput weekends. Eighty commits, seventy commits, two hundred eighty-two before that. The trend was up. I was riding the agent queue wide open and watching the lines of code pile up.</p>
 <p>This weekend I throttled it back to thirty-seven commits on purpose. The trend on this graph is now down, and it is down on purpose, and I want to write about why because I do not think this is the trend most people building with AI agents would expect.</p>
 <h2 id="what-is-true-about-the-workflow">What is true about the workflow</h2>
 <p>The agents do not get tired. Throughput from the implementation layer is bounded by token cost and by how many issues are open on the queue. If I file a hundred issues at six in the morning, the queue empties and refills all day and I get a hundred PRs back. That is what the workflow does when it is allowed to run wide open.</p>
-<p>What it does not do, when run wide open, is produce a coherent codebase. Each PR lands clean in isolation. The intersection of forty PRs landing in one day starts to drift. Naming conventions diverge. Subsystem boundaries get fuzzy. The agent that worked one issue assumed something about the runtime layer that the agent on a parallel issue did not. By the end of the weekend the two assumptions have collided in a third PR that has to reconcile them, and the reconciliation is slop.</p>
+<p>What it does not do, when run wide open, is produce a coherent codebase. Each PR lands clean in isolation. The intersection of forty PRs landing in one day starts to drift. Naming conventions diverge. Subsystem boundaries get fuzzy. The agent that worked one issue assumed something about the runtime layer that the agent on a parallel issue did not. by Saturday evening the two assumptions have collided in a third PR that has to reconcile them, and the reconciliation is slop.</p>
 <p>The bottleneck in this workflow is not the agent. It is the human reading what the agents produce and keeping the architecture coherent.</p>
 <h2 id="what-i-changed">What I changed</h2>
-<p>Two things, both visible in the commit pattern this weekendend.</p>
+<p>Two things, both visible in the commit pattern this weekend.</p>
 <p><strong>I cut the queue depth.</strong> Instead of fifteen open agent-queue issues at all times, I dropped it to six. The agents are no longer running wide open. They are running at a pace that lets me actually read their output before the next batch lands.</p>
-<p><strong>I moved review earlier.</strong> Instead of letting agent PRs sit until I had a batch to work through, I switched to reviewing each one when it opened. This sounds slower, and it is. It also catches drift before it propagates. A bad assumption corrected early in the weekend does not need to be unwound at the end of the weekend across six PRs.</p>
+<p><strong>I moved review earlier.</strong> Instead of letting agent PRs sit until I had a batch to work through, I switched to reviewing each one when it opened. This sounds slower, and it is. It also catches drift before it propagates. A bad assumption corrected early Saturday does not need to be unwound by Saturday evening across six PRs.</p>
 <p>The combined effect of these two changes is the thirty-seven-commit weekend instead of an eighty-commit weekend. The combined effect is also a codebase that is in better shape than it was last Saturday, which is the point.</p>
 <h2 id="what-still-landed">What still landed</h2>
-<p>A multi-repo discipline got firmer this weekendend. The runtime, the SDK, and the docs repo all moved together. The runtime got the documentation-directory overview in the README. The SDK got the corresponding cross-references. The docs grew. None of the three repos got ahead of the others.</p>
+<p>A multi-repo discipline got firmer this weekend. The runtime, the SDK, and the docs repo all moved together. The runtime got the documentation-directory overview in the README. The SDK got the corresponding cross-references. The docs grew. None of the three repos got ahead of the others.</p>
 <p>This matters because in an agent-driven workflow, the docs are not just docs. The docs are the input the agent reads when it picks up the next issue. If the docs lie about what the runtime supports, the agent will faithfully write code for the lying version of the runtime, and that code will not compile against reality. The remedy is to keep all three repos honest, all the time, even when one of them is the one you would naturally work on.</p>
-<p>The other quietly important thing this weekendend was the API surface clean-up. A few APIs that had been added in the September rush turned out not to belong on the public surface. They were demoted to internal. The agents handled the demotion across the SDK in one PR. That is the kind of refactor that, done by a single human, takes a full day. Done in this workflow, it takes one issue and one PR and a careful review.</p>
+<p>The other quietly important thing this weekend was the API surface clean-up. A few APIs that had been added in the September rush turned out not to belong on the public surface. They were demoted to internal. The agents handled the demotion across the SDK in one PR. That is the kind of refactor that, done by a single human, takes a full day. Done in this workflow, it takes one issue and one PR and a careful review.</p>
 <h2 id="what-best-practices-mean-in-this-workflow">What &ldquo;best practices&rdquo; mean in this workflow</h2>
-<p>A short list, sharpened this weekendend by the experience of cutting the pace.</p>
+<p>A short list, sharpened this weekend by the experience of cutting the pace.</p>
 <p><strong>Documentation is dev input, not dev output.</strong> If the docs are bad, the work is bad. Maintain them like you maintain code. Review them like you review code. Refuse to merge a feature whose docs got skipped.</p>
 <p><strong>Boundaries between subsystems are sacred.</strong> The agent will not invent boundaries that the codebase did not already have. If you want a boundary, you have to draw it, label it, and refuse the PRs that violate it.</p>
 <p><strong>Cross-repo synchronization is a first-class task.</strong> When the runtime and the SDK have to move together, the PR description has to say so, and the merge of one is gated on the merge of the other. Two-repo state-divergence is one of the easier failure modes to avoid and one of the more painful to recover from.</p>

@@ -1,14 +1,14 @@
 ---
-title: "282 Commits in One Weekend"
+title: "282 Commits, One Saturday Morning"
 date: 2025-09-13
 author: Kevin Griffin
 tags: [foundation, dev-workflow, agent-queue, ar-glasses, weekend-build]
-description: "Woke up Saturday morning with a stack of issues queued for the agents and a runtime that needed bones. By the time I sat down this morning, 282 commits had landed across the repos. Most of them not mine. Here is what shipped, and what the workflow looks like when it finally clicks."
+description: "Last Saturday I filed a stack of issues for the agents. This Saturday morning the runtime repo has 282 new commits, most of them not mine. Here is what shipped, and what the workflow looks like when it finally clicks."
 series: learning-to-code-with-ai
 slug: week-one-282-commits
 ---
 
-Woke up last Saturday with a stack of issues already filed and an autonomous coding agent ready to grind. By the time I sat down at the kitchen table this Saturday morning to take stock, 282 commits had landed across the runtime repo. I was the author on a small fraction of them. An autonomous coding agent was the author on most of the rest.
+Last Saturday I filed a stack of issues and pointed an autonomous coding agent at the queue. By the time I sat down at the kitchen table this Saturday morning to take stock, 282 commits had landed across the runtime repo. I was the author on a small fraction of them. An autonomous coding agent was the author on most of the rest.
 
 The reason the count looks like a sprint week of work is that the work has been happening continuously while I'm not at the keyboard. I am at the keyboard on Saturdays. The agents do not have a day job. The output is what falls out of that arrangement.
 
@@ -21,7 +21,7 @@ Saturday morning is filing-day. I sit down with coffee and write GitHub issues. 
 - Pointers to the relevant docs, the spec, and any existing files the work should touch
 - An explicit "agent-queue" label
 
-There is also a nightly workflow (issue #37 in the runtime repo this weekendend) that ensures the queue never drops below fifteen open agent issues. If it does, the workflow drafts placeholder tasks from the roadmap. The agent reads the queue, picks the next one it can do, opens a draft PR, iterates, and eventually marks itself ready for review.
+There is also a nightly workflow (issue #37 in the runtime repo this weekend) that ensures the queue never drops below fifteen open agent issues. If it does, the workflow drafts placeholder tasks from the roadmap. The agent reads the queue, picks the next one it can do, opens a draft PR, iterates, and eventually marks itself ready for review.
 
 I review and merge through the weekend. Where the agent got something wrong, I close the PR, sharpen the issue, and re-file. Where the agent did it right, the PR lands and the issue closes. Repeat for two days straight. Then I close the laptop and go back to the day job, during which the agent grinds on whatever is left in the queue.
 
@@ -67,7 +67,7 @@ The test harness was added late in the run and immediately surfaced four bugs in
 
 ## What I want partners and builders to know
 
-The shape of this engine is being built right now. By the end of next month most of the foundational decisions will be set. If you are at a model lab and you have opinions about how the AI layer should plug in, this is the window where opinions are cheap to incorporate. If you are a developer thinking about Unity or Unreal integration, the SDK is being shaped this weekendend and the bindings reflect what the runtime can do. I would rather hear from you in week six than week sixty.
+The shape of this engine is being built right now. By the end of next month most of the foundational decisions will be set. If you are at a model lab and you have opinions about how the AI layer should plug in, this is the window where opinions are cheap to incorporate. If you are a developer thinking about Unity or Unreal integration, the SDK is being shaped this weekend and the bindings reflect what the runtime can do. I would rather hear from you in week six than week sixty.
 
 The runtime repo is open. The SDK repo is open. The queue of open issues is open. Watching this happen in real time is the whole point.
 

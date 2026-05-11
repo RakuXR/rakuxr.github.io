@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Gemini Reviewed Claude&#x27;s PR. Thirty-Six Comments Later, It Was Better. &mdash; RakuAI Blog</title>
+    <meta name="description" content="Spent this Saturday working through thirty-six review comments Gemini left on a batch of Claude-authored endpoint expansions. The multi-vendor review pattern earning its keep across eight separate subsystem PRs. Different model, different blind spots, real bugs caught. The pattern that I am most curious about other people&#x27;s opinions on.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/gemini-reviewed-claudes-pr/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Gemini Reviewed Claude&#x27;s PR. Thirty-Six Comments Later, It Was Better.">
+    <meta property="og:description" content="Spent this Saturday working through thirty-six review comments Gemini left on a batch of Claude-authored endpoint expansions. The multi-vendor review pattern earning its keep across eight separate subsystem PRs. Different model, different blind spots, real bugs caught. The pattern that I am most curious about other people&#x27;s opinions on.">
+    <meta property="og:url" content="https://rakuai.com/blog/gemini-reviewed-claudes-pr/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-03-07T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Gemini Reviewed Claude&#x27;s PR. Thirty-Six Comments Later, It Was Better.">
+    <meta name="twitter:description" content="Spent this Saturday working through thirty-six review comments Gemini left on a batch of Claude-authored endpoint expansions. The multi-vendor review pattern earning its keep across eight separate subsystem PRs. Different model, different blind spots, real bugs caught. The pattern that I am most curious about other people&#x27;s opinions on.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Gemini Reviewed Claude&#x27;s PR. Thirty-Six Comments Later, It Was Better.</h1>
+            <p class="post-meta">
+                <time datetime="2026-03-07T00:00:00+00:00">March 7, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>The pattern I keep coming back to is the one where Claude writes the code and Gemini reviews it. Different training. Different blind spots. Different opinions about what is a defensible pattern and what is a smell. This Saturday was the most concrete demonstration of why I think this pattern is the right one.</p>
+<p>A batch of Phase-2 endpoint-expansion PRs had landed across the API surface over the prior week. Eight separate subsystems each got their public surface expanded. Claude had written most of the implementation. Before merging any of them I ran them through Gemini as a review pass. Gemini came back with thirty-six specific comments across the batch.</p>
+<p>I worked through every one. This is the post about what Gemini caught and what it means that the catches were the kind of catches they were.</p>
+<h2 id="what-the-eight-subsystems-were">What the eight subsystems were</h2>
+<p>The PRs covered the eight API router modules that needed Phase-2 expansion: animation, network, audio, AI perception, scene constructive-solid-geometry, input action and gamepad bindings, XR anchor pose types, and scripting Lua VM lifecycle. Each PR added between a dozen and forty endpoints, with full request/response schemas, helpers, and tests.</p>
+<p>The PRs were not subtle. Each one was a substantial expansion of the public surface. Together they represented several weeks of design work that the agents implemented across roughly two weekends.</p>
+<h2 id="what-gemini-caught">What Gemini caught</h2>
+<p>I want to be specific because the categories matter.</p>
+<p><strong>Animation and network: blend tree references and helpers.</strong> Gemini noticed that the blend-tree helpers in the animation API and the topology helpers in the network API had subtly different conventions for how they handled missing references. Animation returned a <code>None</code>-equivalent and let the caller decide. Network raised an exception. Both are valid patterns. They were inconsistent across two PRs that landed within a day of each other. The fix was to align them; we picked the explicit-exception path because it surfaces the missing reference at the API boundary instead of letting it propagate as a silent null.</p>
+<p><strong>Audio: response model defaults and helpers.</strong> Gemini found that several audio response models had inconsistent default values for optional fields. Some defaulted to empty strings, some to None, some to an explicit <code>null</code>. The inconsistency would have produced confusing behavior at the client-binding layer (where different languages serialize each option differently). The fix was to pick a single convention (<code>None</code> in the Python types, <code>null</code> on the wire) and apply it consistently.</p>
+<p><strong>AI perception: handle maps and bindings.</strong> Gemini flagged a thread-safety concern in the perception subsystem&rsquo;s handle-map: the map was being mutated from a background thread while being read from the API request thread, without a lock. Under load, this would produce intermittent map-corruption bugs that would be very hard to diagnose. The fix was a reader-writer lock with the read path optimized for the common case (lookups vastly outnumber inserts).</p>
+<p><strong>Scene: handle maps and CSG responses.</strong> Same family of bug as the AI perception finding. Gemini caught the same thread-safety concern in the scene subsystem&rsquo;s CSG handle-map. The fix was the same shape: a reader-writer lock. This is the kind of bug that one set of trained eyes flags everywhere because it has seen the pattern; Claude had written the same pattern in two places and not noticed.</p>
+<p><strong>Input: action and gamepad bindings.</strong> Gemini found that the action-binding API was using a magic-number convention for invalid action IDs (<code>-1</code>), while the gamepad-binding API used a sentinel struct value. The inconsistency would produce subtle bugs when a developer working across both APIs accidentally used the wrong invalid-marker. The fix was to introduce a typed <code>ActionId::Invalid</code> constant in both APIs and migrate all the magic numbers to it.</p>
+<p><strong>XR: anchor pose types and handler reuse.</strong> Gemini caught that the XR API was exposing two subtly different pose types in different endpoints: one in world coordinates and one in anchor-local coordinates. The difference is real and matters to the consumer, but the endpoints did not document the difference clearly. Gemini suggested splitting the types so the type system enforces the distinction. The fix was to introduce <code>WorldPose</code> and <code>AnchorPose</code> as distinct types with no implicit conversion between them.</p>
+<p><strong>Scripting: Lua VM lifecycle and leaks.</strong> Gemini found that the Lua VM was being allocated per request without a clear teardown path. Under sustained load, this would leak VM state into the address space until the API server fell over. The fix was to introduce a per-server-thread VM pool with explicit acquire and release semantics, and to add a teardown path that runs at request completion regardless of success or failure.</p>
+<h2 id="what-i-noticed-about-the-catches-as-a-category">What I noticed about the catches as a category</h2>
+<p>Three observations.</p>
+<p><strong>Most of the catches were consistency catches.</strong> Two-thirds of Gemini&rsquo;s comments were &ldquo;this convention differs from the convention used in another subsystem you just landed.&rdquo; This is exactly the kind of catch a single model is bad at, because each PR landed in isolation and the model writing it did not have the other PRs in context. A reviewer working across the batch sees the inconsistencies that the writer did not have in head.</p>
+<p><strong>A few catches were genuine bugs.</strong> The thread-safety findings on the handle maps were real bugs. They would have shipped. They would have been intermittent and hard to diagnose. Gemini caught both instances in the batch (one in AI perception, one in scene CSG) because it had the pattern recognition for &ldquo;shared mutable map without a lock = thread-safety concern.&rdquo; Different model, different training, different things it has been calibrated to flag.</p>
+<p><strong>A few were stylistic and got debated.</strong> Not every Gemini comment was right. A handful were stylistic preferences that I either pushed back on or asked for human judgment on. The fact that some comments got rejected does not weaken the pattern; it strengthens it. A reviewer that always agrees with the writer is not a reviewer.</p>
+<h2 id="what-this-does-and-does-not-do">What this does and does not do</h2>
+<p>What it does: catch a class of bugs that single-model review misses. Specifically the cross-PR consistency bugs and the pattern-matching catches where a reviewer trained on different data flags something the writer&rsquo;s training did not see.</p>
+<p>What it does not do: replace human review. The Gemini comments were a first pass. I read every one. I rejected some. I accepted most. The final merge decision was mine. The pattern is &ldquo;Claude writes, Gemini reviews, human decides.&rdquo; Not &ldquo;Gemini decides.&rdquo;</p>
+<p>What it suggests for AI labs: the metric to optimize for is not &ldquo;does the model&rsquo;s own code pass its own review.&rdquo; It is &ldquo;does the model&rsquo;s code pass review by a different vendor&rsquo;s model.&rdquo; The agents that do well on the cross-vendor metric are the ones I trust on serious work.</p>
+<h2 id="what-partners-and-builders-should-take-from-this">What partners and builders should take from this</h2>
+<p>If you are running an agent-driven workflow and you are not yet running PR review through a different vendor&rsquo;s model, try it on the next batch. The setup cost is small. The bug-catch rate is non-trivial. Today&rsquo;s batch caught two real thread-safety bugs that would have shipped.</p>
+<p>If you are an AI lab and you have not optimized your coding agent for &ldquo;PR review against another vendor&rsquo;s model&rdquo; as a target, consider it. The metric is honest. The signal is real. The agents that score well on it are the ones serious teams will adopt.</p>
+<p>If you are evaluating an engine for partnership, the multi-vendor review pattern is one of the discipline signals I would ask about. A team that runs cross-vendor review on every meaningful PR is a different team from one that does not. The codebase reflects the difference.</p>
+<p>Thirty-six comments, eight subsystems, one Saturday. The batch is better than it was this morning. The pattern earns its keep, again.</p>
+<p>Back to building.</p>
+        </div>
+        <ul class="post-tags"><li>multi-vendor</li><li>code-review</li><li>gemini</li><li>claude</li><li>partnerships</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/experiences-as-code-not-experiences-as-assets/" rel="prev">&larr; Hot-Reloading Game Design Like Code</a><a class="nav-next" href="/blog/agents-as-team-not-agents-as-tool/" rel="next">The Bottleneck Was Never Typing &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

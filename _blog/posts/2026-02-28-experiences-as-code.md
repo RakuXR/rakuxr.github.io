@@ -8,7 +8,7 @@ series: learning-to-code-with-ai
 slug: experiences-as-code-not-experiences-as-assets
 ---
 
-Saturday morning, coffee, the file format. AI is a runtime primitive in this engine, not a feature bolted on next to it. That is the architectural argument I have made before. This post is about the file format that makes it concrete.
+File format day. AI is a runtime primitive in this engine, not a feature bolted on next to it. AI is a runtime primitive in this engine, not a feature bolted on next to it. That is the architectural argument I have made before. This post is about the file format that makes it concrete.
 
 If you build a game on most engines, the artifact you ship is a binary, a project bundle, an asset database, or some combination of all three. What you author lives inside a proprietary editor. What you ship is opaque to the tools your team already uses. Diffing two versions of an experience means firing up the same editor twice and hoping the change log is honest.
 

@@ -3,12 +3,12 @@ title: "Validating Hardware Before the Silicon Shows Up"
 date: 2025-10-04
 author: Kevin Griffin
 tags: [ar-glasses, hardware, thermal, ci, ar2-gen1, weekend-build]
-description: "Woke up this Saturday with a decision queued: pivot the product target from AR1+ to AR2 Gen1, and start shipping the thermal-validation, Wi-Fi 7 stability tests, and sensor-integration bring-up harness for hardware that does not exist on my desk. Two days later it is all wired up and waiting for silicon."
+description: "A decision I had been chewing on through the work week landed at the kitchen table this Saturday. Pivot the product target from AR1+ to AR2 Gen1, and start shipping the thermal-validation, Wi-Fi 7 stability tests, and sensor-integration bring-up harness for hardware that does not exist on my desk. Two days later it is all wired up and waiting for silicon."
 series: learning-to-code-with-ai
 slug: ar2-gen1-validating-hardware-we-dont-have
 ---
 
-Woke up this Saturday with a decision I had been chewing on through the work week and could now finally act on. Pivot the product target from AR1+ to AR2 Gen1. Build everything downstream of the new spec before the silicon arrives, so that when the silicon does arrive, validation begins on day one instead of day ninety.
+A decision I had been chewing on through the work week was waiting at the kitchen table this Saturday morning. Pivot the product target from AR1+ to AR2 Gen1. Build everything downstream of the new spec before the silicon arrives, so that when the silicon does arrive, validation begins on day one instead of day ninety.
 
 There is a stage every hardware product goes through where the spec exists, the validation plan exists, the test harness exists, and the actual silicon does not. The traditional answer is to sit and wait. The modern answer is to build everything that is downstream of the hardware first, and to have it all green before the parts ship.
 
@@ -16,7 +16,7 @@ This weekend was that. The target platform officially shifted from AR1+ to AR2 G
 
 ## What landed
 
-Five things, all landed this weekendend:
+Five things, all landed this weekend:
 
 - The AR2 Gen1 device bring-up and sensor integration infrastructure
 - A Wi-Fi 7 connectivity and tracking-stability test suite
@@ -32,11 +32,11 @@ This was a 77-commit weekend. Most of those commits are in service of a device I
 
 A few reasons.
 
-**Hardware validation that ships with the hardware is hardware validation that lands six months late.** The thermal-and-power framework written this weekendend will be used the day the first AR2 dev kit reaches my desk, not three months after. The platform's first thermal regression will be caught by an existing test, not by a human noticing the device is hot.
+**Hardware validation that ships with the hardware is hardware validation that lands six months late.** The thermal-and-power framework written this weekend will be used the day the first AR2 dev kit reaches my desk, not three months after. The platform's first thermal regression will be caught by an existing test, not by a human noticing the device is hot.
 
 **A test harness without a device is still a test harness.** It runs against simulated sensor traces. Those traces come from the AR1+ era and from the spec. They are not perfect. They catch interface bugs, integration bugs, and metric-collection bugs. They do not catch the bugs that will only show up under real silicon. That is fine. The bugs they do catch are the bugs we would have spent the first week of real-hardware time hunting, and we now do not have to.
 
-**The act of writing the harness clarifies the spec.** Half of the production-standards doc that landed at the end of the weekend existed only as fuzzy intent at the start of it. Writing the validation tests forced the spec into specific numbers. Frame budgets. Thermal envelopes. Wi-Fi 7 stability thresholds. The harness made the doc sharp. That is the actual deliverable.
+**The act of writing the harness clarifies the spec.** Half of the production-standards doc that landed by Saturday evening existed only as fuzzy intent at the start of it. Writing the validation tests forced the spec into specific numbers. Frame budgets. Thermal envelopes. Wi-Fi 7 stability thresholds. The harness made the doc sharp. That is the actual deliverable.
 
 ## How the agent handled the pivot
 
@@ -48,11 +48,11 @@ I am building a system where the agent's docs are also the team's docs. When the
 
 ## The Wi-Fi 7 test suite, specifically
 
-This is the one I am proudest of from this weekendend.
+This is the one I am proudest of from this weekend.
 
-The AR2 Gen1 spec assumes Wi-Fi 7 connectivity for offloaded rendering and tethered compute. Wi-Fi 7 in practice is not as stable as Wi-Fi 6E, and the failure modes are different. The test suite written this weekendend characterizes the suite of failure modes (degraded throughput, intermittent loss, reauth storms) and bounds the runtime's behavior under each. The runtime cannot tolerate every failure. The job of the test suite is to be specific about which failures the runtime gracefully degrades through and which fail loud.
+The AR2 Gen1 spec assumes Wi-Fi 7 connectivity for offloaded rendering and tethered compute. Wi-Fi 7 in practice is not as stable as Wi-Fi 6E, and the failure modes are different. The test suite written this weekend characterizes the suite of failure modes (degraded throughput, intermittent loss, reauth storms) and bounds the runtime's behavior under each. The runtime cannot tolerate every failure. The job of the test suite is to be specific about which failures the runtime gracefully degrades through and which fail loud.
 
-This matters because the AR experience the user is having cannot stutter when the connection blips. The runtime has to fall back to local rendering for a frame, or two, or twenty, depending on the duration of the blip, and re-converge when connectivity returns. That logic existed in fuzzy intent in the spec. After this weekendend, it exists as test cases.
+This matters because the AR experience the user is having cannot stutter when the connection blips. The runtime has to fall back to local rendering for a frame, or two, or twenty, depending on the duration of the blip, and re-converge when connectivity returns. That logic existed in fuzzy intent in the spec. After this weekend, it exists as test cases.
 
 ## What I want partners to take from this
 

@@ -1,5 +1,5 @@
 ---
-title: "The Weekend Visual Studio 2026 Hated Our Code"
+title: "The Saturday Visual Studio 2026 Hated Our Code"
 date: 2025-12-20
 author: Kevin Griffin
 tags: [build, msvc, vs2026, openxr, debugging, dev-workflow, weekend-build]
@@ -46,7 +46,7 @@ Saturday afternoon was the longest stretch. The DLL-export normalization require
 
 Saturday evening I added a Windows MSVC CI workflow with vcpkg and OpenXR SDK integration so that this never happens again silently. Now every push triggers an MSVC build. The build cannot regress without somebody seeing it in CI.
 
-The next morning was the celebration. By the end of it, the build went green on Windows. First successful x64 build in the runtime's history. The commit message says exactly that: `build: first successful x64 build with OpenXR handle fixes`. The commit hash is `f35f78bd` and it is one of my favorite commits in the project to date.
+The end of the day was the celebration. By the end of it, the build went green on Windows. First successful x64 build in the runtime's history. The commit message says exactly that: `build: first successful x64 build with OpenXR handle fixes`. The commit hash is `f35f78bd` and it is one of my favorite commits in the project to date.
 
 ## What worked, what I would do differently
 

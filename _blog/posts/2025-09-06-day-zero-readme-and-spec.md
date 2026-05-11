@@ -38,7 +38,7 @@ It is not a marketing document. It is a forcing function. It says what kind of h
 
 ## Why a Copilot Guide on day one
 
-The other deliberate thing this weekendend is the Copilot onboarding guide. The first version is rough. It will get rewritten ten times. But the guide exists because the agents are part of the team, and the team needs to know how the team works.
+The other deliberate thing this weekend is the Copilot onboarding guide. The first version is rough. It will get rewritten ten times. But the guide exists because the agents are part of the team, and the team needs to know how the team works.
 
 The guide says:
 
@@ -64,7 +64,7 @@ A few reasons.
 
 If you are at one of the big AI labs and you read this, here is the pitch. The engine is being built explicitly to take direction from your model. Not bolted on. Not in an editor panel. In the runtime, on the simulation step, every frame. The architectural decisions are happening right now, in public, with an explicit doc trail. If your model gets better at understanding a real physical space the user is standing in, this engine is where it gets to do something with that understanding.
 
-If you are a developer thinking about building on top of this eventually, the SDK is moving in lockstep with the runtime. Unity and Unreal samples are seeded in the SDK repo as of this weekendend. They do not work yet. They will. The reason both bindings exist at this stage is so I never get to a moment six months from now where the runtime architecture is locked and the SDK has to deform itself to fit.
+If you are a developer thinking about building on top of this eventually, the SDK is moving in lockstep with the runtime. Unity and Unreal samples are seeded in the SDK repo as of this weekend. They do not work yet. They will. The reason both bindings exist at this stage is so I never get to a moment six months from now where the runtime architecture is locked and the SDK has to deform itself to fit.
 
 If you are watching for the early signal as a consumer, the signal is this: the engine is being built around the assumption that the most interesting experiences are AR experiences in real places, and the AI is what makes those experiences react. Generative content in a browser is fine. Generative content stuck on a wall in your kitchen is the actual product.
 
