@@ -1,9 +1,9 @@
 ---
-title: "Blade to Raku: Renaming the Runtime in a Weekend"
+title: "Blade to Raku: A Saturday Rename Across the Codebase"
 date: 2025-11-08
 author: Kevin Griffin
 tags: [rebrand, naming, ar-glasses, history, weekend-build]
-description: "Woke up Saturday with the placeholder name finally ready to come off. By Sunday evening every reference in every repo had been swept from Blade and ar1-runtime to Raku. The brand has been waiting in the wings for years; the engineering finally caught up."
+description: "Woke up Saturday with the placeholder name finally ready to come off. by Saturday evening every reference in every repo had been swept from Blade and ar1-runtime to Raku. The brand has been waiting in the wings for years; the engineering finally caught up."
 series: learning-to-code-with-ai
 slug: blade-to-raku-renaming-a-runtime
 ---

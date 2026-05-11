@@ -1,5 +1,5 @@
 ---
-title: "282 Commits in One Weekend"
+title: "282 Commits, One Saturday Morning"
 date: 2025-09-13
 author: Kevin Griffin
 tags: [foundation, dev-workflow, agent-queue, ar-glasses, weekend-build]

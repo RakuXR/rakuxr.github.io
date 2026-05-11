@@ -3,7 +3,7 @@ title: "From 54% to 100% Tests Passing"
 date: 2026-02-07
 author: Kevin Griffin
 tags: [tests, ctest, ecs, eye-tracking, telemetry, weekend-build]
-description: "Started this Saturday with the test suite at 54% passing. By the end of the weekend, 63%. A weekend later, 100%. The path between those numbers was specific, mechanical, and full of the kind of small lessons that explain why test-pass-rate is one of the most honest signals a codebase produces."
+description: "Started this Saturday with the test suite at 54% passing. By Saturday evening, 63%. A weekend later, 100%. The path between those numbers was specific, mechanical, and full of the kind of small lessons that explain why test-pass-rate is one of the most honest signals a codebase produces."
 series: learning-to-code-with-ai
 slug: from-54-to-100-tests-passing
 ---

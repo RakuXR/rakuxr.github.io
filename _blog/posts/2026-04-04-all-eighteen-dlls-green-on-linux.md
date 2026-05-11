@@ -10,7 +10,7 @@ slug: all-eighteen-dlls-green-on-linux
 
 The Linux build had been a known partial-pass for weeks. Most of the eighteen native runtime DLLs (the engine is structured as a fleet of focused shared libraries) had been building clean. A few had not. The failures had the same shape every time: undefined-symbol errors at link time on functions that obviously did exist in the codebase. Anyone who has worked on Linux shared libraries in C++ knows where this is going.
 
-This Saturday I sat down with the intent of finishing the job. By the end of the weekend, all eighteen DLLs were building clean and the Linux CI pipeline was reporting full green.
+This Saturday I sat down with the intent of finishing the job. By the end of Saturday, all eighteen DLLs were building clean and the Linux CI pipeline was reporting full green.
 
 This is the post about what the actual issue was, what the fix looked like, and why I think building on three platforms (Linux, macOS, Windows MSVC) is a discipline worth paying for.
 

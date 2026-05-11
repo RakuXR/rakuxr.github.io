@@ -1,5 +1,5 @@
 ---
-title: "The Weekend I Found the Stubs"
+title: "The Saturday I Found the Stubs"
 date: 2025-12-13
 author: Kevin Griffin
 tags: [unit-tests, stubs, technical-debt, best-practices, weekend-build]

@@ -3,7 +3,7 @@ title: "Sub-Millimeter Anchors and the Calligraphy Question"
 date: 2025-10-11
 author: Kevin Griffin
 tags: [ar, anchoring, computer-vision, partnerships, calligraphy, weekend-build]
-description: "Saturday morning the partnership conversation with NTT QONOQ pointed at a brutal precision target: sub-millimeter overlay drift on a sheet of calligraphy paper. By Sunday night the runtime had a sub-millimeter anchor-pose API, real-time pen-tip tracking, and marker-based paper detection. The bar is now clearable. The product behind the bar is suddenly real."
+description: "Saturday morning the partnership conversation with NTT QONOQ pointed at a brutal precision target: sub-millimeter overlay drift on a sheet of calligraphy paper. by Saturday evening the runtime had a sub-millimeter anchor-pose API, real-time pen-tip tracking, and marker-based paper detection. The bar is now clearable. The product behind the bar is suddenly real."
 series: learning-to-code-with-ai
 slug: sub-millimeter-anchors-and-calligraphy
 ---

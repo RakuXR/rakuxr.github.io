@@ -1,5 +1,5 @@
 ---
-title: "Replacing Seven O(N²) Algorithms in a Weekend"
+title: "Replacing Seven O(N²) Algorithms on a Saturday"
 date: 2026-02-21
 author: Kevin Griffin
 tags: [algorithms, physics, vision, model-loading, agent-failure-mode, weekend-build]
@@ -10,7 +10,7 @@ slug: replacing-seven-brute-force-algorithms
 
 The agents are good at writing code that works. They are sometimes bad at writing code that scales. This is a pattern I have come to recognize and to budget for: when the issue framing asks for a function that does X, the agent writes a function that does X correctly on a small input and breaks down on a real-sized one.
 
-This Saturday I went looking for those functions on purpose. Seven of them came back. By the end of the weekend, all seven were running their actual production algorithms instead of the brute-force placeholders the agents had originally landed.
+This Saturday I went looking for those functions on purpose. Seven of them came back. By the end of Saturday, all seven were running their actual production algorithms instead of the brute-force placeholders the agents had originally landed.
 
 This is the post about what each one was, why it mattered, and what the agents got wrong about each.
 

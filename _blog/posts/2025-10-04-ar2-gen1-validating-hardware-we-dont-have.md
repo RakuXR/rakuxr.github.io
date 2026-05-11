@@ -36,7 +36,7 @@ A few reasons.
 
 **A test harness without a device is still a test harness.** It runs against simulated sensor traces. Those traces come from the AR1+ era and from the spec. They are not perfect. They catch interface bugs, integration bugs, and metric-collection bugs. They do not catch the bugs that will only show up under real silicon. That is fine. The bugs they do catch are the bugs we would have spent the first week of real-hardware time hunting, and we now do not have to.
 
-**The act of writing the harness clarifies the spec.** Half of the production-standards doc that landed at the end of the weekend existed only as fuzzy intent at the start of it. Writing the validation tests forced the spec into specific numbers. Frame budgets. Thermal envelopes. Wi-Fi 7 stability thresholds. The harness made the doc sharp. That is the actual deliverable.
+**The act of writing the harness clarifies the spec.** Half of the production-standards doc that landed by Saturday evening existed only as fuzzy intent at the start of it. Writing the validation tests forced the spec into specific numbers. Frame budgets. Thermal envelopes. Wi-Fi 7 stability thresholds. The harness made the doc sharp. That is the actual deliverable.
 
 ## How the agent handled the pivot
 

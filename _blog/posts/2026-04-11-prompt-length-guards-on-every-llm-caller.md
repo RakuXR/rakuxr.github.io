@@ -1,5 +1,5 @@
 ---
-title: "Every LLM Caller Got Prompt-Length Guards This Weekend"
+title: "Every LLM Caller Got Prompt-Length Guards Today"
 date: 2026-04-11
 author: Kevin Griffin
 tags: [llm, security, audit, guardrails, weekend-build]

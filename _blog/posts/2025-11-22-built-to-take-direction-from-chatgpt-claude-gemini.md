@@ -3,7 +3,7 @@ title: "Built to Take Direction from ChatGPT, Claude, and Gemini"
 date: 2025-11-22
 author: Kevin Griffin
 tags: [llm, partnerships, voice-pipeline, openxr, xr-assistant, ai-native, weekend-build]
-description: "Woke up Saturday with a clear ambition: ship the layer that lets a cloud LLM stream intent into the simulation loop every frame. By Sunday night the XRAssistantService was wired through the voice pipeline, OpenXR foveation was working, Wi-Fi 7 offloaded rendering had a real host, and the engine was demonstrably model-agnostic. Big weekend."
+description: "Woke up Saturday with a clear ambition: ship the layer that lets a cloud LLM stream intent into the simulation loop every frame. by Saturday evening the XRAssistantService was wired through the voice pipeline, OpenXR foveation was working, Wi-Fi 7 offloaded rendering had a real host, and the engine was demonstrably model-agnostic. Big weekend."
 series: learning-to-code-with-ai
 slug: built-to-take-direction-from-chatgpt-claude-gemini
 ---

@@ -58,7 +58,7 @@
         <div class="post-body">
 <p>The audit landed in the inbox late last week. By Saturday morning I had the report open on one screen and the codebase open on the other. Eight critical or high findings. The kind of inbox content that defines a weekend.</p>
 <p>This was enterprise due diligence. A potential partner had asked their security team to run a pass on the public API surface before they would let their lawyers move forward. The findings were specific, well-explained, and entirely fair. They were also the kind of things that an agent-driven workflow makes you especially vulnerable to if you are not deliberate about defending against them.</p>
-<p>By the end of the weekend, every finding had a PR landing it. This is the post about what each one was.</p>
+<p>By the end of Saturday, every finding had a PR landing it. This is the post about what each one was.</p>
 <h2 id="what-the-categories-were">What the categories were</h2>
 <p>I am going to talk about categories rather than specific exploit details because the specifics are now fixed and not interesting to a competitor; the categories are what other teams will want to defend against.</p>
 <p><strong>One: input validation on the public REST surface.</strong> Several endpoints were trusting their inputs more than they should have. Specifically, length bounds on string inputs, range bounds on numeric inputs, and structural validation on JSON payloads. None of the missing validation was catastrophic on its own. The combination of &ldquo;no length bound here plus no rate limit there plus no auth check on this admin endpoint&rdquo; is the kind of stack that becomes catastrophic once an attacker has discovered the surface.</p>

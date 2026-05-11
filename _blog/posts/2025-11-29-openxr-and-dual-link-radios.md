@@ -3,7 +3,7 @@ title: "OpenXR Is the Skeleton, Dual-Link Radios Are the Nerve"
 date: 2025-11-29
 author: Kevin Griffin
 tags: [openxr, rf-optical, ar-glasses, openxr-extensions, oss-standards, weekend-build]
-description: "Woke up Saturday wanting to make a real bet on standards. By the end of the weekend the runtime had its OpenXR backbone (graphics binding, frame lifecycle, action sync) plus a dual-mode RF / optical link manager that lets the tether switch radios on the fly. Both bets are working."
+description: "Woke up Saturday wanting to make a real bet on standards. by the end of Saturday the runtime had its OpenXR backbone (graphics binding, frame lifecycle, action sync) plus a dual-mode RF / optical link manager that lets the tether switch radios on the fly. Both bets are working."
 series: learning-to-code-with-ai
 slug: openxr-and-dual-link-radios
 ---
@@ -58,4 +58,4 @@ If you are a hardware partner whose device is OpenXR-conformant, the engine is c
 
 If you are working on the next-generation link technology between glasses and tether (Wi-Fi 7+, free-space optical, mmWave, anything), the link-manager abstraction is the layer to plug into. The runtime above does not need to know which radio you are. The runtime below abstracts you.
 
-Ninety-eight commits across the weekend. Engine grew a backbone and a nerve. Closing the laptop at the end of the weekend feels good.
+Ninety-eight commits across the weekend. Engine grew a backbone and a nerve. Closing the laptop late on a long Saturday feels good.

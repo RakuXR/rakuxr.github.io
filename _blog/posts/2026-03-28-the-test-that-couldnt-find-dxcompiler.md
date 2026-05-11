@@ -12,7 +12,7 @@ Saturday morning, CI dashboard, eight tests in red. All eight failed with the sa
 
 The DLL in question was `dxcompiler.dll`, the Microsoft DirectX Shader Compiler runtime. The CI machine did not have it. Production user machines might not have it. Anywhere outside a developer's well-equipped workstation, the runtime had been quietly assuming `dxcompiler.dll` was present and crashing hard when it was not.
 
-By the end of the weekend, three problems were fixed and the test suite was at 89% passing, up from 71%. This is the post about each one.
+By the end of Saturday, three problems were fixed and the test suite was at 89% passing, up from 71%. This is the post about each one.
 
 ## Why the dependency was hard in the first place
 

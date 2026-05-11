@@ -12,7 +12,7 @@ The audit landed in the inbox late last week. By Saturday morning I had the repo
 
 This was enterprise due diligence. A potential partner had asked their security team to run a pass on the public API surface before they would let their lawyers move forward. The findings were specific, well-explained, and entirely fair. They were also the kind of things that an agent-driven workflow makes you especially vulnerable to if you are not deliberate about defending against them.
 
-By the end of the weekend, every finding had a PR landing it. This is the post about what each one was.
+By the end of Saturday, every finding had a PR landing it. This is the post about what each one was.
 
 ## What the categories were
 
