@@ -522,7 +522,10 @@ export function installTouchOverlay(config = {}) {
     .rt-btn.rt-start.rt-no-pause { right: 12px; }
     /* When the overlay is active, push the document up so canvases don't
        get cropped behind the bottom controls. Use !important to override
-       per-game CSS that pins to 100vh. */
+       per-game CSS that pins to 100vh. We intentionally do NOT force
+       width/height: auto on the canvas — each game has its own scaling
+       logic (some use dpr * scale) and forcing auto re-introduces aspect
+       artifacts. We only cap max-height by the overlay size. */
     body.rt-overlay-active {
       padding-bottom: var(--rt-overlay-h, 200px) !important;
       box-sizing: border-box !important;
@@ -533,11 +536,8 @@ export function installTouchOverlay(config = {}) {
       min-height: calc(100vh - var(--rt-overlay-h, 200px)) !important;
     }
     body.rt-overlay-active canvas {
-      max-height: calc(100vh - var(--rt-overlay-h, 200px) - 80px) !important;
+      max-height: calc(100vh - var(--rt-overlay-h, 200px)) !important;
       max-width: 100vw !important;
-      width: auto !important;
-      height: auto !important;
-      object-fit: contain;
     }
     .rt-dpad { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(3, 64px); gap: 4px; }
     .rt-dpad .rt-btn { width: 100%; height: 100%; }
@@ -676,7 +676,7 @@ export function installTouchOverlay(config = {}) {
   // different element (Safari occasionally loses pointer capture).
   const wiredButtons = [];
 
-  function wireButton(el, { key, field, sticky = false, oneShot = false }) {
+  function wireButton(el, { key, field, sticky = false, oneShot = false, oneShotMs = 80 }) {
     if (!el) return;
     let pointerId = null;
     let active = false;
@@ -715,12 +715,14 @@ export function installTouchOverlay(config = {}) {
         dispatchKey('keydown', key);
         publishToEngine(field, true);
       }
-      // For oneShot buttons (START/PAUSE), release the key after a short
+      // For oneShot buttons (START/PAUSE/JUMP), release the key after a short
       // delay so the game sees it as a quick tap rather than a held press.
+      // Per-button duration via oneShotMs lets us tune e.g. jump button
+      // height (shorter press = lower jump on variable-jump platformers).
       if (oneShot) {
         setTimeout(() => {
           if (active) forceRelease();
-        }, 80);
+        }, oneShotMs);
       }
       e.preventDefault();
     }
@@ -753,7 +755,13 @@ export function installTouchOverlay(config = {}) {
     const id = el.dataset.actionId;
     const def = actions.find((a) => a.id === id);
     if (!def) return;
-    wireButton(el, { key: def.key, field: def.id, sticky: !!def.sticky });
+    wireButton(el, {
+      key: def.key,
+      field: def.id,
+      sticky: !!def.sticky,
+      oneShot: !!def.oneShot,
+      oneShotMs: def.oneShotMs || 80,
+    });
   });
 
   // Wire pause + start as one-shot taps (auto-release after a short delay).

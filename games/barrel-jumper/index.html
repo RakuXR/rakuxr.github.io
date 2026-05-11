@@ -116,7 +116,11 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   installTouchOverlay({
     engine, canvas,
     dpad: '4way',
-    actions: [{ id: 'jump', label: 'JUMP', key: ' ' }],
+    // JUMP uses oneShot with a short duration so a touch tap is treated
+    // like a brief keyboard press — variable-jump physics cut the jump
+    // height after release, keeping Mario from launching into the floor
+    // above and hitting a barrel mid-flight.
+    actions: [{ id: 'jump', label: 'JUMP', key: ' ', oneShot: true, oneShotMs: 55 }],
     pause: { key: 'p', label: 'II' },
     orientation: 'portrait',
   });
