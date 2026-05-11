@@ -67,6 +67,7 @@ import {
   installLauncherIntegration,
   ensureIframeFocus,
   relayApiCallsToParent,
+  installTouchOverlay,
 } from "../lib/game-shared.js";
 import { RakuEngine } from "../../engine/raku-engine.js";
 
@@ -110,6 +111,16 @@ import { RakuEngine } from "../../engine/raku-engine.js";
   // ---------- constants ----------
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
+
+  // ---- Mobile touch controls (no-op on desktop) ----
+  installTouchOverlay({
+    engine, canvas,
+    dpad: '4way',
+    actions: [{ id: 'jump', label: 'JUMP', key: ' ' }],
+    pause: { key: 'p', label: 'II' },
+    orientation: 'portrait',
+  });
+
   const W = canvas.width;
   const H = canvas.height;
   const TILE = 16;

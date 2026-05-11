@@ -377,3 +377,373 @@ export function relayApiCallsToParent(engine) {
     } catch (e) { /* ignore */ }
   });
 }
+
+// ---------------------------------------------------------------------------
+// Mobile touch-control overlay
+// ---------------------------------------------------------------------------
+// Installs a virtual D-pad + action button overlay on touch devices so that
+// every arcade game becomes playable from a phone without modifying its
+// keyboard or gamepad handlers.
+//
+//   const touch = installTouchOverlay({
+//     engine,                    // optional: RakuEngine to also publishInput to
+//     canvas: document.getElementById('game'),
+//     dpad: '4way',              // '4way' | 'lr' | 'lr+ud' | 'lr+thrust' | 'none'
+//     actions: [
+//       { id: 'fire',  label: 'FIRE',  key: ' '      },
+//       { id: 'jump',  label: 'JUMP',  key: ' '      },
+//       { id: 'shield',label: 'SHIELD',key: 'Shift'  },
+//     ],
+//     pause: { key: 'p', label: 'II' },         // optional corner pause button
+//     orientation: 'portrait',                   // 'portrait' | 'landscape' | 'any'
+//   });
+//
+// Mechanics:
+//   - Detects touch via matchMedia('(pointer: coarse)'). On desktop or
+//     non-touch devices, returns a no-op stub and renders nothing.
+//   - On pointerdown for each button: dispatches a synthetic `keydown` event
+//     (so existing game handlers fire unchanged) AND calls engine.publishInput
+//     (so the engine's input event channel sees the press too).
+//   - On pointerup/cancel/leave: same, with `keyup`.
+//   - Pointer events with setPointerCapture handle multi-touch correctly
+//     (left + fire simultaneously is one finger per button, distinct
+//     pointerIds, no conflict).
+//   - Landscape gate: if orientation === 'landscape' and the screen is
+//     portrait, shows a "Rotate your phone" message until the user rotates.
+//   - Letterboxing is left to the page CSS — the overlay positions itself
+//     fixed at the bottom of the viewport with a translucent background.
+//
+// Returns: { destroy(), isMobile, isVisible() }
+// ---------------------------------------------------------------------------
+export function installTouchOverlay(config = {}) {
+  const noop = { destroy: () => {}, isMobile: false, isVisible: () => false };
+
+  // Only render on touch devices. matchMedia('(pointer: coarse)') is the
+  // correct way to ask "is this device's primary pointer a touch screen?"
+  // (avoids triggering on touch laptops where a mouse is the primary input).
+  let isMobile = false;
+  try {
+    isMobile = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  } catch (e) { /* ignore */ }
+  // Manual override for testing: ?touch=1 in URL forces overlay on.
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('touch') === '1') isMobile = true;
+    if (params.get('touch') === '0') isMobile = false;
+  } catch (e) { /* ignore */ }
+  if (!isMobile) return noop;
+
+  if (document.getElementById('raku-touch-overlay')) {
+    // Already installed (hot-reload guard).
+    return window.__rakuTouchOverlay || noop;
+  }
+
+  const {
+    engine = null,
+    canvas = null,
+    dpad = '4way',
+    actions = [],
+    pause = null,
+    orientation = 'any',
+  } = config;
+
+  // ---- styles ----------------------------------------------------------
+  const style = document.createElement('style');
+  style.textContent = `
+    #raku-touch-overlay {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      z-index: 9999;
+      pointer-events: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 14px 18px calc(14px + env(safe-area-inset-bottom)) 18px;
+      font-family: "Press Start 2P", "Courier New", monospace;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+    #raku-touch-overlay * { box-sizing: border-box; touch-action: none; }
+    .rt-zone { pointer-events: auto; display: grid; gap: 8px; }
+    .rt-btn {
+      pointer-events: auto;
+      background: rgba(20, 22, 30, 0.55);
+      border: 2px solid rgba(255, 210, 74, 0.55);
+      color: #ffd24a;
+      width: 64px; height: 64px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px;
+      text-shadow: 1px 1px 0 #000;
+      transition: transform 60ms ease, background 60ms ease;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    .rt-btn.rt-pressed {
+      background: rgba(255, 210, 74, 0.85);
+      color: #000;
+      transform: scale(0.92);
+    }
+    .rt-btn.rt-action { width: 72px; height: 72px; border-color: rgba(255, 64, 0, 0.7); color: #ff8040; }
+    .rt-btn.rt-action.rt-pressed { background: rgba(255, 80, 32, 0.85); color: #000; }
+    .rt-btn.rt-pause {
+      width: 44px; height: 44px;
+      position: fixed; top: 12px; right: 12px;
+      font-size: 14px;
+      pointer-events: auto;
+      background: rgba(20, 22, 30, 0.55);
+      border: 2px solid rgba(150, 230, 255, 0.55);
+      color: #9fe;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .rt-dpad { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(3, 64px); gap: 4px; }
+    .rt-dpad .rt-btn { width: 100%; height: 100%; }
+    .rt-dpad .rt-spacer { background: transparent; border: none; }
+    .rt-actions { display: flex; gap: 10px; align-items: flex-end; }
+    .rt-rotate-gate {
+      position: fixed; inset: 0; z-index: 10000;
+      background: rgba(0, 0, 0, 0.92);
+      color: #ffd24a;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-family: "Press Start 2P", "Courier New", monospace;
+      font-size: 14px; text-align: center; padding: 24px;
+      gap: 16px;
+    }
+    .rt-rotate-gate .rt-rotate-icon {
+      font-size: 48px;
+      animation: rt-rotate 1.6s ease-in-out infinite;
+    }
+    @keyframes rt-rotate {
+      0%, 100% { transform: rotate(-15deg); }
+      50%      { transform: rotate(75deg); }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // ---- overlay element ------------------------------------------------
+  const root = document.createElement('div');
+  root.id = 'raku-touch-overlay';
+
+  // dpad zone
+  const leftZone = document.createElement('div');
+  leftZone.className = 'rt-zone rt-dpad-zone';
+  if (dpad !== 'none') {
+    const dpadGrid = document.createElement('div');
+    dpadGrid.className = 'rt-dpad';
+    // 3x3 grid: [., up, .] [left, ., right] [., down, .]
+    const cells = [
+      null, 'up',   null,
+      'left', null, 'right',
+      null, 'down', null,
+    ];
+    // For 'lr' dpads, hide up/down. For 'lr+thrust', up=thrust, down=shield-like.
+    const showUp   = dpad === '4way' || dpad === 'lr+ud' || dpad === 'lr+thrust';
+    const showDown = dpad === '4way' || dpad === 'lr+ud' || dpad === 'lr+thrust';
+    for (const cell of cells) {
+      const el = document.createElement('div');
+      if (cell === null) {
+        el.className = 'rt-spacer';
+      } else if ((cell === 'up' && !showUp) || (cell === 'down' && !showDown)) {
+        el.className = 'rt-spacer';
+      } else {
+        el.className = 'rt-btn rt-dpad-btn';
+        el.dataset.dir = cell;
+        el.textContent = cell === 'up' ? '▲' : cell === 'down' ? '▼' : cell === 'left' ? '◀' : '▶';
+      }
+      dpadGrid.appendChild(el);
+    }
+    leftZone.appendChild(dpadGrid);
+  }
+  root.appendChild(leftZone);
+
+  // actions zone
+  const rightZone = document.createElement('div');
+  rightZone.className = 'rt-zone rt-actions';
+  for (const a of actions) {
+    const el = document.createElement('div');
+    el.className = 'rt-btn rt-action';
+    el.dataset.actionId = a.id;
+    el.textContent = a.label || a.id.toUpperCase();
+    rightZone.appendChild(el);
+  }
+  root.appendChild(rightZone);
+
+  // pause button (corner)
+  let pauseEl = null;
+  if (pause) {
+    pauseEl = document.createElement('div');
+    pauseEl.className = 'rt-btn rt-pause';
+    pauseEl.textContent = pause.label || 'II';
+    document.body.appendChild(pauseEl);
+  }
+
+  document.body.appendChild(root);
+
+  // ---- event plumbing -------------------------------------------------
+  // Map of dpad direction → KeyboardEvent.key.
+  const DPAD_KEYS = {
+    left:  'ArrowLeft',
+    right: 'ArrowRight',
+    up:    'ArrowUp',
+    down:  'ArrowDown',
+  };
+
+  function dispatchKey(type, key) {
+    if (!key) return;
+    const ev = new KeyboardEvent(type, {
+      key, code: key,
+      bubbles: true, cancelable: true,
+    });
+    window.dispatchEvent(ev);
+  }
+
+  function publishToEngine(field, value) {
+    if (engine && typeof engine.publishInput === 'function') {
+      try { engine.publishInput({ [field]: value }); } catch (e) { /* ignore */ }
+    }
+  }
+
+  function wireButton(el, { key, field, sticky = false }) {
+    if (!el) return;
+    let pointerId = null;
+    let active = false;
+
+    function press(e) {
+      if (active) return;
+      active = true;
+      el.classList.add('rt-pressed');
+      pointerId = e.pointerId;
+      try { el.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      if (sticky) {
+        // toggle: press once → keydown, press again → keyup
+        const toggled = !el.dataset.toggleOn;
+        if (toggled) {
+          el.dataset.toggleOn = '1';
+          dispatchKey('keydown', key);
+          publishToEngine(field, true);
+        } else {
+          delete el.dataset.toggleOn;
+          dispatchKey('keyup', key);
+          publishToEngine(field, false);
+        }
+      } else {
+        dispatchKey('keydown', key);
+        publishToEngine(field, true);
+      }
+      e.preventDefault();
+    }
+    function release(e) {
+      if (!active) return;
+      if (pointerId !== null && e.pointerId !== pointerId) return;
+      active = false;
+      el.classList.remove('rt-pressed');
+      try { el.releasePointerCapture(pointerId); } catch (err) { /* ignore */ }
+      pointerId = null;
+      if (!sticky) {
+        dispatchKey('keyup', key);
+        publishToEngine(field, false);
+      }
+      e.preventDefault();
+    }
+
+    el.addEventListener('pointerdown', press, { passive: false });
+    el.addEventListener('pointerup', release, { passive: false });
+    el.addEventListener('pointercancel', release, { passive: false });
+    el.addEventListener('pointerleave', release, { passive: false });
+    // Block context menu (long-press) on touch.
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
+  // Wire dpad buttons
+  root.querySelectorAll('.rt-dpad-btn').forEach((el) => {
+    const dir = el.dataset.dir;
+    wireButton(el, { key: DPAD_KEYS[dir], field: dir });
+  });
+
+  // Wire action buttons
+  root.querySelectorAll('.rt-action').forEach((el) => {
+    const id = el.dataset.actionId;
+    const def = actions.find((a) => a.id === id);
+    if (!def) return;
+    wireButton(el, { key: def.key, field: def.id, sticky: !!def.sticky });
+  });
+
+  // Wire pause (one-shot tap → press + release keystroke)
+  if (pauseEl && pause) {
+    pauseEl.addEventListener('pointerdown', (e) => {
+      pauseEl.classList.add('rt-pressed');
+      dispatchKey('keydown', pause.key);
+      publishToEngine('pause', true);
+      e.preventDefault();
+    }, { passive: false });
+    pauseEl.addEventListener('pointerup', (e) => {
+      pauseEl.classList.remove('rt-pressed');
+      dispatchKey('keyup', pause.key);
+      publishToEngine('pause', false);
+      e.preventDefault();
+    }, { passive: false });
+    pauseEl.addEventListener('pointercancel', () => pauseEl.classList.remove('rt-pressed'));
+    pauseEl.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
+  // ---- orientation gate (landscape-required games) -------------------
+  let rotateGate = null;
+  function isPortrait() {
+    return window.innerHeight > window.innerWidth;
+  }
+  function updateOrientationGate() {
+    if (orientation !== 'landscape') return;
+    const portrait = isPortrait();
+    if (portrait && !rotateGate) {
+      rotateGate = document.createElement('div');
+      rotateGate.className = 'rt-rotate-gate';
+      rotateGate.innerHTML = `
+        <div class="rt-rotate-icon">📱</div>
+        <div>ROTATE YOUR PHONE</div>
+        <div style="font-size:10px;color:#9fe;">this game is best in landscape</div>
+      `;
+      document.body.appendChild(rotateGate);
+    } else if (!portrait && rotateGate) {
+      rotateGate.remove();
+      rotateGate = null;
+    }
+  }
+  if (orientation === 'landscape') {
+    updateOrientationGate();
+    window.addEventListener('resize', updateOrientationGate);
+    window.addEventListener('orientationchange', updateOrientationGate);
+  }
+
+  // ---- letterbox the canvas so the overlay doesn't cover it ----------
+  // We don't resize the canvas internal dimensions (that would break game
+  // logic). Instead we constrain the CSS box so the canvas + overlay both
+  // fit within 100vh.
+  function applyLetterbox() {
+    if (!canvas) return;
+    const overlayH = root.getBoundingClientRect().height || 180;
+    canvas.style.maxHeight = `calc(100vh - ${overlayH + 16}px)`;
+    canvas.style.maxWidth = '100vw';
+    canvas.style.objectFit = 'contain';
+  }
+  // Run after layout settles.
+  requestAnimationFrame(applyLetterbox);
+  window.addEventListener('resize', applyLetterbox);
+  window.addEventListener('orientationchange', applyLetterbox);
+
+  const api = {
+    destroy() {
+      root.remove();
+      if (pauseEl) pauseEl.remove();
+      if (rotateGate) rotateGate.remove();
+      style.remove();
+      delete window.__rakuTouchOverlay;
+    },
+    isMobile: true,
+    isVisible: () => !!document.getElementById('raku-touch-overlay'),
+  };
+  window.__rakuTouchOverlay = api;
+  return api;
+}

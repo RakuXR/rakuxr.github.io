@@ -72,6 +72,7 @@ import {
   installLauncherIntegration,
   ensureIframeFocus,
   relayApiCallsToParent,
+  installTouchOverlay,
 } from '../lib/game-shared.js';
 
 // ------------------------------------------------------------
@@ -104,6 +105,15 @@ relayApiCallsToParent(engine);
 
   var canvas = document.getElementById('game');
   var ctx = canvas.getContext('2d');
+
+  // Mobile touch controls (no-op on desktop). Discrete hops — D-pad taps map
+  // 1:1 to the existing arrow-key handlers.
+  installTouchOverlay({
+    engine, canvas,
+    dpad: '4way',
+    actions: [],
+    orientation: 'portrait',
+  });
 
   var TILE = 40;
   var COLS = 14;

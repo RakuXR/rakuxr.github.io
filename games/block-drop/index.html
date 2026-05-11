@@ -186,6 +186,7 @@ import {
   installLauncherIntegration,
   ensureIframeFocus,
   relayApiCallsToParent,
+  installTouchOverlay,
 } from '/games/lib/game-shared.js';
 import { RakuEngine } from '/engine/raku-engine.js';
 
@@ -308,6 +309,19 @@ const BLOCK_AGENT_ID = blockAgentRes.agent_id;
   // ---------- DOM ----------
   const boardCanvas = document.getElementById('board');
   const ctx = boardCanvas.getContext('2d');
+
+  // ---------- Mobile touch controls (no-op on desktop) ----------
+  // Up = rotate (matches existing key map), down = soft drop.
+  // Action buttons: hard drop (Space) and hold (Shift).
+  installTouchOverlay({
+    engine, canvas: boardCanvas,
+    dpad: 'lr+ud',
+    actions: [
+      { id: 'drop', label: 'DROP', key: ' ' },
+      { id: 'hold', label: 'HOLD', key: 'Shift' },
+    ],
+    orientation: 'portrait',
+  });
   const nextCanvas = document.getElementById('next-canvas');
   const nextCtx = nextCanvas.getContext('2d');
   const holdCanvas = document.getElementById('hold-canvas');

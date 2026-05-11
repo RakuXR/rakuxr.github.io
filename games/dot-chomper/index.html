@@ -303,7 +303,7 @@
 <script type="module">
 'use strict';
 import { RakuEngine } from '../../engine/raku-engine.js';
-import { ensureIframeFocus, relayApiCallsToParent } from '../lib/game-shared.js';
+import { ensureIframeFocus, relayApiCallsToParent, installTouchOverlay } from '../lib/game-shared.js';
 
 // Ensure keyboard events reach us when we're loaded inside the launcher iframe.
 ensureIframeFocus();
@@ -518,6 +518,15 @@ engine.on('api', (entry) => {
 });
 // Forward engine API calls to the launcher's API feed when embedded.
 relayApiCallsToParent(engine);
+
+// Mobile touch controls (no-op on desktop). Dot Chomper already supports
+// swipe gestures — the D-pad coexists with that (whichever the user uses).
+installTouchOverlay({
+  engine, canvas,
+  dpad: '4way',
+  actions: [],
+  orientation: 'portrait',
+});
 function toggleApiOverlay() {
   apiOverlayVisible = !apiOverlayVisible;
   apiOverlay.classList.toggle('visible', apiOverlayVisible);
