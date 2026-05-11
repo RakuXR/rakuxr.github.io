@@ -1,14 +1,14 @@
 ---
-title: "Starting the Blog. The Engine Started a Long Time Ago."
+title: "Starting the Weekly Cadence"
 date: 2025-09-06
 author: Kevin Griffin
 tags: [foundation, ar-glasses, patents, history, ai-native]
-description: "First post on this blog. The engine behind it is not new. Patents go back over a decade. What is new is the public engineering log, the workflow built around AI agents on the dev team, and the public commitment to ship."
+description: "First entry in the weekly cadence. A few design-doc Saturdays predate this one, walking through how the agent roster, the demo suite, and the SDK structure got mapped before any code existed. From this Saturday on, the cadence is weekly, the repos are live, and the agents are working."
 series: learning-to-code-with-ai
 slug: day-zero-readme-spec-and-bet-on-ar-glasses
 ---
 
-This is the first post on this blog. The blog is new. The thing the blog is about is not.
+This Saturday starts the regular weekly cadence on this blog. The four entries below this one were the design-doc Saturdays from earlier in the summer: agent roster, demo suite, folder structure, the last reflection before the code began. The cadence from here forward is weekly. The thing the blog is about is not new.
 
 I have been thinking about AR glasses, real-world-anchored spatial experiences, and the right shape for the runtime that drives them for more than a decade. Some of that thinking became patents in the early 2010s, the eyeglasses-form-factor estate that still anchors the IP behind what we're building now. Some of it became prototypes that never saw daylight. Most of it ran in the background while I did other work.
 
