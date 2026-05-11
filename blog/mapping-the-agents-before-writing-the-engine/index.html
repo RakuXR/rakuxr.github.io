@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Mapping the Agents Before Writing the Engine &mdash; RakuAI Blog</title>
+    <meta name="description" content="Three months before the first line of runtime code, this Saturday went into mapping the agents that would build it. Product, SDK, Studio, Marketing, Operations, AI strategy, plus a governance layer over the whole thing. The agents come before the architecture because the agents shape the architecture.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/mapping-the-agents-before-writing-the-engine/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Mapping the Agents Before Writing the Engine">
+    <meta property="og:description" content="Three months before the first line of runtime code, this Saturday went into mapping the agents that would build it. Product, SDK, Studio, Marketing, Operations, AI strategy, plus a governance layer over the whole thing. The agents come before the architecture because the agents shape the architecture.">
+    <meta property="og:url" content="https://rakuai.com/blog/mapping-the-agents-before-writing-the-engine/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2025-05-31T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Mapping the Agents Before Writing the Engine">
+    <meta name="twitter:description" content="Three months before the first line of runtime code, this Saturday went into mapping the agents that would build it. Product, SDK, Studio, Marketing, Operations, AI strategy, plus a governance layer over the whole thing. The agents come before the architecture because the agents shape the architecture.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Mapping the Agents Before Writing the Engine</h1>
+            <p class="post-meta">
+                <time datetime="2025-05-31T00:00:00+00:00">May 31, 2025</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>This Saturday went into a whiteboard exercise that anyone watching would think was premature. The product is a long way from shipping. The engine is not a repo yet. There is no code. There is no demo. There is a hardware roadmap, a patent estate that goes back over a decade, and a clear thesis about what the next generation of AR glasses should be. And here I am, sitting at the kitchen table, mapping out the agents that will build this thing.</p>
+<p>That is on purpose.</p>
+<h2 id="why-the-agents-come-first">Why the agents come first</h2>
+<p>The conventional move at this stage of a project is to start writing code. Open the repo. Build the proof-of-concept. Hire engineers when the PoC starts asking for help. Ship the MVP. Iterate.</p>
+<p>I have built three companies along the conventional path. I have decided this one is going to be different. The team that builds this engine is going to be one human and a fleet of AI agents working in defined roles. The architecture of the engine, the shape of the SDK, the discipline of the code review, the cadence of the dev loop, all of those are downstream of the team shape. If I do not figure out the team shape first, I will end up with an engine that was built for a different team than the one that actually has to build it.</p>
+<p>So today is team-shape day.</p>
+<h2 id="the-roster">The roster</h2>
+<p>The agent roster I am settling on, with the role each one is supposed to own.</p>
+<p><strong>Product Agent.</strong> Owns the spec. Tracks hardware updates, vendor roadmaps, SDK dependencies, the public release calendar. The Product Agent is the canonical source of truth for what the engine is supposed to do. Other agents check their work against the Product Agent&rsquo;s read of the spec.</p>
+<p><strong>SDK Agent.</strong> Owns the SDK itself. Documentation, onboarding flows, compatibility tests, package publishing. The SDK Agent is the agent that developers will interact with most often, in the form of generated docs, sample apps, and onboarding error messages. Its output has to feel like a real developer-relations function.</p>
+<p><strong>Studio Agent.</strong> Owns outreach to game studios and indie developers. Demo prep. Co-marketing collateral. Onboarding docs targeted at studios specifically. The Studio Agent&rsquo;s metric is conversion: a studio that talked to us and then shipped something on the engine. That metric is far in the future and the Studio Agent&rsquo;s day-to-day is the slow accumulation of relationships that produce it.</p>
+<p><strong>Marketing Agent.</strong> Owns the public-facing surface. Press kits. Kickstarter assets if that path makes sense. Influencer tracking. Hardware event collateral. A/B testing on landing pages. This agent&rsquo;s output is the thing the world sees first. It has to be good.</p>
+<p><strong>Operations Agent.</strong> Owns the cadence. Stand-ups (with me). Notion / Gantt management. Bottleneck alerts. Executive summaries. The Operations Agent is the agent I check in with at the start of every Saturday to find out what the rest of the agents did during the work week while I was elsewhere.</p>
+<p><strong>AI and Data Strategy Agent.</strong> Owns the data flywheel. Captures telemetry from the SDK and from the glasses. Builds the small language models that will eventually live on-device. Refines the AI moat. This is the agent whose work compounds the most over time, because the data and the models it produces become the differentiator no one can replicate.</p>
+<p><strong>Codex Dev Sub-Agent.</strong> Writes the code. Integrates the runtime APIs. Builds Unity and Unreal demos. Supports the SDK Agent on technical onboarding. This is the autonomous coding agent. It works under direction. It does not set its own priorities.</p>
+<p>That is the capstone roster: seven agents in defined roles, with explicit interactions between them.</p>
+<h2 id="the-three-i-am-adding">The three I am adding</h2>
+<p>The capstone gets us most of the way there. There are three roles I think are needed but were not on the original draft. Adding them this Saturday.</p>
+<p><strong>Developer Relations Agent.</strong> GitHub issues. Discord. Reddit. The agent that responds when a developer asks a question and the SDK Agent does not have a doc for it yet. This is concierge work. It is also evangelism work. The right person in this role (or the right agent) builds trust with studios and indie devs in a way that no amount of marketing collateral can replicate.</p>
+<p><strong>Strategic Partnerships Agent.</strong> B2B outreach. Licensing conversations. Co-marketing deals with gaming cafes, e-sports venues, anywhere the product could be experienced first by someone other than a studio. This is the agent that goes after revenue channels that are not consumer.</p>
+<p><strong>Agent Governance Agent.</strong> The agent that monitors the other agents. Proposes upgrades. Manages versioning. Handles rollback when an agent makes a bad call. This is the recursion that I think is the actual unlock for this kind of workflow. Without it, the agents drift. With it, they get better over time because someone is watching the watchers.</p>
+<h2 id="what-the-interaction-map-looks-like">What the interaction map looks like</h2>
+<p>The whiteboard version, simplified:</p>
+<ul>
+<li>Executive oversight (me) sits at the top.</li>
+<li>The Agent Governance Agent sits below me and monitors everything below it.</li>
+<li>Product, SDK, and Codex Dev form one triangle of technical work.</li>
+<li>Studio and Developer Relations form the developer-facing surface.</li>
+<li>Marketing and Strategic Partnerships form the outside-facing surface.</li>
+<li>Operations and AI/Data sit underneath as cross-cutting concerns.</li>
+</ul>
+<p>Each agent has explicit interactions with the others. SDK talks to Codex Dev. Studio talks to Marketing. Operations talks to everyone. The Governance Agent watches the whole thing and intervenes when an agent&rsquo;s outputs start to drift from its role.</p>
+<p>This is not the org chart of a traditional company. It is the org chart of a workflow where most of the boxes are AI agents and most of the connections between them are automated handoffs. The one human in the chart is at the top, doing the framing and the judgment work. Everyone else is an agent.</p>
+<h2 id="why-this-is-the-right-time-to-do-this">Why this is the right time to do this</h2>
+<p>Three reasons.</p>
+<p><strong>The engine architecture will be shaped by the team.</strong> Cross-cutting concerns like documentation, testing, and code review have to be designed into the codebase from day one if agents are going to participate in them. If I write the codebase first and then try to fit agents into it later, I will have to do most of the work twice.</p>
+<p><strong>The patent estate gives me the runway to plan carefully.</strong> The patents that anchor this product are decade-old prior art. The competitive timing is not &ldquo;ship in three months or someone else does.&rdquo; It is &ldquo;ship the right thing at the right moment, which is closer than it has been at any point in the last ten years but still allows for a planning quarter.&rdquo; I am using the quarter.</p>
+<p><strong>The agents themselves need to be designed.</strong> Each one needs a system prompt, a set of tools, a set of guardrails. Writing the engine before writing the agents means hiring the team after the work has started. That is how engine projects end up with agents shoehorned into roles the codebase was not designed to support.</p>
+<h2 id="what-is-next">What is next</h2>
+<p>Next Saturday goes into the SDK design. Folder structure, module surface, what the developer interaction looks like with each piece. The Saturday after that goes into the demo suite: what the canonical sample apps are, what they prove, what they teach. By the end of summer the design phase should be done and the actual repo can open.</p>
+<p>This is a slow build by traditional venture-pace standards. It will not look slow once it is done.</p>
+        </div>
+        <ul class="post-tags"><li>design</li><li>agents</li><li>governance</li><li>pre-build</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-next" href="/blog/eight-demos-zero-code/" rel="next">Eight Demos, Zero Code: What the SDK Has to Be For &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

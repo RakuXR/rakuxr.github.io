@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Eight Demos, Zero Code: What the SDK Has to Be For &mdash; RakuAI Blog</title>
+    <meta name="description" content="This Saturday went into specifying the eight canonical demos that will ship with the SDK. Arena multiplayer. AR coaching. HUD designer. Streamer mode. Point-of-service overlay. Companion HUD. AR aim trainer. Multiplayer HUD sync. Eight different proofs of what the product is. None of them coded yet. All of them specified.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/eight-demos-zero-code/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Eight Demos, Zero Code: What the SDK Has to Be For">
+    <meta property="og:description" content="This Saturday went into specifying the eight canonical demos that will ship with the SDK. Arena multiplayer. AR coaching. HUD designer. Streamer mode. Point-of-service overlay. Companion HUD. AR aim trainer. Multiplayer HUD sync. Eight different proofs of what the product is. None of them coded yet. All of them specified.">
+    <meta property="og:url" content="https://rakuai.com/blog/eight-demos-zero-code/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2025-06-21T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Eight Demos, Zero Code: What the SDK Has to Be For">
+    <meta name="twitter:description" content="This Saturday went into specifying the eight canonical demos that will ship with the SDK. Arena multiplayer. AR coaching. HUD designer. Streamer mode. Point-of-service overlay. Companion HUD. AR aim trainer. Multiplayer HUD sync. Eight different proofs of what the product is. None of them coded yet. All of them specified.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Eight Demos, Zero Code: What the SDK Has to Be For</h1>
+            <p class="post-meta">
+                <time datetime="2025-06-21T00:00:00+00:00">June 21, 2025</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>A pattern I have learned the hard way over three previous companies: if you cannot describe the demos before you build the engine, you will build the wrong engine. The demos are the spec. The engine has to deliver each of them. Everything else (architecture, APIs, language bindings, hardware abstractions) is downstream of what the demos need to do.</p>
+<p>This Saturday went into specifying the eight demos that will ship with the SDK when the SDK ships. None of them have any code yet. All of them have detailed enough specifications that a competent engineer (or a competent agent) could start building them tomorrow.</p>
+<h2 id="why-eight">Why eight</h2>
+<p>Three demos would not be enough. Twenty would be too many to do well. Eight is the number where each demo proves a different category of capability and the suite as a whole demonstrates the surface area of what the SDK enables. A studio looking at the eight should be able to find the one that maps to their product and read the source code as a working example. A partner looking at the eight should be able to see the breadth.</p>
+<p>The eight categories I am locking in:</p>
+<h2 id="1-solo-arena-mode">1. Solo arena mode</h2>
+<p>The flagship single-player AR demo. Simulated multiplayer match with score, time, and objectives rendered as HUD overlays. Motion tracking. Gesture triggers. The user is in a real room, moving around, with virtual content reacting to them.</p>
+<p>What this proves: the engine can drive a real-time interactive experience with the kind of latency and tracking quality that makes the AR feel grounded rather than slid-on. If this demo plays well, every other demo gets easier. If it does not, nothing else matters.</p>
+<h2 id="2-ar-coaching-and-training">2. AR coaching and training</h2>
+<p>A sports-drill simulator. QB throwing motion. Agility drills. Real-time motion feedback overlaid on the user&rsquo;s actual body movement. Play diagrams visible in space. Coaching audio. Session statistics.</p>
+<p>What this proves: the engine can ingest body-pose data and produce useful real-time feedback. The use case is sports, but the underlying capability extends to physical therapy, dance instruction, surgical training, anywhere where an expert needs to coach a learner through a physical task with their hands free.</p>
+<h2 id="3-hud-overlay-designer">3. HUD overlay designer</h2>
+<p>A developer-facing tool. A test scene with configurable HUD widgets. Drag-and-drop placement. Preview the layout in different viewport sizes. Export the configuration to a file that other demos can load.</p>
+<p>What this proves: the SDK has a real authoring story for the HUD layer, not just a runtime story. Studios that want to build their own HUD configurations have a working tool to do it with. The export format becomes a contract that the rest of the demos respect.</p>
+<h2 id="4-streamer-mode-and-pov-recorder">4. Streamer mode and POV recorder</h2>
+<p>A demo built for content creators. Live camera overlays. Fan-chat bubbles surfaced as AR content. Gesture-triggered visual effects (a fireball, a celebration emote). Recording overlays for highlight-reel capture. Killcam-style replays.</p>
+<p>What this proves: the engine works for live content production, not just gameplay. The same primitives that drive a multiplayer match drive a stream overlay. The streaming use case is also one of the fastest paths to consumer visibility, because streamers are demand-generators.</p>
+<h2 id="5-point-of-service-overlay">5. Point-of-service overlay</h2>
+<p>A commercial-grade demo. Simulated restaurant or retail experience. Gaze and gesture navigation through a menu. Loyalty offers surfaced contextually. Checkout flow. The user is wearing the glasses in a real venue, looking at a real menu, with virtual content augmenting both.</p>
+<p>What this proves: the engine works for non-gaming commercial applications. This is where the partnerships pipeline meets the product. Quick-service restaurants, retail chains, hospitality venues. The economics of this category are different from gaming, and the engine has to support them as a first-class use case.</p>
+<h2 id="6-ar-companion-hud">6. AR companion HUD</h2>
+<p>A second-screen demo. The user is playing a console or PC game on a TV. The glasses display companion information in AR alongside the TV. Minimap. Ammo counter. Friends-online indicators. Connects to the existing game without needing the game&rsquo;s developer to integrate anything.</p>
+<p>What this proves: the engine integrates with existing content rather than requiring it to be ported. This is the most counterintuitive of the eight demos and probably the most important strategically. A user can adopt the glasses without waiting for the games they already play to support them.</p>
+<h2 id="7-ar-aim-trainer">7. AR aim trainer</h2>
+<p>A target gallery. Pop-up targets at varying distances. Scoring overlays. Eye-tracking or gesture for target acquisition. The user practices precision shooting in AR space with feedback.</p>
+<p>What this proves: the precision use case. The aim trainer is the demo I expect to be exhibited at events because it is immediately legible to a non-technical audience. It also stresses the tracking-latency budget more than any other demo on the list, which means if it plays well, the engine&rsquo;s latency story is real.</p>
+<h2 id="8-multiplayer-hud-sync">8. Multiplayer HUD sync</h2>
+<p>Two or more glasses devices in the same room. Each user has their own HUD, configured to show their own information, but with elements that are shared across the group. Team-color nameplates. Shared objective markers. Group health bars. Sync happens over LAN or Bluetooth. No cloud round-trip.</p>
+<p>What this proves: the multi-user case works without a cloud dependency. This is the demo that LAN-party gaming cafes will care about. It is also the demo that proves the engine&rsquo;s local-multiplayer story before any of the cloud-multiplayer infrastructure has to exist.</p>
+<h2 id="what-the-suite-as-a-whole-proves">What the suite as a whole proves</h2>
+<p>Each demo above is a single category of capability. The suite together proves something larger.</p>
+<p><strong>The engine is general-purpose.</strong> Eight demos that share the same SDK and the same runtime, doing eight very different things, demonstrate that the engine is not a single-genre vertical product.</p>
+<p><strong>The SDK is real.</strong> A studio looking at the source for any of the eight demos can read it and learn the SDK from a working example. That is a much stronger onboarding story than &ldquo;here are the API docs, good luck.&rdquo;</p>
+<p><strong>The HUD overlay model is the underlying primitive.</strong> All eight demos share a HUD-driven interaction model. That tells the engine team what to build first and tells the SDK team what to make easy.</p>
+<p><strong>The hardware target is plausible.</strong> Eight specific demos that exercise specific hardware capabilities (motion tracking, eye tracking, gesture, audio, video capture, LAN sync) give the hardware partners specific things to optimize for.</p>
+<h2 id="what-is-next">What is next</h2>
+<p>Next Saturday goes into the folder structure for the SDK itself. With the demos locked in, the SDK has to be organized so each demo has its own home, the shared modules are separable, and the docs make all of it findable. The Saturday after that goes into the API surface that all eight demos consume.</p>
+<p>The patent estate that anchors this product has been waiting more than a decade for the hardware to catch up. The hardware is catching up. The eight demos above are the bet on what the product is for once the hardware arrives.</p>
+<p>The demos are the spec. The engine has to deliver each of them. Tomorrow does not start the code. The Saturday after that does not start the code. The right Saturday for the code to start is the one when the demos are fully specified, the SDK is fully designed, and the agents that will build it are fully assembled.</p>
+<p>I am taking the time. The version that ships will be the one that knew what it was for before the first line of it was written.</p>
+        </div>
+        <ul class="post-tags"><li>design</li><li>sdk</li><li>demos</li><li>pre-build</li><li>ar-glasses</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/mapping-the-agents-before-writing-the-engine/" rel="prev">&larr; Mapping the Agents Before Writing the Engine</a><a class="nav-next" href="/blog/sketching-the-sdk-folder-structure/" rel="next">Sketching the SDK Folder Structure on Paper &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>
