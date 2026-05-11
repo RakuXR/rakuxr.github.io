@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday. &mdash; RakuAI Blog</title>
+    <meta name="description" content="Woke up this Saturday to a Shooter demo that had picked up four unrelated bugs over the holiday. Pink missing-shader graphics. A score that double-counted itself. A hard crash on XR boot. A camera that refused to lock onto the ship. Walked into the kitchen with coffee. Walked out of it ten hours later with a clean build.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/pink-graphics-score-runaway-xr-crash/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday.">
+    <meta property="og:description" content="Woke up this Saturday to a Shooter demo that had picked up four unrelated bugs over the holiday. Pink missing-shader graphics. A score that double-counted itself. A hard crash on XR boot. A camera that refused to lock onto the ship. Walked into the kitchen with coffee. Walked out of it ten hours later with a clean build.">
+    <meta property="og:url" content="https://rakuai.com/blog/pink-graphics-score-runaway-xr-crash/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-01-17T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday.">
+    <meta name="twitter:description" content="Woke up this Saturday to a Shooter demo that had picked up four unrelated bugs over the holiday. Pink missing-shader graphics. A score that double-counted itself. A hard crash on XR boot. A camera that refused to lock onto the ship. Walked into the kitchen with coffee. Walked out of it ten hours later with a clean build.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday.</h1>
+            <p class="post-meta">
+                <time datetime="2026-01-17T00:00:00+00:00">January 17, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>There is a specific kind of Saturday that anyone who has shipped a demo knows. The demo worked at the end of last weekend. You picked it up this Saturday morning. It is now broken in four different ways and none of the ways are related to each other.</p>
+<p>That was today. The demo was the Shooter game we ship as one of the canonical samples. The bugs were waiting like party guests nobody invited.</p>
+<h2 id="what-was-broken">What was broken</h2>
+<p>The demo booted. That was the good news. After that:</p>
+<p><strong>The graphics were pink.</strong> Anyone who has worked in a real-time renderer knows the pink-of-doom. It is the &ldquo;missing shader&rdquo; placeholder color, hot pink, screaming at you that something in the rendering pipeline failed to find the shader it expected. Every procedurally generated object in the demo was rendering in this color. Ships. Asteroids. Particles. All pink. Pink everywhere.</p>
+<p><strong>The score ran away.</strong> Every kill registered twice. The kill-counter went up in pairs. Twenty enemies down, &ldquo;score: forty.&rdquo; Forty enemies down, &ldquo;score: eighty.&rdquo; On paper it looks like the game was being kind, but in practice the leaderboard was inflated and the high-score logic was firing on completely wrong thresholds.</p>
+<p><strong>XR boot crashed.</strong> The demo on a flat screen booted clean. The moment I plugged in a headset and switched to XR mode, hard exit. No backtrace surfaced through the launcher. The renderer thread was gone before the launcher could grab a log.</p>
+<p><strong>The camera would not lock onto the ship.</strong> Standard third-person orbit camera, supposed to keep the ship in frame. On boot, the camera spawned at world origin and stayed there. The ship was visible across the void as a small dot in the distance.</p>
+<p>Four bugs. Zero overlap in subsystems. The kind of Saturday morning that decides whether you have the workflow or not.</p>
+<h2 id="what-caused-each">What caused each</h2>
+<p>I want to talk through each one because each one teaches a different lesson about how a codebase grows and breaks in an agent-driven workflow.</p>
+<h3 id="the-pink-graphics">The pink graphics</h3>
+<p>Root cause: shader handles were being looked up by string name on every render call, and a refactor over the holiday had moved the shader-cache initialization to a different point in the boot sequence. The procedural generators were now rendering before the shader cache had warmed up. They were getting back the null-handle fallback, which the renderer dutifully rendered as hot pink.</p>
+<p>The fix was to create an explicit <code>ShaderCache</code> utility that caches resolved shader references on first use and exposes a synchronous <code>GetOrCreate</code> API that the procedural generators can call without caring about boot order. Every procedural generator was updated to use it. Pink gone.</p>
+<p>The lesson: an init-order assumption that lived implicitly in the boot sequence got broken by a refactor that did not flag the assumption. Implicit ordering is fragile. The new cache makes the ordering explicit and self-healing.</p>
+<h3 id="the-score-runaway">The score runaway</h3>
+<p>Root cause: the <code>GameplayHUD</code> was tallying kills on the UI side, and <code>ScoreManager</code> was also tallying kills on the simulation side. Both were listening to the same kill-event signal. Both were adding to a shared score field. The score got incremented twice per kill.</p>
+<p>The fix was to pick the canonical owner of the score. <code>ScoreManager</code> owns the truth. The <code>GameplayHUD</code> reads from <code>ScoreManager</code> and renders. The duplicate increment in the HUD was removed.</p>
+<p>The lesson: in an event-driven engine, two subscribers to the same event will both run. If both write to the same state, the state will be wrong in proportion to how many subscribers wrote. The fix is to draw a clear line about who owns what state. Once drawn, the bug becomes impossible.</p>
+<h3 id="the-xr-boot-crash">The XR boot crash</h3>
+<p>Root cause: the XR subsystem was trying to initialize before the underlying graphics device was ready. On flat-screen boot, the order happened to work out because the graphics device was always ready by the time the user pressed &ldquo;Start.&rdquo; On XR boot, the headset detection triggered the XR init path before the graphics device was confirmed ready. The XR subsystem dereferenced a null device handle. Crash.</p>
+<p>The fix was an <code>XRBootstrap</code> that detects XR at the earliest possible point in boot, defers actual XR init until the graphics device confirms ready, and gracefully shuts down if anything in the chain reports a fault. The crash now becomes a clean error message and the user falls back to flat-screen.</p>
+<p>The lesson: hard crashes are the worst kind of error because they kill the logging that would have told you what happened. Detecting the failure earlier and reporting it cleanly is worth the engineering cost.</p>
+<h3 id="the-camera-that-would-not-lock">The camera that would not lock</h3>
+<p>Root cause: the orbit camera tries to target the player ship on boot. The ship is spawned by the procedural generator, asynchronously, a few frames after the camera initializes. The camera was looking for the ship on the very first frame, finding nothing, and then never trying again.</p>
+<p>The fix was to give the orbit camera a retry mechanism. It looks for the ship for a bounded number of frames before giving up, and once it locks on, it stays locked. The camera now spawns at origin briefly, then snaps to the ship within the first second of gameplay.</p>
+<p>The lesson: race conditions between systems that initialize on slightly different schedules will bite you. The fix is a small retry, bounded so it does not loop forever, with an explicit timeout that produces a useful error if the retry exhausts.</p>
+<h2 id="what-i-learned-about-the-shooter-demo-specifically">What I learned about the Shooter demo specifically</h2>
+<p>Three things, all uncomfortable.</p>
+<p><strong>Each subsystem was working in isolation. The integration was broken.</strong> The renderer worked. The score system worked. The XR subsystem worked. The camera worked. The Shooter demo as an integrated experience did not work. This is the kind of failure that escapes unit tests every time, because unit tests by their nature exercise things in isolation.</p>
+<p><strong>The holiday refactor over the late-December break was the proximate cause for at least two of these bugs.</strong> The shader-cache reorganization and the kill-event subscription split both landed in the holiday-sprint window. Both were correct PRs in isolation. Both broke the demo in non-obvious ways. The lesson is to run the integrated demos as part of CI, not just the unit tests. That work landed this morning as a separate PR.</p>
+<p><strong>The XR boot path needed its own boot guardian.</strong> Hard crashes are unacceptable because they kill the diagnostic. Every boot path that touches non-trivial hardware needs a guardian. We have that now for XR. We do not have it for spatial audio or for the Wi-Fi 7 link. Adding both is on the queue for the next two Saturdays.</p>
+<h2 id="what-partners-and-builders-should-take-from-this">What partners and builders should take from this</h2>
+<p>If you are building anything that integrates multiple subsystems with init-order dependencies, the lesson is the same one the Shooter demo just learned. Make the init order explicit. Make the failure modes graceful. Run the integrated demo in CI, not just the unit tests.</p>
+<p>If you are an indie team thinking about adopting Raku, the Shooter demo is a real sample that we test against every release. If it breaks, you see it break. That is the kind of public-discipline signal that matters more than a feature list.</p>
+<p>If you are an AI lab thinking about plugging your model into an AR experience, the XR boot path now has a defensible guardian. Your model will not see a hard crash on the way in. You will get clean error reporting if anything in the chain fails. The infrastructure is in place.</p>
+<p>Four bugs. One Saturday. The demo builds clean now. The party guests have been escorted out.</p>
+<p>Back to building.</p>
+        </div>
+        <ul class="post-tags"><li>debugging</li><li>demo</li><li>shooter</li><li>shader-cache</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/ai-as-nervous-system-not-ai-as-factory/" rel="prev">&larr; AI as Nervous System, Not AI as Factory</a><a class="nav-next" href="/blog/ai-as-interface-not-ai-as-dependency/" rel="next">How the Engine Talks to Any Model You Bring &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

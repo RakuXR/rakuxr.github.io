@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>The Test That Couldn&#x27;t Find dxcompiler.dll &mdash; RakuAI Blog</title>
+    <meta name="description" content="Eight tests crashing with the same Windows error code. The shader compiler DLL was missing on the CI machine. The runtime had a hard load-time dependency on it. Spent the weekend rewriting the loading path so the engine survives without it, with three other tests coming along for the ride.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/the-test-that-couldnt-find-dxcompiler/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="The Test That Couldn&#x27;t Find dxcompiler.dll">
+    <meta property="og:description" content="Eight tests crashing with the same Windows error code. The shader compiler DLL was missing on the CI machine. The runtime had a hard load-time dependency on it. Spent the weekend rewriting the loading path so the engine survives without it, with three other tests coming along for the ride.">
+    <meta property="og:url" content="https://rakuai.com/blog/the-test-that-couldnt-find-dxcompiler/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-03-28T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Test That Couldn&#x27;t Find dxcompiler.dll">
+    <meta name="twitter:description" content="Eight tests crashing with the same Windows error code. The shader compiler DLL was missing on the CI machine. The runtime had a hard load-time dependency on it. Spent the weekend rewriting the loading path so the engine survives without it, with three other tests coming along for the ride.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>The Test That Couldn&#x27;t Find dxcompiler.dll</h1>
+            <p class="post-meta">
+                <time datetime="2026-03-28T00:00:00+00:00">March 28, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>Saturday morning, CI dashboard, eight tests in red. All eight failed with the same Windows error code: <code>0xc0000135</code>. Anyone who has spent time on Windows native development knows that one immediately. <code>STATUS_DLL_NOT_FOUND</code>. The process tried to load a DLL it needed and the DLL was not on the system.</p>
+<p>The DLL in question was <code>dxcompiler.dll</code>, the Microsoft DirectX Shader Compiler runtime. The CI machine did not have it. Production user machines might not have it. Anywhere outside a developer&rsquo;s well-equipped workstation, the runtime had been quietly assuming <code>dxcompiler.dll</code> was present and crashing hard when it was not.</p>
+<p>By the end of the weekend, three problems were fixed and the test suite was at 89% passing, up from 71%. This is the post about each one.</p>
+<h2 id="why-the-dependency-was-hard-in-the-first-place">Why the dependency was hard in the first place</h2>
+<p>The shader cross-compilation path uses Microsoft&rsquo;s DXC compiler to take HLSL shader source and produce SPIR-V or DXIL bytecode. Most of the engine&rsquo;s shipped shaders are precompiled. A few code paths in the runtime can compile new shaders at runtime: shader-permutation hot-reload during development, dynamic material editing in the editor, and a couple of debug paths.</p>
+<p>The original implementation linked against <code>dxcompiler.lib</code> with a <code>#pragma comment(lib, "dxcompiler.lib")</code> directive in the shader-cross source. This produced a hard load-time dependency. The Windows loader resolves load-time dependencies when the process starts; if the DLL is missing, the process never gets to <code>main()</code>. The runtime executable could not start without the DLL on the system.</p>
+<p>This is the right answer for a developer who has the full DXC SDK installed. It is the wrong answer for a CI runner, a user machine, or anywhere else where DXC is not present. The runtime should boot. The hot-reload feature should report &ldquo;not available.&rdquo; Everything else should continue.</p>
+<h2 id="what-the-fix-looked-like">What the fix looked like</h2>
+<p>Three changes, each small, each precise.</p>
+<p><strong>The shader-cross source moved from load-time to runtime DLL loading.</strong> Replaced the <code>#pragma comment(lib, ...)</code> directive with explicit <code>LoadLibrary</code> and <code>GetProcAddress</code> calls. The DLL is looked up on first use, not at process start. If <code>LoadLibrary</code> fails, the code path returns a clear error.</p>
+<p><strong>Fallback paths added for when DXC is missing.</strong> When <code>dxcompiler.dll</code> is not present, the shader-cross subsystem falls back to one of two paths. If the older D3DCompiler is available, it falls back to that with reduced functionality (no SPIR-V output, only DXIL). If even D3DCompiler is missing, it falls back to a placeholder SPIR-V blob that produces a noisy magenta-only fragment shader. The placeholder ensures the runtime continues to work end-to-end in environments where no shader compiler is available; the visual signal makes it obvious that you are running in placeholder mode.</p>
+<p><strong>The graceful-fail path logs and emits telemetry.</strong> Every fallback is logged at WARNING level with the specific subsystem that fell back and the reason. Telemetry records the fallback for ops visibility. A developer running locally without DXC sees the warning in their console and knows to install DXC if they need real shader compilation. A user running the runtime with the assumption that everything is precompiled sees no warning at all because the precompiled shaders work fine without DXC.</p>
+<p>This is the right shape for the dependency. The runtime is portable. The capability is opt-in based on what is installed. The failure mode is observable.</p>
+<h2 id="two-adjacent-bugs-that-fell-out-of-the-same-audit">Two adjacent bugs that fell out of the same audit</h2>
+<p>While I was in the shader-loading code with the lid off, two other tests were failing in adjacent ways and I fixed them in the same pass.</p>
+<p><strong>Audio bus effects ABI mismatch.</strong> The <code>raku_audio_bus_add_effect</code> and <code>raku_audio_bus_remove_effect</code> C API functions had been written with a <code>(handle, struct*)</code> signature, but the test suite was calling them with <code>(handle, handle)</code> because that is what the rest of the audio API used. The tests were segfaulting because the struct-pointer dereference was reading whatever happened to live at the address the second handle&rsquo;s bits resembled. ABI mismatch.</p>
+<p>The fix was to change the C API to match the rest of the audio module: <code>(handle, handle)</code>. This is the right shape for the API because effect chains in the audio bus are first-class objects that the runtime tracks. The struct-pointer version had been a holdover from an earlier API design that did not survive the rest of the refactor. The test suite was right; the implementation was stale.</p>
+<p><strong>Memory-leak test stubs overriding real implementations.</strong> The asset-streaming subsystem has a memory-leak test that exercises reference counting on streamed assets. The test was failing because a stub implementation of <code>AssetStreamingManager</code> had been left in the test fixture and was overriding the real implementation from the runtime DLL. The test was exercising the stub, not the real code. The stub had a memory leak. The real implementation did not. The test was right about there being a leak; it was wrong about whose leak it was.</p>
+<p>The fix was to remove the stub from the test fixture and to add <code>RAKU_STREAMING_API</code> exports on the real implementation so the test could link against it cleanly. Once linked correctly, the test passed against the real code.</p>
+<h2 id="what-the-three-fixes-unblocked-together">What the three fixes unblocked together</h2>
+<p>Eight tests went green on the dxcompiler fix. Two on the audio-bus fix. Three on the memory-leak fix. Total tests passing climbed from 39/55 to 49/55. The 89% number is the right milestone to celebrate but the deeper milestone is that the runtime now works without DXC, which means it will work in environments I have not anticipated yet.</p>
+<h2 id="what-i-learned">What I learned</h2>
+<p>Three things.</p>
+<p><strong>Hard load-time dependencies are a portability defect.</strong> Anywhere your runtime has a load-time dependency on a DLL or shared object that is not universally present, the runtime has constrained itself to environments that include that DLL. That constraint is fine to make on purpose. It is bad to make on accident. The audit of &ldquo;what does our runtime require at load time&rdquo; is worth running.</p>
+<p><strong><code>0xc0000135</code> is the most common Windows DLL error code, and the message reveals nothing.</strong> The error tells you a DLL is missing. It does not tell you which one. The diagnostic tools to figure out which (<code>Process Monitor</code>, <code>Dependencies.exe</code>, the new Windows ETW tracing) all work, but they all require you to know they exist and to set them up before the failure happens. The runtime now emits a clear error message when a graceful fallback fires, naming the DLL that was missing. Future-me will be grateful.</p>
+<p><strong>ABI mismatches between tests and implementations are usually correct on the test side.</strong> The tests were written against the API the rest of the codebase exposed. When the tests disagreed with the implementation, the tests were right. This is the inverse of the usual instinct, which is to &ldquo;fix the test.&rdquo; The right instinct is to look at the broader API surface and ask which side is the outlier.</p>
+<h2 id="what-partners-and-builders-should-take-from-this">What partners and builders should take from this</h2>
+<p>If you are evaluating an engine for partnership and you are deploying to environments where the developer&rsquo;s machine and the production environment are different (which is almost every deployment), ask the team about their hard load-time dependencies. The right answer is a short list, all justified. The wrong answer is a long list, half of which the team has forgotten about.</p>
+<p>If you are a Windows-native developer and you are not yet using <code>LoadLibrary</code> plus <code>GetProcAddress</code> for any DLL that is not universally present, this is the gentle nudge. The pattern is small. The portability win is large.</p>
+<p>If you are an AI lab whose coding agent writes Windows code, the patterns to watch for in agent-authored code are <code>#pragma comment(lib, ...)</code> directives that should be runtime loads and ABI signatures that drift from the rest of the codebase. Both are flagged by static analysis. Both should be in the agent&rsquo;s review checklist.</p>
+<p>End-of-weekend wrap. The runtime boots cleanly on machines that do not have DXC. Eleven tests went green in two days. The next audit is on the calendar.</p>
+<p>Back to building.</p>
+        </div>
+        <ul class="post-tags"><li>debugging</li><li>windows</li><li>msvc</li><li>dll-loading</li><li>abi</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/eight-security-findings/" rel="prev">&larr; Eight Security Findings on a Saturday Morning</a><a class="nav-next" href="/blog/all-eighteen-dlls-green-on-linux/" rel="next">All Eighteen DLLs Green on Linux &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

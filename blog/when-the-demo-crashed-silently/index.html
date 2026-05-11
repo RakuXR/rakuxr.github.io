@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>When the Demo Crashed Silently &mdash; RakuAI Blog</title>
+    <meta name="description" content="Spent this Saturday tracking down something worse than a crash. A demo that did not crash, did not error, and also did not work. The pause menu would not respond. The gameplay scene loaded a placeholder. The logs said nothing. Three hours of digging surfaced a missing GraphicRaycaster and a quiet placeholder fallback that needed to scream instead of whisper.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/when-the-demo-crashed-silently/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="When the Demo Crashed Silently">
+    <meta property="og:description" content="Spent this Saturday tracking down something worse than a crash. A demo that did not crash, did not error, and also did not work. The pause menu would not respond. The gameplay scene loaded a placeholder. The logs said nothing. Three hours of digging surfaced a missing GraphicRaycaster and a quiet placeholder fallback that needed to scream instead of whisper.">
+    <meta property="og:url" content="https://rakuai.com/blog/when-the-demo-crashed-silently/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-01-31T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="When the Demo Crashed Silently">
+    <meta name="twitter:description" content="Spent this Saturday tracking down something worse than a crash. A demo that did not crash, did not error, and also did not work. The pause menu would not respond. The gameplay scene loaded a placeholder. The logs said nothing. Three hours of digging surfaced a missing GraphicRaycaster and a quiet placeholder fallback that needed to scream instead of whisper.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>When the Demo Crashed Silently</h1>
+            <p class="post-meta">
+                <time datetime="2026-01-31T00:00:00+00:00">January 31, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>There is a class of bug that is worse than a crash. A crash at least tells you something is wrong. The bug I sat down with this Saturday morning was the other thing. The demo booted. The scene loaded. The UI rendered. The pause menu did not respond. The gameplay was a placeholder. No error. No exception. No log line above INFO. The engine had failed silently and was politely going through the motions of a working game.</p>
+<p>This is the post about how to make your engine refuse to do that.</p>
+<h2 id="what-the-demo-looked-like-to-a-user">What the demo looked like to a user</h2>
+<p>Booted clean. Splash screen. Menu screen. Click &ldquo;Play.&rdquo; Scene transition. A clean-looking scene. A ship in the middle. A score display in the upper right.</p>
+<p>The ship would not move. The input was dead. The pause menu, when summoned, was visually present but unresponsive to clicks. The score said zero and stayed zero. There was no enemy to shoot at. The world was a polite, empty, working-looking shell.</p>
+<p>To a developer reading this, the conclusion is obvious within thirty seconds: this is a placeholder. The real gameplay prefabs are missing. The engine fell back to a degraded mode and forgot to tell anyone.</p>
+<p>To a user, this is the worst kind of failure. The application does not look broken. It looks finished, and bad.</p>
+<h2 id="what-was-actually-wrong">What was actually wrong</h2>
+<p>Two distinct problems, each subtle.</p>
+<p><strong>The scene loader was silently degrading.</strong> The <code>SceneContentLoader</code> is responsible for finding gameplay prefabs and instantiating them into the active scene. When the prefabs are missing (because of a build issue, a missing asset pack, or a configuration mismatch) it falls back to a placeholder configuration. The fallback was supposed to log a clear error. It was logging at INFO. The error message was buried in an unfiltered log stream alongside three hundred other INFO lines. Anyone running the demo and skimming the log saw nothing alarming.</p>
+<p><strong>The pause-menu canvas was missing a <code>GraphicRaycaster</code>.</strong> This is a Unity-side thing. A canvas that does not have a <code>GraphicRaycaster</code> component cannot receive pointer events. The pause menu was being instantiated correctly, rendering correctly, and being completely deaf to user input. The component&rsquo;s absence had crept in through a refactor that consolidated several canvas configurations into one. The consolidation dropped the raycaster on one of the canvases.</p>
+<p>Both bugs had the same flavor. Something quietly went wrong. The code path continued. The user saw something that looked working but was not.</p>
+<h2 id="how-i-found-them">How I found them</h2>
+<p>The audit took longer than the fix. The fix took a Saturday afternoon. The audit took the morning. The pattern I want to write down because it will repeat.</p>
+<p>The first hint was that the score was stuck at zero. I assumed the bug from last weekend (score double-counting) had been over-corrected. Wrong. Score was zero because there were no enemies. There were no enemies because the gameplay prefabs were not loading. The prefabs were not loading because the scene content loader was falling back to a placeholder and saying so at INFO level instead of ERROR level.</p>
+<p>Once I knew that, the second bug became obvious. The pause menu being unresponsive was a separate problem in the same demo, surfaced by the same Saturday session. The audit pattern is &ldquo;if you found one silent failure, look for adjacent ones.&rdquo;</p>
+<h2 id="what-i-fixed">What I fixed</h2>
+<p>A small but precise set of changes.</p>
+<p><strong>Promote the placeholder warning to ERROR.</strong> When the scene content loader cannot find a real gameplay prefab and falls back to placeholder mode, it now logs at ERROR with the message &ldquo;PLACEHOLDER MODE: gameplay prefabs missing, demo will not function correctly.&rdquo; The ERROR severity makes it survive any reasonable log filtering. The exact text &ldquo;PLACEHOLDER MODE&rdquo; is unmistakable when you grep the log.</p>
+<p><strong>Add an <code>EnsureCrossPlatformInputManager</code> step.</strong> Even in placeholder mode, the input system should work. If a developer is testing the demo in placeholder mode (because they are working on the UI without the full asset pack), they need to be able to interact with the menus. The bootstrap now ensures a <code>CrossPlatformInputManager</code> singleton exists in any scene, even placeholder ones.</p>
+<p><strong>Add <code>GraphicRaycaster</code> automatically to canvases that need it.</strong> The defensive fix is to make the canvas-spawn helper check for the <code>GraphicRaycaster</code> component and add it if missing. This will not paper over future bugs of the same shape, but it removes this specific failure mode from possible.</p>
+<p><strong>Verbose boot logging in <code>AutoBootstrap</code>.</strong> When the demo boots, the logs now print a short summary of what scene was loaded, what mode it loaded in (real vs placeholder), and what subsystems are present. A developer reading the log can answer the question &ldquo;did the demo boot in the mode I expected&rdquo; within ten seconds. Before this morning, the answer required reading three hundred log lines and inferring.</p>
+<p><strong>A unit test for the canvas helper.</strong> Because the bug was a missing component, the right kind of test is one that asserts the component is present after the helper runs. That test is in the suite now. If anyone refactors the canvas helper in a way that drops the raycaster again, the test will fail loudly.</p>
+<h2 id="what-this-generalizes-to">What this generalizes to</h2>
+<p>Three patterns to take from this morning.</p>
+<p><strong>Silent failure is the worst failure mode.</strong> Anywhere your code falls back to a degraded mode, the fallback has to scream. Not at INFO. At ERROR. With a string that grep will find. If the user cannot tell whether the fallback fired, neither can the developer reading the logs three days later.</p>
+<p><strong>A missing component in a configuration-driven system needs a test.</strong> Unity, Unreal, any engine where a scene is configured out of components: the configuration can drift silently. The defense is a small set of tests that assert &ldquo;scene of type X has components A, B, C.&rdquo; Boring tests. Critical tests. Worth writing.</p>
+<p><strong>Audit by adjacency.</strong> When you find a silent failure, look at every adjacent system. Bugs cluster. The same refactor that dropped the raycaster might have dropped other components on other canvases. The same logging-discipline lapse that buried the placeholder warning might have buried other warnings. Investigate the neighborhood, not just the original sighting.</p>
+<h2 id="what-partners-and-builders-should-take-from-this">What partners and builders should take from this</h2>
+<p>If you are building anything where the engine has multiple degraded modes (asset missing, network out, vendor SDK unavailable), the engine has to tell you which mode it is in, loudly, every time. Quiet degradation is a defect.</p>
+<p>If you are evaluating an engine for a partnership, ask the team how they handle silent failures. The right answer is &ldquo;we surface them at ERROR with grep-able strings and we have audits to find them.&rdquo; The wrong answer is &ldquo;we have not seen that problem yet.&rdquo;</p>
+<p>If you are running an agent-driven workflow and your agents are doing refactors, the refactors will occasionally drop components or downgrade log severity by accident. The fix is a small CI gate that verifies critical components are present and critical log messages survive at the right severity. Not glamorous. Effective.</p>
+<p>Saturday afternoon. Demo speaks up when something is wrong. Pause menu responds to clicks again. The party with the polite empty demo is over.</p>
+<p>Back to building.</p>
+        </div>
+        <ul class="post-tags"><li>debugging</li><li>error-logging</li><li>ux</li><li>placeholder-mode</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/ai-as-interface-not-ai-as-dependency/" rel="prev">&larr; How the Engine Talks to Any Model You Bring</a><a class="nav-next" href="/blog/from-54-to-100-tests-passing/" rel="next">From 54% to 100% Tests Passing &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

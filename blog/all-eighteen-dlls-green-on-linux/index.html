@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>All Eighteen DLLs Green on Linux &mdash; RakuAI Blog</title>
+    <meta name="description" content="The runtime has been building on Windows since December. Linux had been mostly working, but a small number of the eighteen native DLLs would not build cleanly because of symbol-visibility issues that nobody enjoys. Spent this Saturday tracing the symbol-visibility problem to its root and clearing the last few DLLs. Linux is now a first-class target.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/all-eighteen-dlls-green-on-linux/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="All Eighteen DLLs Green on Linux">
+    <meta property="og:description" content="The runtime has been building on Windows since December. Linux had been mostly working, but a small number of the eighteen native DLLs would not build cleanly because of symbol-visibility issues that nobody enjoys. Spent this Saturday tracing the symbol-visibility problem to its root and clearing the last few DLLs. Linux is now a first-class target.">
+    <meta property="og:url" content="https://rakuai.com/blog/all-eighteen-dlls-green-on-linux/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-04-04T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="All Eighteen DLLs Green on Linux">
+    <meta name="twitter:description" content="The runtime has been building on Windows since December. Linux had been mostly working, but a small number of the eighteen native DLLs would not build cleanly because of symbol-visibility issues that nobody enjoys. Spent this Saturday tracing the symbol-visibility problem to its root and clearing the last few DLLs. Linux is now a first-class target.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>All Eighteen DLLs Green on Linux</h1>
+            <p class="post-meta">
+                <time datetime="2026-04-04T00:00:00+00:00">April 4, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>The Linux build had been a known partial-pass for weeks. Most of the eighteen native runtime DLLs (the engine is structured as a fleet of focused shared libraries) had been building clean. A few had not. The failures had the same shape every time: undefined-symbol errors at link time on functions that obviously did exist in the codebase. Anyone who has worked on Linux shared libraries in C++ knows where this is going.</p>
+<p>This Saturday I sat down with the intent of finishing the job. By the end of the weekend, all eighteen DLLs were building clean and the Linux CI pipeline was reporting full green.</p>
+<p>This is the post about what the actual issue was, what the fix looked like, and why I think building on three platforms (Linux, macOS, Windows MSVC) is a discipline worth paying for.</p>
+<h2 id="what-the-failure-looked-like">What the failure looked like</h2>
+<p>The pattern was always something like this. A test binary that links against, say, <code>libraku_runtime.so</code> would fail to link with errors like:</p>
+<div class="highlight"><pre><span></span><code>undefined reference to `raku_runtime_create_session(...)&#39;
+undefined reference to `raku_runtime_initialize(...)&#39;
+undefined reference to `raku_runtime_shutdown(...)&#39;
+</code></pre></div>
+
+<p>The functions did exist. They had been written. They were in the source files. They had been compiled. The object files contained them. The shared library, when inspected with <code>nm -D libraku_runtime.so</code>, did not export them.</p>
+<p>This is the classic Linux shared-library symbol-visibility problem. The runtime had been built with the CMake flag <code>-fvisibility=hidden</code> on its source files, which is a perfectly good default. The intent of <code>-fvisibility=hidden</code> is to keep internal symbols out of the public-symbol table of the shared library. Anything that needs to be public has to be explicitly tagged with <code>__attribute__((visibility("default")))</code> or with a macro that expands to it.</p>
+<p>The runtime&rsquo;s build system had a macro called <code>RAKU_API</code> that was supposed to expand to the right visibility attribute on each platform. On Windows, <code>RAKU_API</code> expanded to <code>__declspec(dllexport)</code> when building the DLL and <code>__declspec(dllimport)</code> when consuming it. On Linux, it was supposed to expand to <code>__attribute__((visibility("default")))</code> when building and to nothing when consuming.</p>
+<p>The problem was that the Linux side of the macro had not been applied to every public function. Some functions had been tagged. Many had not. The ones that had not been tagged were getting hidden by the <code>-fvisibility=hidden</code> default and disappearing from the public symbol table.</p>
+<h2 id="what-the-fix-looked-like">What the fix looked like</h2>
+<p>Three steps, all mechanical, all worth writing down.</p>
+<p><strong>One: audit every public-API header for missing <code>RAKU_API</code> tags.</strong> Wrote a script that parses each <code>.h</code> file in the public API and finds every function declaration that should be public but is not tagged. The script reports the function, the file, and the line. Ran the script. Got a list of three hundred and forty seven functions across eighteen DLLs that needed the tag.</p>
+<p><strong>Two: sweep-add the tag.</strong> This is exactly the kind of mechanical refactor an agent does well. The issue framing said: &ldquo;for each function listed below, add <code>RAKU_API</code> to the declaration line. Do not modify the function body. Do not modify any other line. Run the build after each subsystem&rsquo;s batch and confirm it still builds on Linux.&rdquo; The agent did this cleanly, subsystem by subsystem. Each subsystem PR was reviewable on its own and the Linux build went greener with each merge.</p>
+<p><strong>Three: a CI check that prevents regression.</strong> Added a check that runs at PR time. The check builds the runtime on Linux, runs <code>nm -D</code> on each produced <code>.so</code>, compares the exported symbol list against the expected set declared in the public-API headers, and fails the PR if any expected symbol is missing. This is the kind of guardrail that will catch the next instance of &ldquo;I forgot to tag a new function&rdquo; the day it lands instead of months later.</p>
+<p>By the end of Saturday, all eighteen DLLs were exporting their full public surface. The test binaries linked. The tests ran. The Linux build was green.</p>
+<h2 id="why-three-platforms-is-worth-paying-for">Why three platforms is worth paying for</h2>
+<p>A natural question: why bother with Linux at all? The runtime targets AR glasses, which run a specialized OS that is neither Linux nor Windows nor macOS in the way a developer machine is. Why pay the cross-platform cost on top of the cost of supporting the actual target hardware?</p>
+<p>Three reasons.</p>
+<p><strong>One: server-side AI inference and cloud rendering happen on Linux.</strong> Any cloud-side component of an AR experience (model serving, world-state synchronization, persistence) is running on Linux. The runtime has hooks that the cloud side calls. Those hooks have to build and run on Linux for the cloud side to integrate. If the runtime is a Windows-only beast, the cloud side has to either build a separate communication shim or run the runtime under a Linux compatibility layer. Neither is what I want partners to do.</p>
+<p><strong>Two: CI on Linux is faster and cheaper than CI on Windows.</strong> Every PR I merge runs through CI. Linux CI runners are smaller, faster, and cheaper than Windows CI runners. The faster the CI loop, the more iterations the agents and I can run in a Saturday. Linux as a first-class build target accelerates the entire dev workflow.</p>
+<p><strong>Three: cross-platform discipline catches bugs.</strong> This is the deepest reason. When a codebase only builds on one platform, the patterns the developers reach for are the patterns that work on that platform. Cross-platform builds force the patterns to be portable: explicit visibility attributes instead of implicit, explicit cross-platform type widths instead of &ldquo;long is 32 bits on this compiler,&rdquo; explicit threading semantics instead of &ldquo;this works on Windows.&rdquo; Today&rsquo;s symbol-visibility fix is exactly that pattern. The codebase is stronger after the fix than it was before, on every platform, because the fix made the visibility contract explicit.</p>
+<h2 id="what-this-generalizes-to">What this generalizes to</h2>
+<p>A few honest patterns.</p>
+<p><strong>Symbol visibility on Linux is a tax everyone pays once.</strong> The first time a project hits this issue, it is mysterious and frustrating. Once the fix is in place (the <code>RAKU_API</code> macro, applied consistently, with a CI guard), it is invisible. The cost is the first time. Pay it early.</p>
+<p><strong>CI guards for symbol-visibility regressions are not optional.</strong> The kind of bug that takes months to surface, because a function nobody is using yet is missing its tag, is exactly the kind of bug a CI guard catches the day it lands. Set the guard.</p>
+<p><strong>Cross-platform builds make the codebase more honest.</strong> Anywhere a codebase relies on implicit behavior of one platform, the cross-platform port forces the behavior to become explicit. Every time I have ported a codebase to a new platform, the new platform has surfaced bugs that the original platform was quietly absorbing. The fixes are improvements on every platform, not just the new one.</p>
+<h2 id="what-partners-and-builders-should-take-from-this">What partners and builders should take from this</h2>
+<p>If you are a partner deciding which engine to build on for a cross-platform AR product, ask the team how their build matrix looks. A team that builds on Linux, macOS, and Windows is a team whose codebase has been disciplined by the differences between the three platforms. A team that builds on one is a team whose codebase has not.</p>
+<p>If you are a developer working on your own cross-platform shared-library project, the symbol-visibility audit is the audit you should run today, not in March when a test starts failing for reasons that take three days to diagnose. Run <code>nm -D</code> on your shared libraries. Compare against your headers. The discrepancies are the audit.</p>
+<p>If you are an AI lab whose coding agent writes cross-platform native code, the visibility-attribute macro is the kind of thing the agent needs in its working knowledge. An agent that writes a new public function and forgets to tag it is an agent that costs you a follow-up PR. An agent that tags every public function consistently is an agent that pays for itself.</p>
+<p>Saturday wrap. Eighteen DLLs green on Linux. The CI is faster now. The codebase is more honest. The build matrix is three platforms wide.</p>
+<p>Back to building.</p>
+        </div>
+        <ul class="post-tags"><li>build</li><li>linux</li><li>symbol-visibility</li><li>cross-platform</li><li>ci</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/the-test-that-couldnt-find-dxcompiler/" rel="prev">&larr; The Test That Couldn&#x27;t Find dxcompiler.dll</a><a class="nav-next" href="/blog/prompt-length-guards-on-every-llm-caller/" rel="next">Every LLM Caller Got Prompt-Length Guards This Weekend &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>
