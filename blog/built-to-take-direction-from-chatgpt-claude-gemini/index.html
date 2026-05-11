@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Built to Take Direction from ChatGPT, Claude, and Gemini &mdash; RakuAI Blog</title>
+    <meta name="description" content="This week the runtime got an XRAssistantService that integrates cloud LLM responses into the voice pipeline, plus OpenXR foundations, eye-tracked foveated rendering, full-body tracking, and a Wi-Fi 7 offloaded rendering path. The engine is being built to be driven by the best model available, whoever&#x27;s model that is.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/built-to-take-direction-from-chatgpt-claude-gemini/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Built to Take Direction from ChatGPT, Claude, and Gemini">
+    <meta property="og:description" content="This week the runtime got an XRAssistantService that integrates cloud LLM responses into the voice pipeline, plus OpenXR foundations, eye-tracked foveated rendering, full-body tracking, and a Wi-Fi 7 offloaded rendering path. The engine is being built to be driven by the best model available, whoever&#x27;s model that is.">
+    <meta property="og:url" content="https://rakuai.com/blog/built-to-take-direction-from-chatgpt-claude-gemini/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2025-11-22T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Built to Take Direction from ChatGPT, Claude, and Gemini">
+    <meta name="twitter:description" content="This week the runtime got an XRAssistantService that integrates cloud LLM responses into the voice pipeline, plus OpenXR foundations, eye-tracked foveated rendering, full-body tracking, and a Wi-Fi 7 offloaded rendering path. The engine is being built to be driven by the best model available, whoever&#x27;s model that is.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Built to Take Direction from ChatGPT, Claude, and Gemini</h1>
+            <p class="post-meta">
+                <time datetime="2025-11-22T00:00:00+00:00">November 22, 2025</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>Most game engines that integrate with a cloud LLM today do it the way you would expect. A model gets bolted into the editor as a chat panel. You type at the chat panel. The panel writes some content or some code. The runtime, which has no idea any of this happened, runs the resulting artifact later.</p>
+<p>That is not what Raku is doing. Raku is being built to take direction from a cloud LLM as a runtime concern, not an authoring convenience. This week&rsquo;s work made that explicit.</p>
+<h2 id="what-landed">What landed</h2>
+<p>A hundred and eighteen commits across the runtime this week. The headline pieces:</p>
+<ul>
+<li>An XRAssistantService that wires cloud LLM responses into the voice pipeline as a first-class runtime feature</li>
+<li>Eye-tracked foveated rendering with multi-profile performance optimization</li>
+<li>An OpenXR XR_EXT_eye_gaze_interaction provider</li>
+<li>Hand tracking and gesture recognition for the XR runtime</li>
+<li>Full-body tracking with a 71-joint skeleton</li>
+<li>Fixation detection and dwell timers in the eye-tracking infrastructure</li>
+<li>High-resolution passthrough, depth sensing, and lighting estimation</li>
+<li>A Wi-Fi 7 offloaded rendering pipeline with a host server and latency monitoring</li>
+<li>A low-latency delta channel for real-time multiplayer AR pose and state sync</li>
+<li>Sub-millimeter anchor service for Android XR</li>
+<li>ARCore sensor bridge for Android devices without the Android XR stack</li>
+<li>A Multi-Layer HUD Compositor and overlay API</li>
+<li>AR Surface Demo and Room Visualizer samples for scene understanding</li>
+</ul>
+<p>A few of these are headliners worth talking about. The Wi-Fi 7 offloaded rendering pipeline is one. The XRAssistantService is the other. Both of them are partnership-shaped.</p>
+<h2 id="xrassistantservice-and-what-its-actually-for">XRAssistantService and what it&rsquo;s actually for</h2>
+<p>The XRAssistantService is the cleanest piece of partnership-bait engineering we have shipped to date. The shape of it:</p>
+<p>The runtime has a voice pipeline. The user talks. Speech-to-text runs locally on the device with low latency. The text streams into the assistant service. The assistant service hands the text to a cloud LLM. The cloud LLM streams back tokens that represent intent: what should the AR experience do next given what the user said. The runtime parses that stream and turns it into runtime actions in flight. Text-to-speech for the response also streams.</p>
+<p>The piece I want builders and labs to notice is that the LLM is not invoked once per user turn. The voice pipeline can keep streaming tokens to the model during a turn (with the right backend support), and the model can keep producing intent that the runtime acts on continuously. That is what &ldquo;take direction from a cloud LLM as a runtime concern&rdquo; actually means. It is not a chatbot pasted into an AR experience. It is the runtime treating the model&rsquo;s stream of intent as a control input on the same priority as the user&rsquo;s gaze.</p>
+<p>The interface is model-agnostic by design. ChatGPT can drive this. Claude can drive this. Gemini can drive this. A small on-device model can drive this. Anything that produces a stream of intent tokens that conforms to the assistant-service protocol can drive this. The piece we built this week is the integration layer between any such model and the rest of the runtime.</p>
+<p>If you are at one of those labs and reading this: this is the integration we want to talk to you about. We do not want a special partnership where your model is the only model the engine can talk to. We want your model to be the best model the engine can talk to, because the integration is open and the experience your model produces will be better than the experience anyone else&rsquo;s model produces.</p>
+<h2 id="the-wi-fi-7-offloaded-rendering-pipeline">The Wi-Fi 7 offloaded rendering pipeline</h2>
+<p>This is the other partnership-shaped piece. AR glasses have a thermal envelope. The thermal envelope is small. The compute envelope inside that thermal envelope is smaller than what some experiences want to render. The traditional answer is to compromise on the experience. The Wi-Fi 7 answer is to render some of the frame on a tethered compute box (a phone, a beltpack, a desktop in the same room) and stream the result.</p>
+<p>This week the offloaded rendering pipeline landed end-to-end. The host server runs anywhere. The runtime on the glasses talks to the host over Wi-Fi 7. Frame latency is monitored and the runtime can gracefully degrade to local rendering when the link blips, which it will.</p>
+<p>Why this matters for partners: it means a hardware partner does not have to put a desktop-class GPU in the glasses to ship a desktop-class experience. The compute can be where the compute is cheapest. The link is the thing that matters. We are building the runtime around the link.</p>
+<h2 id="the-openxr-scaffolding">The OpenXR scaffolding</h2>
+<p>A bunch of this week&rsquo;s commits were in service of OpenXR conformance. XR_EXT_eye_gaze_interaction. Hand tracking. Provider patterns for ARKit and ARCore. The reason OpenXR matters in this codebase is that it is the layer at which we want this engine to be portable across hardware partners. If a hardware partner ships an OpenXR-conformant runtime, this engine can ship on it. The interfaces we are building this month are deliberately on the standards side rather than the vendor-specific side, because that is how the engine stays neutral.</p>
+<h2 id="honest-about-what-is-not-done">Honest about what is not done</h2>
+<p>A few things landed this week as WIP. The hand-tracking PR specifically is still wired up incompletely. There is a <code>PoseStabilizer</code> linking error we are fixing in a follow-up. Eye tracking has fixation detection but the dwell-timer integration with the application layer is not finished. Full-body tracking is in but the gesture-recognition pieces still need more samples.</p>
+<p>I want to be clear about this because the pattern of agent-driven dev work is that a lot of WIP lands in the same week, and the WIP gets named explicitly in PR titles. If you read the commit log this week and see &ldquo;[WIP]&rdquo; in a few places, that is on purpose. The full deliverables come together over the next two weeks.</p>
+<h2 id="what-i-want-partners-and-builders-to-take-from-this">What I want partners and builders to take from this</h2>
+<p>If you are an AI lab building the next major model and you care about an AR runtime that treats your model&rsquo;s output as a control input on the simulation step, talk to me. The XRAssistantService integration layer is shipping in this engine in November 2025 and will be a stable interface to plug into by end of year.</p>
+<p>If you are a hardware partner building AR glasses with Wi-Fi 7 onboard and an external compute story, the offloaded rendering pipeline is exactly the workload your hardware was built for. The runtime is ready for it.</p>
+<p>If you are a developer thinking about what kinds of experiences this engine will let you build, the answer is starting to be visible in the commit log. Voice-driven AR experiences that respond to the user mid-sentence are achievable. Real-time multiplayer AR with sub-millimeter anchoring is achievable. The compute you need for either lives on the glasses or on the tether, depending on what your experience needs.</p>
+<p>Hundred and eighteen commits, big week. The engine looks different at the end of it than it did at the start.</p>
+        </div>
+        <ul class="post-tags"><li>llm</li><li>partnerships</li><li>voice-pipeline</li><li>openxr</li><li>xr-assistant</li><li>ai-native</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/meta-quest-is-now-a-target/" rel="prev">&larr; Meta Quest Is Now a Target</a><a class="nav-next" href="/blog/openxr-and-dual-link-radios/" rel="next">OpenXR Is the Skeleton, Dual-Link Radios Are the Nerve &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

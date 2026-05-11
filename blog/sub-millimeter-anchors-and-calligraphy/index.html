@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Sub-Millimeter Anchors and the Calligraphy Question &mdash; RakuAI Blog</title>
+    <meta name="description" content="This week the runtime got a sub-millimeter anchor-pose API, real-time pen and brush tracking, and marker-based paper detection. The forcing function was a calligraphy tutor demo. The forcing function behind the forcing function was a partnership conversation with NTT QONOQ.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/sub-millimeter-anchors-and-calligraphy/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Sub-Millimeter Anchors and the Calligraphy Question">
+    <meta property="og:description" content="This week the runtime got a sub-millimeter anchor-pose API, real-time pen and brush tracking, and marker-based paper detection. The forcing function was a calligraphy tutor demo. The forcing function behind the forcing function was a partnership conversation with NTT QONOQ.">
+    <meta property="og:url" content="https://rakuai.com/blog/sub-millimeter-anchors-and-calligraphy/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2025-10-11T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Sub-Millimeter Anchors and the Calligraphy Question">
+    <meta name="twitter:description" content="This week the runtime got a sub-millimeter anchor-pose API, real-time pen and brush tracking, and marker-based paper detection. The forcing function was a calligraphy tutor demo. The forcing function behind the forcing function was a partnership conversation with NTT QONOQ.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Sub-Millimeter Anchors and the Calligraphy Question</h1>
+            <p class="post-meta">
+                <time datetime="2025-10-11T00:00:00+00:00">October 11, 2025</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>Most AR experiences are forgiving about precision. If a virtual robot is standing somewhere on your floor and it drifts by three centimeters when you look away and look back, you might not notice. The robot is a robot. Robots wander.</p>
+<p>A calligraphy tutor is not forgiving. The virtual ink-stroke guide that overlays a sheet of practice paper has to land on the same exact spot on the same exact paper, every frame, every blink. Three centimeters of drift is a useless product. Three millimeters of drift is a frustrating product. Sub-millimeter is the bar.</p>
+<p>This week the runtime started clearing that bar.</p>
+<h2 id="what-landed">What landed</h2>
+<p>Five APIs and one partnership reference:</p>
+<ul>
+<li>Sub-millimeter anchor-pose API for high-precision AR content alignment</li>
+<li>Paper-CV detection API for marker-based paper calibration</li>
+<li>Stroke-path CV analysis for real-time pen and brush tracking</li>
+<li>Voice-latency event timestamps and real-time metrics</li>
+<li>Animation-latency tracking for anime-pivoted demos</li>
+<li>A reference in the README to research with NTT QONOQ</li>
+</ul>
+<p>Seventy commits across the week. Most of the engineering work was in the first three.</p>
+<h2 id="why-sub-millimeter-is-the-right-number">Why &ldquo;sub-millimeter&rdquo; is the right number</h2>
+<p>The sub-millimeter ask did not come from a marketing exercise. It came from a use case. A user holds a calligraphy brush over a sheet of practice paper. The runtime watches the brush, watches the paper, watches the room. It overlays the next stroke the user should make as a faint glow on the paper. The user follows the glow.</p>
+<p>The whole experience falls apart if the glow is even slightly off the paper, because the user&rsquo;s eyes will fixate on the glow rather than on the physical brush tip, and the physical stroke will follow the misaligned glow. Drift in the overlay produces drift in the practiced stroke. The product disappears.</p>
+<p>So the bar is not &ldquo;sub-millimeter is impressive.&rdquo; The bar is &ldquo;sub-millimeter is the only acceptable failure case for this use case.&rdquo; Above that and the product breaks.</p>
+<h2 id="how-the-sub-millimeter-anchor-works">How the sub-millimeter anchor works</h2>
+<p>The mechanism (simplified): the paper itself becomes the anchor. A printed registration marker on the practice paper is detected every frame. The runtime computes the paper&rsquo;s pose relative to the user&rsquo;s view in 6DoF. The overlay is rendered in paper-local coordinates, not room-local. As the user&rsquo;s head moves, the math runs the other direction: paper pose updates, overlay re-projects, glow lands where the next stroke goes.</p>
+<p>This is a different design from the standard &ldquo;anchor a virtual object to the room and trust the room reconstruction.&rdquo; Room reconstruction is good for furniture-scale precision. It is not good for paper-scale precision, because the room reconstruction error stacks with the user&rsquo;s head-pose error. By anchoring directly to a known physical object (the paper) and registering the overlay against that object, we collapse the error chain.</p>
+<p>The cost is that the paper has to be a known physical object. We solved that this week with the marker-based paper-CV detection API. The marker is small, unobtrusive, and printed on every practice sheet the demo ships with. The runtime detects the marker in roughly two milliseconds per frame and tracks it stably under typical lighting.</p>
+<p>The win is that we are doing this on AR glasses with the compute envelope they have, in real time, every frame, with overlay drift bounded under a millimeter under normal usage.</p>
+<h2 id="the-ntt-qonoq-reference">The NTT QONOQ reference</h2>
+<p>I added a reference to NTT QONOQ in the README this week because we are in active research conversation. NTT QONOQ in Japan has been doing serious work on real-world AR and on the question of how AR experiences anchor to physical artifacts. The calligraphy use case lines up with the kind of cultural-AR work the Japanese spatial-computing community has been pushing forward.</p>
+<p>This is not an announcement of a partnership. It is a note that the partnership conversation is happening and the engineering this week reflects what would be needed to support it well. The product question &ldquo;can you do this in a calligraphy classroom in Tokyo&rdquo; is more concrete than the product question &ldquo;can you do this somewhere.&rdquo; Concrete questions produce better engineering.</p>
+<h2 id="stroke-path-cv-the-harder-one">Stroke-path CV: the harder one</h2>
+<p>The sub-millimeter anchor is the headliner this week. The actual hardest piece of engineering was the stroke-path CV.</p>
+<p>Tracking a pen or brush in real time on AR glasses is not a solved problem. The tip is small, often partially occluded by the user&rsquo;s hand, and moving at variable speed. The CV pipeline this week tracks the tip&rsquo;s position relative to the paper, infers when the tip is in contact (vs. hovering), and emits a stroke path as a stream of timestamped points. Hand-occlusion recovery is the part that ate the most time. The agent and I went through three versions of the recovery logic before the test traces stopped dropping points.</p>
+<p>This is the kind of engineering where AI as a runtime primitive starts to matter. The CV pipeline gets every frame. A small model on the device decides whether the current frame is a contact frame or a hover frame. The model&rsquo;s decision feeds the stroke-path emitter. The model is not a chatbot. It is a runtime element that runs in the simulation step.</p>
+<p>That architectural pattern is becoming a refrain in this engine. AI is not the feature you add. AI is the thing that happens between sensors and renderer, every frame, while the user is doing whatever they are doing.</p>
+<h2 id="what-i-want-partners-and-builders-to-take-from-this">What I want partners and builders to take from this</h2>
+<p>If you are NTT QONOQ or any other partner thinking about precision AR overlays in real environments, the calligraphy-tutor work is a concrete demo of the kind of precision the engine targets. The framework is general. It is not specifically a calligraphy tool. It is a sub-millimeter anchor and a stroke-path CV pipeline, both of which apply to many things that look nothing like calligraphy.</p>
+<p>If you are an AI lab with a small model that does well at hand or pen segmentation, this is the kind of model that lives inside the simulation step on this engine. Latency budget is tight. Quality bar is high. If your model fits, this engine has a slot for it.</p>
+<p>Seventy commits. One demo target. One partnership conversation in progress. Good Saturday.</p>
+        </div>
+        <ul class="post-tags"><li>ar</li><li>anchoring</li><li>computer-vision</li><li>partnerships</li><li>calligraphy</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/ar2-gen1-validating-hardware-we-dont-have/" rel="prev">&larr; Validating Hardware We Don&#x27;t Have Yet</a><a class="nav-next" href="/blog/the-slow-week-was-the-right-week/" rel="next">The Slow Week Was the Right Week &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>
