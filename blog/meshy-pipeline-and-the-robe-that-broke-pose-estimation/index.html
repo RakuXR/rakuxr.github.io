@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>The Meshy Pipeline and the Robe That Broke Pose Estimation &mdash; RakuAI Blog</title>
+    <meta name="description" content="Six weeks of feeding Meshy.ai through a seven-stage asset pipeline taught the team three things the API docs do not. Robes obscure the silhouette pose estimation needs. Japanese character names crash anything that pipes stdout to a file. And Meshy&#x27;s remesh endpoint can vanish on you mid-sprint.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/meshy-pipeline-and-the-robe-that-broke-pose-estimation/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="The Meshy Pipeline and the Robe That Broke Pose Estimation">
+    <meta property="og:description" content="Six weeks of feeding Meshy.ai through a seven-stage asset pipeline taught the team three things the API docs do not. Robes obscure the silhouette pose estimation needs. Japanese character names crash anything that pipes stdout to a file. And Meshy&#x27;s remesh endpoint can vanish on you mid-sprint.">
+    <meta property="og:url" content="https://rakuai.com/blog/meshy-pipeline-and-the-robe-that-broke-pose-estimation/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-04-18T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Meshy Pipeline and the Robe That Broke Pose Estimation">
+    <meta name="twitter:description" content="Six weeks of feeding Meshy.ai through a seven-stage asset pipeline taught the team three things the API docs do not. Robes obscure the silhouette pose estimation needs. Japanese character names crash anything that pipes stdout to a file. And Meshy&#x27;s remesh endpoint can vanish on you mid-sprint.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>The Meshy Pipeline and the Robe That Broke Pose Estimation</h1>
+            <p class="post-meta">
+                <time datetime="2026-04-18T00:00:00+00:00">April 18, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>The asset pipeline is one of the boring-and-load-bearing pieces of the engine. It is the thing that turns a designer&rsquo;s idea (&ldquo;I want twenty enemies for the tower defense pack&rdquo;) into a folder of textured, rigged, LOD-ed 3D assets the runtime can load. For the last six weeks the pipeline that has been doing that work is Meshy.ai, wired through a seven-stage script that lives at <code>scripts/meshy_asset_pipeline.py</code> in the runtime repo.</p>
+<p>This Saturday morning the v1 bridge between the Meshy pipeline and the SDK pack format is settled enough that I can write down what we learned. Three things. None of them are in the API docs.</p>
+<h2 id="what-the-seven-stages-actually-do">What the seven stages actually do</h2>
+<p>In order, on every asset:</p>
+<ol>
+<li>Text-to-3D generation in preview mode.</li>
+<li>PBR texture map generation: albedo, metallic, roughness, normal.</li>
+<li>LOD0 polling and download.</li>
+<li>Remesh task creation against the v1 API.</li>
+<li>LOD1 remesh polling and download.</li>
+<li>Asset file organization on disk.</li>
+<li>Content pack assembly.</li>
+</ol>
+<p>The pipeline drives one asset all the way through, then moves to the next. It does not batch. The reason it does not batch came out of the third lesson below, painfully.</p>
+<h2 id="lesson-one-robes-break-pose-estimation">Lesson one: robes break pose estimation</h2>
+<p>The Meshy text-to-3D output is fine for a wide range of humanoid designs. Skeleton, soldier, knight, mage with bare arms. The pipeline rigs them, the rig works, the asset ships.</p>
+<p>It is not fine for heavily-robed humanoids. The RPG content pack hit this in Sprint 2. Four assets that should have rigged cleanly failed silhouette extraction during pose estimation. Two were expected (slime and wolf_enemy are not humanoids, the pose estimator is not supposed to find arms on them). Two were a surprise: <code>mage_hero</code> and <code>blacksmith</code>. Both humanoid. Both failed.</p>
+<p>The failure mode is the silhouette. Meshy&rsquo;s pose estimator looks at the rendered outline of the model to find limbs. A mage in a long robe has no visible legs in the silhouette, so there are no leg keypoints to anchor a skeleton to. A blacksmith in an apron has no visible torso seam between chest and hips, so the spine joint guesses wrong. The model is fine. The rig is wrong.</p>
+<p>The fix in the pipeline is to log the failure, save the un-rigged geometry, and surface a flag in the asset manifest that says &ldquo;this one needs a manual rig pass.&rdquo; The fix in the prompts is to specify &ldquo;tight clothing, exposed limbs&rdquo; in the text prompt for any humanoid that needs autorigging. The longer fix is on Meshy&rsquo;s side and not ours to make.</p>
+<p>Across thirteen genres, the failure rate is uneven. Tower defense has one rigging failure in five. Platformer has one in six. RPG has four in eleven, and three of those four are clothing geometry. The lesson generalizes: when a generative model fails, the failure is usually not random, and the failure mode tells you something about the training data the model was built on.</p>
+<h2 id="lesson-two-unicode-crashes-anything-that-pipes-stdout-to-a-file">Lesson two: Unicode crashes anything that pipes stdout to a file</h2>
+<p>The Oni faction in the RPG pack uses Japanese character names. 風 for wind, 雷 for thunder, 金剛 for diamond. These are the asset names in the Meshy job submissions. The pipeline runs in the background, redirects stdout to a log file, and parses the log later for which assets succeeded.</p>
+<p>The first time the Oni assets ran, every single one of them failed. The error was a <code>UnicodeEncodeError</code> from Python&rsquo;s stdout. The default encoding on the build machines is ASCII for stdout when stdout is not a TTY. The Japanese characters are not ASCII. The print statement crashes before the asset is even submitted to Meshy.</p>
+<p>The fix is one line in the launcher script: <code>PYTHONIOENCODING=utf-8</code>. Once that environment variable is set, the print statements work and the assets generate.</p>
+<p>The lesson is older than I am: anything that pipes Unicode through a stdout-redirected pipeline needs the encoding set explicitly. Two days lost to a problem that has been documented for twenty years. Logged in the behavior journal. Fixed in the launcher. Not fixed by Meshy because it is not Meshy&rsquo;s problem to fix.</p>
+<h2 id="lesson-three-vendor-apis-vanish">Lesson three: vendor APIs vanish</h2>
+<p>Halfway through Sprint 2, the Meshy v2 <code>/remesh</code> endpoint started returning 404. Not for a specific asset. For every call.</p>
+<p>The remesh stage is what turns LOD0 (high-poly, expensive to render) into LOD1 (low-poly, cheap to render). Without remesh, the assets ship with LOD0 only. They render fine on the developer machines and they kill the frame rate on the AR glasses target.</p>
+<p>I do not know whether the endpoint was deprecated, gated behind a higher-tier plan, moved without a redirect, or temporarily down. The Meshy docs still reference it. Calls to it 404. The pipeline cannot wait for the vendor to figure out which it is.</p>
+<p>The fix is in <code>meshy_asset_pipeline.py</code> at the remesh stage. A try/except around the remesh call. On failure, log the asset as LOD0-only, write that fact into the asset manifest, and continue with the rest of the pipeline. Every asset has LOD0. Some have LOD1. The pack ships either way.</p>
+<p>The lesson is the one every project that depends on a vendor API learns eventually: the API you depend on is not yours, and it can change underneath you, and the only defense is graceful degradation. We have it now.</p>
+<h2 id="where-the-pipeline-is-now">Where the pipeline is now</h2>
+<p>Eight of thirteen genres complete. Space shooter, puzzle, card battle, runner, platformer, racing, tower defense, RPG. Five remaining (sports, simulation, sandbox, fighting, MMO-lite) on the queue.</p>
+<p>The credit budget is the surprise win. The estimate for Sprint 2 was around 510 credits across both factions of the genre. Actual spend ran 25 to 35 percent below the estimate, consistently. That gives the program enough headroom to push through the remaining five genres without a budget conversation.</p>
+<p>The v1 bridge that landed at the start of this month, <code>scripts/generate_rakupack.py</code> with twenty-four conformance tests, is what makes this all addressable from the SDK side. A developer using the SDK does not have to know that an asset came out of Meshy versus came out of a hand-modeled pipeline. The pack format is the contract. The Meshy pipeline produces packs. The SDK loads packs.</p>
+<h2 id="why-i-am-writing-this-one-down">Why I am writing this one down</h2>
+<p>Two reasons.</p>
+<p>The first is that the three lessons above are the kind of friction that does not show up in vendor demos and does not show up in marketing pages. Robes and pose estimation. Unicode and stdout. Remesh and 404. If you are evaluating a generative-3D vendor and you read this and you say &ldquo;that is the kind of thing I would want to know before I committed to it,&rdquo; then the writing has earned its keep.</p>
+<p>The second is that the pipeline is now stable enough that the next conversation is not &ldquo;does Meshy work for us.&rdquo; It is &ldquo;what do we want the asset library to be.&rdquo; That is a designer conversation, not an engineering one. The engineering side has done its job by getting out of the way.</p>
+<p>Eight genres down. Five to go. The pipeline survives a 404. The pipeline survives a Japanese character. The pipeline does not, yet, survive a robe. Saturday well spent.</p>
+        </div>
+        <ul class="post-tags"><li>meshy</li><li>asset-pipeline</li><li>generative-ai</li><li>content-packs</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/prompt-length-guards-on-every-llm-caller/" rel="prev">&larr; Every LLM Caller Got Prompt-Length Guards Today</a><a class="nav-next" href="/blog/gdc-and-the-mobile-platform-blitz/" rel="next">Looking Back at GDC and the Mobile Platform Blitz &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

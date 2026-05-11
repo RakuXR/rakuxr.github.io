@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>The Saturday the Build Stopped Arguing &mdash; RakuAI Blog</title>
+    <meta name="description" content="A run of cleanup commits that look unglamorous on the diff and feel transformative on the project. Eighteen DLLs green on Linux. Every LLM caller guarded against runaway prompt length. The /api/v2/ namespace renamed to /api/raku/ everywhere it appears. Null-pointer safety swept through the runtime. The build is finally something you can stop arguing with.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/the-week-the-build-stopped-arguing/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="The Saturday the Build Stopped Arguing">
+    <meta property="og:description" content="A run of cleanup commits that look unglamorous on the diff and feel transformative on the project. Eighteen DLLs green on Linux. Every LLM caller guarded against runaway prompt length. The /api/v2/ namespace renamed to /api/raku/ everywhere it appears. Null-pointer safety swept through the runtime. The build is finally something you can stop arguing with.">
+    <meta property="og:url" content="https://rakuai.com/blog/the-week-the-build-stopped-arguing/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-05-02T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Saturday the Build Stopped Arguing">
+    <meta name="twitter:description" content="A run of cleanup commits that look unglamorous on the diff and feel transformative on the project. Eighteen DLLs green on Linux. Every LLM caller guarded against runaway prompt length. The /api/v2/ namespace renamed to /api/raku/ everywhere it appears. Null-pointer safety swept through the runtime. The build is finally something you can stop arguing with.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>The Saturday the Build Stopped Arguing</h1>
+            <p class="post-meta">
+                <time datetime="2026-05-02T00:00:00+00:00">May 2, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>There is a category of work that does not produce a screenshot. It produces a build that goes green on machines that used to make it red. It produces a CI run that stops timing out. It produces a stack trace that no longer materializes because the null pointer that caused it is now caught at the boundary. The week that ended this Saturday was that kind of week.</p>
+<h2 id="eighteen-dlls-green-on-linux">Eighteen DLLs green on Linux</h2>
+<p>The runtime ships as eighteen native DLLs. Until two weeks ago, those DLLs built cleanly on Windows and built cleanly on macOS and broke on Linux on a symbol-visibility error. The fix landed in PR #1463 on April 11.</p>
+<p>The story is the unglamorous kind. GCC defaults to making every symbol visible in shared libraries. MSVC defaults to making every symbol hidden unless it is exported. The runtime code was written assuming the MSVC default, with <code>__declspec(dllexport)</code> on the symbols that needed to cross the DLL boundary. On Linux those declarations are no-ops, which means every symbol was visible, which means the linker could not figure out the correct intra-DLL bindings, which means a number of the eighteen DLLs would not build.</p>
+<p>The fix is <code>-fvisibility=hidden</code> as a compiler flag for the GCC builds, with explicit visibility attributes on the symbols that need to be exported. The diff is small. The blast radius is large. The Linux build is now a first-class target. The agent that ships a runtime change can now have it tested on Linux automatically by the CI matrix. Server deployments, container images, cloud build farms, all of it is now in reach.</p>
+<p>This is the kind of fix that feels like a tax write-off. It does not move the product forward. It also does not block it anymore. That is enough.</p>
+<h2 id="prompt-length-guards-on-every-llm-caller">Prompt-length guards on every LLM caller</h2>
+<p>The other April commit worth writing down is the prompt-length-guard sweep. The runtime now invokes Claude in several places: the NPC behavior brain, the dialogue model, the world-event narrator, the procedural-content seeder. Each of those callers builds a prompt by concatenating context, instructions, and the current state. Each of those callers can produce a prompt that exceeds the model&rsquo;s input window if the context grows large enough.</p>
+<p>The naive failure mode is that the LLM call returns an error. The dangerous failure mode is that the LLM call returns a truncated response, the caller does not detect the truncation, and the engine acts on a malformed answer. NPCs that stop mid-sentence. Dialogue trees that fork into nothing. World events that fire with the wrong parameters.</p>
+<p>PR #1465 added a guard to every LLM caller: estimate the token count before the call, refuse to send if the count exceeds the budget, and emit a structured error the caller can react to. PR #1466 audited the entire codebase to verify the guard is in place at every call site. PR #1467 added documentation so the next caller knows the discipline.</p>
+<p>The reason this matters is that AI calls inside a runtime are not occasional. They happen many times per frame at peak. A bug in the prompt construction that grows a prompt by a few tokens per call is invisible for a hundred frames and catastrophic at a thousand. The guard makes the failure loud and bounded instead of silent and unbounded.</p>
+<h2 id="api-namespace-stabilization">API namespace stabilization</h2>
+<p>The third commit is the quietest of the three and possibly the most consequential. The runtime exposes a REST API for external tools, dashboards, and the SDK to talk to. That API has lived under <code>/api/v2/</code> for the past six months because it succeeded an earlier <code>/api/v1/</code> that was internal-only.</p>
+<p><code>/api/v2/</code> is the wrong name. It implies that the v1 was public and superseded, which it was not. It also implies that a v3 is on the way, which it is not. PR #1464 walked through every reference in the codebase and every reference in the docs and renamed the namespace from <code>/api/v2/</code> to <code>/api/raku/</code>. The name is now stable. There is no version number to negotiate later. Backward compatibility within the namespace is the contract.</p>
+<p>This is the kind of rename that has to happen exactly once and has to happen before any external developer writes code against the namespace. We caught it in time. The next time someone outside the team writes a script that hits the API, they will see <code>/api/raku/</code> and they will not have to re-do their work in six months.</p>
+<h2 id="null-pointer-safety-as-a-sweep">Null-pointer safety as a sweep</h2>
+<p>The most recent commit on the runtime, two days ago on April 30, is <code>58c3a806</code>: &ldquo;fix(build): resolve all build errors, warnings, and null-pointer safety.&rdquo; The phrase &ldquo;null-pointer safety&rdquo; is doing a lot of work in that title. The change underneath it is a sweep through the codebase for every place a pointer could be null and was being dereferenced without a check.</p>
+<p>The pattern that triggered the sweep was a crash report from one of the sample applications. A texture loader was passed a null pointer for the asset manifest, dereferenced it, and crashed. The fix was a check at the entry point. The audit was the question: how many other places in the codebase have the same pattern.</p>
+<p>The answer was several dozen. Not all of them were exploitable. Many of them were code paths that had never been hit because the calling code happened to never pass a null. That is not a defense. The defense is the check at the boundary.</p>
+<p>The sweep added the checks. It did not change behavior in the happy path. It did add a return value (<code>RAKU_ERR_INVALID_PARAM</code>) and a log line for the failure path. The runtime is now noisier in the cases that used to be silent crashes. Noisy is better than silent. Silent crashes in an AR runtime are the worst kind of bug.</p>
+<h2 id="why-this-kind-of-week-is-the-right-kind-to-have">Why this kind of week is the right kind to have</h2>
+<p>The temptation, when you are running an engine project on a weekend cadence with a fleet of agents, is to keep shipping new features. Every Saturday morning the queue refills. Every Saturday evening the diff is bigger than it was the week before. The cadence rewards forward motion.</p>
+<p>The cadence also tolerates technical debt. Every PR that merged through the past eight months made a small assumption about the build environment, the API surface, the LLM input window, or the null-safety contract. None of those assumptions were wrong on their own. Together they were a list of soft spots that would, eventually, crack.</p>
+<p>A week of stopping forward motion to fix the soft spots is not lost time. It is the week after which the next eight months of forward motion can happen without arguing with the build, the API, the LLM input, or the null pointer. The argument is what wastes the time. The argument is what the cleanup ended.</p>
+<h2 id="what-is-next">What is next</h2>
+<p>The agents are back at the queue this weekend. The next round of issues is the one I am filing this Saturday morning. They are not cleanup issues anymore. They are feature issues. The build will not argue with them.</p>
+<p>That is what a clean build buys you. Not a screenshot. Permission to ship.</p>
+        </div>
+        <ul class="post-tags"><li>build-system</li><li>linux</li><li>ci</li><li>null-safety</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/gdc-and-the-mobile-platform-blitz/" rel="prev">&larr; Looking Back at GDC and the Mobile Platform Blitz</a><a class="nav-next" href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" rel="next">Six MCP Tools, and What the Adapters Unlock Next &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>
