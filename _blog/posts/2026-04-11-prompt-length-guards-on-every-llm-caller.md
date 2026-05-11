@@ -39,7 +39,7 @@ Each of these had landed in a separate PR. Each PR had been reasonable in isolat
 
 ## What the guards look like
 
-A small piece of infrastructure landed Saturday morning and got applied to every caller during the rest of the weekend.
+A small piece of infrastructure landed Saturday morning and got applied to every caller across the day.
 
 **A shared `LLMCallGuard` utility.** Every place that talks to an LLM now goes through this utility instead of constructing requests directly. The utility takes a prompt template, a context payload, and a target model. It enforces a length cap (configurable per model, with sensible defaults based on the model's documented context window). It logs the actual prompt length used at INFO level for the budgeted case, at WARNING level when it has to truncate, and at ERROR level when truncation fails to fit the cap.
 

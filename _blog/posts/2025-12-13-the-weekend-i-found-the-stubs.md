@@ -3,12 +3,12 @@ title: "The Saturday I Found the Stubs"
 date: 2025-12-13
 author: Kevin Griffin
 tags: [unit-tests, stubs, technical-debt, best-practices, weekend-build]
-description: "Woke up Saturday wanting to write unit tests against the runtime's growing C API and feel good about coverage. Discovered something I should have caught earlier. A lot of what looked like implemented code was stub-shaped scaffolding the agents had landed without flagging. Spent the rest of the weekend writing the audit, the tests, and the discipline that has to come with them."
+description: "Sat down this Saturday wanting to write unit tests against the runtime's growing C API and feel good about coverage. Discovered something I should have caught earlier. A lot of what looked like implemented code was stub-shaped scaffolding the agents had landed without flagging. Spent the rest of the day writing the audit, the tests, and the discipline that has to come with them."
 series: learning-to-code-with-ai
 slug: the-weekend-i-found-the-stubs
 ---
 
-Woke up this Saturday ready to write tests.
+Today is supposed to be the day I write tests.
 
 That is a sentence I never thought I would say. The plan was to take the C API the runtime now exposes, write a serious unit-test suite against it, watch the coverage number climb, and feel a kind of professional pride that the engine is no longer "agent-coded with vibes" and is now "agent-coded with tests."
 
@@ -38,7 +38,7 @@ A few uncomfortable things.
 
 This is the textbook way an agent-driven codebase gets into trouble. It is the failure mode I had read about and thought I was guarding against. I was not guarding against it well enough.
 
-## What I did with the rest of the weekend
+## What I did with the rest of the day
 
 A few things, in order.
 

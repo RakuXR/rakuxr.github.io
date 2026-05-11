@@ -3,12 +3,12 @@ title: "Slowing the Agents Down on Purpose"
 date: 2025-10-18
 author: Kevin Griffin
 tags: [reflection, dev-workflow, multi-repo, documentation, weekend-build]
-description: "Thirty-seven commits this weekendendend instead of the eighty I had been used to. I deliberately cut the agent queue and slowed the pace down so I could actually read what was landing. The codebase is in better shape because of it. Here is why throttling the agents was the right move."
+description: "Thirty-seven commits this Saturday instead of the eighty I had been used to. I deliberately cut the agent queue and slowed the pace down so I could actually read what was landing. The codebase is in better shape because of it. Here is why throttling the agents was the right move."
 series: learning-to-code-with-ai
 slug: the-slow-week-was-the-right-week
 ---
 
-Woke up Saturday morning with a different plan than the last few weekends. The last few have been throughput weekends. Eighty commits, seventy commits, two hundred eighty-two before that. The trend was up. I was riding the agent queue wide open and watching the lines of code pile up.
+Different plan this Saturday than the last few weekends. The last few have been throughput weekends. Eighty commits, seventy commits, two hundred eighty-two before that. The trend was up. I was riding the agent queue wide open and watching the lines of code pile up.
 
 This weekend I throttled it back to thirty-seven commits on purpose. The trend on this graph is now down, and it is down on purpose, and I want to write about why because I do not think this is the trend most people building with AI agents would expect.
 
@@ -22,7 +22,7 @@ The bottleneck in this workflow is not the agent. It is the human reading what t
 
 ## What I changed
 
-Two things, both visible in the commit pattern this weekendend.
+Two things, both visible in the commit pattern this weekend.
 
 **I cut the queue depth.** Instead of fifteen open agent-queue issues at all times, I dropped it to six. The agents are no longer running wide open. They are running at a pace that lets me actually read their output before the next batch lands.
 
@@ -32,15 +32,15 @@ The combined effect of these two changes is the thirty-seven-commit weekend inst
 
 ## What still landed
 
-A multi-repo discipline got firmer this weekendend. The runtime, the SDK, and the docs repo all moved together. The runtime got the documentation-directory overview in the README. The SDK got the corresponding cross-references. The docs grew. None of the three repos got ahead of the others.
+A multi-repo discipline got firmer this weekend. The runtime, the SDK, and the docs repo all moved together. The runtime got the documentation-directory overview in the README. The SDK got the corresponding cross-references. The docs grew. None of the three repos got ahead of the others.
 
 This matters because in an agent-driven workflow, the docs are not just docs. The docs are the input the agent reads when it picks up the next issue. If the docs lie about what the runtime supports, the agent will faithfully write code for the lying version of the runtime, and that code will not compile against reality. The remedy is to keep all three repos honest, all the time, even when one of them is the one you would naturally work on.
 
-The other quietly important thing this weekendend was the API surface clean-up. A few APIs that had been added in the September rush turned out not to belong on the public surface. They were demoted to internal. The agents handled the demotion across the SDK in one PR. That is the kind of refactor that, done by a single human, takes a full day. Done in this workflow, it takes one issue and one PR and a careful review.
+The other quietly important thing this weekend was the API surface clean-up. A few APIs that had been added in the September rush turned out not to belong on the public surface. They were demoted to internal. The agents handled the demotion across the SDK in one PR. That is the kind of refactor that, done by a single human, takes a full day. Done in this workflow, it takes one issue and one PR and a careful review.
 
 ## What "best practices" mean in this workflow
 
-A short list, sharpened this weekendend by the experience of cutting the pace.
+A short list, sharpened this weekend by the experience of cutting the pace.
 
 **Documentation is dev input, not dev output.** If the docs are bad, the work is bad. Maintain them like you maintain code. Review them like you review code. Refuse to merge a feature whose docs got skipped.
 

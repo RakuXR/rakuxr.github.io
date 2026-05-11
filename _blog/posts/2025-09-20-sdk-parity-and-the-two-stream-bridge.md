@@ -3,14 +3,14 @@ title: "Catching the SDK Up Before It Could Drift"
 date: 2025-09-20
 author: Kevin Griffin
 tags: [sdk, unity, unreal, parity, multi-repo, dev-workflow, weekend-build]
-description: "Woke up this Saturday determined to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the weekend wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year."
+description: "Determined this Saturday to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the day wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year."
 series: learning-to-code-with-ai
 slug: sdk-parity-and-the-two-stream-bridge
 ---
 
-Woke up this Saturday already nervous about a specific failure mode I have watched kill multi-repo projects before. The runtime adds a feature one weekend and the SDK does not catch up until next month. The samples in one binding work and the samples in the other binding silently regress. The version numbers stop matching. The CI on each repo is green and the integration between them is broken.
+Already nervous about a specific failure mode I have watched kill multi-repo projects before, and that was the Saturday-morning starting state. The runtime adds a feature one weekend and the SDK does not catch up until next month. The samples in one binding work and the samples in the other binding silently regress. The version numbers stop matching. The CI on each repo is green and the integration between them is broken.
 
-That movie ends with a re-platform two years in. I am not building Raku that way. The plan for this weekendendend was to catch the SDK up to the runtime before the gap could form, and to leave behind enough infrastructure that the gap can never form again.
+That movie ends with a re-platform two years in. I am not building Raku that way. The plan for this weekend was to catch the SDK up to the runtime before the gap could form, and to leave behind enough infrastructure that the gap can never form again.
 
 ## What landed on the SDK side
 
@@ -47,7 +47,7 @@ The pattern I have landed on for multi-repo development with agents:
 
 **A canonical samples set in each binding.** Unity HelloAR and Unreal HelloAR are the canonical test vehicles. Every C API change has to be exercised in both. The samples are not afterthoughts. They are part of the public surface.
 
-**Parity tests as a CI gate.** The parity-testing infrastructure that landed this weekendend as Epic #42 is now run on every PR that touches either repo. If a runtime change does not exercise both bindings, the PR is blocked from merging until the parity test demonstrates the change works on both sides.
+**Parity tests as a CI gate.** The parity-testing infrastructure that landed this weekend as Epic #42 is now run on every PR that touches either repo. If a runtime change does not exercise both bindings, the PR is blocked from merging until the parity test demonstrates the change works on both sides.
 
 ## What this enables for builders
 
@@ -65,7 +65,7 @@ The parity tests cover the basics. Marker-based anchoring works in both bindings
 
 The CI pipeline for SDK v0.2 publishing is up, but the actual published package is not yet stable enough to recommend integrating against. Treat the SDK as in-development through October. By November the parity tests will be deep enough that the recommendation will be different.
 
-## What I want to remember from this weekendend
+## What I want to remember from this weekend
 
 Two things.
 

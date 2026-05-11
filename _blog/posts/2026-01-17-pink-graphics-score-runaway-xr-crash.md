@@ -3,7 +3,7 @@ title: "Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday."
 date: 2026-01-17
 author: Kevin Griffin
 tags: [debugging, demo, shooter, shader-cache, weekend-build]
-description: "Woke up this Saturday to a Shooter demo that had picked up four unrelated bugs over the holiday. Pink missing-shader graphics. A score that double-counted itself. A hard crash on XR boot. A camera that refused to lock onto the ship. Walked into the kitchen with coffee. Walked out of it ten hours later with a clean build."
+description: "A Shooter demo that had picked up four unrelated bugs over the holiday. Pink missing-shader graphics. A score that double-counted itself. A hard crash on XR boot. A camera that refused to lock onto the ship. Walked into the kitchen with coffee this Saturday. Walked out of it ten hours later with a clean build."
 series: learning-to-code-with-ai
 slug: pink-graphics-score-runaway-xr-crash
 ---

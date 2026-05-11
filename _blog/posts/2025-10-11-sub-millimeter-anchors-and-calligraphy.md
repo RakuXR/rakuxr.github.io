@@ -8,7 +8,7 @@ series: learning-to-code-with-ai
 slug: sub-millimeter-anchors-and-calligraphy
 ---
 
-Woke up Saturday morning with a partnership conversation fresh in my head and a precision target that scared me a little. NTT QONOQ has been doing serious cultural-AR work in Japan, and the calligraphy use case they want this engine to support has an unforgiving spec: the virtual ink-stroke guide that overlays a sheet of practice paper has to land on the same exact spot on the same exact paper, every frame, every blink.
+A partnership conversation was fresh in my head this Saturday morning, and a precision target with it that scared me a little. NTT QONOQ has been doing serious cultural-AR work in Japan, and the calligraphy use case they want this engine to support has an unforgiving spec: the virtual ink-stroke guide that overlays a sheet of practice paper has to land on the same exact spot on the same exact paper, every frame, every blink.
 
 Most AR experiences are forgiving about precision. If a virtual robot is standing somewhere on your floor and it drifts by three centimeters when you look away and look back, you might not notice. The robot is a robot. Robots wander.
 
@@ -41,21 +41,21 @@ The mechanism (simplified): the paper itself becomes the anchor. A printed regis
 
 This is a different design from the standard "anchor a virtual object to the room and trust the room reconstruction." Room reconstruction is good for furniture-scale precision. It is not good for paper-scale precision, because the room reconstruction error stacks with the user's head-pose error. By anchoring directly to a known physical object (the paper) and registering the overlay against that object, we collapse the error chain.
 
-The cost is that the paper has to be a known physical object. We solved that this weekendend with the marker-based paper-CV detection API. The marker is small, unobtrusive, and printed on every practice sheet the demo ships with. The runtime detects the marker in roughly two milliseconds per frame and tracks it stably under typical lighting.
+The cost is that the paper has to be a known physical object. We solved that this weekend with the marker-based paper-CV detection API. The marker is small, unobtrusive, and printed on every practice sheet the demo ships with. The runtime detects the marker in roughly two milliseconds per frame and tracks it stably under typical lighting.
 
 The win is that we are doing this on AR glasses with the compute envelope they have, in real time, every frame, with overlay drift bounded under a millimeter under normal usage.
 
 ## The NTT QONOQ reference
 
-I added a reference to NTT QONOQ in the README this weekendend because we are in active research conversation. NTT QONOQ in Japan has been doing serious work on real-world AR and on the question of how AR experiences anchor to physical artifacts. The calligraphy use case lines up with the kind of cultural-AR work the Japanese spatial-computing community has been pushing forward.
+I added a reference to NTT QONOQ in the README this weekend because we are in active research conversation. NTT QONOQ in Japan has been doing serious work on real-world AR and on the question of how AR experiences anchor to physical artifacts. The calligraphy use case lines up with the kind of cultural-AR work the Japanese spatial-computing community has been pushing forward.
 
-This is not an announcement of a partnership. It is a note that the partnership conversation is happening and the engineering this weekendend reflects what would be needed to support it well. The product question "can you do this in a calligraphy classroom in Tokyo" is more concrete than the product question "can you do this somewhere." Concrete questions produce better engineering.
+This is not an announcement of a partnership. It is a note that the partnership conversation is happening and the engineering this weekend reflects what would be needed to support it well. The product question "can you do this in a calligraphy classroom in Tokyo" is more concrete than the product question "can you do this somewhere." Concrete questions produce better engineering.
 
 ## Stroke-path CV: the harder one
 
-The sub-millimeter anchor is the headliner this weekendend. The actual hardest piece of engineering was the stroke-path CV.
+The sub-millimeter anchor is the headliner this weekend. The actual hardest piece of engineering was the stroke-path CV.
 
-Tracking a pen or brush in real time on AR glasses is not a solved problem. The tip is small, often partially occluded by the user's hand, and moving at variable speed. The CV pipeline this weekendend tracks the tip's position relative to the paper, infers when the tip is in contact (vs. hovering), and emits a stroke path as a stream of timestamped points. Hand-occlusion recovery is the part that ate the most time. The agent and I went through three versions of the recovery logic before the test traces stopped dropping points.
+Tracking a pen or brush in real time on AR glasses is not a solved problem. The tip is small, often partially occluded by the user's hand, and moving at variable speed. The CV pipeline this weekend tracks the tip's position relative to the paper, infers when the tip is in contact (vs. hovering), and emits a stroke path as a stream of timestamped points. Hand-occlusion recovery is the part that ate the most time. The agent and I went through three versions of the recovery logic before the test traces stopped dropping points.
 
 This is the kind of engineering where AI as a runtime primitive starts to matter. The CV pipeline gets every frame. A small model on the device decides whether the current frame is a contact frame or a hover frame. The model's decision feeds the stroke-path emitter. The model is not a chatbot. It is a runtime element that runs in the simulation step.
 

@@ -3,12 +3,12 @@ title: "The Saturday an Autonomous Agent Shipped Ten Subsystems Before Coffee"
 date: 2026-01-03
 author: Kevin Griffin
 tags: [foundation, dev-workflow, ai-native, history, weekend-build]
-description: "Woke up this Saturday and the runtime repo had taken 139 commits while I was asleep. An autonomous coding agent had shipped ten foundational subsystems overnight. The engine's foundation is being built BY agents, in a workflow that treats agent-authored diffs as a first-class part of the dev loop."
+description: "Opened the laptop this Saturday morning and the runtime repo had taken 139 commits overnight. An autonomous coding agent had shipped ten foundational subsystems. The engine's foundation is being built BY agents, in a workflow that treats agent-authored diffs as a first-class part of the dev loop."
 series: learning-to-code-with-ai
 slug: foundation-built-by-agents-not-for-agents
 ---
 
-Woke up this Saturday, opened the laptop, and the runtime repo had taken 139 commits while I was asleep. Most of them landed by an autonomous coding agent that had been working overnight against a queue of issues I filed last weekend. Ten subsystem-sized pull requests, all ready for review.
+Opened the laptop this Saturday morning. The runtime repo had taken 139 commits overnight. Most of them landed by an autonomous coding agent that had been working overnight against a queue of issues I filed last weekend. Ten subsystem-sized pull requests, all ready for review.
 
 When people ask me what it actually looks like to build a 3D runtime with AI agents on the team, they usually assume one of two things. Either the agents are autocomplete dressed up with a chat panel, or they are a feature you add later, once the "real" engine has been built by humans.
 

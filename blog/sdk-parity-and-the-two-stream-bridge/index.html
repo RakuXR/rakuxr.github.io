@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <title>Catching the SDK Up Before It Could Drift &mdash; RakuAI Blog</title>
-    <meta name="description" content="Woke up this Saturday determined to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the weekend wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year.">
+    <meta name="description" content="Determined this Saturday to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the day wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/sdk-parity-and-the-two-stream-bridge/">
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
     <meta property="og:title" content="Catching the SDK Up Before It Could Drift">
-    <meta property="og:description" content="Woke up this Saturday determined to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the weekend wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year.">
+    <meta property="og:description" content="Determined this Saturday to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the day wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year.">
     <meta property="og:url" content="https://rakuai.com/blog/sdk-parity-and-the-two-stream-bridge/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -21,7 +21,7 @@
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Catching the SDK Up Before It Could Drift">
-    <meta name="twitter:description" content="Woke up this Saturday determined to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the weekend wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year.">
+    <meta name="twitter:description" content="Determined this Saturday to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the day wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -56,8 +56,8 @@
             </p>
         </header>
         <div class="post-body">
-<p>Woke up this Saturday already nervous about a specific failure mode I have watched kill multi-repo projects before. The runtime adds a feature one weekend and the SDK does not catch up until next month. The samples in one binding work and the samples in the other binding silently regress. The version numbers stop matching. The CI on each repo is green and the integration between them is broken.</p>
-<p>That movie ends with a re-platform two years in. I am not building Raku that way. The plan for this weekendendend was to catch the SDK up to the runtime before the gap could form, and to leave behind enough infrastructure that the gap can never form again.</p>
+<p>Already nervous about a specific failure mode I have watched kill multi-repo projects before, and that was the Saturday-morning starting state. The runtime adds a feature one weekend and the SDK does not catch up until next month. The samples in one binding work and the samples in the other binding silently regress. The version numbers stop matching. The CI on each repo is green and the integration between them is broken.</p>
+<p>That movie ends with a re-platform two years in. I am not building Raku that way. The plan for this weekend was to catch the SDK up to the runtime before the gap could form, and to leave behind enough infrastructure that the gap can never form again.</p>
 <h2 id="what-landed-on-the-sdk-side">What landed on the SDK side</h2>
 <p>The SDK had a big weekend. The runtime side was quieter (most of its big push happened the weekend before with PR #104 landing VIO/SLAM, QoS Scheduler, Performance Harness, and the telemetry pipeline). This was the catch-up weekend for the bindings.</p>
 <p>Highlights:</p>
@@ -81,7 +81,7 @@
 <p><strong>One agent queue per repo.</strong> The runtime has its own issue queue, the SDK has its own issue queue, the docs have their own. Each agent works inside its repo. No single agent tries to span the seam between two repos in one PR.</p>
 <p><strong>Cross-repo coordination at the issue level.</strong> When a feature requires changes in both repos, two coupled issues get filed at the same time, with cross-references. The runtime PR lands first. The SDK PR is held until the runtime PR is merged. Then the SDK PR is updated against the new runtime build, re-tested, and merged within hours.</p>
 <p><strong>A canonical samples set in each binding.</strong> Unity HelloAR and Unreal HelloAR are the canonical test vehicles. Every C API change has to be exercised in both. The samples are not afterthoughts. They are part of the public surface.</p>
-<p><strong>Parity tests as a CI gate.</strong> The parity-testing infrastructure that landed this weekendend as Epic #42 is now run on every PR that touches either repo. If a runtime change does not exercise both bindings, the PR is blocked from merging until the parity test demonstrates the change works on both sides.</p>
+<p><strong>Parity tests as a CI gate.</strong> The parity-testing infrastructure that landed this weekend as Epic #42 is now run on every PR that touches either repo. If a runtime change does not exercise both bindings, the PR is blocked from merging until the parity test demonstrates the change works on both sides.</p>
 <h2 id="what-this-enables-for-builders">What this enables for builders</h2>
 <p>If you are a Unity developer thinking about building on Raku eventually, the binding is being co-developed with the runtime, not chased after it. The Unity API will not lag. The samples will work today and they will work in version 1.0.</p>
 <p>If you are an Unreal developer, the same is true. The Unreal binding has identical priority to the Unity one. The parity tests prove it.</p>
@@ -90,7 +90,7 @@
 <h2 id="honest-about-what-is-still-rough">Honest about what is still rough</h2>
 <p>The parity tests cover the basics. Marker-based anchoring works in both bindings. HelloAR loads and renders in both. Telemetry reports correctly in both. The harder parity questions, full hand tracking, voice pipeline, multiplayer pose sync, those are not parity-tested yet because the runtime side is not done. They will come under the same gate when they are.</p>
 <p>The CI pipeline for SDK v0.2 publishing is up, but the actual published package is not yet stable enough to recommend integrating against. Treat the SDK as in-development through October. By November the parity tests will be deep enough that the recommendation will be different.</p>
-<h2 id="what-i-want-to-remember-from-this-weekendend">What I want to remember from this weekendend</h2>
+<h2 id="what-i-want-to-remember-from-this-weekend">What I want to remember from this weekend</h2>
 <p>Two things.</p>
 <p><strong>Multi-repo parity is a discipline, not a feature.</strong> The weekend the SDK caught up to the runtime is a weekend with no shiny new feature in the runtime. Nothing demo-able happened. The thing that happened was that the SDK no longer lags. That is the kind of work that, neglected, kills a multi-repo project. I want to write that down so I do not forget when the next big runtime feature lands.</p>
 <p><strong>The agent queue scales by repo.</strong> Running one queue across both repos in the same workflow produced an early version of the merge-conflict slop I described last weekend at the runtime level. Separating the queues by repo eliminated almost all of it. The agents stop tripping over each other when their problem spaces are properly carved.</p>

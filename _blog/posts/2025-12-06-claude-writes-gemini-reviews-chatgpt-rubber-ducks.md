@@ -8,7 +8,7 @@ series: learning-to-code-with-ai
 slug: claude-writes-gemini-reviews-chatgpt-rubber-ducks
 ---
 
-Woke up Saturday wanting to write down the workflow before it changes again. When I tell people I am building an engine alongside autonomous coding agents, the first question is "which agent." The honest answer is "several, in different roles, and the divisions of labor matter." This post is the longer answer.
+Saturday morning, coffee, and the workflow before it changes again. When I tell people I am building an engine alongside autonomous coding agents, the first question is "which agent." The honest answer is "several, in different roles, and the divisions of labor matter." This post is the longer answer.
 
 Right now the dev workflow involves at least three distinct AI vendors playing distinct parts of the loop. The reason is not loyalty or pickiness. It is that each model is genuinely better at a different shape of work, and trying to make one model do everything produces measurably worse code.
 

@@ -3,7 +3,7 @@ title: "OpenXR Is the Skeleton, Dual-Link Radios Are the Nerve"
 date: 2025-11-29
 author: Kevin Griffin
 tags: [openxr, rf-optical, ar-glasses, openxr-extensions, oss-standards, weekend-build]
-description: "Woke up Saturday wanting to make a real bet on standards. by the end of Saturday the runtime had its OpenXR backbone (graphics binding, frame lifecycle, action sync) plus a dual-mode RF / optical link manager that lets the tether switch radios on the fly. Both bets are working."
+description: "A real bet on standards this Saturday. By the end of the day the runtime had its OpenXR backbone (graphics binding, frame lifecycle, action sync) plus a dual-mode RF / optical link manager that lets the tether switch radios on the fly. Both bets are working."
 series: learning-to-code-with-ai
 slug: openxr-and-dual-link-radios
 ---

@@ -3,7 +3,7 @@ title: "Eight Security Findings on a Saturday Morning"
 date: 2026-03-21
 author: Kevin Griffin
 tags: [security, audit, due-diligence, enterprise, weekend-build]
-description: "Woke up Saturday with a security audit report waiting in the inbox. Enterprise due-diligence pass on the API surface had surfaced eight critical and high findings. Spent the weekend triaging and fixing each one. Here is what the categories were, what got fixed, and what an agent-driven codebase has to be especially careful about."
+description: "A security audit report landed in the inbox late this past week. Enterprise due-diligence pass on the API surface had surfaced eight critical and high findings. Spent Saturday triaging and fixing each one. Here is what the categories were, what got fixed, and what an agent-driven codebase has to be especially careful about."
 series: learning-to-code-with-ai
 slug: eight-security-findings
 ---
