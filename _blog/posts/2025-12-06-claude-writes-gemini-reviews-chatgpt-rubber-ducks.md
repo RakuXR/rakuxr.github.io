@@ -2,13 +2,13 @@
 title: "Claude Writes, Gemini Reviews, ChatGPT Rubber-Ducks"
 date: 2025-12-06
 author: Kevin Griffin
-tags: [dev-workflow, multi-vendor, ai-tools, code-review]
-description: "Three months into building this engine, the dev workflow has settled into a multi-vendor rhythm. Different models do different parts of the loop. Here is how I divide the work and why I think the multi-vendor approach is the right one for serious AI-native engineering."
+tags: [dev-workflow, multi-vendor, ai-tools, code-review, weekend-build]
+description: "Three months into the public log, the dev workflow has settled into a multi-vendor rhythm. Different models do different parts of the loop. Spent this Saturday morning writing down how I divide the work and why the multi-vendor pattern is the one I keep coming back to."
 series: learning-to-code-with-ai
 slug: claude-writes-gemini-reviews-chatgpt-rubber-ducks
 ---
 
-When I tell people I am building an engine alongside autonomous coding agents, the first question is "which agent." The honest answer is "several, in different roles, and the divisions of labor matter." This post is the longer answer.
+Woke up Saturday wanting to write down the workflow before it changes again. When I tell people I am building an engine alongside autonomous coding agents, the first question is "which agent." The honest answer is "several, in different roles, and the divisions of labor matter." This post is the longer answer.
 
 Right now the dev workflow involves at least three distinct AI vendors playing distinct parts of the loop. The reason is not loyalty or pickiness. It is that each model is genuinely better at a different shape of work, and trying to make one model do everything produces measurably worse code.
 
@@ -62,4 +62,4 @@ If you are a developer thinking about adopting an AI-assisted workflow for a ser
 
 If you are an enterprise leader thinking about AI in your dev org, the multi-vendor pattern is the one that will scale. Single-vendor adoption looks easier on paper. In practice it produces brittleness, both technical and strategic.
 
-Quiet Saturday. The engine got a thirty-five-commit week. Most of those commits will be invisible six months from now. The workflow that produced them will not be.
+Quiet Saturday. The engine got a thirty-five-commit weekend. Most of those commits will be invisible six months from now. The workflow that produced them will not be.

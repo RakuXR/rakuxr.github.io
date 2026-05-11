@@ -1,9 +1,9 @@
 ---
-title: "Agents as Team, Not Agents as Tool"
+title: "The Bottleneck Was Never Typing"
 date: 2026-03-14
 author: Kevin Griffin
-tags: [dev-workflow, ai-native, parallel-agents, worktrees]
-description: "The dev loop with parallel AI agents working against the same codebase at the same time. The bottleneck is no longer typing. It is deciding which four problems are worth working on simultaneously, and which two of the four results are good enough to keep."
+tags: [dev-workflow, ai-native, parallel-agents, worktrees, weekend-build]
+description: "Saturday morning. Five agents on five branches against the same codebase, working different problems in parallel. The slow step is no longer typing. It is deciding which four problems are worth working on simultaneously, and which two of the four results are good enough to keep. The shape of the job has changed."
 series: learning-to-code-with-ai
 slug: agents-as-team-not-agents-as-tool
 ---

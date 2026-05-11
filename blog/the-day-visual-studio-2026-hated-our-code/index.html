@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <title>The Day Visual Studio 2026 Hated Our Code &mdash; RakuAI Blog</title>
-    <meta name="description" content="The runtime built clean on Linux. The runtime built clean on macOS. Then I tried to build it in Visual Studio 2026 Insiders, and Visual Studio 2026 had opinions. Twelve PRs later, the build is green. Here is the inside of those twelve PRs.">
+    <title>The Weekend Visual Studio 2026 Hated Our Code &mdash; RakuAI Blog</title>
+    <meta name="description" content="The runtime built clean on Linux. The runtime built clean on macOS. Then this Saturday morning I tried to build it in Visual Studio 2026 Insiders, and Visual Studio 2026 had opinions. Twelve PRs later, the build is green. Here is the inside of those twelve PRs and what I learned about how MSVC 2026 wants to be talked to.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/the-day-visual-studio-2026-hated-our-code/">
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
-    <meta property="og:title" content="The Day Visual Studio 2026 Hated Our Code">
-    <meta property="og:description" content="The runtime built clean on Linux. The runtime built clean on macOS. Then I tried to build it in Visual Studio 2026 Insiders, and Visual Studio 2026 had opinions. Twelve PRs later, the build is green. Here is the inside of those twelve PRs.">
+    <meta property="og:title" content="The Weekend Visual Studio 2026 Hated Our Code">
+    <meta property="og:description" content="The runtime built clean on Linux. The runtime built clean on macOS. Then this Saturday morning I tried to build it in Visual Studio 2026 Insiders, and Visual Studio 2026 had opinions. Twelve PRs later, the build is green. Here is the inside of those twelve PRs and what I learned about how MSVC 2026 wants to be talked to.">
     <meta property="og:url" content="https://rakuai.com/blog/the-day-visual-studio-2026-hated-our-code/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -20,8 +20,8 @@
     <meta property="article:published_time" content="2025-12-20T00:00:00+00:00">
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="The Day Visual Studio 2026 Hated Our Code">
-    <meta name="twitter:description" content="The runtime built clean on Linux. The runtime built clean on macOS. Then I tried to build it in Visual Studio 2026 Insiders, and Visual Studio 2026 had opinions. Twelve PRs later, the build is green. Here is the inside of those twelve PRs.">
+    <meta name="twitter:title" content="The Weekend Visual Studio 2026 Hated Our Code">
+    <meta name="twitter:description" content="The runtime built clean on Linux. The runtime built clean on macOS. Then this Saturday morning I tried to build it in Visual Studio 2026 Insiders, and Visual Studio 2026 had opinions. Twelve PRs later, the build is green. Here is the inside of those twelve PRs and what I learned about how MSVC 2026 wants to be talked to.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -50,16 +50,16 @@
     <article class="post">
         <header class="post-header">
             <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
-            <h1>The Day Visual Studio 2026 Hated Our Code</h1>
+            <h1>The Weekend Visual Studio 2026 Hated Our Code</h1>
             <p class="post-meta">
                 <time datetime="2025-12-20T00:00:00+00:00">December 20, 2025</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
             </p>
         </header>
         <div class="post-body">
-<p>There is an old joke that the difference between a senior engineer and a junior engineer is that the senior engineer knows it is going to be a fight with the compiler before they start. This week was a fight with the compiler. The compiler was Microsoft Visual C++ as it ships in Visual Studio 2026 Insiders. The codebase was Raku. The fight lasted four days. The codebase won, but barely.</p>
+<p>There is an old joke that the difference between a senior engineer and a junior engineer is that the senior engineer knows it is going to be a fight with the compiler before they start. This weekend was a fight with the compiler. The compiler was Microsoft Visual C++ as it ships in Visual Studio 2026 Insiders. The codebase was Raku. The fight lasted four days. The codebase won, but barely.</p>
 <p>I want to write this one down because the public engineering log should include the days where things did not work, and because the way the agents and I worked through this is genuinely the part of the workflow I am most curious about other people&rsquo;s opinions on.</p>
 <h2 id="the-setup">The setup</h2>
-<p>Up to this week the runtime built clean on Linux with GCC and on macOS with Clang. Both of those have been my main development environments. I had not actually tried a Windows MSVC build since the early bring-up in October. The runtime is supposed to be cross-platform. Cross-platform means Windows. So I checked out the repo on a Windows machine with Visual Studio 2026 Insiders and ran the build.</p>
+<p>Up to this Saturday the runtime built clean on Linux with GCC and on macOS with Clang. Both of those have been my main weekend development environments. I had not actually tried a Windows MSVC build since the early bring-up in October. The runtime is supposed to be cross-platform. Cross-platform means Windows. So Saturday morning I checked out the repo on a Windows machine with Visual Studio 2026 Insiders and ran the build.</p>
 <p>It did not build. It did not nearly build. The first compile pass produced more than two hundred errors and a comparable number of warnings. The errors fell into roughly six categories, each of which became its own PR.</p>
 <h2 id="what-the-categories-were">What the categories were</h2>
 <p>Each one is worth describing because each one is the kind of thing that hits any C++ codebase the first time it meets a new MSVC version. Other teams will hit these. Some of them may already be hitting them.</p>
@@ -69,27 +69,27 @@
 <p><strong>Four: DLL export macros.</strong> The biggest one. Every public symbol in every DLL has to be marked with <code>__declspec(dllexport)</code> when building the DLL and <code>__declspec(dllimport)</code> when consuming it from another DLL. Linux GCC and macOS Clang do not need this. MSVC does, and our codebase had a lot of cases where the macro was missing, applied inconsistently, or accidentally applied to template specializations the compiler did not actually want to export. The fix was a sweep that normalized the export macro across every public-API header and added it where it was missing.</p>
 <p><strong>Five: <code>RAKU_API</code> and the consolidated DLLs.</strong> A weirder one. Some of our internal CMake setup was injecting <code>-DRAKU_API=__declspec(dllexport)</code> at compile time even for static libraries that should not have been exporting. MSVC C2491 errors everywhere. The fix was a CMake sanitizer that explicitly undefines RAKU_API for static targets and only sets it for dynamic ones.</p>
 <p><strong>Six: OpenXR headers and <code>&lt;array&gt;</code>.</strong> A handful of MSVC compilations failed because <code>&lt;array&gt;</code> was being used without being explicitly included. GCC and Clang tend to transitively include it through other STL headers. MSVC does not, and &ldquo;include what you use&rdquo; is the right answer regardless. The agent added the missing includes.</p>
-<h2 id="how-the-four-days-went">How the four days went</h2>
-<p>The first day was mostly me reproducing each class of error and writing the diagnostic notes. The agents do not have a Windows VM in front of them. I had to capture the build output, sanitize it, and feed it back to the agent with a clear ask: &ldquo;here is the class of error, here is one canonical example, here is the file it lives in, propose a sweep that fixes all instances of this class.&rdquo;</p>
+<h2 id="how-the-weekend-went-hour-by-hour">How the weekend went, hour by hour</h2>
+<p>Saturday morning was mostly me reproducing each class of error and writing the diagnostic notes. The agents do not have a Windows VM in front of them. I had to capture the build output, sanitize it, and feed it back to the agent with a clear ask: &ldquo;here is the class of error, here is one canonical example, here is the file it lives in, propose a sweep that fixes all instances of this class.&rdquo;</p>
 <p>The agents handled the sweeps cleanly. PR #408 fixed Windows macro conflicts in <code>logging.cpp</code>. PR #406 fixed the MSVC enum redefinition. PR #404 added the CMake sanitizer for RAKU_API macros. PR #408 (a different one in arvr_demo_telemetry) fixed Windows DLL export errors. PR #411 fixed MSVC 2026 DLL linkage errors and deprecation warnings. PR #413 removed BOMs and replaced deprecated APIs. PR #415 fixed C2491 errors by adding RAKU_RUNTIME_EXPORTS to static libraries. PR #416 fixed CMake build with a header-only OpenXR fetch and added missing runtime sources. PR #401 fixed Windows DLL export macros and removed an MSVC workaround that was now obsolete.</p>
-<p>Twelve PRs in four days, give or take. Every one of them is documented under #404–#416 in the runtime repo.</p>
-<p>The second day was the longest. The DLL-export normalization required reading every public-API header in the engine and deciding which symbols were genuinely part of the public surface. Some of them turned out not to be. A few got demoted to internal as part of this work, which was a net good even though it added scope.</p>
-<p>The third day I added a Windows MSVC CI workflow with vcpkg and OpenXR SDK integration so that this never happens again silently. Now every push triggers an MSVC build. The build cannot regress without somebody seeing it in CI.</p>
-<p>The fourth day was the celebration. By the end of it, the build went green on Windows. First successful x64 build in the runtime&rsquo;s history. The commit message says exactly that: <code>build: first successful x64 build with OpenXR handle fixes</code>. The commit hash is <code>f35f78bd</code> and it is one of my favorite commits in the project to date.</p>
+<p>Twelve PRs in two days, give or take. Every one of them is documented under #404–#416 in the runtime repo.</p>
+<p>Saturday afternoon was the longest stretch. The DLL-export normalization required reading every public-API header in the engine and deciding which symbols were genuinely part of the public surface. Some of them turned out not to be. A few got demoted to internal as part of this work, which was a net good even though it added scope.</p>
+<p>Saturday evening I added a Windows MSVC CI workflow with vcpkg and OpenXR SDK integration so that this never happens again silently. Now every push triggers an MSVC build. The build cannot regress without somebody seeing it in CI.</p>
+<p>The next morning was the celebration. By the end of it, the build went green on Windows. First successful x64 build in the runtime&rsquo;s history. The commit message says exactly that: <code>build: first successful x64 build with OpenXR handle fixes</code>. The commit hash is <code>f35f78bd</code> and it is one of my favorite commits in the project to date.</p>
 <h2 id="what-worked-what-i-would-do-differently">What worked, what I would do differently</h2>
 <p>A few honest notes.</p>
-<p><strong>Bringing a new platform online late is expensive.</strong> I should have run an MSVC build in October when the codebase was smaller. The errors at that scale would have been twenty, not two hundred. The cost of fixing twenty errors is meaningfully smaller than the cost of fixing two hundred. The lesson is to never let a target platform go un-built for more than a few weeks.</p>
+<p><strong>Bringing a new platform online late is expensive.</strong> I should have run an MSVC build a couple of weekends ago when the codebase was smaller. The errors at that scale would have been twenty, not two hundred. The cost of fixing twenty errors is meaningfully smaller than the cost of fixing two hundred. The lesson is to never let a target platform go un-built for more than a couple of weekends.</p>
 <p><strong>Agent-driven sweeps are the right answer when the fix is mechanical.</strong> The DLL-export sweep, the BOM removal, the deprecated-CRT-replacement: all of these were exactly the kind of work the agent does faster and more consistently than a human. I framed each one as &ldquo;find all instances of pattern X, apply transformation Y, leave everything else alone,&rdquo; and the agent did exactly that.</p>
 <p><strong>Agent-driven sweeps are the wrong answer when the fix requires judgment.</strong> The RAKU_API macro problem required deciding which CMake targets actually wanted the export and which did not. That was not a sweep. That was a careful, target-by-target review. I did that one by hand with the agent acting as a second pair of eyes on each decision, not as the executor.</p>
-<p><strong>A different model caught a bug another model wrote.</strong> During the deprecated-CRT replacement sweep, one of the agents replaced <code>sprintf</code> with <code>sprintf_s</code> in a place where the buffer-size semantics were subtly different from what the call site expected. The PR landed. A review pass by a different model caught the mismatch before it shipped. The multi-vendor review workflow earned its keep this week, specifically.</p>
+<p><strong>A different model caught a bug another model wrote.</strong> During the deprecated-CRT replacement sweep, one of the agents replaced <code>sprintf</code> with <code>sprintf_s</code> in a place where the buffer-size semantics were subtly different from what the call site expected. The PR landed. A review pass by a different model caught the mismatch before it shipped. The multi-vendor review workflow earned its keep this weekend, specifically.</p>
 <h2 id="what-partners-and-builders-take-from-this">What partners and builders take from this</h2>
 <p>If you are a partner thinking about whether this engine ships on Windows, the answer as of this Saturday morning is yes. The MSVC build is green. CI keeps it green going forward.</p>
 <p>If you are a developer working on your own cross-platform C++ codebase and you are about to try Visual Studio 2026 Insiders for the first time, the six categories above are what is going to hit you. You can pre-empt most of them. Now you know.</p>
 <p>If you are an MSVC-team person reading this, the team has done good work on 2026 Insiders. The warnings are genuinely useful and the new tooling is better than 2022. The compatibility breaks are mostly there for good reasons. I&rsquo;d file a few bug reports if I had more time. They are coming.</p>
-<p>Saturday morning, the engine builds clean on three platforms. That is the right thing to start the next week with.</p>
+<p>Saturday morning, the engine builds clean on three platforms. That is the right thing to start the next weekend with.</p>
         </div>
-        <ul class="post-tags"><li>build</li><li>msvc</li><li>vs2026</li><li>openxr</li><li>debugging</li><li>dev-workflow</li></ul>
-        <nav class="post-series-nav"><a class="nav-prev" href="/blog/claude-writes-gemini-reviews-chatgpt-rubber-ducks/" rel="prev">&larr; Claude Writes, Gemini Reviews, ChatGPT Rubber-Ducks</a><a class="nav-next" href="/blog/the-week-the-engine-grew-up/" rel="next">The Week the Engine Grew Up &rarr;</a></nav>
+        <ul class="post-tags"><li>build</li><li>msvc</li><li>vs2026</li><li>openxr</li><li>debugging</li><li>dev-workflow</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/the-weekend-i-found-the-stubs/" rel="prev">&larr; The Weekend I Found the Stubs</a><a class="nav-next" href="/blog/the-week-the-engine-grew-up/" rel="next">The Weekend the Engine Grew Up &rarr;</a></nav>
     </article>
     <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
 </main>

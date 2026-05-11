@@ -1,16 +1,16 @@
 ---
-title: "Two Months In: What the Engine Has Become"
+title: "Two Months Public, Years Under the Hood"
 date: 2025-11-01
 author: Kevin Griffin
-tags: [reflection, architecture, ar-glasses, multi-repo, agent-workflow]
-description: "Two months since the first commit. A quiet week. A good week to take stock of what the engine actually is now, where the architecture has settled, and what the road to a December production-readiness milestone looks like."
+tags: [reflection, architecture, ar-glasses, multi-repo, agent-workflow, weekend-build]
+description: "Two months since I started the public engineering log on this engine. The work itself goes back further than that. A quiet Saturday to take stock of where the architecture has settled, which calls I am still revisiting, and what the road to a December production-readiness milestone looks like."
 series: learning-to-code-with-ai
 slug: two-months-in-what-the-engine-has-become
 ---
 
-A quiet week. Three commits total. The agents were running cooler on purpose; I have been thinking about architecture rather than shipping new code. The codebase ends the week roughly where it started it, which is the right state for the kind of work I was doing.
+Plan for this Saturday was to slow down and think. Three commits the whole weekend, which is the lowest count since I started the public log. The agents are running cooler on purpose; my attention is on architecture rather than shipping new code. The codebase ends the weekend roughly where it started it, which is the right state for the kind of work I was doing.
 
-Two months ago today the runtime repo was an empty README. The kind of week worth writing about is the one where the writer takes stock. So that is what this is.
+Two months ago today the public runtime repo was an empty README. The engine and the patent estate behind it go back further than that. The kind of weekend worth writing about is the one where the writer takes stock. So that is what this is.
 
 ## What the engine actually is, today
 
@@ -24,9 +24,9 @@ That paragraph would have been an aspirational mission statement on day one. It 
 
 Three things.
 
-**The agent-driven workflow scaled past where I expected it to.** I had a worry going in that the autonomous agents would produce a codebase that worked in isolated PRs and turned into mush across many merges. The mush has not happened. The codebase is more coherent at two months than codebases I have inherited from human teams at two years. The reason is the discipline I have been writing about every week (smaller queue, earlier review, multi-vendor pairing for review independence, documentation as input). Those disciplines work.
+**The agent-driven workflow scaled past where I expected it to.** I had a worry going in that the autonomous agents would produce a codebase that worked in isolated PRs and turned into mush across many merges. The mush has not happened. The codebase is more coherent at two months than codebases I have inherited from human teams at two years. The reason is the discipline I have been writing about every weekend (smaller queue, earlier review, multi-vendor pairing for review independence, documentation as input). Those disciplines work.
 
-**The hardware pivot was less expensive than I feared.** Moving from AR1+ as the product target to AR2 Gen1 in early October was a decision I sat with for several days because the cost looked large. The actual cost was a couple of PRs (a thorough rename sweep, a documentation pass). The reason the cost was small is the modular architecture established in week one. Subsystems that did not need to know about the device-class boundary did not have to change. The ones that did, changed cleanly through their well-defined surfaces. That is the dividend of drawing the architecture early.
+**The hardware pivot was less expensive than I feared.** Moving from AR1+ as the product target to AR2 Gen1 in early October was a decision I sat with for several days because the cost looked large. The actual cost was a couple of PRs (a thorough rename sweep, a documentation pass). The reason the cost was small is the modular architecture established early on. Subsystems that did not need to know about the device-class boundary did not have to change. The ones that did, changed cleanly through their well-defined surfaces. That is the dividend of drawing the architecture early.
 
 **The partnership conversations are happening earlier than I planned.** I expected to be in "build the engine, ship a demo, then have partnership conversations" mode through the end of the year. The actual sequence has been "build the engine, have partnership conversations along the way that inform what to build next, then ship demos that match what those conversations need." NTT QONOQ. Meta. The next ones I am not going to name yet. The conversations are sharper than the demos right now, which is a good place to be.
 
@@ -53,7 +53,7 @@ I have been quietly aiming at a December milestone where the engine is "producti
 
 What still has to happen to clear that bar:
 
-- The AI subsystems for the runtime (behavior trees, navigation mesh, crowd sim, sensory systems, decision trees). Currently scaffolded in design docs; implementation lands in December and the first week of January.
+- The AI subsystems for the runtime (behavior trees, navigation mesh, crowd sim, sensory systems, decision trees). Currently scaffolded in design docs; implementation lands in December and the first weekend of January.
 - Windows MSVC build cleanliness. I have not actually built the runtime under Visual Studio 2026 since October. I am pretty sure that is going to be a fight. I will write about it when I do it.
 - A canonical samples package that demonstrates a non-trivial AR experience end to end through both Unity and Unreal bindings, with the voice pipeline and the cloud LLM hooked up.
 - A federated-sync path for distributing model updates to devices in the field. The crypto piece needs to be production-grade, not stub-grade.
@@ -63,7 +63,7 @@ That is the list. Six weeks to clear it. December's commit volume is going to be
 
 ## What I want builders and partners to take from this
 
-If you have been reading this blog for two months, you have seen the engine come together in real time. The pace is high; the discipline is real; the architectural decisions are documented. That is the engineering culture this engine is built with. It is the engineering culture you will be working with if you build on top of it.
+If you have been reading the public log for two months, you have seen the engine come together in real time. The pace is high; the discipline is real; the architectural decisions are documented. That is the engineering culture this engine is built with. It is the engineering culture you will be working with if you build on top of it.
 
 If you are a partner thinking about whether to start a serious conversation: the conversation is sharper than the demos right now, and that is on purpose. I would rather hear what your product actually needs and let that shape what gets built than build a demo and then try to fit it to your needs after the fact. The window for shaping what December delivers is open through the end of November.
 

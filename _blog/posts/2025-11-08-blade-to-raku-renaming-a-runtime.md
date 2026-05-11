@@ -1,16 +1,16 @@
 ---
-title: "Blade to Raku: Renaming a Runtime"
+title: "Blade to Raku: Renaming the Runtime in a Weekend"
 date: 2025-11-08
 author: Kevin Griffin
-tags: [rebrand, naming, ar-glasses, history]
-description: "This week the engine got a new name. The codebase renamed itself from blade and ar1-runtime to Raku. The rebrand surfaced a few things about how an agent-driven workflow handles a sweeping change."
+tags: [rebrand, naming, ar-glasses, history, weekend-build]
+description: "Woke up Saturday with the placeholder name finally ready to come off. By Sunday evening every reference in every repo had been swept from Blade and ar1-runtime to Raku. The brand has been waiting in the wings for years; the engineering finally caught up."
 series: learning-to-code-with-ai
 slug: blade-to-raku-renaming-a-runtime
 ---
 
-The runtime had a name when I started building it. The name was a placeholder. I knew it was a placeholder when I picked it. It was useful in the way placeholders are useful: it let me stop worrying about naming and start writing code.
+The runtime had a name when I started building it. The name was a placeholder, the kind of placeholder that lets you stop worrying about naming and start writing code. I knew it was a placeholder when I picked it. The real name was waiting on a few things to settle.
 
-This week the placeholder came off. The runtime is now Raku.
+This weekend the placeholder came off. The runtime is now Raku.
 
 ## Why now
 
@@ -46,20 +46,20 @@ Three things, each useful for anyone planning a sweep through an agent-built cod
 
 **Rename PRs want to be small even when they touch everything.** The two PRs that did the rename were not subtle. They each touched dozens of files. They were small in the sense that they did only one thing. Each PR was renames-only, no functional changes mixed in. Mixing a rename with even one small functional change makes the PR un-reviewable, because the human reviewer has to read every line to make sure the functional change is just the functional change. Pure renames can be reviewed in fifteen minutes.
 
-**The brand has to be ready before the rename ships.** Half of the work this week was not in the codebase. It was choosing the new name, registering domains, securing handles, getting the kanji set right, designing the logo. The rename of the codebase is the last step, not the first. If you do the codebase rename and then realize the brand is not done, you are stuck with another rename round.
+**The brand has to be ready before the rename ships.** Half of the work this weekendend was not in the codebase. It was choosing the new name, registering domains, securing handles, getting the kanji set right, designing the logo. The rename of the codebase is the last step, not the first. If you do the codebase rename and then realize the brand is not done, you are stuck with another rename round.
 
 ## What did not change
 
-The architecture did not change. The C API did not change. The roadmap did not change. The product target did not change. Anyone reading the codebase the week before the rename and the week after would see the same engine doing the same things.
+The architecture did not change. The C API did not change. The roadmap did not change. The product target did not change. Anyone reading the codebase the weekend before the rename and the weekend after would see the same engine doing the same things.
 
 This was the right kind of rename. It was a label change, not a redirection.
 
 ## What partners and builders take from this
 
-If you are an integrator looking at the runtime now: anywhere you see "raku-runtime" in our repos and packaging, that is the same engine that was called something else last week. There is no compatibility break. The C API is unchanged. The SDK bindings are unchanged. The sample apps still work.
+If you are an integrator looking at the runtime now: anywhere you see "raku-runtime" in our repos and packaging, that is the same engine that was called something else last weekend. There is no compatibility break. The C API is unchanged. The SDK bindings are unchanged. The sample apps still work.
 
 If you are looking to partner on a product that ships on this engine, the name is now stable. The conversation does not have to start with "we are calling it this for now, but." It can start with "here is what Raku is and what it is built for."
 
 If you are inside an AR2 device team thinking about which runtime to target on your platform, the name change is also a statement about where the engine is positioned in the market. Raku is not "the AR1+ runtime grown up." It is its own thing, with its own thesis, willing to ship on whichever hardware partner is the best fit. The rename is part of that statement.
 
-Quiet week. Right week.
+Quiet weekend, in the sense that nothing functional changed. The right kind of quiet.

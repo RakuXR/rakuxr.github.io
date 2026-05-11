@@ -1,20 +1,20 @@
 ---
-title: "SDK Parity and the Two-Stream Bridge"
+title: "Catching the SDK Up Before It Could Drift"
 date: 2025-09-20
 author: Kevin Griffin
-tags: [sdk, unity, unreal, parity, multi-repo, dev-workflow]
-description: "This week the SDK caught up to the runtime. Unity and Unreal HelloAR samples both work. A parity-testing infrastructure proves the two bindings expose the same surface. The reason both repos moved in lockstep is the same reason agent-driven engineering produces a coherent codebase: discipline at the seams."
+tags: [sdk, unity, unreal, parity, multi-repo, dev-workflow, weekend-build]
+description: "Woke up this Saturday determined to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the weekend wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year."
 series: learning-to-code-with-ai
 slug: sdk-parity-and-the-two-stream-bridge
 ---
 
-There is a failure mode in multi-repo projects where the two repos drift. The runtime adds a feature one week and the SDK does not catch up until next month. The samples in one binding work and the samples in the other binding silently regress. The version numbers stop matching. The CI on each repo is green and the integration between them is broken.
+Woke up this Saturday already nervous about a specific failure mode I have watched kill multi-repo projects before. The runtime adds a feature one weekend and the SDK does not catch up until next month. The samples in one binding work and the samples in the other binding silently regress. The version numbers stop matching. The CI on each repo is green and the integration between them is broken.
 
-I have watched that movie. I am not building Raku that way. This week the SDK and the runtime moved in lockstep, on purpose, and the discipline that made it work is worth writing down.
+That movie ends with a re-platform two years in. I am not building Raku that way. The plan for this weekendendend was to catch the SDK up to the runtime before the gap could form, and to leave behind enough infrastructure that the gap can never form again.
 
 ## What landed on the SDK side
 
-The SDK had a big week. The runtime side was quieter (most of its big push happened the week before with PR #104 landing VIO/SLAM, QoS Scheduler, Performance Harness, and the telemetry pipeline). This was the catch-up week for the bindings.
+The SDK had a big weekend. The runtime side was quieter (most of its big push happened the weekend before with PR #104 landing VIO/SLAM, QoS Scheduler, Performance Harness, and the telemetry pipeline). This was the catch-up weekend for the bindings.
 
 Highlights:
 
@@ -35,7 +35,7 @@ The Raku SDK is not yet shipping. There is no public release. We are months away
 
 Because parity testing built at the start of a project costs a thousand times less than parity testing retrofitted onto a project that already shipped. Every new C API the runtime adds gets exercised through both bindings on day one. Every PR that touches the public surface has to either show the parity test still passes or explain why it does not. The cost is a few minutes per PR. The savings is months of triage downstream when a partner reports an issue that only reproduces on Unreal and the team has to figure out why.
 
-The other reason is that parity testing surfaces architectural problems. When a feature is easy to expose in Unity and hard in Unreal, the problem is usually not in the bindings. It is in the runtime's C API. The asymmetry is a signal. This week the parity tests surfaced two such asymmetries, and the fix in both cases was to change the runtime's API surface rather than work around the asymmetry in one of the bindings.
+The other reason is that parity testing surfaces architectural problems. When a feature is easy to expose in Unity and hard in Unreal, the problem is usually not in the bindings. It is in the runtime's C API. The asymmetry is a signal. This weekend the parity tests surfaced two such asymmetries, and the fix in both cases was to change the runtime's API surface rather than work around the asymmetry in one of the bindings.
 
 ## How the two-stream workflow works
 
@@ -47,7 +47,7 @@ The pattern I have landed on for multi-repo development with agents:
 
 **A canonical samples set in each binding.** Unity HelloAR and Unreal HelloAR are the canonical test vehicles. Every C API change has to be exercised in both. The samples are not afterthoughts. They are part of the public surface.
 
-**Parity tests as a CI gate.** The parity-testing infrastructure that landed this week as Epic #42 is now run on every PR that touches either repo. If a runtime change does not exercise both bindings, the PR is blocked from merging until the parity test demonstrates the change works on both sides.
+**Parity tests as a CI gate.** The parity-testing infrastructure that landed this weekendend as Epic #42 is now run on every PR that touches either repo. If a runtime change does not exercise both bindings, the PR is blocked from merging until the parity test demonstrates the change works on both sides.
 
 ## What this enables for builders
 
@@ -65,12 +65,12 @@ The parity tests cover the basics. Marker-based anchoring works in both bindings
 
 The CI pipeline for SDK v0.2 publishing is up, but the actual published package is not yet stable enough to recommend integrating against. Treat the SDK as in-development through October. By November the parity tests will be deep enough that the recommendation will be different.
 
-## What I want to remember from this week
+## What I want to remember from this weekendend
 
 Two things.
 
-**Multi-repo parity is a discipline, not a feature.** The week the SDK caught up to the runtime is a week with no shiny new feature in the runtime. Nothing demo-able happened. The thing that happened was that the SDK no longer lags. That is the kind of work that, neglected, kills a multi-repo project. I want to write that down so I do not forget when the next big runtime feature lands.
+**Multi-repo parity is a discipline, not a feature.** The weekend the SDK caught up to the runtime is a weekend with no shiny new feature in the runtime. Nothing demo-able happened. The thing that happened was that the SDK no longer lags. That is the kind of work that, neglected, kills a multi-repo project. I want to write that down so I do not forget when the next big runtime feature lands.
 
-**The agent queue scales by repo.** Running one queue across both repos in the same workflow produced an early version of the merge-conflict slop I described last week at the runtime level. Separating the queues by repo eliminated almost all of it. The agents stop tripping over each other when their problem spaces are properly carved.
+**The agent queue scales by repo.** Running one queue across both repos in the same workflow produced an early version of the merge-conflict slop I described last weekend at the runtime level. Separating the queues by repo eliminated almost all of it. The agents stop tripping over each other when their problem spaces are properly carved.
 
-Saturday evening, the SDK and the runtime are at parity again. Quiet week. Right week.
+Saturday evening, the SDK and the runtime are at parity. Big weekend. Right kind of weekend.
