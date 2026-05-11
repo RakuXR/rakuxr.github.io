@@ -44,6 +44,7 @@
     installLauncherIntegration,
     ensureIframeFocus,
     relayApiCallsToParent,
+    installTouchOverlay,
   } from '../lib/game-shared.js';
 
   // ---- Shared helpers (API overlay, sound, launcher, focus) ----
@@ -82,6 +83,14 @@
   const canvas = document.getElementById("game");
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingEnabled = false;
+
+  // ---- Mobile touch controls (no-op on desktop) ----
+  installTouchOverlay({
+    engine, canvas,
+    dpad: 'lr',
+    actions: [{ id: 'fire', label: 'FIRE', key: ' ' }],
+    orientation: 'portrait',
+  });
 
   const W = canvas.width;
   const H = canvas.height;

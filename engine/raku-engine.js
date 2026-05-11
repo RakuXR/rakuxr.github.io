@@ -125,7 +125,8 @@ export class RakuEngine {
     this._worlds = {};
     this._activeDLLs = new Set();
     this._apiLog = [];
-    this._listeners = { dll: [], api: [] };
+    this._listeners = { dll: [], api: [], input: [] };
+    this._inputState = {};
     this.anthropicKey = options.anthropicKey || '';
     this.serverUrl = options.serverUrl || '';  // e.g. 'https://raku-api-staging.fly.dev'
     this.apiKey = options.apiKey || '';  // X-Raku-API-Key header value
@@ -134,7 +135,54 @@ export class RakuEngine {
 
   // Event system
   on(event, fn) { (this._listeners[event] = this._listeners[event] || []).push(fn); }
+  off(event, fn) {
+    const list = this._listeners[event];
+    if (!list) return;
+    const i = list.indexOf(fn);
+    if (i >= 0) list.splice(i, 1);
+  }
   _emit(event, data) { (this._listeners[event] || []).forEach(fn => fn(data)); }
+
+  // ─── INPUT (RakuInput subsystem) ───
+  // Publish a partial input state update. Keys map to whatever the caller
+  // wants — game-shared.js conventionally uses { left, right, up, down,
+  // fire, jump, shield, pause, ... } where each value is boolean. Only
+  // changed keys cause an 'input' event to fire; equal-value publishes are
+  // dropped so a held button doesn't spam subscribers every frame.
+  //
+  // Returns the merged state. Logs each accepted change through _log so the
+  // API panel shows player inputs in the same stream as physics/entity
+  // calls (the "nervous system" architecture pattern).
+  publishInput(partial) {
+    if (!partial || typeof partial !== 'object') return this.getInputState();
+    this._activateDLL('RakuInput');
+    const changed = {};
+    let anyChanged = false;
+    for (const k of Object.keys(partial)) {
+      const v = partial[k];
+      if (this._inputState[k] !== v) {
+        this._inputState[k] = v;
+        changed[k] = v;
+        anyChanged = true;
+      }
+    }
+    if (anyChanged) {
+      this._log('POST', '/input', 200, 0, changed);
+      this._emit('input', { changed, state: { ...this._inputState } });
+    }
+    return { ...this._inputState };
+  }
+
+  // Snapshot of the current input state. Returns a shallow clone so callers
+  // can't mutate engine internals.
+  getInputState() { return { ...this._inputState }; }
+
+  // Convenience: subscribe to input changes. Returns an unsubscribe function.
+  // Equivalent to engine.on('input', cb) + engine.off('input', cb).
+  onInput(fn) {
+    this.on('input', fn);
+    return () => this.off('input', fn);
+  }
 
   _activateDLL(name) {
     if (!this._activeDLLs.has(name)) {
