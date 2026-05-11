@@ -1,14 +1,14 @@
 ---
-title: "AI as Interface, Not AI as Dependency"
+title: "How the Engine Talks to Any Model You Bring"
 date: 2026-01-24
 author: Kevin Griffin
-tags: [architecture, ai-native, interfaces, runtime]
-description: "If AI is a runtime primitive in the engine, you might assume the engine is locked to whichever model we wired in. It is not. Here is how the AI layer is exposed through interfaces instead of imports, and why that decision keeps getting more valuable."
+tags: [architecture, ai-native, interfaces, runtime, weekend-build]
+description: "Someone asked me a sharp question this weekend: if AI is a runtime primitive inside your engine, is the engine locked to whichever model you wired in? Short answer, no. The AI layer is exposed through interfaces, not imports. Here is how that boundary is drawn and why it keeps getting more valuable as the model market churns."
 series: learning-to-code-with-ai
 slug: ai-as-interface-not-ai-as-dependency
 ---
 
-Someone asked me a sharp question this week. "If AI is a runtime primitive inside your engine, then the engine is locked to whichever model you wired in. The next time the model vendor moves, you have to rewrite the engine."
+Someone asked me a sharp question this weekend. "If AI is a runtime primitive inside your engine, then the engine is locked to whichever model you wired in. The next time the model vendor moves, you have to rewrite the engine."
 
 Fair concern. And wrong, but fair.
 

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Meta Quest Is Now a Target &mdash; RakuAI Blog</title>
+    <meta name="description" content="Spent this weekendendend lighting up Meta Quest as a target platform. OpenXR with Horizon OS, passthrough AR mode with composition layers, stereo rendering with 6DoF tracking. The engine now reaches one of the largest installed bases in spatial computing. The partner-meeting context this weekendend made it worth going hard.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/meta-quest-is-now-a-target/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Meta Quest Is Now a Target">
+    <meta property="og:description" content="Spent this weekendendend lighting up Meta Quest as a target platform. OpenXR with Horizon OS, passthrough AR mode with composition layers, stereo rendering with 6DoF tracking. The engine now reaches one of the largest installed bases in spatial computing. The partner-meeting context this weekendend made it worth going hard.">
+    <meta property="og:url" content="https://rakuai.com/blog/meta-quest-is-now-a-target/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2025-11-15T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Meta Quest Is Now a Target">
+    <meta name="twitter:description" content="Spent this weekendendend lighting up Meta Quest as a target platform. OpenXR with Horizon OS, passthrough AR mode with composition layers, stereo rendering with 6DoF tracking. The engine now reaches one of the largest installed bases in spatial computing. The partner-meeting context this weekendend made it worth going hard.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Meta Quest Is Now a Target</h1>
+            <p class="post-meta">
+                <time datetime="2025-11-15T00:00:00+00:00">November 15, 2025</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>Woke up Saturday after a partner meeting late this past week that made the next move obvious. The eventual product target for Raku is AR glasses. The product target today is also AR glasses, but the AR glasses we want to ship on do not yet exist in a form anyone can buy. That gap is real. It is also frustrating, because the experiences we want people to have on this engine should not have to wait for hardware.</p>
+<p>This weekend we closed the gap a different way. The runtime now runs on Meta Quest headsets with Horizon OS, in passthrough AR mode, through the OpenXR layer Meta exposes. The Quest is not the form factor we are ultimately optimizing for. It is the form factor people already own.</p>
+<h2 id="what-landed">What landed</h2>
+<p>Three runtime PRs and matching SDK pieces:</p>
+<ul>
+<li>OpenXR/Quest VR integration with stereo rendering and 6DoF tracking</li>
+<li>Passthrough AR mode for Meta Quest with composition layers and alpha blending</li>
+<li>Horizon OS permissions documentation for Quest passthrough AR</li>
+</ul>
+<p>The SDK got the corresponding work: C samples extended for Quest VR with platform-adaptive runtime selection, comprehensive Meta Quest (Horizon OS) documentation for OpenXR integration, Quest VR sample support and CI validation, and a Meta Quest passthrough AR documentation pass with platform comparison.</p>
+<p>The governance side got Epic #190: Horizon OS (Meta Quest) OpenXR Support, plus reference documentation for the integration. The strategic-documents PR (#193 in the governance repo) integrated context from a partner meeting earlier in the week.</p>
+<h2 id="why-quest-why-now">Why Quest, why now</h2>
+<p>Two reasons.</p>
+<p><strong>The Quest is the largest installed base in spatial computing right now.</strong> If you want a serious AR experience to reach a meaningful audience in 2026, the Quest is the device that audience already owns. Building for the device they have lets the engine prove itself with real users before glasses-class hardware ships at consumer scale. The right thing to do is to meet users where they are.</p>
+<p><strong>Quest&rsquo;s OpenXR runtime is a real implementation, not a half-spec.</strong> This matters more than people give it credit for. Meta has invested heavily in OpenXR conformance, in passthrough AR through XR_FB_passthrough, in foveated rendering through XR_FB_foveation, and in hand tracking through XR_EXT_hand_tracking. The extensions that the Quest exposes are the same extensions our runtime started consuming in earnest two weeks ago. The integration was not free, but it was a lot less expensive than it would have been against a less-conformant OpenXR target.</p>
+<h2 id="what-the-passthrough-ar-mode-actually-does">What the passthrough AR mode actually does</h2>
+<p>The Quest is a VR-first device with a passthrough AR mode bolted on top. That sounds like a compromise, and in some ways it is. In some other ways it is a forcing function that makes AR on the Quest more disciplined than it would otherwise be.</p>
+<p>The composition layer manager we landed two weeks ago for general OpenXR is the thing that makes passthrough work cleanly. The camera passthrough comes through as one composition layer. Our runtime&rsquo;s virtual content comes through as another, with alpha blending so the virtual content composites correctly against the real world the user can see through the cameras. System overlays (Meta&rsquo;s own UI when summoned) come through as a third layer at the right z-order.</p>
+<p>The alpha blending is the subtle part. Premultiplied alpha matters. Lighting estimation matters. The virtual content has to be color-corrected against the ambient lighting the cameras are showing, or it floats unconvincingly. The lighting-estimation work that landed three weeks ago in the runtime is what makes the AR mode look like AR rather than like a flat sticker on top of a video feed.</p>
+<h2 id="the-horizon-os-permissions-question">The Horizon OS permissions question</h2>
+<p>Meta&rsquo;s permission model for passthrough AR is more involved than most developers expect coming from desktop VR. The runtime has to declare the right manifest entries, request the right runtime permissions, and gracefully degrade when a user denies one of them. The documentation PR that landed midweek (#149 in the runtime, plus matching SDK docs) is meant to keep developers building on Raku from running into the permission cliff Meta has built around the camera feed for privacy reasons.</p>
+<p>The privacy story matters. The cameras on a Quest are seeing the user&rsquo;s home. Anything the engine does with that camera feed has to be opt-in, transparent, and audit-able. That is true on Quest. It will be more true on AR glasses people wear in public. The work we are doing this weekendend to handle the Quest&rsquo;s permission model correctly will carry forward to every more sensitive deployment later.</p>
+<h2 id="the-partner-meeting-context">The partner-meeting context</h2>
+<p>A note about the governance docs PR. Meta&rsquo;s developer-relations team and I have been talking. I am not going to summarize the content of those conversations on the public blog, because the conversations are still in progress. What I will say is that the engineering this weekendend was informed by what they care about, and the OpenXR-first approach we have been taking lines up with where their platform is going.</p>
+<p>The strategic-document integration in the governance repo this weekendend captures the meeting notes and where the engineering is responding to them. The repo is private; the engineering response is public. The PRs that landed this weekendend are the public artifact.</p>
+<h2 id="what-this-does-and-does-not-mean">What this does and does not mean</h2>
+<p>What it means: a developer who wants to build an AR experience on Raku can target the Quest today and reach users today. The experience will not be optimal for AR glasses form factors, because the Quest is not AR glasses. The experience will be a viable preview of what AR will feel like, and the user can actually wear the hardware.</p>
+<p>What it does not mean: Raku is &ldquo;a Quest engine&rdquo; now. Raku is a cross-platform AR runtime that happens to also run on the Quest. The same engine will run on AR glasses when AR glasses ship in the form factor we are optimizing for. The Quest is one of several targets, not the target.</p>
+<p>What it does not mean: we are forking the engine for the Quest. Every Quest-specific piece sits behind the OpenXR layer or the Horizon-OS feature flag. If a developer builds an experience that runs on the Quest today, the same <code>.raku</code> experience definition will load on AR glasses tomorrow without any code change above the SDK boundary.</p>
+<h2 id="what-i-want-partners-and-builders-to-take-from-this">What I want partners and builders to take from this</h2>
+<p>If you are at Meta and you are reading this: the engineering this weekendend is responsive to the conversation. We want to be a serious developer of Quest-targeted AR experiences in 2026. The OpenXR work is the foundation. The next steps are on us.</p>
+<p>If you are an experienced Quest developer thinking about what Raku adds on top of native Horizon OS development: the answer is the AI runtime layer and the cross-platform portability. The AI nervous system that lives inside the engine on the simulation step is the same one whether you ship to the Quest or to glasses-class hardware. Building on Raku now gets you to AR glasses for free when AR glasses arrive.</p>
+<p>If you are an indie AR developer thinking about which engine to build with: the Quest is the device your users own today. Raku&rsquo;s Quest support is real as of this Saturday. The Unity binding and the Unreal binding both work against it. The SDK quickstart includes Quest setup.</p>
+<p>A hundred and eighteen commits across the weekend. Saturday evening, the engine has a new target platform. Back to building tomorrow morning.</p>
+        </div>
+        <ul class="post-tags"><li>meta-quest</li><li>horizon-os</li><li>openxr</li><li>passthrough</li><li>partnerships</li><li>ar-glasses</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/blade-to-raku-renaming-a-runtime/" rel="prev">&larr; Blade to Raku: Renaming the Runtime in a Weekend</a><a class="nav-next" href="/blog/built-to-take-direction-from-chatgpt-claude-gemini/" rel="next">Built to Take Direction from ChatGPT, Claude, and Gemini &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

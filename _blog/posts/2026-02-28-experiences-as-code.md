@@ -1,14 +1,14 @@
 ---
-title: "Experiences as Code, Not Experiences as Assets"
+title: "Hot-Reloading Game Design Like Code"
 date: 2026-02-28
 author: Kevin Griffin
-tags: [architecture, ai-native, raku-files, dev-workflow]
-description: "The .raku file is a JSON document. That choice is load-bearing. Here is what a real one looks like, why we picked JSON over a custom DSL, and how the file format becomes the contract between the human author and the AI runtime."
+tags: [architecture, ai-native, raku-files, dev-workflow, weekend-build]
+description: "Spent this Saturday on the .raku file format. JSON, schema-versioned, validatable, diffable, hot-reloadable, with explicit hooks where the runtime AI plugs in. The format is load-bearing. Here is what a real one looks like, why JSON beats a custom DSL, and how 'design files reviewed in pull requests' became the actual game-design workflow."
 series: learning-to-code-with-ai
 slug: experiences-as-code-not-experiences-as-assets
 ---
 
-AI is a runtime primitive in our engine, not a feature bolted on next to it. That is the architectural argument. This post is about the file format that makes it concrete.
+Saturday morning, coffee, the file format. AI is a runtime primitive in this engine, not a feature bolted on next to it. That is the architectural argument I have made before. This post is about the file format that makes it concrete.
 
 If you build a game on most engines, the artifact you ship is a binary, a project bundle, an asset database, or some combination of all three. What you author lives inside a proprietary editor. What you ship is opaque to the tools your team already uses. Diffing two versions of an experience means firing up the same editor twice and hoping the change log is honest.
 

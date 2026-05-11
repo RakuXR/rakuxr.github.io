@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Starting the Blog. The Engine Started a Long Time Ago. &mdash; RakuAI Blog</title>
+    <meta name="description" content="First post on this blog. The engine behind it is not new. Patents go back over a decade. What is new is the public engineering log, the workflow built around AI agents on the dev team, and the public commitment to ship.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/day-zero-readme-spec-and-bet-on-ar-glasses/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Starting the Blog. The Engine Started a Long Time Ago.">
+    <meta property="og:description" content="First post on this blog. The engine behind it is not new. Patents go back over a decade. What is new is the public engineering log, the workflow built around AI agents on the dev team, and the public commitment to ship.">
+    <meta property="og:url" content="https://rakuai.com/blog/day-zero-readme-spec-and-bet-on-ar-glasses/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2025-09-06T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Starting the Blog. The Engine Started a Long Time Ago.">
+    <meta name="twitter:description" content="First post on this blog. The engine behind it is not new. Patents go back over a decade. What is new is the public engineering log, the workflow built around AI agents on the dev team, and the public commitment to ship.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Starting the Blog. The Engine Started a Long Time Ago.</h1>
+            <p class="post-meta">
+                <time datetime="2025-09-06T00:00:00+00:00">September 6, 2025</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>This is the first post on this blog. The blog is new. The thing the blog is about is not.</p>
+<p>I have been thinking about AR glasses, real-world-anchored spatial experiences, and the right shape for the runtime that drives them for more than a decade. Some of that thinking became patents in the early 2010s, the eyeglasses-form-factor estate that still anchors the IP behind what we&rsquo;re building now. Some of it became prototypes that never saw daylight. Most of it ran in the background while I did other work.</p>
+<p>What changed this past year is that the rest of the world finally caught up. Compute is small enough. Optics are good enough. Cloud LLMs are real enough. On-device inference is fast enough. The product that was a decade-too-early idea is, finally, a product you can ship.</p>
+<p>So I started shipping. The current run of code is several months in. The commits live in private repos that I am now bringing into the open as I clean them up and consolidate the codebase. This blog is the public record from here forward.</p>
+<h2 id="what-the-next-few-months-will-look-like">What the next few months will look like</h2>
+<p>The shape of this Saturday&rsquo;s plan, as a flavor of what is coming:</p>
+<ul>
+<li>The runtime: a draft AR1+ smart-glasses spec is on the desk this morning. PDF, PowerPoint, and Markdown versions so an LLM can reason about it, a partner can read it, and a designer can review it. The point is the spec, not the format. The format is for the readers.</li>
+<li>A <code>main.cpp</code> and a runtime main-loop skeleton, freshly checked in.</li>
+<li>A latency-tracker header and an implementation stub. Latency is going to be the metric that defines this engine.</li>
+<li>A CMake build workflow in CI so every push gets a clean build from a clean machine.</li>
+<li>A Copilot onboarding guide so the agents on the team know how the team works.</li>
+</ul>
+<p>The SDK repo got its own scaffolding this Saturday too. An early Unity HelloAR sample. An early Unreal HelloAR sample. Header skeletons for both bindings. A package-publish workflow.</p>
+<p>None of that is shippable. All of it is what you need before anything shippable is possible. The pattern of getting both repos moving at the same time, with deliberate coupling at the seams, is going to be a theme.</p>
+<h2 id="why-a-smart-glasses-spec-on-day-one-of-going-public">Why a smart-glasses spec on day one of going public</h2>
+<p>The spec is a deliberate thing. Most engines pick a runtime architecture and then go shopping for products that could plausibly ship on it. I am doing this in the other order. The product is AR glasses people wear in the world, and the engine has to be the right shape for that product. So the spec gets written first, even when it is rough.</p>
+<p>It is not a marketing document. It is a forcing function. It says what kind of hardware the engine has to run on, what the latency budget is, what the AI surface has to look like in practice. Every architectural decision downstream gets to point at that spec and ask &ldquo;does this decision serve the spec, or does it serve some other engine I would like to build instead.&rdquo; That second category is where engine projects go to die, and I have stayed out of it before and intend to stay out of it now.</p>
+<h2 id="why-a-copilot-guide-on-day-one">Why a Copilot Guide on day one</h2>
+<p>The other deliberate thing this weekendend is the Copilot onboarding guide. The first version is rough. It will get rewritten ten times. But the guide exists because the agents are part of the team, and the team needs to know how the team works.</p>
+<p>The guide says:</p>
+<ul>
+<li>What the strategy is and which engine we are not building</li>
+<li>Where the roadmap lives</li>
+<li>How issues get filed, picked up, and closed</li>
+<li>What a good PR looks like</li>
+<li>What a reviewer is supposed to do (where the reviewer is sometimes me and sometimes another agent)</li>
+</ul>
+<p>The &ldquo;agents read documentation&rdquo; framing is not a gimmick. It is the practical reality of running a workflow where the team is one human on weekends and several autonomous coding assistants on continuous duty. If the guide is bad, the work is bad. If the guide is good, the work is correct and the review cost drops.</p>
+<h2 id="why-the-public-log-now">Why the public log now</h2>
+<p>A few reasons.</p>
+<p><strong>The patents are decade-old prior art that nobody talks about because we didn&rsquo;t talk about them.</strong> The eyeglasses-form-factor work that the engine traces back to has been quietly granted and continued for years. I want the public engineering record to point at the actual lineage. Spatial AR is not a new thing somebody picked up last summer. The work goes back.</p>
+<p><strong>Partnership conversations are starting.</strong> Hardware partners, AI labs, studios. Those conversations get sharper when there is a public engineering record they can read instead of a deck. The deck is the cleaned-up version. The blog is the actual version.</p>
+<p><strong>The dev workflow is genuinely new and worth showing.</strong> AI agents on the team from day one of the public phase. Multiple vendors. Parallel branches. Public issue queue. None of that is invented for this project; what is unusual is doing it all at once on something this serious. I want to write it down as it happens, while the lessons are still fresh enough to be honest about.</p>
+<h2 id="what-i-want-partners-and-builders-to-take-from-this">What I want partners and builders to take from this</h2>
+<p>If you are at one of the big AI labs and you read this, here is the pitch. The engine is being built explicitly to take direction from your model. Not bolted on. Not in an editor panel. In the runtime, on the simulation step, every frame. The architectural decisions are happening right now, in public, with an explicit doc trail. If your model gets better at understanding a real physical space the user is standing in, this engine is where it gets to do something with that understanding.</p>
+<p>If you are a developer thinking about building on top of this eventually, the SDK is moving in lockstep with the runtime. Unity and Unreal samples are seeded in the SDK repo as of this weekendend. They do not work yet. They will. The reason both bindings exist at this stage is so I never get to a moment six months from now where the runtime architecture is locked and the SDK has to deform itself to fit.</p>
+<p>If you are watching for the early signal as a consumer, the signal is this: the engine is being built around the assumption that the most interesting experiences are AR experiences in real places, and the AI is what makes those experiences react. Generative content in a browser is fine. Generative content stuck on a wall in your kitchen is the actual product.</p>
+<p>Today is a Saturday. The blog is live. Back to building tomorrow.</p>
+        </div>
+        <ul class="post-tags"><li>foundation</li><li>ar-glasses</li><li>patents</li><li>history</li><li>ai-native</li></ul>
+        <nav class="post-series-nav"><a class="nav-next" href="/blog/week-one-282-commits/" rel="next">282 Commits in One Weekend &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>

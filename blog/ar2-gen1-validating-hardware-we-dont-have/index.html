@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Validating Hardware Before the Silicon Shows Up &mdash; RakuAI Blog</title>
+    <meta name="description" content="Woke up this Saturday with a decision queued: pivot the product target from AR1+ to AR2 Gen1, and start shipping the thermal-validation, Wi-Fi 7 stability tests, and sensor-integration bring-up harness for hardware that does not exist on my desk. Two days later it is all wired up and waiting for silicon.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/ar2-gen1-validating-hardware-we-dont-have/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Validating Hardware Before the Silicon Shows Up">
+    <meta property="og:description" content="Woke up this Saturday with a decision queued: pivot the product target from AR1+ to AR2 Gen1, and start shipping the thermal-validation, Wi-Fi 7 stability tests, and sensor-integration bring-up harness for hardware that does not exist on my desk. Two days later it is all wired up and waiting for silicon.">
+    <meta property="og:url" content="https://rakuai.com/blog/ar2-gen1-validating-hardware-we-dont-have/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2025-10-04T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Validating Hardware Before the Silicon Shows Up">
+    <meta name="twitter:description" content="Woke up this Saturday with a decision queued: pivot the product target from AR1+ to AR2 Gen1, and start shipping the thermal-validation, Wi-Fi 7 stability tests, and sensor-integration bring-up harness for hardware that does not exist on my desk. Two days later it is all wired up and waiting for silicon.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/">Developers</a>
+            <a href="/press.html">Press</a>
+            <a href="/blog/" aria-current="page">Blog</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Validating Hardware Before the Silicon Shows Up</h1>
+            <p class="post-meta">
+                <time datetime="2025-10-04T00:00:00+00:00">October 4, 2025</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<p>Woke up this Saturday with a decision I had been chewing on through the work week and could now finally act on. Pivot the product target from AR1+ to AR2 Gen1. Build everything downstream of the new spec before the silicon arrives, so that when the silicon does arrive, validation begins on day one instead of day ninety.</p>
+<p>There is a stage every hardware product goes through where the spec exists, the validation plan exists, the test harness exists, and the actual silicon does not. The traditional answer is to sit and wait. The modern answer is to build everything that is downstream of the hardware first, and to have it all green before the parts ship.</p>
+<p>This weekend was that. The target platform officially shifted from AR1+ to AR2 Gen1, and the engineering response was to immediately build the validation infrastructure the new platform will need, before any of us touch the new platform.</p>
+<h2 id="what-landed">What landed</h2>
+<p>Five things, all landed this weekendend:</p>
+<ul>
+<li>The AR2 Gen1 device bring-up and sensor integration infrastructure</li>
+<li>A Wi-Fi 7 connectivity and tracking-stability test suite</li>
+<li>A thermal and power validation framework</li>
+<li>CI smoke tests with metric analysis and reporting</li>
+<li>The AR2 Gen1 hardware validation documentation and production standards spec</li>
+</ul>
+<p>All of it gated by feature flags so that the AR1+ code path still works and nothing in the existing runtime regresses. The agents that landed these PRs did the boring discipline correctly: every new file is hidden behind a build flag, every API addition is non-breaking, every test runs in CI even though there is no AR2 device for it to run against. The tests simulate. The simulation is good enough to catch interface drift, missing exports, and broken sensor flows.</p>
+<p>This was a 77-commit weekend. Most of those commits are in service of a device I cannot hold.</p>
+<h2 id="why-this-is-sensible">Why this is sensible</h2>
+<p>A few reasons.</p>
+<p><strong>Hardware validation that ships with the hardware is hardware validation that lands six months late.</strong> The thermal-and-power framework written this weekendend will be used the day the first AR2 dev kit reaches my desk, not three months after. The platform&rsquo;s first thermal regression will be caught by an existing test, not by a human noticing the device is hot.</p>
+<p><strong>A test harness without a device is still a test harness.</strong> It runs against simulated sensor traces. Those traces come from the AR1+ era and from the spec. They are not perfect. They catch interface bugs, integration bugs, and metric-collection bugs. They do not catch the bugs that will only show up under real silicon. That is fine. The bugs they do catch are the bugs we would have spent the first week of real-hardware time hunting, and we now do not have to.</p>
+<p><strong>The act of writing the harness clarifies the spec.</strong> Half of the production-standards doc that landed at the end of the weekend existed only as fuzzy intent at the start of it. Writing the validation tests forced the spec into specific numbers. Frame budgets. Thermal envelopes. Wi-Fi 7 stability thresholds. The harness made the doc sharp. That is the actual deliverable.</p>
+<h2 id="how-the-agent-handled-the-pivot">How the agent handled the pivot</h2>
+<p>The pivot from AR1+ to AR2 Gen1 was not handled cleanly the first time. Mid-weekend, the agent landed a PR that referenced &ldquo;AR1+&rdquo; in places where the new code path should have said &ldquo;AR2.&rdquo; That landed because the issue framing did not flag the rename. The fix was a separate PR titled &ldquo;Fix AR1+ vs AR2 device discrepancy in documentation and copilot instructions&rdquo; that swept through 121 separate references and brought them into line.</p>
+<p>This is the kind of thing that does not happen when a single human writes all the code, because the single human just renames as they go. It happens in an agent-driven workflow when the agent picks up an issue that pre-dates a rename and faithfully writes the old name. The remedy is to keep the docs that the agent reads as input fully in sync with the current reality, and to write rename PRs as their own pieces of work.</p>
+<p>I am building a system where the agent&rsquo;s docs are also the team&rsquo;s docs. When the docs lie, the agent lies in the same direction. That is a feature of the workflow I am trying to get right, not a bug.</p>
+<h2 id="the-wi-fi-7-test-suite-specifically">The Wi-Fi 7 test suite, specifically</h2>
+<p>This is the one I am proudest of from this weekendend.</p>
+<p>The AR2 Gen1 spec assumes Wi-Fi 7 connectivity for offloaded rendering and tethered compute. Wi-Fi 7 in practice is not as stable as Wi-Fi 6E, and the failure modes are different. The test suite written this weekendend characterizes the suite of failure modes (degraded throughput, intermittent loss, reauth storms) and bounds the runtime&rsquo;s behavior under each. The runtime cannot tolerate every failure. The job of the test suite is to be specific about which failures the runtime gracefully degrades through and which fail loud.</p>
+<p>This matters because the AR experience the user is having cannot stutter when the connection blips. The runtime has to fall back to local rendering for a frame, or two, or twenty, depending on the duration of the blip, and re-converge when connectivity returns. That logic existed in fuzzy intent in the spec. After this weekendend, it exists as test cases.</p>
+<h2 id="what-i-want-partners-to-take-from-this">What I want partners to take from this</h2>
+<p>Two things.</p>
+<p>If you are a hardware partner thinking about AR glasses, the validation framework this engine ships with is going to be one of the reasons it ships on your hardware faster than its competitors. The framework is portable. Adding a new device target is a few hundred lines of code plus the device-specific test vectors. The expensive part is already paid.</p>
+<p>If you are an AI lab thinking about latency-sensitive on-device inference, the latency budget the AR2 Gen1 spec assumes is published. The end-to-end traces from sensor to render are being instrumented now, so when your model has to fit inside that budget, you can see what budget actually remains for inference. That is the conversation I want to be having with you in November.</p>
+<p>77 commits over the weekend. Ended on documentation, which is the right kind of weekend to end with.</p>
+        </div>
+        <ul class="post-tags"><li>ar-glasses</li><li>hardware</li><li>thermal</li><li>ci</li><li>ar2-gen1</li><li>weekend-build</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/sdk-parity-and-the-two-stream-bridge/" rel="prev">&larr; Catching the SDK Up Before It Could Drift</a><a class="nav-next" href="/blog/sub-millimeter-anchors-and-calligraphy/" rel="next">Sub-Millimeter Anchors and the Calligraphy Question &rarr;</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/blog/feed.xml">RSS</a> &middot; <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>
