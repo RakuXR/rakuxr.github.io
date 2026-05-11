@@ -1,16 +1,16 @@
 ---
 title: "From 54% to 100% Tests Passing"
-date: 2026-02-07
+date: 2026-02-08
 author: Kevin Griffin
 tags: [tests, ctest, ecs, eye-tracking, telemetry, weekend-build]
-description: "Started this Saturday with the test suite at 54% passing. By Saturday evening, 63%. A weekend later, 100%. The path between those numbers was specific, mechanical, and full of the kind of small lessons that explain why test-pass-rate is one of the most honest signals a codebase produces."
+description: "Started the weekend with the test suite at 54% passing. By Saturday night, 63%. By the following Sunday, 100%. The path between those numbers was specific, mechanical, and full of the kind of small lessons that explain why test-pass-rate is one of the most honest signals a codebase produces."
 series: learning-to-code-with-ai
 slug: from-54-to-100-tests-passing
 ---
 
 The number that does not lie about a codebase is the test pass rate. Sales numbers can be massaged. Star counts can be inflated. Lines of code can be padded. The test pass rate is what the test runner says it is, and the test runner does not care about your feelings.
 
-This Saturday morning the number was 54%. Twenty-eight tests out of fifty-two. Not catastrophic. Not green. The kind of number that means the codebase mostly works and you cannot tell exactly where it does not. By Saturday night the number was 63% (33/52). A weekend later, it was 100% (56/56). The path between those numbers is what this post is about.
+When I opened the laptop a week ago Saturday the number was 54%. Twenty-eight tests out of fifty-two. Not catastrophic. Not green. The kind of number that means the codebase mostly works and you cannot tell exactly where it does not. By that Saturday night the number was 63% (33/52). By the Sunday that just closed, it was 100% (56/56). The path between those numbers is what this post is about.
 
 ## Why the number was low to start with
 
@@ -62,6 +62,6 @@ If you are running an agent-driven workflow and your test pass rate is not where
 
 If you are an AI lab building a coding agent for autonomous PRs, the metric I find most predictive is "after the agent's PR lands, does the test pass rate go up." A lot of agents land PRs that ship code and ship tests that pass against that code, with no actual improvement in coverage of the real product. Agents that move the integrated test pass rate are different agents. Worth optimizing for.
 
-Saturday morning the number was 54. Two Saturdays from now it will be 100. The test runner does not care about my feelings. The test runner is correct about that.
+A week ago Saturday the number was 54. Tonight it is 100. The test runner does not care about my feelings. The test runner is correct about that.
 
-Back to building.
+Closing the laptop on Sunday with a green suite. Back to building next weekend.

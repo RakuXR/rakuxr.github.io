@@ -1,6 +1,6 @@
 ---
-title: "The Saturday the Engine Grew Up"
-date: 2025-12-27
+title: "The Weekend the Engine Grew Up"
+date: 2025-12-28
 author: Kevin Griffin
 tags: [tflite, federated-sync, spatial-anchors, openxr, multi-repo, year-end, weekend-build]
 description: "A 276-commit weekend that landed TensorFlow Lite for on-device SLM inference, AES-256-GCM federated sync, OpenXR composition layers, Kalman-filtered anchor stabilization, and a hardware-abstraction layer for the optical channel. The engine ends 2025 with the surface area of a real platform."
@@ -12,7 +12,7 @@ There are weekends where a codebase moves forward, and there are weekends where 
 
 Two hundred seventy-six commits landed across the repos. The runtime grew the kind of surface area that turns a research project into a platform. Spatial anchors. OpenXR composition. On-device small-language-model inference. Federated sync with real crypto. Hardware abstraction for the optical communications channel. Most of it landed in parallel agent-authored PRs, reviewed and merged through the multi-vendor workflow that has been running for two months.
 
-Saturday morning I sat down with coffee and a queue full of high-priority TODOs. by the end of Saturday I had closed the laptop and looked at a different engine than the one I had opened yesterday. This is the post about what shipped, what it means, and why I think 2026 is the year other people start to take this engine seriously.
+Saturday morning I sat down with coffee and a queue full of high-priority TODOs. By Sunday night I closed the laptop on a different engine than the one I had opened on Saturday. This is the post about what shipped, what it means, and why I think 2026 is the year other people start to take this engine seriously.
 
 ## The big landings
 
@@ -79,4 +79,4 @@ If you are an AI lab looking at where your model's inference budget could be bes
 
 If you are a developer thinking about building on top of this engine in 2026, the surface area is real. The C API is stable. The SDK bindings (Unity and Unreal) are real. The OpenXR backbone means the engine targets multiple devices. The blog at this URL has been a public log of how the engine got here. Read it back if you want to know what the engineering culture is going to be when you bring an experience to this platform.
 
-276 commits, a year ending, an engine grown up. Different weekend, same workflow. Back to building Saturday.
+276 commits, a year ending, an engine grown up. Different weekend, same workflow. Back to building next Saturday.

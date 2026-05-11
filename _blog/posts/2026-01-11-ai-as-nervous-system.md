@@ -1,6 +1,6 @@
 ---
 title: "AI as Nervous System, Not AI as Factory"
-date: 2026-01-10
+date: 2026-01-11
 author: Kevin Griffin
 tags: [architecture, positioning, ai-native, spatial-computing]
 description: "Most engines that say 'AI-native' in 2026 mean they bolted on a chat panel. RakuAI is built differently. AI is a runtime primitive, not a feature next to the engine."
@@ -96,4 +96,4 @@ These costs are why most engines pick the factory pattern. The factory pattern i
 
 If you are building a game, an XR experience, or any other interactive system and you are wondering whether the AI question is "which model do I integrate" or something deeper, the answer is that it is something deeper. You can feel it the first time you try to make the factory pattern do something it was not built to do.
 
-Back to building.
+Sunday afternoon, the kind of post that wanted writing down. Back to the engine tomorrow.
