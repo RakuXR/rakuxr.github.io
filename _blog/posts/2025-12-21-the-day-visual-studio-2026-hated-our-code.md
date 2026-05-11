@@ -1,20 +1,20 @@
 ---
-title: "The Saturday Visual Studio 2026 Hated Our Code"
-date: 2025-12-20
+title: "The Weekend Visual Studio 2026 Hated Our Code"
+date: 2025-12-21
 author: Kevin Griffin
 tags: [build, msvc, vs2026, openxr, debugging, dev-workflow, weekend-build]
-description: "The runtime built clean on Linux. The runtime built clean on macOS. Then this Saturday morning I tried to build it in Visual Studio 2026 Insiders, and Visual Studio 2026 had opinions. Twelve PRs later, the build is green. Here is the inside of those twelve PRs and what I learned about how MSVC 2026 wants to be talked to."
+description: "The runtime built clean on Linux. The runtime built clean on macOS. Then Saturday morning I tried to build it in Visual Studio 2026 Insiders, and Visual Studio 2026 had opinions. Two days and twelve PRs later, the build is green. Here is the inside of those twelve PRs and what I learned about how MSVC 2026 wants to be talked to."
 series: learning-to-code-with-ai
 slug: the-day-visual-studio-2026-hated-our-code
 ---
 
-There is an old joke that the difference between a senior engineer and a junior engineer is that the senior engineer knows it is going to be a fight with the compiler before they start. This weekend was a fight with the compiler. The compiler was Microsoft Visual C++ as it ships in Visual Studio 2026 Insiders. The codebase was Raku. The fight lasted four days. The codebase won, but barely.
+There is an old joke that the difference between a senior engineer and a junior engineer is that the senior engineer knows it is going to be a fight with the compiler before they start. This weekend was a fight with the compiler. The compiler was Microsoft Visual C++ as it ships in Visual Studio 2026 Insiders. The codebase was Raku. The fight stretched across both days and a few late-night runs from the workweek. The codebase won, but barely.
 
 I want to write this one down because the public engineering log should include the days where things did not work, and because the way the agents and I worked through this is genuinely the part of the workflow I am most curious about other people's opinions on.
 
 ## The setup
 
-Up to this Saturday the runtime built clean on Linux with GCC and on macOS with Clang. Both of those have been my main weekend development environments. I had not actually tried a Windows MSVC build since the early bring-up in October. The runtime is supposed to be cross-platform. Cross-platform means Windows. So Saturday morning I checked out the repo on a Windows machine with Visual Studio 2026 Insiders and ran the build.
+Up to this weekend the runtime built clean on Linux with GCC and on macOS with Clang. Both of those have been my main weekend development environments. I had not actually tried a Windows MSVC build since the early bring-up in October. The runtime is supposed to be cross-platform. Cross-platform means Windows. So Saturday morning I checked out the repo on a Windows machine with Visual Studio 2026 Insiders and ran the build.
 
 It did not build. It did not nearly build. The first compile pass produced more than two hundred errors and a comparable number of warnings. The errors fell into roughly six categories, each of which became its own PR.
 
@@ -34,7 +34,7 @@ Each one is worth describing because each one is the kind of thing that hits any
 
 **Six: OpenXR headers and `<array>`.** A handful of MSVC compilations failed because `<array>` was being used without being explicitly included. GCC and Clang tend to transitively include it through other STL headers. MSVC does not, and "include what you use" is the right answer regardless. The agent added the missing includes.
 
-## How the weekend went, hour by hour
+## How the weekend went
 
 Saturday morning was mostly me reproducing each class of error and writing the diagnostic notes. The agents do not have a Windows VM in front of them. I had to capture the build output, sanitize it, and feed it back to the agent with a clear ask: "here is the class of error, here is one canonical example, here is the file it lives in, propose a sweep that fixes all instances of this class."
 
@@ -44,9 +44,9 @@ Twelve PRs in two days, give or take. Every one of them is documented under #404
 
 Saturday afternoon was the longest stretch. The DLL-export normalization required reading every public-API header in the engine and deciding which symbols were genuinely part of the public surface. Some of them turned out not to be. A few got demoted to internal as part of this work, which was a net good even though it added scope.
 
-Saturday evening I added a Windows MSVC CI workflow with vcpkg and OpenXR SDK integration so that this never happens again silently. Now every push triggers an MSVC build. The build cannot regress without somebody seeing it in CI.
+Sunday went into a Windows MSVC CI workflow with vcpkg and OpenXR SDK integration so that this never happens again silently. Now every push triggers an MSVC build. The build cannot regress without somebody seeing it in CI.
 
-The end of the day was the celebration. By the end of it, the build went green on Windows. First successful x64 build in the runtime's history. The commit message says exactly that: `build: first successful x64 build with OpenXR handle fixes`. The commit hash is `f35f78bd` and it is one of my favorite commits in the project to date.
+The end of Sunday was the celebration. By the time the laptop closed for the night, the build went green on Windows. First successful x64 build in the runtime's history. The commit message says exactly that: `build: first successful x64 build with OpenXR handle fixes`. The commit hash is `f35f78bd` and it is one of my favorite commits in the project to date.
 
 ## What worked, what I would do differently
 
@@ -62,10 +62,10 @@ A few honest notes.
 
 ## What partners and builders take from this
 
-If you are a partner thinking about whether this engine ships on Windows, the answer as of this Saturday morning is yes. The MSVC build is green. CI keeps it green going forward.
+If you are a partner thinking about whether this engine ships on Windows, the answer as of Sunday night is yes. The MSVC build is green. CI keeps it green going forward.
 
 If you are a developer working on your own cross-platform C++ codebase and you are about to try Visual Studio 2026 Insiders for the first time, the six categories above are what is going to hit you. You can pre-empt most of them. Now you know.
 
 If you are an MSVC-team person reading this, the team has done good work on 2026 Insiders. The warnings are genuinely useful and the new tooling is better than 2022. The compatibility breaks are mostly there for good reasons. I'd file a few bug reports if I had more time. They are coming.
 
-Saturday morning, the engine builds clean on three platforms. That is the right thing to start the next weekend with.
+Sunday night, the engine builds clean on three platforms. That is the right thing to head into Monday with.

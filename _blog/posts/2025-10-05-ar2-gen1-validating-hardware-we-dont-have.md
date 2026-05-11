@@ -1,14 +1,14 @@
 ---
 title: "Validating Hardware Before the Silicon Shows Up"
-date: 2025-10-04
+date: 2025-10-05
 author: Kevin Griffin
 tags: [ar-glasses, hardware, thermal, ci, ar2-gen1, weekend-build]
-description: "A decision I had been chewing on through the work week landed at the kitchen table this Saturday. Pivot the product target from AR1+ to AR2 Gen1, and start shipping the thermal-validation, Wi-Fi 7 stability tests, and sensor-integration bring-up harness for hardware that does not exist on my desk. Two days later it is all wired up and waiting for silicon."
+description: "A decision I had been chewing on through the work week landed at the kitchen table Saturday morning. Pivot the product target from AR1+ to AR2 Gen1, and start shipping the thermal-validation, Wi-Fi 7 stability tests, and sensor-integration bring-up harness for hardware that does not exist on my desk. Two days later it is all wired up and waiting for silicon."
 series: learning-to-code-with-ai
 slug: ar2-gen1-validating-hardware-we-dont-have
 ---
 
-A decision I had been chewing on through the work week was waiting at the kitchen table this Saturday morning. Pivot the product target from AR1+ to AR2 Gen1. Build everything downstream of the new spec before the silicon arrives, so that when the silicon does arrive, validation begins on day one instead of day ninety.
+A decision I had been chewing on through the work week was waiting at the kitchen table when the weekend started. Pivot the product target from AR1+ to AR2 Gen1. Build everything downstream of the new spec before the silicon arrives, so that when the silicon does arrive, validation begins on day one instead of day ninety.
 
 There is a stage every hardware product goes through where the spec exists, the validation plan exists, the test harness exists, and the actual silicon does not. The traditional answer is to sit and wait. The modern answer is to build everything that is downstream of the hardware first, and to have it all green before the parts ship.
 
@@ -36,7 +36,7 @@ A few reasons.
 
 **A test harness without a device is still a test harness.** It runs against simulated sensor traces. Those traces come from the AR1+ era and from the spec. They are not perfect. They catch interface bugs, integration bugs, and metric-collection bugs. They do not catch the bugs that will only show up under real silicon. That is fine. The bugs they do catch are the bugs we would have spent the first week of real-hardware time hunting, and we now do not have to.
 
-**The act of writing the harness clarifies the spec.** Half of the production-standards doc that landed by Saturday evening existed only as fuzzy intent at the start of it. Writing the validation tests forced the spec into specific numbers. Frame budgets. Thermal envelopes. Wi-Fi 7 stability thresholds. The harness made the doc sharp. That is the actual deliverable.
+**The act of writing the harness clarifies the spec.** Half of the production-standards doc that landed by Sunday evening existed only as fuzzy intent at the start of the weekend. Writing the validation tests forced the spec into specific numbers. Frame budgets. Thermal envelopes. Wi-Fi 7 stability thresholds. The harness made the doc sharp. That is the actual deliverable.
 
 ## How the agent handled the pivot
 

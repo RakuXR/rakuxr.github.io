@@ -1,16 +1,16 @@
 ---
-title: "282 Commits, One Saturday Morning"
-date: 2025-09-13
+title: "282 Commits, First Weekend on the Public Log"
+date: 2025-09-14
 author: Kevin Griffin
 tags: [foundation, dev-workflow, agent-queue, ar-glasses, weekend-build]
-description: "Last Saturday I filed a stack of issues for the agents. This Saturday morning the runtime repo has 282 new commits, most of them not mine. Here is what shipped, and what the workflow looks like when it finally clicks."
+description: "Two days at the keyboard, an autonomous coding agent working the issue queue underneath, and 282 commits in the runtime repo by Sunday night. Here is what shipped, what broke, and what the workflow looks like when the loop finally clicks."
 series: learning-to-code-with-ai
 slug: week-one-282-commits
 ---
 
-Last Saturday I filed a stack of issues and pointed an autonomous coding agent at the queue. By the time I sat down at the kitchen table this Saturday morning to take stock, 282 commits had landed across the runtime repo. I was the author on a small fraction of them. An autonomous coding agent was the author on most of the rest.
+Last Saturday I filed a stack of issues and pointed an autonomous coding agent at the queue. By Sunday evening, sitting at the kitchen table with the laptop open one last time before Monday, 282 commits had landed across the runtime repo. I was the author on a small fraction of them. An autonomous coding agent was the author on most of the rest.
 
-The reason the count looks like a sprint week of work is that the work has been happening continuously while I'm not at the keyboard. I am at the keyboard on Saturdays. The agents do not have a day job. The output is what falls out of that arrangement.
+The reason the count looks like a sprint week of work is that the work has been happening continuously while I am not at the keyboard. I am at the keyboard on weekends. The agents do not have a day job. The output is what falls out of that arrangement.
 
 ## How the queue works
 
@@ -23,7 +23,7 @@ Saturday morning is filing-day. I sit down with coffee and write GitHub issues. 
 
 There is also a nightly workflow (issue #37 in the runtime repo this weekend) that ensures the queue never drops below fifteen open agent issues. If it does, the workflow drafts placeholder tasks from the roadmap. The agent reads the queue, picks the next one it can do, opens a draft PR, iterates, and eventually marks itself ready for review.
 
-I review and merge during the Saturday window. Where the agent got something wrong, I close the PR, sharpen the issue, and re-file. Where the agent did it right, the PR lands and the issue closes. The rhythm is filing in the morning, reviewing through the day, and leaving a fresh queue behind when the laptop closes. The agent grinds on the queue while I am back at the day job.
+Saturday into Sunday I review and merge. Where the agent got something wrong, I close the PR, sharpen the issue, and re-file. Where the agent did it right, the PR lands and the issue closes. The rhythm is filing at the start of the weekend, reviewing through both days, and leaving a fresh queue behind when the laptop closes Sunday night. The agent grinds on the queue while I am back at the day job.
 
 That is the workflow. It is not subtle. The reason it is worth writing down is that it works.
 
@@ -55,7 +55,7 @@ Three things.
 
 **The agent is conservative on architecture.** Hand it an issue that says "implement a latency tracker that measures sensor-to-render time," and it builds exactly that. It does not invent a metaphysics for what latency means or propose a different shape for the API. That is good. Architecture is my job. Implementation is the agent's job.
 
-**Queue refill is the bottleneck.** When the agent ships fifteen PRs in a day and the queue is empty by evening, throughput stops being about how fast the agent works. It starts being about how fast I can articulate the next set of tasks. That has reshaped my Saturday mornings. The first hour is filing.
+**Queue refill is the bottleneck.** When the agent ships fifteen PRs in a day and the queue is empty by evening, throughput stops being about how fast the agent works. It starts being about how fast I can articulate the next set of tasks. That has reshaped Saturday mornings. The first hour is filing.
 
 ## What broke
 
@@ -71,4 +71,4 @@ The shape of this engine is being built right now. By the end of next month most
 
 The runtime repo is open. The SDK repo is open. The queue of open issues is open. Watching this happen in real time is the whole point.
 
-282 commits, first weekend on the public log. Back to building before the day job kicks back in.
+282 commits, first weekend on the public log. Sunday in the bank. Monday next.

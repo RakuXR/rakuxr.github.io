@@ -1,14 +1,14 @@
 ---
 title: "Hot-Reloading Game Design Like Code"
-date: 2026-02-28
+date: 2026-03-01
 author: Kevin Griffin
 tags: [architecture, ai-native, raku-files, dev-workflow, weekend-build]
-description: "Spent this Saturday on the .raku file format. JSON, schema-versioned, validatable, diffable, hot-reloadable, with explicit hooks where the runtime AI plugs in. The format is load-bearing. Here is what a real one looks like, why JSON beats a custom DSL, and how 'design files reviewed in pull requests' became the actual game-design workflow."
+description: "Spent the weekend on the .raku file format. JSON, schema-versioned, validatable, diffable, hot-reloadable, with explicit hooks where the runtime AI plugs in. The format is load-bearing. Here is what a real one looks like, why JSON beats a custom DSL, and how 'design files reviewed in pull requests' became the actual game-design workflow."
 series: learning-to-code-with-ai
 slug: experiences-as-code-not-experiences-as-assets
 ---
 
-File format day. AI is a runtime primitive in this engine, not a feature bolted on next to it. AI is a runtime primitive in this engine, not a feature bolted on next to it. That is the architectural argument I have made before. This post is about the file format that makes it concrete.
+File format weekend. AI is a runtime primitive in this engine, not a feature bolted on next to it. That is the architectural argument I have made before. This post is about the file format that makes it concrete.
 
 If you build a game on most engines, the artifact you ship is a binary, a project bundle, an asset database, or some combination of all three. What you author lives inside a proprietary editor. What you ship is opaque to the tools your team already uses. Diffing two versions of an experience means firing up the same editor twice and hoping the change log is honest.
 
@@ -149,4 +149,4 @@ And finally: text-based experience definitions only matter if the runtime actual
 
 If you want to read the format end to end, the schema lives in the public docs and the sample files ship in the repo. Pull one open. Read it as code, because that is what it is.
 
-Back to building.
+Two days of file-format work in the bank. Back to the engine next weekend.

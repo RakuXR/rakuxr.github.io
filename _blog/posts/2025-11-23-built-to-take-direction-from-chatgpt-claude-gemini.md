@@ -1,9 +1,9 @@
 ---
 title: "Built to Take Direction from ChatGPT, Claude, and Gemini"
-date: 2025-11-22
+date: 2025-11-23
 author: Kevin Griffin
 tags: [llm, partnerships, voice-pipeline, openxr, xr-assistant, ai-native, weekend-build]
-description: "Clear ambition this Saturday: ship the layer that lets a cloud LLM stream intent into the simulation loop every frame. By the end of the day the XRAssistantService was wired through the voice pipeline, OpenXR foveation was working, Wi-Fi 7 offloaded rendering had a real host, and the engine was demonstrably model-agnostic. Big Saturday."
+description: "Clear ambition for the weekend: ship the layer that lets a cloud LLM stream intent into the simulation loop every frame. By Sunday evening the XRAssistantService was wired through the voice pipeline, OpenXR foveation was working, Wi-Fi 7 offloaded rendering had a real host, and the engine was demonstrably model-agnostic. 118 commits over two days."
 series: learning-to-code-with-ai
 slug: built-to-take-direction-from-chatgpt-claude-gemini
 ---
@@ -70,4 +70,4 @@ If you are a hardware partner building AR glasses with Wi-Fi 7 onboard and an ex
 
 If you are a developer thinking about what kinds of experiences this engine will let you build, the answer is starting to be visible in the commit log. Voice-driven AR experiences that respond to the user mid-sentence are achievable. Real-time multiplayer AR with sub-millimeter anchoring is achievable. The compute you need for either lives on the glasses or on the tether, depending on what your experience needs.
 
-Hundred and eighteen commits, big weekend. The engine looks different at the end of it than it did Saturday morning.
+Hundred and eighteen commits, big weekend. The engine looks different on Sunday night than it did when the laptop opened on Saturday.
