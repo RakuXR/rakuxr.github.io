@@ -176,6 +176,12 @@ export function createSound() {
   ['click', 'keydown', 'touchstart', 'pointerdown'].forEach(ev => {
     window.addEventListener(ev, unlock, { once: false, passive: true });
   });
+  // Expose the unlock function on a well-known global so other modules
+  // (e.g. the touch overlay) can call it directly inside their own native
+  // input handlers — synthetic KeyboardEvents are NOT trusted user
+  // gestures and won't unlock AudioContext on iOS Safari, so the touch
+  // overlay needs to call this from its real pointerdown handlers.
+  try { window.__rakuSoundEnsure = ensure; } catch (e) { /* ignore */ }
 
   function beep(freq, ms, type = 'square', vol = 0.4) {
     const c = ensure();
@@ -444,6 +450,7 @@ export function installTouchOverlay(config = {}) {
     dpad = '4way',
     actions = [],
     pause = null,
+    start = null,        // { key: 'Enter', label: 'START' } — for title-screen games
     orientation = 'any',
   } = config;
 
@@ -497,6 +504,40 @@ export function installTouchOverlay(config = {}) {
       color: #9fe;
       border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
+    }
+    .rt-btn.rt-start {
+      width: auto; padding: 0 14px; height: 44px;
+      position: fixed; top: 12px;
+      /* default to left of pause if pause exists; otherwise right */
+      right: 64px;
+      font-size: 12px;
+      pointer-events: auto;
+      background: rgba(20, 22, 30, 0.55);
+      border: 2px solid rgba(140, 255, 140, 0.65);
+      color: #9fe89f;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      letter-spacing: 1px;
+    }
+    .rt-btn.rt-start.rt-no-pause { right: 12px; }
+    /* When the overlay is active, push the document up so canvases don't
+       get cropped behind the bottom controls. Use !important to override
+       per-game CSS that pins to 100vh. */
+    body.rt-overlay-active {
+      padding-bottom: var(--rt-overlay-h, 200px) !important;
+      box-sizing: border-box !important;
+    }
+    body.rt-overlay-active #wrap,
+    body.rt-overlay-active #game-wrap,
+    body.rt-overlay-active main {
+      min-height: calc(100vh - var(--rt-overlay-h, 200px)) !important;
+    }
+    body.rt-overlay-active canvas {
+      max-height: calc(100vh - var(--rt-overlay-h, 200px) - 80px) !important;
+      max-width: 100vw !important;
+      width: auto !important;
+      height: auto !important;
+      object-fit: contain;
     }
     .rt-dpad { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(3, 64px); gap: 4px; }
     .rt-dpad .rt-btn { width: 100%; height: 100%; }
@@ -580,7 +621,21 @@ export function installTouchOverlay(config = {}) {
     document.body.appendChild(pauseEl);
   }
 
+  // start button (corner — for games that gate behind "PRESS ENTER")
+  let startEl = null;
+  if (start) {
+    startEl = document.createElement('div');
+    startEl.className = 'rt-btn rt-start' + (pause ? '' : ' rt-no-pause');
+    startEl.textContent = start.label || 'START';
+    document.body.appendChild(startEl);
+  }
+
   document.body.appendChild(root);
+
+  // Mark body so the global CSS in this module's <style> can push the
+  // document up by the overlay height, preventing the canvas from being
+  // cropped behind the controls.
+  document.body.classList.add('rt-overlay-active');
 
   // ---- event plumbing -------------------------------------------------
   // Map of dpad direction → KeyboardEvent.key.
@@ -606,19 +661,46 @@ export function installTouchOverlay(config = {}) {
     }
   }
 
-  function wireButton(el, { key, field, sticky = false }) {
+  // Synthetic KeyboardEvents are NOT trusted user gestures and won't
+  // unlock AudioContext on iOS Safari. The real touch (pointerdown on
+  // a button) IS trusted, so we explicitly call the sound module's
+  // unlock here while still inside that trusted event.
+  function unlockAudio() {
+    try {
+      if (typeof window.__rakuSoundEnsure === 'function') window.__rakuSoundEnsure();
+    } catch (e) { /* ignore */ }
+  }
+
+  // Registry of every wired button so a global pointerup safety net can
+  // release any button that got stuck because its pointerup fired on a
+  // different element (Safari occasionally loses pointer capture).
+  const wiredButtons = [];
+
+  function wireButton(el, { key, field, sticky = false, oneShot = false }) {
     if (!el) return;
     let pointerId = null;
     let active = false;
 
+    function forceRelease() {
+      if (!active) return;
+      active = false;
+      el.classList.remove('rt-pressed');
+      try { el.releasePointerCapture(pointerId); } catch (err) { /* ignore */ }
+      pointerId = null;
+      if (!sticky) {
+        dispatchKey('keyup', key);
+        publishToEngine(field, false);
+      }
+    }
+
     function press(e) {
+      unlockAudio();  // trusted user gesture — unlock Web Audio here
       if (active) return;
       active = true;
       el.classList.add('rt-pressed');
       pointerId = e.pointerId;
       try { el.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
       if (sticky) {
-        // toggle: press once → keydown, press again → keyup
         const toggled = !el.dataset.toggleOn;
         if (toggled) {
           el.dataset.toggleOn = '1';
@@ -633,28 +715,31 @@ export function installTouchOverlay(config = {}) {
         dispatchKey('keydown', key);
         publishToEngine(field, true);
       }
+      // For oneShot buttons (START/PAUSE), release the key after a short
+      // delay so the game sees it as a quick tap rather than a held press.
+      if (oneShot) {
+        setTimeout(() => {
+          if (active) forceRelease();
+        }, 80);
+      }
       e.preventDefault();
     }
     function release(e) {
       if (!active) return;
       if (pointerId !== null && e.pointerId !== pointerId) return;
-      active = false;
-      el.classList.remove('rt-pressed');
-      try { el.releasePointerCapture(pointerId); } catch (err) { /* ignore */ }
-      pointerId = null;
-      if (!sticky) {
-        dispatchKey('keyup', key);
-        publishToEngine(field, false);
-      }
+      forceRelease();
       e.preventDefault();
     }
 
     el.addEventListener('pointerdown', press, { passive: false });
     el.addEventListener('pointerup', release, { passive: false });
     el.addEventListener('pointercancel', release, { passive: false });
-    el.addEventListener('pointerleave', release, { passive: false });
-    // Block context menu (long-press) on touch.
+    // Note: we deliberately do NOT release on pointerleave when capture is
+    // active — the button stays pressed even if the finger drags off, which
+    // is the expected mobile-game-controller behaviour.
     el.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    wiredButtons.push({ el, forceRelease });
   }
 
   // Wire dpad buttons
@@ -671,23 +756,23 @@ export function installTouchOverlay(config = {}) {
     wireButton(el, { key: def.key, field: def.id, sticky: !!def.sticky });
   });
 
-  // Wire pause (one-shot tap → press + release keystroke)
+  // Wire pause + start as one-shot taps (auto-release after a short delay).
   if (pauseEl && pause) {
-    pauseEl.addEventListener('pointerdown', (e) => {
-      pauseEl.classList.add('rt-pressed');
-      dispatchKey('keydown', pause.key);
-      publishToEngine('pause', true);
-      e.preventDefault();
-    }, { passive: false });
-    pauseEl.addEventListener('pointerup', (e) => {
-      pauseEl.classList.remove('rt-pressed');
-      dispatchKey('keyup', pause.key);
-      publishToEngine('pause', false);
-      e.preventDefault();
-    }, { passive: false });
-    pauseEl.addEventListener('pointercancel', () => pauseEl.classList.remove('rt-pressed'));
-    pauseEl.addEventListener('contextmenu', (e) => e.preventDefault());
+    wireButton(pauseEl, { key: pause.key, field: 'pause', oneShot: true });
   }
+  if (startEl && start) {
+    wireButton(startEl, { key: start.key || 'Enter', field: 'start', oneShot: true });
+  }
+
+  // Global pointerup safety net — if a button's own pointerup got lost
+  // (Safari pointer-capture quirk), force-release any button still in
+  // the pressed state.
+  window.addEventListener('pointerup', () => {
+    for (const b of wiredButtons) b.forceRelease();
+  }, { passive: true });
+  window.addEventListener('blur', () => {
+    for (const b of wiredButtons) b.forceRelease();
+  });
 
   // ---- orientation gate (landscape-required games) -------------------
   let rotateGate = null;
@@ -718,17 +803,14 @@ export function installTouchOverlay(config = {}) {
   }
 
   // ---- letterbox the canvas so the overlay doesn't cover it ----------
-  // We don't resize the canvas internal dimensions (that would break game
-  // logic). Instead we constrain the CSS box so the canvas + overlay both
-  // fit within 100vh.
+  // Publish the measured overlay height as a CSS custom property so the
+  // body-level rules in this module's <style> (which use !important to
+  // override per-game 100vh containers) actually shrink the canvas wrapper
+  // and the canvas itself.
   function applyLetterbox() {
-    if (!canvas) return;
-    const overlayH = root.getBoundingClientRect().height || 180;
-    canvas.style.maxHeight = `calc(100vh - ${overlayH + 16}px)`;
-    canvas.style.maxWidth = '100vw';
-    canvas.style.objectFit = 'contain';
+    const overlayH = root.getBoundingClientRect().height || 200;
+    document.documentElement.style.setProperty('--rt-overlay-h', `${overlayH + 16}px`);
   }
-  // Run after layout settles.
   requestAnimationFrame(applyLetterbox);
   window.addEventListener('resize', applyLetterbox);
   window.addEventListener('orientationchange', applyLetterbox);
@@ -737,8 +819,11 @@ export function installTouchOverlay(config = {}) {
     destroy() {
       root.remove();
       if (pauseEl) pauseEl.remove();
+      if (startEl) startEl.remove();
       if (rotateGate) rotateGate.remove();
       style.remove();
+      document.body.classList.remove('rt-overlay-active');
+      document.documentElement.style.removeProperty('--rt-overlay-h');
       delete window.__rakuTouchOverlay;
     },
     isMobile: true,
