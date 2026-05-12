@@ -521,40 +521,27 @@ export function installTouchOverlay(config = {}) {
     }
     .rt-btn.rt-start.rt-no-pause { right: 12px; }
     /* When the overlay is active:
-       - Lock html/body to the viewport so iOS Safari can't scroll the
-         iframe when a finger lands near the bottom edge (which was making
-         the canvas visibly "jump" mid-play).
-       - Use 100dvh (dynamic viewport height) so the layout stays stable
-         under iOS URL-bar show/hide.
+       - body uses 100dvh (dynamic viewport height) so layout stays stable
+         under iOS URL-bar show/hide. We don't touch html — overriding
+         html.overflow:hidden + height:100dvh broke games like Alien
+         Defense whose wrap layout relied on html being a normal block.
+       - Scroll-lock is enforced by document-level touchmove preventDefault
+         (installed by JS below), NOT by overflow:hidden on body. That
+         turned out to be the only reliable way to stop iOS Safari from
+         scrolling the iframe when a finger lands near the fire button.
        - In portrait, the overlay sits at the bottom — we shrink canvas
          max-height by overlay height.
        - In landscape, the overlay floats over the side corners — canvas
-         can use the full viewport height; we only cap max-width by 100vw.
-       We intentionally do NOT force width/height: auto on the canvas;
-       each game has its own scaling logic (some use dpr * scale) and
-       forcing auto re-introduces aspect artifacts. */
-    html.rt-overlay-active, body.rt-overlay-active {
-      overflow: hidden !important;
-      height: 100vh !important;
-      height: 100dvh !important;
-      max-height: 100vh !important;
-      max-height: 100dvh !important;
-      overscroll-behavior: none !important;
-      touch-action: manipulation;
-    }
+         can use the full viewport height. */
     body.rt-overlay-active {
       box-sizing: border-box !important;
+      overscroll-behavior: none !important;
+      touch-action: manipulation;
     }
     /* Portrait: bottom-mounted controls; canvas height shrinks. */
     @media (orientation: portrait) {
       body.rt-overlay-active {
         padding-bottom: var(--rt-overlay-h, 200px) !important;
-      }
-      body.rt-overlay-active #wrap,
-      body.rt-overlay-active #game-wrap,
-      body.rt-overlay-active main {
-        min-height: calc(100dvh - var(--rt-overlay-h, 200px)) !important;
-        max-height: calc(100dvh - var(--rt-overlay-h, 200px)) !important;
       }
       body.rt-overlay-active canvas {
         max-height: calc(100dvh - var(--rt-overlay-h, 200px)) !important;
@@ -566,12 +553,6 @@ export function installTouchOverlay(config = {}) {
     @media (orientation: landscape) {
       body.rt-overlay-active {
         padding-bottom: 0 !important;
-      }
-      body.rt-overlay-active #wrap,
-      body.rt-overlay-active #game-wrap,
-      body.rt-overlay-active main {
-        min-height: 100dvh !important;
-        max-height: 100dvh !important;
       }
       body.rt-overlay-active canvas {
         max-height: 100dvh !important;
@@ -675,10 +656,12 @@ export function installTouchOverlay(config = {}) {
 
   document.body.appendChild(root);
 
-  // Mark html + body so the global CSS in this module's <style> can lock
-  // the viewport (overflow:hidden on both is required by iOS Safari) and
-  // size canvases against 100dvh minus the measured overlay height.
-  document.documentElement.classList.add('rt-overlay-active');
+  // Mark body so the global CSS in this module's <style> can adjust the
+  // canvas + padding for the overlay. We deliberately do NOT touch html
+  // (overriding html.overflow:hidden / height:100dvh broke Alien Defense
+  // in v4). Scroll-lock is installed below as a touchmove listener
+  // outside any button — see the document.addEventListener('touchmove')
+  // call after the overlay is appended.
   document.body.classList.add('rt-overlay-active');
 
   // ---- event plumbing -------------------------------------------------
@@ -708,28 +691,30 @@ export function installTouchOverlay(config = {}) {
   // Synthetic KeyboardEvents are NOT trusted user gestures and won't
   // unlock AudioContext on iOS Safari. The real touch (pointerdown on
   // a button) IS trusted, so we explicitly call the sound module's
-  // unlock here while still inside that trusted event. We also play a
-  // 1-sample silent buffer on the game's own AudioContext — iOS Safari
-  // sometimes requires this to fully unlock playback even after resume().
-  let _audioUnlockTried = false;
+  // unlock here while still inside that trusted event. We then play a
+  // 1-sample silent buffer through the game's own AudioContext — iOS
+  // Safari requires an actual buffer playback inside a trusted gesture
+  // to fully unlock the context (resume() alone is insufficient).
+  //
+  // We deliberately DO NOT gate this with a "tried once" flag. Each press
+  // re-attempts the unlock; if the first attempt happened before
+  // createSound() finished initialising, subsequent presses will succeed.
+  // The cost is one tiny buffer allocation per press, which is invisible.
   function unlockAudio() {
     try {
-      if (typeof window.__rakuSoundEnsure === 'function') {
-        const ctx = window.__rakuSoundEnsure();
-        // Belt-and-suspenders: a silent buffer playback inside the trusted
-        // gesture is what actually convinces iOS Safari that audio is
-        // user-initiated and unlocks subsequent playback.
-        if (!_audioUnlockTried && ctx && typeof ctx.createBuffer === 'function') {
-          try {
-            const buf = ctx.createBuffer(1, 1, 22050);
-            const src = ctx.createBufferSource();
-            src.buffer = buf;
-            src.connect(ctx.destination);
-            src.start(0);
-          } catch (e) { /* ignore */ }
-          _audioUnlockTried = true;
-        }
+      if (typeof window.__rakuSoundEnsure !== 'function') return;
+      const ctx = window.__rakuSoundEnsure();
+      if (!ctx || typeof ctx.createBuffer !== 'function') return;
+      // ctx.resume() returns a Promise but iOS unlocks based on the
+      // synchronous start() call below — we don't need to await.
+      if (ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+        try { ctx.resume(); } catch (e) { /* ignore */ }
       }
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
     } catch (e) { /* ignore */ }
   }
 
@@ -843,6 +828,23 @@ export function installTouchOverlay(config = {}) {
   window.addEventListener('blur', () => {
     for (const b of wiredButtons) b.forceRelease();
   });
+
+  // Scroll-lock the iframe. Without this, iOS Safari treats the iframe
+  // as scrollable whenever body content + padding-bottom exceeds the
+  // visible viewport — a finger landing near the bottom-mounted action
+  // buttons can register as a drag and scroll the page, visibly jumping
+  // the canvas mid-play (the bug the user captured in a screen recording).
+  // overflow:hidden alone wasn't enough; touchmove preventDefault is.
+  // We let touchmove inside an action button pass through (passive default)
+  // so multi-touch gestures on the buttons themselves still work.
+  document.addEventListener('touchmove', (e) => {
+    // Skip if the touch started on an overlay button — those have their
+    // own pointer handlers and we don't want to disturb them.
+    const t = e.target;
+    if (t && t.closest && t.closest('#raku-touch-overlay')) return;
+    if (t && t.closest && (t.closest('.rt-pause') || t.closest('.rt-start'))) return;
+    e.preventDefault();
+  }, { passive: false });
 
   // ---- orientation gate (landscape-required games) -------------------
   let rotateGate = null;
