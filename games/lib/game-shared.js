@@ -520,24 +520,67 @@ export function installTouchOverlay(config = {}) {
       letter-spacing: 1px;
     }
     .rt-btn.rt-start.rt-no-pause { right: 12px; }
-    /* When the overlay is active, push the document up so canvases don't
-       get cropped behind the bottom controls. Use !important to override
-       per-game CSS that pins to 100vh. We intentionally do NOT force
-       width/height: auto on the canvas — each game has its own scaling
-       logic (some use dpr * scale) and forcing auto re-introduces aspect
-       artifacts. We only cap max-height by the overlay size. */
+    /* When the overlay is active:
+       - Lock html/body to the viewport so iOS Safari can't scroll the
+         iframe when a finger lands near the bottom edge (which was making
+         the canvas visibly "jump" mid-play).
+       - Use 100dvh (dynamic viewport height) so the layout stays stable
+         under iOS URL-bar show/hide.
+       - In portrait, the overlay sits at the bottom — we shrink canvas
+         max-height by overlay height.
+       - In landscape, the overlay floats over the side corners — canvas
+         can use the full viewport height; we only cap max-width by 100vw.
+       We intentionally do NOT force width/height: auto on the canvas;
+       each game has its own scaling logic (some use dpr * scale) and
+       forcing auto re-introduces aspect artifacts. */
+    html.rt-overlay-active, body.rt-overlay-active {
+      overflow: hidden !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      max-height: 100vh !important;
+      max-height: 100dvh !important;
+      overscroll-behavior: none !important;
+      touch-action: manipulation;
+    }
     body.rt-overlay-active {
-      padding-bottom: var(--rt-overlay-h, 200px) !important;
       box-sizing: border-box !important;
     }
-    body.rt-overlay-active #wrap,
-    body.rt-overlay-active #game-wrap,
-    body.rt-overlay-active main {
-      min-height: calc(100vh - var(--rt-overlay-h, 200px)) !important;
+    /* Portrait: bottom-mounted controls; canvas height shrinks. */
+    @media (orientation: portrait) {
+      body.rt-overlay-active {
+        padding-bottom: var(--rt-overlay-h, 200px) !important;
+      }
+      body.rt-overlay-active #wrap,
+      body.rt-overlay-active #game-wrap,
+      body.rt-overlay-active main {
+        min-height: calc(100dvh - var(--rt-overlay-h, 200px)) !important;
+        max-height: calc(100dvh - var(--rt-overlay-h, 200px)) !important;
+      }
+      body.rt-overlay-active canvas {
+        max-height: calc(100dvh - var(--rt-overlay-h, 200px)) !important;
+        max-width: 100vw !important;
+      }
     }
-    body.rt-overlay-active canvas {
-      max-height: calc(100vh - var(--rt-overlay-h, 200px)) !important;
-      max-width: 100vw !important;
+    /* Landscape: controls float over the canvas corners. Canvas uses full
+       viewport; we only cap width so it doesn't blow past 100vw. */
+    @media (orientation: landscape) {
+      body.rt-overlay-active {
+        padding-bottom: 0 !important;
+      }
+      body.rt-overlay-active #wrap,
+      body.rt-overlay-active #game-wrap,
+      body.rt-overlay-active main {
+        min-height: 100dvh !important;
+        max-height: 100dvh !important;
+      }
+      body.rt-overlay-active canvas {
+        max-height: 100dvh !important;
+        max-width: 100vw !important;
+      }
+      /* Translucent dim behind buttons so they stay readable over gameplay. */
+      #raku-touch-overlay .rt-btn {
+        background: rgba(20, 22, 30, 0.7) !important;
+      }
     }
     .rt-dpad { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(3, 64px); gap: 4px; }
     .rt-dpad .rt-btn { width: 100%; height: 100%; }
@@ -632,9 +675,10 @@ export function installTouchOverlay(config = {}) {
 
   document.body.appendChild(root);
 
-  // Mark body so the global CSS in this module's <style> can push the
-  // document up by the overlay height, preventing the canvas from being
-  // cropped behind the controls.
+  // Mark html + body so the global CSS in this module's <style> can lock
+  // the viewport (overflow:hidden on both is required by iOS Safari) and
+  // size canvases against 100dvh minus the measured overlay height.
+  document.documentElement.classList.add('rt-overlay-active');
   document.body.classList.add('rt-overlay-active');
 
   // ---- event plumbing -------------------------------------------------
@@ -664,10 +708,28 @@ export function installTouchOverlay(config = {}) {
   // Synthetic KeyboardEvents are NOT trusted user gestures and won't
   // unlock AudioContext on iOS Safari. The real touch (pointerdown on
   // a button) IS trusted, so we explicitly call the sound module's
-  // unlock here while still inside that trusted event.
+  // unlock here while still inside that trusted event. We also play a
+  // 1-sample silent buffer on the game's own AudioContext — iOS Safari
+  // sometimes requires this to fully unlock playback even after resume().
+  let _audioUnlockTried = false;
   function unlockAudio() {
     try {
-      if (typeof window.__rakuSoundEnsure === 'function') window.__rakuSoundEnsure();
+      if (typeof window.__rakuSoundEnsure === 'function') {
+        const ctx = window.__rakuSoundEnsure();
+        // Belt-and-suspenders: a silent buffer playback inside the trusted
+        // gesture is what actually convinces iOS Safari that audio is
+        // user-initiated and unlocks subsequent playback.
+        if (!_audioUnlockTried && ctx && typeof ctx.createBuffer === 'function') {
+          try {
+            const buf = ctx.createBuffer(1, 1, 22050);
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            src.connect(ctx.destination);
+            src.start(0);
+          } catch (e) { /* ignore */ }
+          _audioUnlockTried = true;
+        }
+      }
     } catch (e) { /* ignore */ }
   }
 
@@ -831,6 +893,7 @@ export function installTouchOverlay(config = {}) {
       if (rotateGate) rotateGate.remove();
       style.remove();
       document.body.classList.remove('rt-overlay-active');
+      document.documentElement.classList.remove('rt-overlay-active');
       document.documentElement.style.removeProperty('--rt-overlay-h');
       delete window.__rakuTouchOverlay;
     },
