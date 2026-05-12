@@ -696,11 +696,14 @@ export function installTouchOverlay(config = {}) {
   // Safari requires an actual buffer playback inside a trusted gesture
   // to fully unlock the context (resume() alone is insufficient).
   //
-  // We deliberately DO NOT gate this with a "tried once" flag. Each press
-  // re-attempts the unlock; if the first attempt happened before
-  // createSound() finished initialising, subsequent presses will succeed.
-  // The cost is one tiny buffer allocation per press, which is invisible.
+  // _audioUnlocked latches true ONLY after a successful src.start(0).
+  // If anything earlier threw (e.g. createSound() hadn't finished wiring
+  // up window.__rakuSoundEnsure yet, or createBuffer threw), the flag
+  // stays false and the next press retries. This avoids the v4 bug
+  // where the flag was set unconditionally after the first attempt.
+  let _audioUnlocked = false;
   function unlockAudio() {
+    if (_audioUnlocked) return;
     try {
       if (typeof window.__rakuSoundEnsure !== 'function') return;
       const ctx = window.__rakuSoundEnsure();
@@ -710,11 +713,12 @@ export function installTouchOverlay(config = {}) {
       if (ctx.state === 'suspended' && typeof ctx.resume === 'function') {
         try { ctx.resume(); } catch (e) { /* ignore */ }
       }
-      const buf = ctx.createBuffer(1, 1, 22050);
+      const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
       const src = ctx.createBufferSource();
       src.buffer = buf;
       src.connect(ctx.destination);
       src.start(0);
+      _audioUnlocked = true;
     } catch (e) { /* ignore */ }
   }
 
@@ -835,16 +839,16 @@ export function installTouchOverlay(config = {}) {
   // buttons can register as a drag and scroll the page, visibly jumping
   // the canvas mid-play (the bug the user captured in a screen recording).
   // overflow:hidden alone wasn't enough; touchmove preventDefault is.
-  // We let touchmove inside an action button pass through (passive default)
-  // so multi-touch gestures on the buttons themselves still work.
-  document.addEventListener('touchmove', (e) => {
-    // Skip if the touch started on an overlay button — those have their
-    // own pointer handlers and we don't want to disturb them.
+  // The handler is a named function so destroy() can removeEventListener it;
+  // it also no-ops if the overlay class is gone (defence-in-depth, so a
+  // missed teardown doesn't permanently disable page scrolling).
+  function scrollLockHandler(e) {
+    if (!document.body.classList.contains('rt-overlay-active')) return;
     const t = e.target;
-    if (t && t.closest && t.closest('#raku-touch-overlay')) return;
-    if (t && t.closest && (t.closest('.rt-pause') || t.closest('.rt-start'))) return;
+    if (t && t.closest && t.closest('#raku-touch-overlay, .rt-pause, .rt-start')) return;
     e.preventDefault();
-  }, { passive: false });
+  }
+  document.addEventListener('touchmove', scrollLockHandler, { passive: false });
 
   // ---- orientation gate (landscape-required games) -------------------
   let rotateGate = null;
@@ -894,6 +898,7 @@ export function installTouchOverlay(config = {}) {
       if (startEl) startEl.remove();
       if (rotateGate) rotateGate.remove();
       style.remove();
+      document.removeEventListener('touchmove', scrollLockHandler);
       document.body.classList.remove('rt-overlay-active');
       document.documentElement.classList.remove('rt-overlay-active');
       document.documentElement.style.removeProperty('--rt-overlay-h');
