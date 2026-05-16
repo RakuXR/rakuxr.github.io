@@ -962,9 +962,17 @@
     }
 
     // --- Chat sidebar: iterate flow (J.5) ---
-    // API_BASE for backend calls. Override with ?api_base= for local dev.
-    const PLAY_API_BASE = new URLSearchParams(location.search).get('api_base')
-        || 'https://raku-api-staging.fly.dev';
+    // API_BASE for backend calls.
+    // The ?api_base= override is honoured only on localhost so a
+    // crafted link cannot point a victim's session at an attacker-
+    // controlled API host. Production hostnames always use the
+    // hardcoded backend.
+    const PLAY_QS_API_BASE = new URLSearchParams(location.search).get('api_base');
+    const PLAY_OVERRIDE_ALLOWED =
+        ['localhost', '127.0.0.1'].indexOf(location.hostname) !== -1;
+    const PLAY_API_BASE = (PLAY_OVERRIDE_ALLOWED && PLAY_QS_API_BASE)
+        ? PLAY_QS_API_BASE
+        : 'https://raku-api-staging.fly.dev';
 
     // WASM instance stored after boot for config hot-reload
     let wasmInstance = null;

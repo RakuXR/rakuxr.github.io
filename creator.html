@@ -91,8 +91,11 @@
 
 <script>
 (function() {
-    var API_BASE = (new URLSearchParams(window.location.search)).get('api_base')
-        || 'https://raku-api-staging.fly.dev';
+    // ?api_base= override accepted on localhost only — see index.html for rationale.
+    var __qs = new URLSearchParams(window.location.search);
+    var __overrideAllowed = ['localhost', '127.0.0.1'].indexOf(window.location.hostname) !== -1;
+    var __qsApiBase = __qs.get('api_base');
+    var API_BASE = (__overrideAllowed && __qsApiBase) ? __qsApiBase : 'https://raku-api-staging.fly.dev';
     var params = new URLSearchParams(window.location.search);
     var userId = params.get('id');
 

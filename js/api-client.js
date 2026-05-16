@@ -202,7 +202,15 @@ const RakuAPI = (function () {
 
     function generateProgressSSE(gameId, onEvent) {
         const token = getToken();
-        const url = `${API_BASE}/api/v1/generate/${gameId}/progress${token ? '?token=' + token : ''}`;
+        // Security: never put the JWT in the EventSource URL. URL-borne
+        // tokens leak into server access logs, browser history, referrer
+        // headers sent to third parties, and proxy logs. Authenticated
+        // callers poll /status (which supports the Authorization header)
+        // instead of streaming progress.
+        if (token) {
+            return _pollStatus(gameId, onEvent);
+        }
+        const url = `${API_BASE}/api/v1/generate/${gameId}/progress`;
         const source = new EventSource(url);
 
         source.addEventListener('stage', (e) => {
@@ -222,6 +230,49 @@ const RakuAPI = (function () {
         };
 
         return source;
+    }
+
+    function _pollStatus(gameId, onEvent) {
+        // Header-authenticated polling fallback for SSE. Returns an
+        // object exposing close() so the call site can cancel exactly
+        // like the EventSource version.
+        let stopped = false;
+        let timer = null;
+        async function tick() {
+            if (stopped) return;
+            try {
+                const data = await getGenerationStatus(gameId);
+                if (stopped) return;
+                if (data.stage) {
+                    onEvent({ type: 'stage', data });
+                }
+                if (data.status === 'complete' || data.stage === 'ready') {
+                    onEvent({ type: 'complete', data });
+                    stopped = true;
+                    return;
+                }
+                if (data.status === 'error' || data.stage === 'failed') {
+                    onEvent({ type: 'error', data });
+                    stopped = true;
+                    return;
+                }
+                timer = setTimeout(tick, 1500);
+            } catch (err) {
+                if (stopped) return;
+                onEvent({ type: 'error', data: { message: err.message || 'Connection lost' } });
+                stopped = true;
+            }
+        }
+        tick();
+        return {
+            close() {
+                stopped = true;
+                if (timer) {
+                    clearTimeout(timer);
+                    timer = null;
+                }
+            },
+        };
     }
 
     async function getGenerationStatus(gameId) {
