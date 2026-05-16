@@ -20,10 +20,30 @@
     <meta name="twitter:description" content="Generate interactive 3D experiences at real GPS coordinates from natural language. Tourism AR, enterprise training, fitness games — one engine, five revenue streams.">
     <meta name="twitter:image" content="https://rakuai.com/og-default.png">
     <link rel="canonical" href="https://rakuai.com/">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <!--
+      Content Security Policy
+      - connect-src: every backend host the page legitimately calls.
+        Includes localhost so a developer running a local raku-api on
+        :8000 (with ?api_base= on a localhost page) is not blocked.
+        Production hostnames silently drop ?api_base= for safety.
+      - 'unsafe-inline' is still required on script-src for the inline
+        bootstrap below; tracked as a future hardening item (move to nonces).
+      - frame-ancestors INTENTIONALLY OMITTED. The CSP spec is explicit
+        that frame-ancestors is ignored when CSP is delivered via a
+        <meta> tag — only response-header CSPs are honoured for it.
+        GitHub Pages cannot set custom headers, so this site cannot
+        enforce frame-ancestors at all. Putting it here was misleading
+        (would have looked like protection without providing any).
+        Real fix is either (a) move static hosting to a platform that
+        sets X-Frame-Options / CSP headers (Cloudflare Pages,
+        Netlify _headers, Fly with a tiny static server), or (b) accept
+        the iframe-embedding risk and ensure no destructive action is
+        possible without user interaction we can re-verify.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="stylesheet" href="style.css">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
-    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <script src="https://js.hcaptcha.com/1/api.js" async defer crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
 </head>
 <body>
 
@@ -894,14 +914,23 @@
  * or set window.RAKU_API_BASE before this script loads.
  */
 var RAKU_API_BASE = (function() {
-    // Priority 1: window global (set by hosting environment)
+    // Priority 1: ?api_base= query param — only honoured on localhost
+    // (same safety rule the per-call API_BASE uses below). Keeps the
+    // dev-time override consistent across generation, iteration, and
+    // auth fetches — without this both code paths had to be flipped
+    // separately when running against a local backend.
+    var qs = new URLSearchParams(window.location.search);
+    var host = window.location.hostname;
+    var localHost = (host === 'localhost' || host === '127.0.0.1');
+    var qsApiBase = qs.get('api_base');
+    if (localHost && qsApiBase) return qsApiBase;
+    // Priority 2: window global (set by hosting environment)
     if (typeof window.RAKU_API_BASE === 'string') return window.RAKU_API_BASE;
-    // Priority 2: meta tag
+    // Priority 3: meta tag
     var meta = document.querySelector('meta[name="raku-api-base"]');
     if (meta && meta.content) return meta.content;
-    // Priority 3: detect environment from hostname
-    var host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8000';
+    // Priority 4: detect environment from hostname
+    if (localHost) return 'http://localhost:8000';
     if (host === 'staging.rakuai.com') return 'https://raku-backend-staging.fly.dev';
     if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://raku-backend.fly.dev';
     // Default: same-origin (relative URLs)
@@ -910,10 +939,18 @@ var RAKU_API_BASE = (function() {
 
 (function() {
     // API base URL — points to the backend server.
-    // In production: 'https://raku-api.fly.dev'
-    // Override via ?api_base= query param for local development.
-    var API_BASE = (new URLSearchParams(window.location.search)).get('api_base')
-        || 'https://raku-api-staging.fly.dev';
+    // The ?api_base= query parameter is honoured ONLY on localhost so a
+    // crafted link like "https://rakuai.com/?api_base=https://attacker.example"
+    // cannot point a victim's session at an attacker-controlled API. On
+    // any production hostname the override is silently dropped and the
+    // hardcoded host is used.
+    var __qs = new URLSearchParams(window.location.search);
+    var __overrideHosts = ['localhost', '127.0.0.1'];
+    var __overrideAllowed = __overrideHosts.indexOf(window.location.hostname) !== -1;
+    var __qsApiBase = __qs.get('api_base');
+    var API_BASE = (__overrideAllowed && __qsApiBase)
+        ? __qsApiBase
+        : 'https://raku-api-staging.fly.dev';
 
     var textarea = document.getElementById('prompt-input');
     var charCount = document.getElementById('char-count');
@@ -1568,13 +1605,17 @@ var RAKU_API_BASE = (function() {
 
     // --- SSE-based progress tracking ---
     function connectSSE(generationId, authToken) {
-        var sseUrl = API_BASE + '/api/v1/generate/' + generationId + '/progress';
-        var headers = {};
+        // Security: never put the JWT in the EventSource URL.
+        // - URLs leak into server access logs, browser history,
+        //   referrer headers sent to third parties, and proxy logs.
+        // - Stolen access tokens are valid for the full 24h expiry.
+        // Authenticated callers fall back to polling /status (which
+        // supports custom Authorization headers). Anonymous progress
+        // streaming still uses SSE since there's no token to leak.
         if (authToken) {
-            // SSE doesn't support custom headers; use query param for auth
-            sseUrl += '?token=' + encodeURIComponent(authToken);
+            return startPolling(generationId, authToken);
         }
-
+        var sseUrl = API_BASE + '/api/v1/generate/' + generationId + '/progress';
         currentEventSource = new EventSource(sseUrl);
 
         currentEventSource.addEventListener('stage', function(e) {
@@ -1674,9 +1715,21 @@ var RAKU_API_BASE = (function() {
             body: JSON.stringify(requestBody)
         })
         .then(function(res) {
-            if (res.status === 409) throw new Error('Account already exists. Try logging in.');
+            // This handler is the response from POST /api/v1/generate.
+            // The original code carried a 409 -> "Account already exists"
+            // branch that was a misplaced copy from the signup path —
+            // /generate never returns 409 in the first place. The
+            // account-enumeration fix lives in the actual signup flow
+            // further down (around line 1990), which silently rolls a
+            // 409-registration into a login attempt so the response
+            // shape doesn't reveal whether the email was already
+            // registered. Here we just report what happened to the
+            // generation request honestly.
             if (res.status === 429) throw new Error('Rate limit reached. Please try again later.');
-            if (!res.ok) throw new Error('Request failed (' + res.status + ')');
+            if (!res.ok) {
+                throw new Error('Generation could not be completed. ' +
+                                'Please try again in a moment.');
+            }
             return res.json();
         })
         .then(function(data) {
