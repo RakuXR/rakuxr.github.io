@@ -17,7 +17,9 @@
  *     dashboard, which uses a flatter nav structure.
  *   - When `localStorage.raku_access_token` is set, the label/href become
  *     "Dashboard" -> `/developers/dashboard.html`; otherwise "Sign In" ->
- *     `/developers/login.html`.
+ *     `/developers/login.html`. On `/ja/` pages the route is the
+ *     localized `/ja/developers/...` equivalent so the label matches the
+ *     destination.
  *   - Japanese pages (under `/ja/` or `<html lang="ja">`) get localized
  *     labels: "サインイン" / "ダッシュボード".
  *   - The href is an absolute site path (`/developers/...`). The script
@@ -68,7 +70,12 @@
     }
 
     function applyState(link, loggedIn, ja) {
-        link.href = '/developers/' + (loggedIn ? 'dashboard.html' : 'login.html');
+        // JA pages route to the localized portal so the label and the
+        // destination match. The /ja/developers/* tree is created by the
+        // JA-parity PR (#171); merging this fix before that PR lands
+        // would 404 the JA sign-in link.
+        var portalBase = ja ? '/ja/developers/' : '/developers/';
+        link.href = portalBase + (loggedIn ? 'dashboard.html' : 'login.html');
         link.className = loggedIn ? 'nav-dashboard' : 'nav-signin';
         if (ja) {
             link.textContent = loggedIn ? 'ダッシュボード' : 'サインイン';
