@@ -88,9 +88,15 @@ Several JA pages from the PR #174 batch are missing `<script src="/js/lang-selec
 - `ja/share.html`
 - `ja/validate.html`
 
-This means the language-selector dropdown will not appear on those JA pages. The `<a class="lang-toggle">EN</a>` fallback link is still present, so navigation still works. This is a minor JS-include inconsistency, not a content-parity issue, but is worth a followup PR.
+This means the language-selector dropdown will not appear on those JA pages. Furthermore, these same pages are missing from the `JA_PAGES` availability map in `js/lang-selector.js` — even if the script include were added, the selector would still default to `/ja/index.html` instead of deep-linking to the localized sibling. Both the script include AND the manifest update are worth a single followup PR. The `<a class="lang-toggle">EN</a>` fallback link is still present on every page, so navigation isn't broken — just suboptimal.
 
-Additionally, several JA pages still use the older Japanese beta-announcement-bar copy (`楽AI 公開中 — ゲームを説明して、すぐにプレイ`) while EN pages use the newer "Universal Runtime for World Models" framing. This is consistent across the JA site but lags the EN copy. Translation refresh is optional — it's a marketing-copy decision, not a parity bug.
+The Japanese beta-announcement-bar copy is also inconsistent across the JA site:
+
+- Some JA pages already use the newer "Universal Runtime for World Models" framing in Japanese (e.g. `ja/content-packs.html`, `ja/dashboard.html` carry `World Model のためのユニバーサルランタイム`).
+- Others still use the older `楽AI 公開中 — ゲームを説明して、すぐにプレイ` copy (notably `ja/index.html` pre-#193 recovery).
+- `ja/press.html` is missing the bar entirely.
+
+A small marketing-copy refresh + a bar-restoration on `ja/press.html` would be a worthwhile followup, but neither is a parity bug.
 
 ## How to use this report
 
