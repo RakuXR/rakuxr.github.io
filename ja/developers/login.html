@@ -366,10 +366,14 @@
 
             successBox.style.display = 'block';
 
-            // Open-redirect prevention: ?return= must be a SAME-ORIGIN absolute path.
+            // Open-redirect prevention: ?return= must resolve to a path on the SAME origin.
+            // We parse with the URL constructor (which canonicalises backslashes,
+            // percent-encoded slashes, full schemes, protocol-relative '//evil.example',
+            // etc.) and then compare resolved.origin to the current origin. Any mismatch
+            // falls back to the default landing page (register.html).
             var ret = new URLSearchParams(window.location.search).get('return');
             var safeReturn = 'register.html';
-            if (ret && ret.charAt(0) === '/' && ret.charAt(1) !== '/' && ret.charAt(1) !== '\\') {
+            if (ret) {
                 try {
                     var resolved = new URL(ret, window.location.origin);
                     if (resolved.origin === window.location.origin) {
