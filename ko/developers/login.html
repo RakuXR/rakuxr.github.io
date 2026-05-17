@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개발자 로그인 - RakuAI</title>
+    <meta name="description" content="API 키로 RakuAI 개발자 포털에 로그인하세요.">
+    <link rel="stylesheet" href="../../style.css">
+    <!--
+      Machine-translated by Claude. Pending human review.
+      Source: ../../developers/login.html @ 72a633e
+      Date: 2026-05-17
+      Language: ko (Korean)
+    -->
+    <style>
+        .login-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 56px 24px;
+        }
+        .login-container h1 {
+            font-size: 1.75rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .login-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        .login-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 28px;
+        }
+        .login-card label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .login-card input[type="password"],
+        .login-card input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            font-family: 'Courier New', ui-monospace, monospace;
+            font-size: 0.95rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .login-card input:focus {
+            outline: none;
+            border-color: var(--accent-bright);
+        }
+        .reveal-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .reveal-toggle input { margin: 0; }
+
+        .login-card button {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-bright), #8e7cff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .login-card button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-box, .success-box {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .error-box {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            color: #ff8a7e;
+        }
+        .success-box {
+            background: rgba(108, 92, 231, 0.1);
+            border: 1px solid rgba(108, 92, 231, 0.35);
+            color: var(--text-primary);
+        }
+
+        .footer-note {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .footer-note a { color: var(--accent-bright); }
+
+        .signed-in-state {
+            display: none;
+            text-align: center;
+        }
+        .signed-in-state .user-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .signed-in-state .user-card .email {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin: 4px 0;
+        }
+        .signed-in-state .user-card .tier {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            border-radius: 999px;
+            background: rgba(108, 92, 231, 0.2);
+            color: var(--accent-bright);
+        }
+        .signed-in-state .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .btn-secondary {
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid rgba(108, 92, 231, 0.4);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — 월드 모델을 위한 범용 런타임 &nbsp;|&nbsp; <a href="../index.html#for-studios">스튜디오 &amp; 개발자용 →</a> &nbsp;&nbsp; 또한: <a href="../index.html#quickstart">컨슈머 데모 체험 →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">홈</a>
+            <a href="../../engine/">엔진</a>
+            <a href="../../api/">API 문서</a>
+            <a href="../../games/">게임</a>
+            <a href="../why-rakuai.html">RakuAI를 선택하는 이유</a>
+            <a href="../developers/">개발자</a>
+            <a href="../../press.html">언론</a>
+            <a href="login.html" class="nav-signin">로그인</a>
+            <a href="../../developers/login.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<div class="login-container">
+    <!-- Signed-out: API-key sign-in form -->
+    <div id="signed-out-state">
+        <h1>개발자 로그인</h1>
+        <p class="subtitle"><code>raku_</code> API 키를 붙여 넣어 세션 토큰을 받으세요. 신규 개발자: <a href="register.html">여기에서 액세스를 신청하세요</a>.</p>
+
+        <form class="login-card" id="login-form" autocomplete="off">
+            <label for="api-key">API 키</label>
+            <input
+                type="password"
+                id="api-key"
+                name="api-key"
+                placeholder="raku_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="off"
+                required
+            >
+            <label class="reveal-toggle">
+                <input type="checkbox" id="reveal-key"> 키 표시
+            </label>
+
+            <button type="submit" id="submit-btn">로그인</button>
+
+            <div class="error-box" id="error-box"></div>
+            <div class="success-box" id="success-box">로그인되었습니다. 이동 중…</div>
+        </form>
+
+        <p class="footer-note">
+            아직 API 키가 없으신가요? <a href="register.html">NDA에 동의하고 개발자 액세스를 신청하세요</a>. 관리자가 계정을 승인하면 다시 돌아와 주세요.
+        </p>
+    </div>
+
+    <!-- Signed-in: show user info + Sign Out -->
+    <div id="signed-in-state" class="signed-in-state">
+        <h1>로그인되었습니다</h1>
+        <p class="subtitle">세션 토큰이 브라우저에 캐시되었습니다. 내비게이션의 개발자 포털 링크를 사용하세요.</p>
+
+        <div class="user-card">
+            <div class="email" id="signed-in-email">—</div>
+            <span class="tier" id="signed-in-tier">—</span>
+        </div>
+
+        <div class="actions">
+            <a class="btn-secondary" href="register.html">포털로 계속</a>
+            <button type="button" class="btn-secondary" id="signout-btn">로그아웃</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/api-config.js"></script>
+<script>
+(function() {
+    'use strict';
+
+    // ---- API base (resolved by /js/api-config.js) ----
+    // Defensive fallback if api-config.js failed to load — defaults to prod which is the safest target.
+    var API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
+
+    // ---- localStorage key names (must match register.html) ----
+    const TOKEN_KEY   = 'raku_access_token';
+    const REFRESH_KEY = 'raku_refresh_token';
+    const USER_KEY    = 'raku_user';
+
+    // ---- Elements ----
+    const signedOutEl = document.getElementById('signed-out-state');
+    const signedInEl  = document.getElementById('signed-in-state');
+    const form        = document.getElementById('login-form');
+    const input       = document.getElementById('api-key');
+    const reveal      = document.getElementById('reveal-key');
+    const submitBtn   = document.getElementById('submit-btn');
+    const errorBox    = document.getElementById('error-box');
+    const successBox  = document.getElementById('success-box');
+    const emailEl     = document.getElementById('signed-in-email');
+    const tierEl      = document.getElementById('signed-in-tier');
+    const signOutBtn  = document.getElementById('signout-btn');
+
+    // ---- Helpers ----
+    function showSignedIn(user) {
+        signedOutEl.style.display = 'none';
+        signedInEl.style.display  = 'block';
+        emailEl.textContent = (user && user.email) || '(이메일 알 수 없음)';
+        tierEl.textContent  = (user && user.tier)  || '알 수 없음';
+    }
+    function showSignedOut() {
+        signedOutEl.style.display = 'block';
+        signedInEl.style.display  = 'none';
+    }
+    function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.style.display = 'block';
+        successBox.style.display = 'none';
+    }
+    function clearError() {
+        errorBox.style.display = 'none';
+        errorBox.textContent = '';
+    }
+
+    // ---- Already-signed-in detection ----
+    var existing = localStorage.getItem(TOKEN_KEY);
+    if (existing) {
+        var userStr = localStorage.getItem(USER_KEY);
+        var user = null;
+        try { user = userStr ? JSON.parse(userStr) : null; } catch (_) { user = null; }
+        showSignedIn(user);
+    } else {
+        showSignedOut();
+    }
+
+    // ---- Reveal-key toggle ----
+    reveal.addEventListener('change', function() {
+        input.type = reveal.checked ? 'text' : 'password';
+    });
+
+    // ---- Sign-out ----
+    signOutBtn.addEventListener('click', function() {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(REFRESH_KEY);
+        localStorage.removeItem(USER_KEY);
+        showSignedOut();
+        input.value = '';
+        clearError();
+    });
+
+    // ---- Sign-in ----
+    form.addEventListener('submit', async function(ev) {
+        ev.preventDefault();
+        clearError();
+
+        var apiKey = (input.value || '').trim();
+        if (!apiKey) {
+            showError('API 키를 붙여 넣어 주세요.');
+            return;
+        }
+        if (apiKey.indexOf('raku_') !== 0) {
+            showError('raku_ 형식의 API 키가 아닌 것 같습니다. 전체 값을 복사했는지 확인해 주세요.');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = '로그인 중…';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/auth/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ api_key: apiKey }),
+            });
+
+            if (resp.status === 401) {
+                showError('API 키가 유효하지 않거나, 폐기되었거나, 연결된 개발자 계정이 없습니다. 키를 다시 확인하거나, 계정이 없다면 액세스를 신청하세요.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '로그인';
+                return;
+            }
+            if (resp.status === 422) {
+                showError('API 키 필드가 누락되었거나 형식이 잘못되었습니다.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '로그인';
+                return;
+            }
+            if (!resp.ok) {
+                showError('로그인에 실패했습니다 (HTTP ' + resp.status + '). 다시 시도하거나 문제가 계속되면 지원팀에 문의하세요.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '로그인';
+                return;
+            }
+
+            var data = await resp.json();
+            if (!data || !data.access_token) {
+                showError('서버에서 예기치 않은 응답을 받았습니다. 로그인이 완료되지 않았습니다.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '로그인';
+                return;
+            }
+
+            // Persist the session — same keys developers/register.html reads.
+            localStorage.setItem(TOKEN_KEY, data.access_token);
+            if (data.refresh_token) localStorage.setItem(REFRESH_KEY, data.refresh_token);
+            if (data.user) localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+            // Clear the raw key from the form so it doesn't sit in the DOM.
+            input.value = '';
+
+            successBox.style.display = 'block';
+
+            // If the user came here from another page, bounce them back.
+            // Otherwise hand off to the developer portal entry point.
+            //
+            // Open-redirect prevention: ?return= must be a SAME-ORIGIN
+            // absolute path. We reject:
+            //   - anything that doesn't start with a single '/'
+            //   - protocol-relative URLs like '//evil.example' (browsers
+            //     resolve these to a foreign origin)
+            //   - any value whose resolved origin differs from the current
+            //     page (covers backslash tricks, full URLs, etc.)
+            // The default landing page is register.html (NDA-acceptance
+            // flow continues there once the user has a token).
+            var ret = new URLSearchParams(window.location.search).get('return');
+            var safeReturn = 'register.html';
+            if (ret && ret.charAt(0) === '/' && ret.charAt(1) !== '/' && ret.charAt(1) !== '\\') {
+                try {
+                    var resolved = new URL(ret, window.location.origin);
+                    if (resolved.origin === window.location.origin) {
+                        safeReturn = resolved.pathname + resolved.search + resolved.hash;
+                    }
+                } catch (_) {
+                    // Malformed URL — fall back to the default.
+                }
+            }
+            setTimeout(function() { window.location.href = safeReturn; }, 600);
+
+        } catch (e) {
+            showError('API에 도달하는 중 네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도하세요.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '로그인';
+        }
+    });
+})();
+</script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>

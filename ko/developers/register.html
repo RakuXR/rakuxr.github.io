@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개발자 등록 - RakuAI</title>
+    <meta name="description" content="RakuAI 개발자 액세스를 신청하세요. NDA에 동의하고 프로필을 완료하면 API 키를 받을 수 있습니다.">
+    <link rel="stylesheet" href="../../style.css">
+    <!--
+      Machine-translated by Claude. Pending human review.
+      Source: ../../developers/register.html @ 72a633e
+      Date: 2026-05-17
+      Language: ko (Korean)
+    -->
+    <style>
+        .register-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+        .register-container h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .register-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        .nda-box {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 32px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        .nda-box h3 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+        .nda-box h4 {
+            color: var(--accent-bright);
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+        .nda-box ol, .nda-box ul {
+            padding-left: 24px;
+            margin-bottom: 12px;
+        }
+        .nda-box li {
+            margin-bottom: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label,
+        .form-group > .group-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+        .form-group .hint {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .form-group textarea {
+            min-height: 110px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-group input[readonly] {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .radio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+        }
+        .radio-grid label,
+        .checkbox-grid label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 400;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+        .radio-grid input[type="radio"],
+        .checkbox-grid input[type="checkbox"] {
+            accent-color: var(--accent);
+            margin: 0;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
+        }
+        .opt-in-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .opt-in-list label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 400;
+            line-height: 1.5;
+            cursor: pointer;
+        }
+        .opt-in-list input[type="checkbox"] {
+            margin-top: 3px;
+            accent-color: var(--accent);
+        }
+        .char-counter {
+            display: block;
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .char-counter.invalid { color: #ff8a7e; }
+
+        .field-error {
+            color: #ff8a7e;
+            font-size: 0.85rem;
+            margin-top: 6px;
+            display: none;
+        }
+        .field-error.visible { display: block; }
+
+        .form-error-banner {
+            margin: 16px 0;
+            padding: 12px 14px;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            border-radius: 8px;
+            color: #ff8a7e;
+            font-size: 0.92rem;
+            display: none;
+        }
+        .form-error-banner.visible { display: block; }
+
+        .nda-checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .nda-checkbox-group input[type="checkbox"] {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+        .nda-checkbox-group label {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+        .btn-register {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-register:hover { background: var(--accent-bright); }
+        .btn-register:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .register-success {
+            display: none;
+            text-align: center;
+            padding: 48px 24px;
+        }
+        .register-success h2 {
+            color: var(--success);
+            font-size: 1.8rem;
+            margin-bottom: 16px;
+        }
+        .register-success p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+        .needs-signin {
+            display: none;
+            padding: 28px;
+            margin-bottom: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 12px;
+            text-align: center;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .needs-signin a { color: var(--accent-bright); }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .step.active { color: var(--accent-bright); }
+        .step.done { color: var(--success); }
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        section.step-panel { display: none; }
+        section.step-panel.active { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — 월드 모델을 위한 범용 런타임 &nbsp;|&nbsp; <a href="../index.html#for-studios">스튜디오 &amp; 개발자용 →</a> &nbsp;&nbsp; 또한: <a href="../index.html#quickstart">컨슈머 데모 체험 →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">홈</a>
+            <a href="../../engine/">엔진</a>
+            <a href="../../api/">API 문서</a>
+            <a href="../../games/">게임</a>
+            <a href="../why-rakuai.html">RakuAI를 선택하는 이유</a>
+            <a href="../developers/">개발자</a>
+            <a href="../../press.html">언론</a>
+            <a href="login.html" class="nav-signin">로그인</a>
+            <a href="../../developers/register.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<div class="register-container">
+    <div class="step-indicator">
+        <div class="step active" id="step1-indicator"><span class="step-num">1</span> NDA 읽기</div>
+        <div class="step" id="step2-indicator"><span class="step-num">2</span> 프로필 작성</div>
+        <div class="step" id="step3-indicator"><span class="step-num">3</span> 승인 &amp; API 키</div>
+    </div>
+
+    <!-- Signed-out helper: shown only if we discover no session token. We
+         do NOT auto-redirect to login.html — that's what produced the
+         "NDA -> login loop" bug, since a brand-new developer can't sign
+         in via /developers/login.html (it requires an existing API key
+         they haven't been issued yet). Instead we point them at the
+         account-creation entry points and let them come back. -->
+    <div class="needs-signin" id="needsSignin">
+        <h2 style="color: var(--text-primary); margin-bottom: 12px;">계속하려면 로그인하세요</h2>
+        <p>
+            개발자 등록에는 RakuAI 계정이 필요합니다. 이미 계정이 있으시다면
+            <a href="login.html?return=/ko/developers/register.html">API 키로 로그인</a>하세요.
+            RakuAI가 처음이신가요? <a href="../index.html#quickstart">메인 사이트</a>에서
+            계정을 만든 다음 이 페이지로 돌아오세요.
+        </p>
+    </div>
+
+    <!-- Step 1: NDA acceptance -->
+    <section class="step-panel active" id="step1Panel">
+        <h1>개발자 액세스</h1>
+        <p class="subtitle">아래 NDA를 검토한 다음 프로필 작성으로 이동하세요.</p>
+
+        <div class="nda-box" id="ndaBox">
+            <h3>RakuAI 개발자 비밀 유지 계약 (NDA)</h3>
+            <p><strong>효력 발생일:</strong> 동의 시점</p>
+
+            <h4>1. 정의</h4>
+            <p>"기밀 정보"란 RakuAI 개발자 프로그램을 통해 제공되는 모든 비공개 기술 정보, 문서, API 사양, SDK 소스 코드, 게임 설정 스키마(.raku 형식), 독점 알고리즘을 의미합니다.</p>
+
+            <h4>2. 의무</h4>
+            <ol>
+                <li>귀하는 모든 기밀 정보를 엄격히 비밀로 유지하는 데 동의합니다.</li>
+                <li>귀하는 RakuAI 소프트웨어, SDK, 런타임 바이너리에 대해 리버스 엔지니어링, 디컴파일, 디스어셈블을 수행하지 않습니다.</li>
+                <li>귀하는 API 키, SDK 빌드, 내부 문서를 권한이 없는 자와 공유하지 않습니다.</li>
+                <li>귀하는 개발자 도구를 오직 RakuAI 플랫폼과 통합되는 애플리케이션 개발 목적으로만 사용합니다.</li>
+            </ol>
+
+            <h4>3. 허용되는 사용</h4>
+            <ul>
+                <li>RakuAI API를 사용하여 애플리케이션 및 게임 개발</li>
+                <li>개발팀과 공개 문서 공유</li>
+                <li>RakuAI로 제작한 게임의 퍼블리싱 (적절한 AI 공지 포함)</li>
+                <li>RakuAI 팀에 피드백과 버그 보고서 제공</li>
+            </ul>
+
+            <h4>4. 기간</h4>
+            <p>본 계약은 개발자 프로그램 참여 기간 동안, 그리고 종료 후 2년간 효력을 유지합니다.</p>
+
+            <h4>5. 해지</h4>
+            <p>각 당사자는 30일 전 서면 통지로 본 계약을 해지할 수 있습니다. 해지 시 귀하는 보유 중인 모든 기밀 정보를 폐기해야 합니다.</p>
+
+            <h4>6. 준거법</h4>
+            <p>본 계약은 미국 델라웨어주 법률에 따릅니다.</p>
+        </div>
+
+        <div class="nda-checkbox-group">
+            <input type="checkbox" id="ndaAccept">
+            <label for="ndaAccept">본인은 RakuAI 개발자 비밀 유지 계약을 읽고 동의합니다. 본 계약을 위반할 경우 개발자 액세스가 취소되고 법적 조치가 취해질 수 있음을 이해합니다.</label>
+        </div>
+
+        <div class="form-error-banner" id="ndaErrorBanner" aria-live="polite"></div>
+
+        <button class="btn-register" id="ndaSubmitBtn" type="button" disabled>NDA 동의 &amp; 계속</button>
+    </section>
+
+    <!-- Step 2: Extended profile -->
+    <section class="step-panel" id="step2Panel" aria-labelledby="step2Heading">
+        <h1 id="step2Heading">자신에 대해 알려주세요</h1>
+        <p class="subtitle">간단한 프로필로 액세스 요청을 적절한 팀에 라우팅합니다. 선택 표시가 없는 항목은 모두 필수입니다.</p>
+
+        <form id="profileForm" novalidate>
+            <div class="form-group">
+                <label for="fullName">성명</label>
+                <input type="text" id="fullName" name="fullName" autocomplete="name" maxlength="100" required>
+                <div class="field-error" id="fullName-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="workEmail">업무 이메일</label>
+                <input type="email" id="workEmail" name="workEmail" autocomplete="email" maxlength="200" required>
+                <span class="hint">가능한 경우 계정에서 자동으로 채워집니다.</span>
+                <div class="field-error" id="workEmail-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="company">회사 / 조직</label>
+                <input type="text" id="company" name="company" autocomplete="organization" maxlength="200" required>
+                <div class="field-error" id="company-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="role">직무 / 직책</label>
+                <input type="text" id="role" name="role" autocomplete="organization-title" maxlength="100" required>
+                <div class="field-error" id="role-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="country">국가</label>
+                <select id="country" name="country" autocomplete="country" required>
+                    <option value="">선택…</option>
+                    <option value="US">미국</option>
+                    <option value="CA">캐나다</option>
+                    <option value="GB">영국</option>
+                    <option value="DE">독일</option>
+                    <option value="FR">프랑스</option>
+                    <option value="NL">네덜란드</option>
+                    <option value="SE">스웨덴</option>
+                    <option value="ES">스페인</option>
+                    <option value="IT">이탈리아</option>
+                    <option value="JP">일본</option>
+                    <option value="KR">대한민국</option>
+                    <option value="CN">중국</option>
+                    <option value="IN">인도</option>
+                    <option value="SG">싱가포르</option>
+                    <option value="AU">호주</option>
+                    <option value="NZ">뉴질랜드</option>
+                    <option value="BR">브라질</option>
+                    <option value="MX">멕시코</option>
+                    <option value="AE">아랍에미리트</option>
+                    <option value="IL">이스라엘</option>
+                    <option value="ZA">남아프리카공화국</option>
+                    <option value="XX">기타</option>
+                </select>
+                <span class="hint">ISO 3166-1 alpha-2 코드. 목록에 없으면 "기타"를 선택하세요.</span>
+                <div class="field-error" id="country-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="industry">산업 분야</label>
+                <select id="industry" name="industry" required>
+                    <option value="">선택…</option>
+                    <option value="gaming">게임</option>
+                    <option value="enterprise">엔터프라이즈</option>
+                    <option value="education">교육</option>
+                    <option value="defense">방위</option>
+                    <option value="tourism">관광</option>
+                    <option value="fitness">피트니스</option>
+                    <option value="healthcare">헬스케어</option>
+                    <option value="other">기타</option>
+                </select>
+                <div class="field-error" id="industry-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="group" aria-labelledby="targetPlatformLabel">
+                <span class="group-label" id="targetPlatformLabel">대상 플랫폼 (최소 하나 선택)</span>
+                <div class="checkbox-grid" id="targetPlatformGrid">
+                    <label><input type="checkbox" name="target_platform" value="xr"> XR (VR/AR/MR)</label>
+                    <label><input type="checkbox" name="target_platform" value="web"> 웹</label>
+                    <label><input type="checkbox" name="target_platform" value="mobile"> 모바일</label>
+                    <label><input type="checkbox" name="target_platform" value="desktop"> 데스크톱</label>
+                    <label><input type="checkbox" name="target_platform" value="console"> 콘솔</label>
+                </div>
+                <div class="field-error" id="target_platform-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="useCase">사용 사례 설명</label>
+                <textarea id="useCase" name="useCase" maxlength="2000" minlength="10" required></textarea>
+                <span class="char-counter" id="useCase-counter" aria-live="polite">0 / 2000 (최소 10)</span>
+                <div class="field-error" id="useCase-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="radiogroup" aria-labelledby="teamSizeLabel">
+                <span class="group-label" id="teamSizeLabel">팀 규모</span>
+                <div class="radio-grid">
+                    <label><input type="radio" name="team_size" value="solo"> 1인</label>
+                    <label><input type="radio" name="team_size" value="2-10"> 2–10</label>
+                    <label><input type="radio" name="team_size" value="11-50"> 11–50</label>
+                    <label><input type="radio" name="team_size" value="51-200"> 51–200</label>
+                    <label><input type="radio" name="team_size" value="200+"> 200+</label>
+                </div>
+                <div class="field-error" id="team_size-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="radiogroup" aria-labelledby="fundingLabel">
+                <span class="group-label" id="fundingLabel">투자 단계</span>
+                <div class="radio-grid">
+                    <label><input type="radio" name="funding_stage" value="bootstrapped"> 자기자본</label>
+                    <label><input type="radio" name="funding_stage" value="preseed"> 프리시드</label>
+                    <label><input type="radio" name="funding_stage" value="seed"> 시드</label>
+                    <label><input type="radio" name="funding_stage" value="seriesA"> 시리즈 A</label>
+                    <label><input type="radio" name="funding_stage" value="seriesB+"> 시리즈 B+</label>
+                    <label><input type="radio" name="funding_stage" value="public"> 상장</label>
+                    <label><input type="radio" name="funding_stage" value="none"> 해당 없음</label>
+                </div>
+                <div class="field-error" id="funding_stage-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">선택 동의 항목</span>
+                <div class="opt-in-list">
+                    <label><input type="checkbox" id="optNewsletter"> RakuAI 개발자 뉴스레터를 받아 보겠습니다.</label>
+                    <label><input type="checkbox" id="optPartner"> RakuAI 파트너 프로그램에 관심이 있습니다.</label>
+                    <label><input type="checkbox" id="optBeta"> 베타 기능에 (가능한 경우) 얼리 액세스를 받겠습니다.</label>
+                </div>
+            </div>
+
+            <div class="form-error-banner" id="profileErrorBanner" aria-live="polite"></div>
+
+            <button type="submit" class="btn-register" id="profileSubmitBtn">프로필 제출 &amp; 등록 완료</button>
+        </form>
+    </section>
+
+    <div class="register-success" id="registerSuccess">
+        <h2>프로필이 제출되었습니다!</h2>
+        <p>개발자 신청이 관리자 승인 대기열에 등록되었습니다. 상태를 추적하고 (승인 후) API 키를 생성할 수 있도록 대시보드로 이동합니다.</p>
+        <a href="dashboard.html" class="btn-register" style="display: inline-block; width: auto; padding: 14px 36px; text-decoration: none;">대시보드로 이동</a>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../../engine/">엔진</a>
+            <a href="../../api/">API</a>
+            <a href="../../docs.html">문서</a>
+            <a href="../../games/">아케이드</a>
+            <a href="../../press.html">언론</a>
+            <a href="../developers/">개발자</a>
+            <a href="../../privacy.html">개인정보</a>
+            <a href="../../terms.html">이용약관</a>
+            <a href="../contact.html">문의</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 미국 등록 특허 5건 (우선일: 2012년 7월) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 및 RakuXR&trade;은 RakuAI, LLC의 상표입니다.
+            <span class="kanji-logo">&#x697D;</span>AI와 <span class="kanji-logo">&#x697D;</span>XR은 RakuAI, LLC의 스타일화된 마크입니다.
+            미국 등록 특허 5건 (우선일: 2012년 7월).
+        </p>
+    </div>
+</footer>
+
+<script src="/js/api-config.js"></script>
+<script>
+(function() {
+    'use strict';
+
+    // ---- API base (resolved by /js/api-config.js) ----
+    // Defensive fallback if api-config.js failed to load — defaults to prod which is the safest target.
+    var API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
+
+    var TOKEN_KEY = 'raku_access_token';
+    var USER_KEY  = 'raku_user';
+
+    // ---- Element refs ----
+    var needsSignin   = document.getElementById('needsSignin');
+    var step1Panel    = document.getElementById('step1Panel');
+    var step2Panel    = document.getElementById('step2Panel');
+    var registerSuccess = document.getElementById('registerSuccess');
+    var step1Indicator = document.getElementById('step1-indicator');
+    var step2Indicator = document.getElementById('step2-indicator');
+    var step3Indicator = document.getElementById('step3-indicator');
+
+    var ndaCheckbox  = document.getElementById('ndaAccept');
+    var ndaSubmitBtn = document.getElementById('ndaSubmitBtn');
+    var ndaErrorBanner = document.getElementById('ndaErrorBanner');
+
+    var profileForm  = document.getElementById('profileForm');
+    var profileSubmitBtn = document.getElementById('profileSubmitBtn');
+    var profileErrorBanner = document.getElementById('profileErrorBanner');
+
+    var workEmailEl  = document.getElementById('workEmail');
+    var fullNameEl   = document.getElementById('fullName');
+    var useCaseEl    = document.getElementById('useCase');
+    var useCaseCounter = document.getElementById('useCase-counter');
+
+    // ---- Token bootstrap ----
+    //
+    // The original /developers/register.html shipped a bug: if the user
+    // had no session token it window.location.href'd to login.html. But
+    // /developers/login.html requires an existing API key — which a
+    // brand-new developer doesn't have until their NDA is accepted and
+    // their account is approved. Result: an infinite redirect loop.
+    //
+    // Fix: do NOT auto-redirect. Show an inline "sign in to continue"
+    // panel that links to BOTH login.html (for returning developers) and
+    // the marketing-site account-creation entry point (for net-new users).
+    // Wrap localStorage access — it can throw in private-mode browsers
+    // or sandboxed iframes where storage is disabled. Falling through to
+    // the signed-out nudge is the right behaviour in those cases.
+    var token = null;
+    var userJson = null;
+    try {
+        token = localStorage.getItem(TOKEN_KEY);
+        userJson = localStorage.getItem(USER_KEY);
+    } catch (_) {
+        // localStorage unavailable; proceed as signed-out.
+    }
+    var cachedUser = null;
+    if (userJson) {
+        try { cachedUser = JSON.parse(userJson); } catch (_) { cachedUser = null; }
+    }
+
+    if (!token) {
+        // Hide the NDA panel and step indicator; show only the sign-in nudge.
+        step1Panel.classList.remove('active');
+        needsSignin.style.display = 'block';
+    } else if (cachedUser) {
+        // Prefill what we know.
+        if (cachedUser.email)        workEmailEl.value = cachedUser.email;
+        if (cachedUser.display_name) fullNameEl.value  = cachedUser.display_name;
+        if (cachedUser.email) {
+            workEmailEl.setAttribute('readonly', 'readonly');
+        }
+    }
+
+    // ---- Step 1: NDA submit ----
+    ndaCheckbox.addEventListener('change', function() {
+        ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+        hideBanner(ndaErrorBanner);
+    });
+
+    ndaSubmitBtn.addEventListener('click', function() {
+        if (!ndaCheckbox.checked) return;
+        handleNdaAccept();
+    });
+
+    async function handleNdaAccept() {
+        hideBanner(ndaErrorBanner);
+        ndaSubmitBtn.disabled = true;
+        ndaSubmitBtn.textContent = '처리 중…';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/developer/nda', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify({ accept: true }),
+            });
+
+            // 409 = NDA already accepted; that's fine — proceed to the
+            // profile step so a returning user can finish/update their
+            // profile without having to wipe their account.
+            if (resp.ok || resp.status === 409) {
+                advanceToStep2();
+                return;
+            }
+
+            if (resp.status === 401) {
+                showBanner(ndaErrorBanner, '세션이 만료되었습니다. 다시 로그인해 주세요.');
+                ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+                ndaSubmitBtn.textContent = 'NDA 동의 & 계속';
+                return;
+            }
+
+            var msg = 'NDA 동의에 실패했습니다. 다시 시도해 주세요.';
+            try {
+                var data = await resp.json();
+                if (data && data.detail) msg = data.detail;
+            } catch (_) { /* keep default */ }
+            showBanner(ndaErrorBanner, msg);
+            ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+            ndaSubmitBtn.textContent = 'NDA 동의 & 계속';
+        } catch (_) {
+            showBanner(ndaErrorBanner, '네트워크 오류입니다. 연결을 확인하고 다시 시도해 주세요.');
+            ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+            ndaSubmitBtn.textContent = 'NDA 동의 & 계속';
+        }
+    }
+
+    function advanceToStep2() {
+        step1Panel.classList.remove('active');
+        step2Panel.classList.add('active');
+        step1Indicator.classList.remove('active');
+        step1Indicator.classList.add('done');
+        step2Indicator.classList.add('active');
+        // Focus the first input so keyboard users land where they should.
+        setTimeout(function() {
+            var first = step2Panel.querySelector('input, select, textarea');
+            if (first) try { first.focus(); } catch (_) {}
+        }, 50);
+    }
+
+    // ---- Step 2: char counter ----
+    useCaseEl.addEventListener('input', updateUseCaseCounter);
+    function updateUseCaseCounter() {
+        var len = useCaseEl.value.length;
+        useCaseCounter.textContent = len + ' / 2000 (최소 10)';
+        if (len > 0 && (len < 10 || len > 2000)) {
+            useCaseCounter.classList.add('invalid');
+        } else {
+            useCaseCounter.classList.remove('invalid');
+        }
+    }
+
+    // ---- Step 2: validate + submit ----
+    profileForm.addEventListener('submit', function(ev) {
+        ev.preventDefault();
+        handleProfileSubmit();
+    });
+
+    function readSelectedPlatforms() {
+        var nodes = document.querySelectorAll('input[name="target_platform"]:checked');
+        var out = [];
+        for (var i = 0; i < nodes.length; i++) out.push(nodes[i].value);
+        return out;
+    }
+
+    function readRadio(name) {
+        var node = document.querySelector('input[name="' + name + '"]:checked');
+        return node ? node.value : '';
+    }
+
+    function setFieldError(id, msg) {
+        var el = document.getElementById(id + '-error');
+        if (!el) return;
+        if (msg) {
+            el.textContent = msg;
+            el.classList.add('visible');
+        } else {
+            el.textContent = '';
+            el.classList.remove('visible');
+        }
+    }
+
+    function clearAllFieldErrors() {
+        ['fullName', 'workEmail', 'company', 'role', 'country', 'industry',
+         'target_platform', 'useCase', 'team_size', 'funding_stage'].forEach(function(id) {
+            setFieldError(id, '');
+        });
+        hideBanner(profileErrorBanner);
+    }
+
+    function validateProfile() {
+        clearAllFieldErrors();
+        var ok = true;
+
+        var fullName = fullNameEl.value.trim();
+        if (!fullName) { setFieldError('fullName', '필수 항목입니다.'); ok = false; }
+
+        var workEmail = workEmailEl.value.trim();
+        if (!workEmail || workEmail.indexOf('@') === -1) {
+            setFieldError('workEmail', '유효한 이메일을 입력하세요.'); ok = false;
+        }
+
+        var company = document.getElementById('company').value.trim();
+        if (!company) { setFieldError('company', '필수 항목입니다.'); ok = false; }
+        else if (company.length > 200) { setFieldError('company', '최대 200자까지 입력할 수 있습니다.'); ok = false; }
+
+        var role = document.getElementById('role').value.trim();
+        if (!role) { setFieldError('role', '필수 항목입니다.'); ok = false; }
+        else if (role.length > 100) { setFieldError('role', '최대 100자까지 입력할 수 있습니다.'); ok = false; }
+
+        var country = document.getElementById('country').value;
+        if (!country || country.length !== 2) {
+            setFieldError('country', '국가를 선택해 주세요.'); ok = false;
+        }
+
+        var industry = document.getElementById('industry').value;
+        if (!industry) { setFieldError('industry', '산업을 선택해 주세요.'); ok = false; }
+
+        var platforms = readSelectedPlatforms();
+        if (platforms.length === 0) {
+            setFieldError('target_platform', '플랫폼을 최소 하나 선택하세요.'); ok = false;
+        }
+
+        var useCase = useCaseEl.value.trim();
+        if (useCase.length < 10) {
+            setFieldError('useCase', '사용 사례를 설명해 주세요 (최소 10자).'); ok = false;
+        } else if (useCase.length > 2000) {
+            setFieldError('useCase', '최대 2000자까지 입력할 수 있습니다.'); ok = false;
+        }
+
+        var teamSize = readRadio('team_size');
+        if (!teamSize) { setFieldError('team_size', '팀 규모를 선택해 주세요.'); ok = false; }
+
+        var fundingStage = readRadio('funding_stage');
+        if (!fundingStage) { setFieldError('funding_stage', '투자 단계를 선택해 주세요.'); ok = false; }
+
+        return ok ? {
+            // The full_name / work_email fields are collected for the
+            // form but aren't part of the /profile/extended schema yet —
+            // backend will pick them up in a follow-up. Don't send them.
+            company: company,
+            role: role,
+            country: country,
+            industry: industry,
+            target_platform: platforms,
+            use_case: useCase,
+            team_size: teamSize,
+            funding_stage: fundingStage,
+            opt_in_newsletter: document.getElementById('optNewsletter').checked,
+            opt_in_partner_program: document.getElementById('optPartner').checked,
+            opt_in_beta_access: document.getElementById('optBeta').checked,
+        } : null;
+    }
+
+    async function handleProfileSubmit() {
+        var payload = validateProfile();
+        if (!payload) {
+            showBanner(profileErrorBanner, '강조 표시된 항목을 수정한 다음 다시 시도해 주세요.');
+            return;
+        }
+
+        profileSubmitBtn.disabled = true;
+        profileSubmitBtn.textContent = '제출 중…';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/developer/profile/extended', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (resp.ok) {
+                // Success: persist token (already there) and route to dashboard.
+                // The token was set by /api/v1/auth/token at sign-in; nothing
+                // else to do but ensure it's still present.
+                try {
+                    if (!localStorage.getItem(TOKEN_KEY) && token) {
+                        localStorage.setItem(TOKEN_KEY, token);
+                    }
+                } catch (_) { /* private-mode / sandboxed: token still in memory */ }
+                step2Panel.classList.remove('active');
+                registerSuccess.style.display = 'block';
+                step2Indicator.classList.remove('active');
+                step2Indicator.classList.add('done');
+                step3Indicator.classList.add('active');
+                // Auto-route after a short pause so the user sees the success state.
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 1200);
+                return;
+            }
+
+            if (resp.status === 401) {
+                showBanner(profileErrorBanner, '세션이 만료되었습니다. 다시 로그인해 주세요.');
+                profileSubmitBtn.disabled = false;
+                profileSubmitBtn.textContent = '프로필 제출 & 등록 완료';
+                return;
+            }
+
+            if (resp.status >= 400 && resp.status < 500) {
+                var msg = '제출이 거부되었습니다 (HTTP ' + resp.status + ').';
+                try {
+                    var data = await resp.json();
+                    if (data && data.detail) {
+                        if (typeof data.detail === 'string') msg = data.detail;
+                        else msg = '유효성 검사 오류: 입력 내용을 다시 확인해 주세요.';
+                    }
+                } catch (_) { /* keep default */ }
+                showBanner(profileErrorBanner, msg);
+                profileSubmitBtn.disabled = false;
+                profileSubmitBtn.textContent = '프로필 제출 & 등록 완료';
+                return;
+            }
+
+            // 5xx — let them retry.
+            showBanner(profileErrorBanner, '서버 오류 (HTTP ' + resp.status + '). 잠시 후 다시 시도해 주세요.');
+            profileSubmitBtn.disabled = false;
+            profileSubmitBtn.textContent = '프로필 제출 & 등록 완료';
+        } catch (_) {
+            showBanner(profileErrorBanner, '네트워크 오류입니다. 연결을 확인하고 다시 시도해 주세요.');
+            profileSubmitBtn.disabled = false;
+            profileSubmitBtn.textContent = '프로필 제출 & 등록 완료';
+        }
+    }
+
+    function showBanner(el, msg) {
+        el.textContent = msg;
+        el.classList.add('visible');
+    }
+    function hideBanner(el) {
+        el.textContent = '';
+        el.classList.remove('visible');
+    }
+})();
+</script>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>

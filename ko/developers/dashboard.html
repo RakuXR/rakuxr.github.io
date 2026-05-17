@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개발자 대시보드 - RakuAI</title>
+    <meta name="description" content="API 키를 관리하고, 사용량 분석을 확인하고, RakuAI SDK를 다운로드하세요.">
+    <link rel="stylesheet" href="../../style.css">
+    <!--
+      Machine-translated by Claude. Pending human review.
+      Source: ../../developers/dashboard.html @ 72a633e
+      Date: 2026-05-17
+      Language: ko (Korean)
+    -->
+    <style>
+        .dash-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            min-height: 70vh;
+        }
+        .dash-sidebar {
+            border-right: 1px solid rgba(108, 92, 231, 0.15);
+            padding-right: 24px;
+        }
+        .dash-sidebar a {
+            display: block;
+            padding: 10px 16px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .dash-sidebar a:hover, .dash-sidebar a.active {
+            background: rgba(108, 92, 231, 0.1);
+            color: var(--accent-bright);
+        }
+        .dash-main { min-width: 0; }
+        .dash-section {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        .dash-section h2 {
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+            color: var(--accent-bright);
+        }
+        .dash-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+        .key-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .key-table th {
+            text-align: left;
+            padding: 10px 12px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(108, 92, 231, 0.15);
+        }
+        .key-table td {
+            padding: 12px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .key-prefix {
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            color: var(--text-primary);
+        }
+        .scope-badge {
+            display: inline-block;
+            background: rgba(108, 92, 231, 0.2);
+            color: var(--accent-bright);
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+        .status-active {
+            color: var(--success);
+            font-weight: 600;
+        }
+        .status-revoked {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
+        .btn-revoke {
+            background: none;
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            padding: 4px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+        }
+        .btn-revoke:hover { background: rgba(255, 107, 107, 0.1); }
+        .create-key-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .create-key-form .field {
+            flex: 1;
+            min-width: 150px;
+        }
+        .create-key-form label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        .create-key-form input, .create-key-form select {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-primary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        .create-key-form input:focus, .create-key-form select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .btn-create {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        .btn-create:hover { background: var(--accent-bright); }
+        .new-key-alert {
+            display: none;
+            background: rgba(0, 206, 201, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .new-key-alert .key-value {
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            background: var(--bg-primary);
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: block;
+            margin: 8px 0;
+            word-break: break-all;
+            color: var(--success);
+        }
+        .new-key-alert .warning {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        /* Analytics */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .analytics-card {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .analytics-card .metric {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-bright);
+        }
+        .analytics-card .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .auth-gate {
+            text-align: center;
+            padding: 80px 24px;
+        }
+        .auth-gate h2 { margin-bottom: 16px; }
+        .auth-gate p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        @media (max-width: 768px) {
+            .dash-layout {
+                grid-template-columns: 1fr;
+            }
+            .dash-sidebar {
+                border-right: none;
+                border-bottom: 1px solid rgba(108, 92, 231, 0.15);
+                padding-right: 0;
+                padding-bottom: 16px;
+                display: flex;
+                gap: 8px;
+                overflow-x: auto;
+            }
+            .dash-sidebar a { white-space: nowrap; }
+            .create-key-form { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — 월드 모델을 위한 범용 런타임 &nbsp;|&nbsp; <a href="../index.html#for-studios">스튜디오 &amp; 개발자용 →</a> &nbsp;&nbsp; 또한: <a href="../index.html#quickstart">컨슈머 데모 체험 →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">홈</a>
+            <a href="../../engine/">엔진</a>
+            <a href="../../api/">API 문서</a>
+            <a href="../../games/">게임</a>
+            <a href="../why-rakuai.html">RakuAI를 선택하는 이유</a>
+            <a href="../developers/">개발자</a>
+            <a href="../../press.html">언론</a>
+            <a href="../../developers/dashboard.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<div id="authGate" class="auth-gate" style="display: none;">
+    <h2>개발자 대시보드</h2>
+    <p>대시보드에 액세스하려면 로그인하고 개발자 NDA에 동의해 주세요.</p>
+    <a href="register.html" class="btn-create" style="display: inline-block; padding: 14px 32px; text-decoration: none;">액세스 신청</a>
+</div>
+
+<div id="dashboardContent" class="dash-layout">
+    <aside class="dash-sidebar">
+        <a href="#keys" class="active" onclick="showSection('keys')">API 키</a>
+        <a href="#analytics" onclick="showSection('analytics')">분석</a>
+        <a href="sdk.html">SDK 다운로드</a>
+        <a href="docs.html">문서</a>
+        <a href="showcase.html">쇼케이스</a>
+        <a href="support.html">지원</a>
+    </aside>
+
+    <main class="dash-main">
+        <!-- API Keys Section -->
+        <div id="section-keys">
+            <div class="dash-section">
+                <h2>API 키 생성</h2>
+                <div class="create-key-form">
+                    <div class="field">
+                        <label for="keyLabel">라벨</label>
+                        <input type="text" id="keyLabel" placeholder="예: 프로덕션 앱" maxlength="100">
+                    </div>
+                    <div class="field">
+                        <label for="keyScope">스코프</label>
+                        <select id="keyScope">
+                            <option value="read">읽기 전용</option>
+                            <option value="generate" selected>생성</option>
+                            <option value="full">전체 액세스</option>
+                        </select>
+                    </div>
+                    <button class="btn-create" onclick="createKey()">키 생성</button>
+                </div>
+
+                <div class="new-key-alert" id="newKeyAlert">
+                    <strong>새 API 키가 생성되었습니다</strong>
+                    <span class="key-value" id="newKeyValue"></span>
+                    <button class="btn-create" onclick="copyKey()" style="margin-right: 8px;">클립보드에 복사</button>
+                    <p class="warning">이 키를 지금 저장하세요. 다시 표시되지 않습니다.</p>
+                </div>
+            </div>
+
+            <div class="dash-section">
+                <h2>내 API 키</h2>
+                <table class="key-table">
+                    <thead>
+                        <tr>
+                            <th>키</th>
+                            <th>라벨</th>
+                            <th>스코프</th>
+                            <th>상태</th>
+                            <th>생성일</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="keysTableBody">
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 24px;">아직 API 키가 없습니다. 위에서 하나 생성하세요.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div id="section-analytics" style="display: none;">
+            <div class="dash-section">
+                <h2>사용량 분석</h2>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <div class="metric" id="metricTotalCalls">0</div>
+                        <div class="metric-label">총 호출 수</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="metric" id="metricErrorRate">0%</div>
+                        <div class="metric-label">오류율</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="metric" id="metricAvgLatency">0ms</div>
+                        <div class="metric-label">평균 지연 시간</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="metric" id="metricTokensIn">0</div>
+                        <div class="metric-label">입력 토큰</div>
+                    </div>
+                    <div class="analytics-card">
+                        <div class="metric" id="metricTokensOut">0</div>
+                        <div class="metric-label">출력 토큰</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dash-section">
+                <h3>액션별 호출</h3>
+                <div id="callsByAction" style="color: var(--text-secondary);">로딩 중...</div>
+            </div>
+
+            <div class="dash-section">
+                <h3>일별 활동</h3>
+                <div id="dailyActivity" style="color: var(--text-secondary);">로딩 중...</div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../../engine/">엔진</a>
+            <a href="../../api/">API</a>
+            <a href="../../docs.html">문서</a>
+            <a href="../../games/">아케이드</a>
+            <a href="../../press.html">언론</a>
+            <a href="../developers/">개발자</a>
+            <a href="../../privacy.html">개인정보</a>
+            <a href="../../terms.html">이용약관</a>
+            <a href="../contact.html">문의</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 미국 등록 특허 5건 (우선일: 2012년 7월) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 및 RakuXR&trade;은 RakuAI, LLC의 상표입니다.
+            <span class="kanji-logo">&#x697D;</span>AI와 <span class="kanji-logo">&#x697D;</span>XR은 RakuAI, LLC의 스타일화된 마크입니다.
+            미국 등록 특허 5건 (우선일: 2012년 7월).
+        </p>
+    </div>
+</footer>
+
+<script src="/js/api-config.js"></script>
+<script>
+    // Defensive fallback if api-config.js failed to load — defaults to prod which is the safest target.
+    const API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
+    let currentNewKey = '';
+
+    function getToken() {
+        return localStorage.getItem('raku_access_token');
+    }
+
+    function authHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`,
+        };
+    }
+
+    function showSection(name) {
+        document.getElementById('section-keys').style.display = name === 'keys' ? 'block' : 'none';
+        document.getElementById('section-analytics').style.display = name === 'analytics' ? 'block' : 'none';
+        document.querySelectorAll('.dash-sidebar a').forEach(a => a.classList.remove('active'));
+        document.querySelector(`.dash-sidebar a[href="#${name}"]`).classList.add('active');
+        if (name === 'analytics') loadAnalytics();
+    }
+
+    async function createKey() {
+        const label = document.getElementById('keyLabel').value.trim();
+        const scope = document.getElementById('keyScope').value;
+        if (!label) { alert('키 라벨을 입력해 주세요.'); return; }
+
+        try {
+            const resp = await fetch(`${API_BASE}/api/v1/developer/keys`, {
+                method: 'POST',
+                headers: authHeaders(),
+                body: JSON.stringify({ label: label, scopes: [scope] }),
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                currentNewKey = data.raw_key;
+                document.getElementById('newKeyValue').textContent = data.raw_key;
+                document.getElementById('newKeyAlert').style.display = 'block';
+                document.getElementById('keyLabel').value = '';
+                loadKeys();
+            } else {
+                const err = await resp.json();
+                alert(err.detail || '키 생성에 실패했습니다.');
+            }
+        } catch { alert('네트워크 오류입니다. 다시 시도해 주세요.'); }
+    }
+
+    function copyKey() {
+        navigator.clipboard.writeText(currentNewKey).then(() => {
+            alert('키가 클립보드에 복사되었습니다!');
+        });
+    }
+
+    async function loadKeys() {
+        try {
+            const resp = await fetch(`${API_BASE}/api/v1/developer/keys`, { headers: authHeaders() });
+            if (!resp.ok) return;
+            const keys = await resp.json();
+            const tbody = document.getElementById('keysTableBody');
+            if (keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 24px;">아직 API 키가 없습니다. 위에서 하나 생성하세요.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = keys.map(k => `
+                <tr>
+                    <td><span class="key-prefix">${k.key_prefix}</span></td>
+                    <td>${k.label}</td>
+                    <td>${k.scopes.map(s => `<span class="scope-badge">${s}</span>`).join('')}</td>
+                    <td><span class="${k.is_active ? 'status-active' : 'status-revoked'}">${k.is_active ? '활성' : '폐기됨'}</span></td>
+                    <td style="font-size:0.85rem;color:var(--text-secondary)">${new Date(k.created_at).toLocaleDateString()}</td>
+                    <td>${k.is_active ? `<button class="btn-revoke" onclick="revokeKey('${k.id}')">폐기</button>` : ''}</td>
+                </tr>
+            `).join('');
+        } catch {}
+    }
+
+    async function revokeKey(keyId) {
+        if (!confirm('이 키를 정말 폐기하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+        try {
+            const resp = await fetch(`${API_BASE}/api/v1/developer/keys/${keyId}`, {
+                method: 'DELETE',
+                headers: authHeaders(),
+            });
+            if (resp.ok) loadKeys();
+            else alert('키 폐기에 실패했습니다.');
+        } catch { alert('네트워크 오류입니다.'); }
+    }
+
+    async function loadAnalytics() {
+        try {
+            const resp = await fetch(`${API_BASE}/api/v1/developer/analytics?days=30`, { headers: authHeaders() });
+            if (!resp.ok) return;
+            const data = await resp.json();
+            document.getElementById('metricTotalCalls').textContent = data.total_calls.toLocaleString();
+            document.getElementById('metricErrorRate').textContent = (data.error_rate * 100).toFixed(1) + '%';
+            document.getElementById('metricAvgLatency').textContent = data.avg_latency_ms + 'ms';
+            document.getElementById('metricTokensIn').textContent = data.total_tokens_in.toLocaleString();
+            document.getElementById('metricTokensOut').textContent = data.total_tokens_out.toLocaleString();
+
+            const actions = data.calls_by_action;
+            const actionsHtml = Object.keys(actions).length > 0
+                ? Object.entries(actions).map(([action, count]) =>
+                    `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+                        <span>${action}</span><span style="color:var(--accent-bright);font-weight:600">${count}</span>
+                    </div>`
+                ).join('')
+                : '<p>아직 기록된 API 호출이 없습니다.</p>';
+            document.getElementById('callsByAction').innerHTML = actionsHtml;
+
+            const daily = data.daily_calls;
+            const dailyHtml = daily.length > 0
+                ? daily.map(d =>
+                    `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
+                        <span>${d.date}</span><span style="color:var(--accent-bright);font-weight:600">${d.count}</span>
+                    </div>`
+                ).join('')
+                : '<p>아직 기록된 활동이 없습니다.</p>';
+            document.getElementById('dailyActivity').innerHTML = dailyHtml;
+        } catch {}
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = getToken();
+        if (!token) {
+            document.getElementById('authGate').style.display = 'block';
+            document.getElementById('dashboardContent').style.display = 'none';
+        } else {
+            loadKeys();
+            if (window.location.hash === '#analytics') showSection('analytics');
+        }
+    });
+</script>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>
