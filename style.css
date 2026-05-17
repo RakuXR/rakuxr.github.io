@@ -2558,7 +2558,14 @@ nav .lang-menu {
     border-radius: 8px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     z-index: 1000;
+    /* Defensive: keep the menu hidden until the script flips
+       `.is-open` onto it. The script also sets `[hidden]`, but pairing
+       the explicit display rule with `.is-open` mirrors the fallback
+       stylesheet's pattern so both code paths agree. */
+    display: none;
 }
+
+nav .lang-menu.is-open { display: block; }
 
 nav .lang-menu li { margin: 0; padding: 0; }
 
