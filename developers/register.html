@@ -582,8 +582,17 @@
     // Fix: do NOT auto-redirect. Show an inline "sign in to continue"
     // panel that links to BOTH login.html (for returning developers) and
     // the marketing-site account-creation entry point (for net-new users).
-    var token = localStorage.getItem(TOKEN_KEY);
-    var userJson = localStorage.getItem(USER_KEY);
+    // Wrap localStorage access — it can throw in private-mode browsers
+    // or sandboxed iframes where storage is disabled. Falling through to
+    // the signed-out nudge is the right behaviour in those cases.
+    var token = null;
+    var userJson = null;
+    try {
+        token = localStorage.getItem(TOKEN_KEY);
+        userJson = localStorage.getItem(USER_KEY);
+    } catch (_) {
+        // localStorage unavailable; proceed as signed-out.
+    }
     var cachedUser = null;
     if (userJson) {
         try { cachedUser = JSON.parse(userJson); } catch (_) { cachedUser = null; }
@@ -809,9 +818,11 @@
                 // Success: persist token (already there) and route to dashboard.
                 // The token was set by /api/v1/auth/token at sign-in; nothing
                 // else to do but ensure it's still present.
-                if (!localStorage.getItem(TOKEN_KEY) && token) {
-                    localStorage.setItem(TOKEN_KEY, token);
-                }
+                try {
+                    if (!localStorage.getItem(TOKEN_KEY) && token) {
+                        localStorage.setItem(TOKEN_KEY, token);
+                    }
+                } catch (_) { /* private-mode / sandboxed: token still in memory */ }
                 step2Panel.classList.remove('active');
                 registerSuccess.style.display = 'block';
                 step2Indicator.classList.remove('active');
