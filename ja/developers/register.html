@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>開発者登録 - RakuAI</title>
+    <meta name="description" content="RakuAI 開発者アクセスを登録。NDA に同意して API キーを取得します。">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        .register-container {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+        .register-container h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .register-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        .nda-box {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 32px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        .nda-box h3 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+        .nda-box h4 {
+            color: var(--accent-bright);
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+        .nda-box ol, .nda-box ul {
+            padding-left: 24px;
+            margin-bottom: 12px;
+        }
+        .nda-box li {
+            margin-bottom: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+        .checkbox-group label {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+        .btn-register {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-register:hover { background: var(--accent-bright); }
+        .btn-register:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .register-success {
+            display: none;
+            text-align: center;
+            padding: 48px 24px;
+        }
+        .register-success h2 {
+            color: var(--success);
+            font-size: 1.8rem;
+            margin-bottom: 16px;
+        }
+        .register-success p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+        .register-form { display: block; }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .step.active { color: var(--accent-bright); }
+        .step.done { color: var(--success); }
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: developers/register.html @ 15f4453
+  Date: 2026-05-17
+  NOTE: PR-B is rewriting the English source of this file (expanded
+  registration form). This JA translation is based on the pre-PR-B
+  version on PR-A's HEAD. A follow-up resync pass is needed after PR-B
+  merges so this page picks up the expanded form fields.
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — World Model のためのユニバーサルランタイム &nbsp;|&nbsp; <a href="../index.html#for-studios">スタジオ・開発者向け →</a> &nbsp;&nbsp; また: <a href="../index.html#quickstart">コンシューマー版デモを試す →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">ホーム</a>
+            <a href="../../engine/">エンジン</a>
+            <a href="../../api/">API ドキュメント</a>
+            <a href="../../games/">ゲーム</a>
+            <a href="../why-rakuai.html">なぜ RakuAI</a>
+            <a href="index.html">開発者</a>
+            <a href="../press.html">プレス</a>
+            <a href="login.html" class="nav-signin">サインイン</a>
+            <a href="../../developers/register.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<div class="register-container">
+    <div class="step-indicator">
+        <div class="step active" id="step1-indicator"><span class="step-num">1</span> NDA を読む</div>
+        <div class="step" id="step2-indicator"><span class="step-num">2</span> 同意して登録</div>
+        <div class="step" id="step3-indicator"><span class="step-num">3</span> API キー取得</div>
+    </div>
+
+    <div class="register-form" id="registerForm">
+        <h1>開発者アクセス</h1>
+        <p class="subtitle">以下の NDA をお読みいただき、登録して API キーを受け取ってください。</p>
+
+        <div class="nda-box" id="ndaBox">
+            <h3>RakuAI 開発者向け秘密保持契約</h3>
+            <p><strong>発効日:</strong> 同意した時点</p>
+
+            <h4>1. 定義</h4>
+            <p>「機密情報」とは、RakuAI 開発者プログラムを通じて提供される非公開の技術情報、ドキュメント、API 仕様、SDK ソースコード、ゲーム設定スキーマ（.raku 形式）、および独自アルゴリズムを意味します。</p>
+
+            <h4>2. 義務</h4>
+            <ol>
+                <li>すべての機密情報を厳格に秘密として保持することに同意するものとします。</li>
+                <li>RakuAI のソフトウェア、SDK、ランタイムバイナリのリバースエンジニアリング、逆コンパイル、逆アセンブルは行いません。</li>
+                <li>API キー、SDK ビルド、または社内ドキュメントを、許可されていない第三者と共有しません。</li>
+                <li>開発者ツールは、RakuAI プラットフォームと統合されるアプリケーションの開発目的にのみ使用するものとします。</li>
+            </ol>
+
+            <h4>3. 許可された用途</h4>
+            <ul>
+                <li>RakuAI API を使用したアプリケーションおよびゲームの構築</li>
+                <li>開発チーム内での公開ドキュメントの共有</li>
+                <li>RakuAI で作成したゲームの公開（適切な AI 開示の表示を含む）</li>
+                <li>RakuAI チームへのフィードバックおよびバグレポートの提供</li>
+            </ul>
+
+            <h4>4. 期間</h4>
+            <p>本契約は、開発者プログラムへの参加期間中、および終了後 2 年間有効です。</p>
+
+            <h4>5. 解約</h4>
+            <p>いずれの当事者も、30 日前の書面による通知により本契約を解約できます。解約時には、所有しているすべての機密情報を破棄しなければなりません。</p>
+
+            <h4>6. 準拠法</h4>
+            <p>本契約は、アメリカ合衆国デラウェア州法に準拠します。</p>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="ndaAccept">
+            <label for="ndaAccept">RakuAI 開発者向け秘密保持契約を読み、同意します。本契約に違反した場合、開発者アクセスが取り消され、法的措置の対象となる可能性があることを理解しています。</label>
+        </div>
+
+        <button class="btn-register" id="submitBtn" disabled onclick="handleRegister()">NDA に同意してアクセスをリクエスト</button>
+    </div>
+
+    <div class="register-success" id="registerSuccess">
+        <h2>ようこそ、開発者の皆さん！</h2>
+        <p>開発者アクセスが有効化されました。API キーを作成して、RakuAI API による構築を始められます。</p>
+        <a href="dashboard.html" class="btn-register" style="display: inline-block; width: auto; padding: 14px 36px; text-decoration: none;">ダッシュボードへ</a>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../../engine/">エンジン</a>
+            <a href="../../api/">API</a>
+            <a href="../docs.html">ドキュメント</a>
+            <a href="../../games/">アーケード</a>
+            <a href="../press.html">プレス</a>
+            <a href="index.html">開発者</a>
+            <a href="../privacy.html">プライバシー</a>
+            <a href="../terms.html">利用規約</a>
+            <a href="../contact.html">お問い合わせ</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 米国特許 5 件取得済み（優先日：2012 年 7 月） &bull; RakuAI エンジン搭載</p>
+        <p class="trademark-notice">
+            RakuAI&trade; および RakuXR&trade; は RakuAI, LLC の商標です。
+            <span class="kanji-logo">&#x697D;</span>AI および <span class="kanji-logo">&#x697D;</span>XR は RakuAI, LLC のスタイライズド・マークです。
+            米国特許 5 件取得済み（優先日：2012 年 7 月）。
+        </p>
+    </div>
+</footer>
+
+<script>
+    const ndaCheckbox = document.getElementById('ndaAccept');
+    const submitBtn = document.getElementById('submitBtn');
+
+    ndaCheckbox.addEventListener('change', function() {
+        submitBtn.disabled = !this.checked;
+    });
+
+    async function handleRegister() {
+        const token = localStorage.getItem('raku_access_token');
+        if (!token) {
+            // Send the user to the developer sign-in page and bring them back here.
+            window.location.href = 'login.html?return=/ja/developers/register.html';
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = '処理中…';
+
+        try {
+            const API_BASE = window.RAKU_API_BASE || (function() {
+                const h = window.location.hostname;
+                if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
+                if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
+                return 'https://api.rakuai.com';
+            })();
+            const response = await fetch(`${API_BASE}/api/v1/developer/nda`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ accept: true }),
+            });
+
+            if (response.ok) {
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('registerSuccess').style.display = 'block';
+                document.getElementById('step1-indicator').classList.remove('active');
+                document.getElementById('step1-indicator').classList.add('done');
+                document.getElementById('step2-indicator').classList.remove('active');
+                document.getElementById('step2-indicator').classList.add('done');
+                document.getElementById('step3-indicator').classList.add('active');
+            } else {
+                const data = await response.json();
+                alert(data.detail || '登録に失敗しました。もう一度お試しください。');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'NDA に同意してアクセスをリクエスト';
+            }
+        } catch {
+            alert('ネットワークエラーです。接続を確認してもう一度お試しください。');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'NDA に同意してアクセスをリクエスト';
+        }
+    }
+</script>
+
+<script src="/js/auth-nav.js" defer></script>
+</body>
+</html>

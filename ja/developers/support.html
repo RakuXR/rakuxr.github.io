@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>開発者サポート - RakuAI</title>
+    <meta name="description" content="RakuAI 開発者サポート：FAQ、トラブルシューティング、お問い合わせフォーム。">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        .support-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+        .support-container h1 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .support-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+        .support-section {
+            margin-bottom: 48px;
+        }
+        .support-section h2 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: var(--accent-bright);
+        }
+        .faq-item {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+        .faq-question {
+            padding: 16px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+        .faq-question:hover { background: rgba(108, 92, 231, 0.05); }
+        .faq-question .arrow {
+            font-size: 0.8rem;
+            transition: transform 0.2s;
+            color: var(--accent-bright);
+        }
+        .faq-item.open .faq-question .arrow { transform: rotate(180deg); }
+        .faq-answer {
+            display: none;
+            padding: 0 20px 16px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        .faq-item.open .faq-answer { display: block; }
+        .faq-answer code {
+            background: rgba(108, 92, 231, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 0.85rem;
+            color: var(--accent-bright);
+        }
+        .troubleshoot-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+        .troubleshoot-card h4 {
+            color: #ff6b6b;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+        .troubleshoot-card .solution {
+            color: var(--success);
+            font-weight: 600;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+        .troubleshoot-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .contact-form {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 12px;
+            padding: 32px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-field {
+            margin-bottom: 16px;
+        }
+        .form-field label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+        .form-field input, .form-field select, .form-field textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-primary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+        .form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-field textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        .btn-send {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 12px 32px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-send:hover { background: var(--accent-bright); }
+        .community-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .community-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            text-decoration: none;
+            transition: border-color 0.2s;
+        }
+        .community-card:hover { border-color: var(--accent); }
+        .community-card .icon { font-size: 1.8rem; margin-bottom: 8px; }
+        .community-card h4 { font-size: 1rem; margin-bottom: 4px; color: var(--text-primary); }
+        .community-card p { font-size: 0.85rem; color: var(--text-secondary); }
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: developers/support.html @ 15f4453
+  Date: 2026-05-17
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — World Model のためのユニバーサルランタイム &nbsp;|&nbsp; <a href="../index.html#for-studios">スタジオ・開発者向け →</a> &nbsp;&nbsp; また: <a href="../index.html#quickstart">コンシューマー版デモを試す →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">ホーム</a>
+            <a href="../../engine/">エンジン</a>
+            <a href="../../api/">API ドキュメント</a>
+            <a href="../../games/">ゲーム</a>
+            <a href="../why-rakuai.html">なぜ RakuAI</a>
+            <a href="index.html">開発者</a>
+            <a href="../press.html">プレス</a>
+            <a href="../../developers/support.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<div class="support-container">
+    <h1>開発者サポート</h1>
+    <p class="subtitle">回答を探したり、問題をトラブルシューティングしたり、RakuAI チームに連絡したり。</p>
+
+    <!-- FAQ -->
+    <div class="support-section">
+        <h2>よくある質問</h2>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>API キーはどうやって取得できますか？</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                <a href="register.html" style="color: var(--accent-bright);">開発者 NDA に同意</a>し、その後 <a href="dashboard.html" style="color: var(--accent-bright);">ダッシュボード</a> で API キーを作成してください。スコープ（read、generate、full）の異なる有効キーを最大 5 個まで作成できます。
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>対応しているゲームジャンルは何ですか？</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                RakuAI は 13 ジャンルに対応：プラットフォーマー、スペースシューター、RPG（トップダウン、ターン制、アクション）、パズル、ビジュアルノベル、タワーディフェンス、エンドレスランナー、カードゲーム、格闘、レース、シミュレーション、サンドボックス、そして新規コンセプト向けの Custom フォールバック。
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>.raku 設定ファイルとは何ですか？</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                <code>.raku</code> 設定は、タイトル、ジャンル、エンティティ、シーン、レンダリング設定、オーディオ、XR 設定、AI パラメータなど、ゲームを完全に記述する JSON ドキュメントです。Raku ランタイムエンジンはこの設定を読み込んでゲームを実行します。
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>レート制限はどうなっていますか？</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                Free ティア：1 日あたり生成 10 回、改良 30 回。Pro ティア：1 日あたり生成 100 回、改良 500 回。Enterprise：無制限。制限超過時には HTTP 429 と <code>Retry-After</code> ヘッダーが返ります。<a href="docs.html#rate-limits" style="color: var(--accent-bright);">レート制限のドキュメント</a>を参照してください。
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>RakuAI を商用製品で使えますか？</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                はい、RakuAI で生成したゲームは商用利用できます。生成された <code>.raku</code> 設定はあなたのものです。ただし、SDK と API は開発者 NDA の対象であり、Raku ランタイムエンジンの配布には有効なライセンスが必要です。
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+                <span>生成には AI が使われていますか？どのように開示されますか？</span>
+                <span class="arrow">&#x25BC;</span>
+            </div>
+            <div class="faq-answer">
+                はい、ゲーム設定は Claude (Anthropic) によって生成されます。生成されたすべての設定には <code>ai_disclosure</code> セクションが含まれ、どのシステムが AI を使用したか、どのガードレールが適用されたか、コンテンツがライブ生成か事前生成かが記載されています。
+            </div>
+        </div>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="support-section">
+        <h2>トラブルシューティング</h2>
+
+        <div class="troubleshoot-card">
+            <h4>401 Unauthorized</h4>
+            <p>API キーまたは JWT トークンが欠落、期限切れ、または無効です。</p>
+            <div class="solution"><code>Authorization: Bearer &lt;token&gt;</code> ヘッダーを確認してください。必要に応じてダッシュボードからキーを再生成してください。</div>
+        </div>
+
+        <div class="troubleshoot-card">
+            <h4>403 Developer Access Required</h4>
+            <p>NDA 同意なしに開発者エンドポイントへアクセスしようとしています。</p>
+            <div class="solution"><a href="register.html" style="color: var(--success);">登録ページ</a>から開発者 NDA に同意してください。</div>
+        </div>
+
+        <div class="troubleshoot-card">
+            <h4>422 Validation Error</h4>
+            <p>リクエストボディに必須フィールドが欠けているか、不正な値が含まれています。</p>
+            <div class="solution">レスポンスの <code>detail</code> フィールドで詳細を確認してください。/generate では <code>prompt</code> が 1〜500 文字であることを確認してください。</div>
+        </div>
+
+        <div class="troubleshoot-card">
+            <h4>429 Too Many Requests</h4>
+            <p>ティアのレート制限を超えました。</p>
+            <div class="solution"><code>Retry-After</code> ヘッダーで再試行可能なタイミングを確認してください。より高い制限を希望する場合はティアをアップグレードしてください。</div>
+        </div>
+
+        <div class="troubleshoot-card">
+            <h4>503 Service Unavailable</h4>
+            <p>LLM サービスが一時的に利用できません（API タイムアウトまたは容量超過）。</p>
+            <div class="solution">数秒後に再試行してください。システムには自動リトライ機構（バックオフ付き 3 回）が組み込まれています。</div>
+        </div>
+    </div>
+
+    <!-- Community -->
+    <div class="support-section">
+        <h2>コミュニティ</h2>
+        <div class="community-links">
+            <a href="https://github.com/RakuXR" class="community-card" target="_blank">
+                <div class="icon">&#x1F4BB;</div>
+                <h4>GitHub</h4>
+                <p>ソースコード、Issue、ディスカッション</p>
+            </a>
+            <a href="https://discord.gg/rakuai" class="community-card" target="_blank">
+                <div class="icon">&#x1F4AC;</div>
+                <h4>Discord</h4>
+                <p>開発者とのリアルタイムチャット</p>
+            </a>
+            <a href="https://www.linkedin.com/company/rakuai" class="community-card" target="_blank">
+                <div class="icon">&#x1F4E2;</div>
+                <h4>LinkedIn</h4>
+                <p>アップデートとアナウンス</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Contact Form -->
+    <div class="support-section">
+        <h2>お問い合わせ</h2>
+        <div class="contact-form">
+            <div class="form-row">
+                <div class="form-field">
+                    <label for="contactName">お名前</label>
+                    <input type="text" id="contactName" placeholder="お名前">
+                </div>
+                <div class="form-field">
+                    <label for="contactEmail">メールアドレス</label>
+                    <input type="email" id="contactEmail" placeholder="you@example.com">
+                </div>
+            </div>
+            <div class="form-field">
+                <label for="contactCategory">カテゴリ</label>
+                <select id="contactCategory">
+                    <option value="bug">バグレポート</option>
+                    <option value="feature">機能リクエスト</option>
+                    <option value="api">API に関する質問</option>
+                    <option value="account">アカウントの問題</option>
+                    <option value="showcase">ショーケースへの投稿</option>
+                    <option value="other">その他</option>
+                </select>
+            </div>
+            <div class="form-field">
+                <label for="contactMessage">メッセージ</label>
+                <textarea id="contactMessage" placeholder="ご質問やお困りの内容をご記入ください..."></textarea>
+            </div>
+            <button class="btn-send" onclick="sendContact()">メッセージを送信</button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../../engine/">エンジン</a>
+            <a href="../../api/">API</a>
+            <a href="../docs.html">ドキュメント</a>
+            <a href="../../games/">アーケード</a>
+            <a href="../press.html">プレス</a>
+            <a href="index.html">開発者</a>
+            <a href="../privacy.html">プライバシー</a>
+            <a href="../terms.html">利用規約</a>
+            <a href="../contact.html">お問い合わせ</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 米国特許 5 件取得済み（優先日：2012 年 7 月） &bull; RakuAI エンジン搭載</p>
+        <p class="trademark-notice">
+            RakuAI&trade; および RakuXR&trade; は RakuAI, LLC の商標です。
+            <span class="kanji-logo">&#x697D;</span>AI および <span class="kanji-logo">&#x697D;</span>XR は RakuAI, LLC のスタイライズド・マークです。
+            米国特許 5 件取得済み（優先日：2012 年 7 月）。
+        </p>
+    </div>
+</footer>
+
+<script>
+    function toggleFaq(el) {
+        el.parentElement.classList.toggle('open');
+    }
+
+    function sendContact() {
+        const name = document.getElementById('contactName').value.trim();
+        const email = document.getElementById('contactEmail').value.trim();
+        const message = document.getElementById('contactMessage').value.trim();
+
+        if (!name || !email || !message) {
+            alert('必須項目をすべて入力してください。');
+            return;
+        }
+
+        alert('ありがとうございます！メッセージを受け付けました。24 時間以内にご返信いたします。');
+        document.getElementById('contactName').value = '';
+        document.getElementById('contactEmail').value = '';
+        document.getElementById('contactMessage').value = '';
+    }
+</script>
+
+<script src="/js/auth-nav.js" defer></script>
+</body>
+</html>
