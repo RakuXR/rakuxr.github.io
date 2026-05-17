@@ -236,22 +236,22 @@
     })();
 
     // ---- localStorage key names (must match register.html) ----
-    var TOKEN_KEY   = 'raku_access_token';
-    var REFRESH_KEY = 'raku_refresh_token';
-    var USER_KEY    = 'raku_user';
+    const TOKEN_KEY   = 'raku_access_token';
+    const REFRESH_KEY = 'raku_refresh_token';
+    const USER_KEY    = 'raku_user';
 
     // ---- Elements ----
-    var signedOutEl = document.getElementById('signed-out-state');
-    var signedInEl  = document.getElementById('signed-in-state');
-    var form        = document.getElementById('login-form');
-    var input       = document.getElementById('api-key');
-    var reveal      = document.getElementById('reveal-key');
-    var submitBtn   = document.getElementById('submit-btn');
-    var errorBox    = document.getElementById('error-box');
-    var successBox  = document.getElementById('success-box');
-    var emailEl     = document.getElementById('signed-in-email');
-    var tierEl      = document.getElementById('signed-in-tier');
-    var signOutBtn  = document.getElementById('signout-btn');
+    const signedOutEl = document.getElementById('signed-out-state');
+    const signedInEl  = document.getElementById('signed-in-state');
+    const form        = document.getElementById('login-form');
+    const input       = document.getElementById('api-key');
+    const reveal      = document.getElementById('reveal-key');
+    const submitBtn   = document.getElementById('submit-btn');
+    const errorBox    = document.getElementById('error-box');
+    const successBox  = document.getElementById('success-box');
+    const emailEl     = document.getElementById('signed-in-email');
+    const tierEl      = document.getElementById('signed-in-tier');
+    const signOutBtn  = document.getElementById('signout-btn');
 
     // ---- Helpers ----
     function showSignedIn(user) {
@@ -361,10 +361,30 @@
 
             successBox.style.display = 'block';
 
-            // If the user came here from another page, return them to it.
+            // If the user came here from another page, bounce them back.
             // Otherwise hand off to the developer portal entry point.
+            //
+            // Open-redirect prevention: ?return= must be a SAME-ORIGIN
+            // absolute path. We reject:
+            //   - anything that doesn't start with a single '/'
+            //   - protocol-relative URLs like '//evil.example' (browsers
+            //     resolve these to a foreign origin)
+            //   - any value whose resolved origin differs from the current
+            //     page (covers backslash tricks, full URLs, etc.)
+            // The default landing page is register.html (NDA-acceptance
+            // flow continues there once the user has a token).
             var ret = new URLSearchParams(window.location.search).get('return');
-            var safeReturn = (ret && ret.charAt(0) === '/' && ret.indexOf('//') !== 1) ? ret : 'register.html';
+            var safeReturn = 'register.html';
+            if (ret && ret.charAt(0) === '/' && ret.charAt(1) !== '/' && ret.charAt(1) !== '\\') {
+                try {
+                    var resolved = new URL(ret, window.location.origin);
+                    if (resolved.origin === window.location.origin) {
+                        safeReturn = resolved.pathname + resolved.search + resolved.hash;
+                    }
+                } catch (_) {
+                    // Malformed URL — fall back to the default.
+                }
+            }
             setTimeout(function() { window.location.href = safeReturn; }, 600);
 
         } catch (e) {
