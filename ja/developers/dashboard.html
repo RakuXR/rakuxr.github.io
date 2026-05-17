@@ -376,8 +376,21 @@
 </footer>
 
 <script>
-    const API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
+    const API_BASE = window.RAKU_API_BASE || (function() {
+        const h = window.location.hostname;
+        if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
+        if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
+        return 'https://api.rakuai.com';
+    })();
     let currentNewKey = '';
+
+    // HTML-escape helper for safely interpolating API-supplied strings into innerHTML.
+    function esc(str) {
+        if (str === null || str === undefined) return '';
+        const d = document.createElement('div');
+        d.appendChild(document.createTextNode(String(str)));
+        return d.innerHTML;
+    }
 
     function getToken() {
         return localStorage.getItem('raku_access_token');
@@ -441,12 +454,12 @@
             }
             tbody.innerHTML = keys.map(k => `
                 <tr>
-                    <td><span class="key-prefix">${k.key_prefix}</span></td>
-                    <td>${k.label}</td>
-                    <td>${k.scopes.map(s => `<span class="scope-badge">${s}</span>`).join('')}</td>
+                    <td><span class="key-prefix">${esc(k.key_prefix)}</span></td>
+                    <td>${esc(k.label)}</td>
+                    <td>${(k.scopes || []).map(s => `<span class="scope-badge">${esc(s)}</span>`).join('')}</td>
                     <td><span class="${k.is_active ? 'status-active' : 'status-revoked'}">${k.is_active ? '有効' : '失効済み'}</span></td>
-                    <td style="font-size:0.85rem;color:var(--text-secondary)">${new Date(k.created_at).toLocaleDateString()}</td>
-                    <td>${k.is_active ? `<button class="btn-revoke" onclick="revokeKey('${k.id}')">失効</button>` : ''}</td>
+                    <td style="font-size:0.85rem;color:var(--text-secondary)">${esc(new Date(k.created_at).toLocaleDateString())}</td>
+                    <td>${k.is_active ? `<button class="btn-revoke" data-key-id="${esc(k.id)}">失効</button>` : ''}</td>
                 </tr>
             `).join('');
         } catch {}
@@ -479,7 +492,7 @@
             const actionsHtml = Object.keys(actions).length > 0
                 ? Object.entries(actions).map(([action, count]) =>
                     `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
-                        <span>${action}</span><span style="color:var(--accent-bright);font-weight:600">${count}</span>
+                        <span>${esc(action)}</span><span style="color:var(--accent-bright);font-weight:600">${esc(count)}</span>
                     </div>`
                 ).join('')
                 : '<p>API コールはまだ記録されていません。</p>';
@@ -489,7 +502,7 @@
             const dailyHtml = daily.length > 0
                 ? daily.map(d =>
                     `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
-                        <span>${d.date}</span><span style="color:var(--accent-bright);font-weight:600">${d.count}</span>
+                        <span>${esc(d.date)}</span><span style="color:var(--accent-bright);font-weight:600">${esc(d.count)}</span>
                     </div>`
                 ).join('')
                 : '<p>アクティビティはまだ記録されていません。</p>';
@@ -505,6 +518,17 @@
         } else {
             loadKeys();
             if (window.location.hash === '#analytics') showSection('analytics');
+        }
+
+        // Delegated handler for revoke buttons — avoids inline onclick with
+        // attacker-controlled key IDs (XSS-safe via data attribute).
+        const keysBody = document.getElementById('keysTableBody');
+        if (keysBody) {
+            keysBody.addEventListener('click', (ev) => {
+                const btn = ev.target.closest('button.btn-revoke[data-key-id]');
+                if (!btn) return;
+                revokeKey(btn.getAttribute('data-key-id'));
+            });
         }
     });
 </script>
