@@ -149,17 +149,15 @@
     </p>
 </div>
 
+<!-- api-config.js sets window.RAKU_API_BASE based on hostname; loaded
+     synchronously (no defer) so the inline script below can read it. -->
+<script src="../js/api-config.js"></script>
 <script src="./webauthn-helpers.js"></script>
 <script>
 (function () {
     'use strict';
 
-    var API_BASE = window.RAKU_API_BASE || (function () {
-        var h = window.location.hostname;
-        if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
-        if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
-        return 'https://api.rakuai.com';
-    })();
+    var API_BASE = window.RAKU_API_BASE;
 
     var pwForm = document.getElementById('password-form');
     var pwBtn  = document.getElementById('password-btn');

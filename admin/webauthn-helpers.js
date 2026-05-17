@@ -35,7 +35,10 @@
     function decodeRegistrationOptions(opts) {
         // Decode the fields navigator.credentials.create needs as
         // BufferSource. Keep everything else intact.
-        var out = JSON.parse(JSON.stringify(opts));  // shallow clone
+        // JSON.parse(JSON.stringify(opts)) is a deep clone — we replace
+        // the leaf string fields with ArrayBuffers below, so we don't
+        // want to mutate the caller's object.
+        var out = JSON.parse(JSON.stringify(opts));
         out.challenge = toBuffer(out.challenge);
         if (out.user && out.user.id) out.user.id = toBuffer(out.user.id);
         if (Array.isArray(out.excludeCredentials)) {
