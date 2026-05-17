@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Setup — RakuAI</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-api.fly.dev https://raku-api-staging.fly.dev https://api.rakuai.com; base-uri 'self'; object-src 'none'; form-action 'self';">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body { background: var(--bg-primary); min-height: 100vh; }
+        .setup-shell { max-width: 520px; margin: 0 auto; padding: 56px 24px; }
+        .setup-shell h1 { font-size: 1.75rem; text-align: center; margin-bottom: 4px;
+            background: linear-gradient(135deg, var(--accent-bright), #a388ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .setup-shell .subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 24px; }
+        .setup-card { background: var(--bg-secondary); border: 1px solid rgba(108,92,231,0.25); border-radius: 14px; padding: 28px; }
+        .setup-card label { display: block; font-size: 0.85rem; color: var(--text-secondary); margin: 12px 0 6px; }
+        .setup-card input { width: 100%; padding: 12px 14px; font-size: 1rem; background: var(--bg-primary);
+            color: var(--text-primary); border: 1px solid rgba(108,92,231,0.35); border-radius: 8px; box-sizing: border-box; }
+        .setup-card input:focus { outline: none; border-color: var(--accent-bright); }
+        .setup-card button { display: block; width: 100%; margin-top: 18px; padding: 14px; font-size: 1rem; font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-bright), #8e7cff); color: white; border: none; border-radius: 8px; cursor: pointer; }
+        .setup-card button:disabled { opacity: 0.55; cursor: not-allowed; }
+        .password-tip { font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px; }
+        .step-list { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 14px; list-style: none; padding: 0; }
+        .step-list li { padding: 4px 0; }
+        .step-list li.done { color: var(--accent-bright); }
+        .step-list li.current { color: var(--text-primary); font-weight: 600; }
+
+        .error-box, .info-box, .success-box { margin-top: 14px; padding: 12px 14px; border-radius: 8px; font-size: 0.9rem; display: none; }
+        .error-box { background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.35); color: #ff8a7e; }
+        .info-box  { background: rgba(108,92,231,0.1); border: 1px solid rgba(108,92,231,0.35); color: var(--text-primary); }
+        .success-box { background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.35); color: #7ee0a3; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+    </div>
+</nav>
+
+<div class="setup-shell">
+    <h1>Admin Setup</h1>
+    <p class="subtitle">One-time: set your password and enroll a security key.</p>
+
+    <div class="setup-card">
+        <ul class="step-list">
+            <li id="step-1" class="current">1. Set your password</li>
+            <li id="step-2">2. Enroll a security key</li>
+            <li id="step-3">3. Done — redirect to login</li>
+        </ul>
+
+        <!-- Stage A: set password -->
+        <form id="password-form" autocomplete="off">
+            <label for="setup-password">Password</label>
+            <input type="password" id="setup-password" required autocomplete="new-password">
+            <div class="password-tip">At least 12 characters. Passphrases work great. No special-character bingo.</div>
+
+            <label for="setup-password-confirm">Repeat password</label>
+            <input type="password" id="setup-password-confirm" required autocomplete="new-password">
+
+            <button type="submit" id="password-btn">Set password</button>
+            <div class="error-box" id="password-err"></div>
+        </form>
+
+        <!-- Stage B: enroll key -->
+        <form id="enroll-form" autocomplete="off" style="display:none;">
+            <label for="key-nickname">Nickname for this key</label>
+            <input type="text" id="key-nickname" placeholder="MacBook Touch ID" maxlength="120" required>
+            <div class="password-tip">So you can tell your keys apart on the credentials page.</div>
+
+            <button type="submit" id="enroll-btn">Activate security key</button>
+            <div class="info-box" id="enroll-info">Touch your key or use your fingerprint…</div>
+            <div class="error-box" id="enroll-err"></div>
+        </form>
+
+        <!-- Stage C: done -->
+        <div id="done-card" style="display:none;">
+            <div class="success-box" style="display:block;">Setup complete. Redirecting to sign-in…</div>
+        </div>
+    </div>
+</div>
+
+<script src="./webauthn-helpers.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var API_BASE = window.RAKU_API_BASE || (function () {
+        var h = window.location.hostname;
+        if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
+        if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
+        return 'https://api.rakuai.com';
+    })();
+
+    // The setup token is in the URL fragment — never sent in HTTP requests,
+    // never logged on any server, never leaked via Referer.
+    function readFragmentToken() {
+        var h = window.location.hash || '';
+        if (h.startsWith('#')) h = h.slice(1);
+        var qs = new URLSearchParams(h);
+        return qs.get('token') || '';
+    }
+    var setupToken = readFragmentToken();
+    var enrollmentToken = null;
+
+    // Stage A — password.
+    var pwForm = document.getElementById('password-form');
+    var pwBtn  = document.getElementById('password-btn');
+    var pwErr  = document.getElementById('password-err');
+    var pw1 = document.getElementById('setup-password');
+    var pw2 = document.getElementById('setup-password-confirm');
+
+    var enForm = document.getElementById('enroll-form');
+    var enBtn  = document.getElementById('enroll-btn');
+    var enErr  = document.getElementById('enroll-err');
+    var enInfo = document.getElementById('enroll-info');
+    var enNick = document.getElementById('key-nickname');
+
+    function showError(box, msg) { box.textContent = msg; box.style.display = 'block'; }
+    function clearError(box) { box.style.display = 'none'; box.textContent = ''; }
+    function advanceStep(n) {
+        for (var i = 1; i <= 3; i++) {
+            var el = document.getElementById('step-' + i);
+            el.classList.remove('current', 'done');
+            if (i < n) el.classList.add('done');
+            if (i === n) el.classList.add('current');
+        }
+    }
+
+    if (!setupToken) {
+        showError(pwErr, 'Missing setup token. Use the URL from `bootstrap_admin`.');
+        pwBtn.disabled = true;
+    }
+
+    pwForm.addEventListener('submit', async function (ev) {
+        ev.preventDefault();
+        clearError(pwErr);
+        if (pw1.value !== pw2.value) { showError(pwErr, 'Passwords do not match.'); return; }
+        if (pw1.value.length < 12) { showError(pwErr, 'Password must be at least 12 characters.'); return; }
+
+        pwBtn.disabled = true; pwBtn.textContent = 'Saving…';
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/admin/auth/password/set-initial', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reset_token: setupToken, password: pw1.value }),
+            });
+            if (!resp.ok) {
+                var msg = 'Could not set password.';
+                try { msg = (await resp.json()).detail || msg; } catch (_) {}
+                showError(pwErr, msg);
+                pwBtn.disabled = false; pwBtn.textContent = 'Set password';
+                return;
+            }
+            var data = await resp.json();
+            enrollmentToken = data.enrollment_token;
+            // Wipe the password fields and the URL fragment.
+            pw1.value = ''; pw2.value = '';
+            try { history.replaceState(null, '', window.location.pathname); } catch (_) {}
+            pwForm.style.display = 'none';
+            enForm.style.display = 'block';
+            advanceStep(2);
+        } catch (e) {
+            showError(pwErr, 'Network error.');
+            pwBtn.disabled = false; pwBtn.textContent = 'Set password';
+        }
+    });
+
+    enForm.addEventListener('submit', async function (ev) {
+        ev.preventDefault();
+        clearError(enErr);
+        if (!enrollmentToken) { showError(enErr, 'No enrollment token. Reload and start over.'); return; }
+
+        enBtn.disabled = true; enBtn.textContent = 'Waiting for key…';
+        enInfo.style.display = 'block';
+        try {
+            // 1. Options.
+            var optsResp = await fetch(API_BASE + '/api/v1/admin/auth/webauthn/register/options', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nickname: enNick.value, enrollment_token: enrollmentToken }),
+            });
+            if (!optsResp.ok) {
+                var msg = 'Could not start WebAuthn registration.';
+                try { msg = (await optsResp.json()).detail || msg; } catch (_) {}
+                throw new Error(msg);
+            }
+            var optsBody = await optsResp.json();
+            var publicKey = window.rakuWebAuthn.decodeRegistrationOptions(optsBody.options);
+
+            // 2. Authenticator.
+            var credential = await navigator.credentials.create({ publicKey: publicKey });
+
+            // 3. Verify.
+            var registrationJson = window.rakuWebAuthn.encodeRegistrationResponse(credential);
+            var verifyResp = await fetch(API_BASE + '/api/v1/admin/auth/webauthn/register/verify', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nonce: optsBody.nonce,
+                    nickname: enNick.value,
+                    response: registrationJson,
+                    enrollment_token: enrollmentToken,
+                }),
+            });
+            if (!verifyResp.ok) {
+                var verr = 'WebAuthn registration failed.';
+                try { verr = (await verifyResp.json()).detail || verr; } catch (_) {}
+                throw new Error(verr);
+            }
+            advanceStep(3);
+            enForm.style.display = 'none';
+            document.getElementById('done-card').style.display = 'block';
+            setTimeout(function () { window.location.href = './login.html'; }, 1800);
+        } catch (e) {
+            showError(enErr, (e && e.message) || 'WebAuthn error.');
+            enInfo.style.display = 'none';
+            enBtn.disabled = false; enBtn.textContent = 'Activate security key';
+        }
+    });
+})();
+</script>
+
+</body>
+</html>
