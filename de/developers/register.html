@@ -1,0 +1,888 @@
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../../developers/register.html @ 40d7408
+  Date: 2026-05-17
+  Language: de (German)
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entwickler-Registrierung - RakuAI</title>
+    <meta name="description" content="Registrieren Sie sich für den RakuAI-Entwicklerzugang. NDA akzeptieren, Profil ausfüllen und API-Schlüssel erhalten.">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        .register-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+        .register-container h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .register-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        .nda-box {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 32px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        .nda-box h3 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+        .nda-box h4 {
+            color: var(--accent-bright);
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+        .nda-box ol, .nda-box ul {
+            padding-left: 24px;
+            margin-bottom: 12px;
+        }
+        .nda-box li {
+            margin-bottom: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label,
+        .form-group > .group-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+        .form-group .hint {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .form-group textarea {
+            min-height: 110px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-group input[readonly] {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .radio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+        }
+        .radio-grid label,
+        .checkbox-grid label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 400;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+        .radio-grid input[type="radio"],
+        .checkbox-grid input[type="checkbox"] {
+            accent-color: var(--accent);
+            margin: 0;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
+        }
+        .opt-in-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .opt-in-list label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 400;
+            line-height: 1.5;
+            cursor: pointer;
+        }
+        .opt-in-list input[type="checkbox"] {
+            margin-top: 3px;
+            accent-color: var(--accent);
+        }
+        .char-counter {
+            display: block;
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .char-counter.invalid { color: #ff8a7e; }
+
+        .field-error {
+            color: #ff8a7e;
+            font-size: 0.85rem;
+            margin-top: 6px;
+            display: none;
+        }
+        .field-error.visible { display: block; }
+
+        .form-error-banner {
+            margin: 16px 0;
+            padding: 12px 14px;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            border-radius: 8px;
+            color: #ff8a7e;
+            font-size: 0.92rem;
+            display: none;
+        }
+        .form-error-banner.visible { display: block; }
+
+        .nda-checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .nda-checkbox-group input[type="checkbox"] {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+        .nda-checkbox-group label {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+        .btn-register {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-register:hover { background: var(--accent-bright); }
+        .btn-register:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .register-success {
+            display: none;
+            text-align: center;
+            padding: 48px 24px;
+        }
+        .register-success h2 {
+            color: var(--success);
+            font-size: 1.8rem;
+            margin-bottom: 16px;
+        }
+        .register-success p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+        .needs-signin {
+            display: none;
+            padding: 28px;
+            margin-bottom: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 12px;
+            text-align: center;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .needs-signin a { color: var(--accent-bright); }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .step.active { color: var(--accent-bright); }
+        .step.done { color: var(--success); }
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        section.step-panel { display: none; }
+        section.step-panel.active { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — Die universelle Runtime für World Models &nbsp;|&nbsp; <a href="../index.html#for-studios">Für Studios &amp; Entwickler →</a> &nbsp;&nbsp; Außerdem: <a href="../index.html#quickstart">Verbraucher-Demo testen →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Startseite</a>
+            <a href="../../engine/">Engine</a>
+            <a href="../../api/">API-Dokumentation</a>
+            <a href="../../games/">Spiele</a>
+            <a href="../why-rakuai.html">Warum RakuAI</a>
+            <a href="../developers/">Entwickler</a>
+            <a href="../../press.html">Presse</a>
+            <a href="login.html" class="nav-signin">Anmelden</a>
+            <a href="../../developers/register.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<div class="register-container">
+    <div class="step-indicator">
+        <div class="step active" id="step1-indicator"><span class="step-num">1</span> NDA lesen</div>
+        <div class="step" id="step2-indicator"><span class="step-num">2</span> Profil ausfüllen</div>
+        <div class="step" id="step3-indicator"><span class="step-num">3</span> Freigabe &amp; API-Schlüssel</div>
+    </div>
+
+    <!-- Signed-out helper: shown only if we discover no session token. We
+         do NOT auto-redirect to login.html — that's what produced the
+         "NDA -> login loop" bug, since a brand-new developer can't sign
+         in via /developers/login.html (it requires an existing API key
+         they haven't been issued yet). Instead we point them at the
+         account-creation entry points and let them come back. -->
+    <div class="needs-signin" id="needsSignin">
+        <h2 style="color: var(--text-primary); margin-bottom: 12px;">Zum Fortfahren anmelden</h2>
+        <p>
+            Für die Entwickler-Registrierung ist ein RakuAI-Konto erforderlich. Wenn Sie bereits ein Konto haben,
+            <a href="login.html?return=/de/developers/register.html">melden Sie sich mit Ihrem API-Schlüssel an</a>.
+            Neu bei RakuAI? Erstellen Sie ein Konto auf der
+            <a href="../index.html#quickstart">Hauptseite</a> und kehren Sie dann zu dieser Seite zurück.
+        </p>
+    </div>
+
+    <!-- Step 1: NDA acceptance -->
+    <section class="step-panel active" id="step1Panel">
+        <h1>Entwicklerzugang</h1>
+        <p class="subtitle">Lesen Sie die untenstehende NDA und fahren Sie dann mit Ihrem Profil fort.</p>
+
+        <div class="nda-box" id="ndaBox">
+            <h3>RakuAI Entwickler-Geheimhaltungsvereinbarung (NDA)</h3>
+            <p><strong>Datum des Inkrafttretens:</strong> Mit Annahme</p>
+
+            <h4>1. Definitionen</h4>
+            <p>„Vertrauliche Informationen" bezeichnet alle nicht-öffentlichen technischen Informationen, Dokumentationen, API-Spezifikationen, SDK-Quellcodes, Spielkonfigurationsschemata (.raku-Format) und proprietären Algorithmen, die im Rahmen des RakuAI-Entwicklerprogramms bereitgestellt werden.</p>
+
+            <h4>2. Pflichten</h4>
+            <ol>
+                <li>Sie verpflichten sich, alle vertraulichen Informationen streng vertraulich zu behandeln.</li>
+                <li>Sie werden keine RakuAI-Software, kein SDK und keine Runtime-Binärdateien zurückentwickeln, dekompilieren oder disassemblieren.</li>
+                <li>Sie werden keine API-Schlüssel, SDK-Builds oder internen Dokumentationen an unbefugte Dritte weitergeben.</li>
+                <li>Sie werden die Entwickler-Tools ausschließlich zur Entwicklung von Anwendungen verwenden, die mit der RakuAI-Plattform integriert sind.</li>
+            </ol>
+
+            <h4>3. Zulässige Nutzung</h4>
+            <ul>
+                <li>Erstellung von Anwendungen und Spielen mit der RakuAI-API</li>
+                <li>Weitergabe öffentlich zugänglicher Dokumentation an Ihr Entwicklungsteam</li>
+                <li>Veröffentlichung von mit RakuAI erstellten Spielen (mit entsprechender KI-Offenlegung)</li>
+                <li>Bereitstellung von Feedback und Fehlerberichten an das RakuAI-Team</li>
+            </ul>
+
+            <h4>4. Laufzeit</h4>
+            <p>Diese Vereinbarung bleibt für die Dauer Ihrer Teilnahme am Entwicklerprogramm sowie für zwei (2) Jahre nach Beendigung in Kraft.</p>
+
+            <h4>5. Beendigung</h4>
+            <p>Jede Partei kann diese Vereinbarung mit einer schriftlichen Kündigungsfrist von 30 Tagen kündigen. Nach Beendigung müssen Sie alle in Ihrem Besitz befindlichen vertraulichen Informationen vernichten.</p>
+
+            <h4>6. Anwendbares Recht</h4>
+            <p>Diese Vereinbarung unterliegt dem Recht des Bundesstaates Delaware, USA.</p>
+        </div>
+
+        <div class="nda-checkbox-group">
+            <input type="checkbox" id="ndaAccept">
+            <label for="ndaAccept">Ich habe die RakuAI Entwickler-Geheimhaltungsvereinbarung gelesen und stimme ihr zu. Mir ist bewusst, dass ein Verstoß gegen diese Vereinbarung den Entzug des Entwicklerzugangs sowie rechtliche Schritte nach sich ziehen kann.</label>
+        </div>
+
+        <div class="form-error-banner" id="ndaErrorBanner" aria-live="polite"></div>
+
+        <button class="btn-register" id="ndaSubmitBtn" type="button" disabled>NDA akzeptieren &amp; fortfahren</button>
+    </section>
+
+    <!-- Step 2: Extended profile -->
+    <section class="step-panel" id="step2Panel" aria-labelledby="step2Heading">
+        <h1 id="step2Heading">Erzählen Sie uns von sich</h1>
+        <p class="subtitle">Ein kurzes Profil hilft uns, Ihre Zugangsanfrage an das richtige Team weiterzuleiten. Alle Felder sind erforderlich, sofern nicht als optional gekennzeichnet.</p>
+
+        <form id="profileForm" novalidate>
+            <div class="form-group">
+                <label for="fullName">Vollständiger Name</label>
+                <input type="text" id="fullName" name="fullName" autocomplete="name" maxlength="100" required>
+                <div class="field-error" id="fullName-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="workEmail">Geschäftliche E-Mail</label>
+                <input type="email" id="workEmail" name="workEmail" autocomplete="email" maxlength="200" required>
+                <span class="hint">Sofern verfügbar, aus Ihrem Konto vorausgefüllt.</span>
+                <div class="field-error" id="workEmail-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="company">Unternehmen / Organisation</label>
+                <input type="text" id="company" name="company" autocomplete="organization" maxlength="200" required>
+                <div class="field-error" id="company-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Rolle / Position</label>
+                <input type="text" id="role" name="role" autocomplete="organization-title" maxlength="100" required>
+                <div class="field-error" id="role-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="country">Land</label>
+                <select id="country" name="country" autocomplete="country" required>
+                    <option value="">Bitte wählen…</option>
+                    <option value="US">Vereinigte Staaten</option>
+                    <option value="CA">Kanada</option>
+                    <option value="GB">Vereinigtes Königreich</option>
+                    <option value="DE">Deutschland</option>
+                    <option value="FR">Frankreich</option>
+                    <option value="NL">Niederlande</option>
+                    <option value="SE">Schweden</option>
+                    <option value="ES">Spanien</option>
+                    <option value="IT">Italien</option>
+                    <option value="JP">Japan</option>
+                    <option value="KR">Südkorea</option>
+                    <option value="CN">China</option>
+                    <option value="IN">Indien</option>
+                    <option value="SG">Singapur</option>
+                    <option value="AU">Australien</option>
+                    <option value="NZ">Neuseeland</option>
+                    <option value="BR">Brasilien</option>
+                    <option value="MX">Mexiko</option>
+                    <option value="AE">Vereinigte Arabische Emirate</option>
+                    <option value="IL">Israel</option>
+                    <option value="ZA">Südafrika</option>
+                    <option value="XX">Sonstiges</option>
+                </select>
+                <span class="hint">ISO 3166-1 Alpha-2-Code. Wählen Sie „Sonstiges", falls nicht aufgeführt.</span>
+                <div class="field-error" id="country-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="industry">Branche</label>
+                <select id="industry" name="industry" required>
+                    <option value="">Bitte wählen…</option>
+                    <option value="gaming">Gaming</option>
+                    <option value="enterprise">Enterprise</option>
+                    <option value="education">Bildung</option>
+                    <option value="defense">Verteidigung</option>
+                    <option value="tourism">Tourismus</option>
+                    <option value="fitness">Fitness</option>
+                    <option value="healthcare">Gesundheitswesen</option>
+                    <option value="other">Sonstiges</option>
+                </select>
+                <div class="field-error" id="industry-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="group" aria-labelledby="targetPlatformLabel">
+                <span class="group-label" id="targetPlatformLabel">Zielplattformen (mindestens eine wählen)</span>
+                <div class="checkbox-grid" id="targetPlatformGrid">
+                    <label><input type="checkbox" name="target_platform" value="xr"> XR (VR/AR/MR)</label>
+                    <label><input type="checkbox" name="target_platform" value="web"> Web</label>
+                    <label><input type="checkbox" name="target_platform" value="mobile"> Mobil</label>
+                    <label><input type="checkbox" name="target_platform" value="desktop"> Desktop</label>
+                    <label><input type="checkbox" name="target_platform" value="console"> Konsole</label>
+                </div>
+                <div class="field-error" id="target_platform-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="useCase">Anwendungsfall-Beschreibung</label>
+                <textarea id="useCase" name="useCase" maxlength="2000" minlength="10" required></textarea>
+                <span class="char-counter" id="useCase-counter" aria-live="polite">0 / 2000 (mind. 10)</span>
+                <div class="field-error" id="useCase-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="radiogroup" aria-labelledby="teamSizeLabel">
+                <span class="group-label" id="teamSizeLabel">Teamgröße</span>
+                <div class="radio-grid">
+                    <label><input type="radio" name="team_size" value="solo"> Solo</label>
+                    <label><input type="radio" name="team_size" value="2-10"> 2–10</label>
+                    <label><input type="radio" name="team_size" value="11-50"> 11–50</label>
+                    <label><input type="radio" name="team_size" value="51-200"> 51–200</label>
+                    <label><input type="radio" name="team_size" value="200+"> 200+</label>
+                </div>
+                <div class="field-error" id="team_size-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="radiogroup" aria-labelledby="fundingLabel">
+                <span class="group-label" id="fundingLabel">Finanzierungsphase</span>
+                <div class="radio-grid">
+                    <label><input type="radio" name="funding_stage" value="bootstrapped"> Selbstfinanziert</label>
+                    <label><input type="radio" name="funding_stage" value="preseed"> Pre-Seed</label>
+                    <label><input type="radio" name="funding_stage" value="seed"> Seed</label>
+                    <label><input type="radio" name="funding_stage" value="seriesA"> Series A</label>
+                    <label><input type="radio" name="funding_stage" value="seriesB+"> Series B+</label>
+                    <label><input type="radio" name="funding_stage" value="public"> Börsennotiert</label>
+                    <label><input type="radio" name="funding_stage" value="none"> Nicht zutreffend</label>
+                </div>
+                <div class="field-error" id="funding_stage-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">Optionale Einwilligungen</span>
+                <div class="opt-in-list">
+                    <label><input type="checkbox" id="optNewsletter"> Senden Sie mir den RakuAI-Entwickler-Newsletter.</label>
+                    <label><input type="checkbox" id="optPartner"> Ich interessiere mich für das RakuAI-Partnerprogramm.</label>
+                    <label><input type="checkbox" id="optBeta"> Geben Sie mir frühzeitigen Zugang zu Beta-Funktionen (sofern verfügbar).</label>
+                </div>
+            </div>
+
+            <div class="form-error-banner" id="profileErrorBanner" aria-live="polite"></div>
+
+            <button type="submit" class="btn-register" id="profileSubmitBtn">Profil absenden &amp; Registrierung abschließen</button>
+        </form>
+    </section>
+
+    <div class="register-success" id="registerSuccess">
+        <h2>Profil übermittelt!</h2>
+        <p>Ihre Entwickler-Bewerbung wurde zur Freigabe durch einen Administrator in die Warteschlange aufgenommen. Wir leiten Sie zum Dashboard weiter, damit Sie den Status verfolgen und (nach Freigabe) API-Schlüssel erstellen können.</p>
+        <a href="dashboard.html" class="btn-register" style="display: inline-block; width: auto; padding: 14px 36px; text-decoration: none;">Zum Dashboard</a>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../../engine/">Engine</a>
+            <a href="../../api/">API</a>
+            <a href="../../docs.html">Dokumentation</a>
+            <a href="../../games/">Arcade</a>
+            <a href="../../press.html">Presse</a>
+            <a href="../developers/">Entwickler</a>
+            <a href="../../privacy.html">Datenschutz</a>
+            <a href="../../terms.html">AGB</a>
+            <a href="../contact.html">Kontakt</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 erteilte US-Patente (Priorität: Juli 2012) &bull; Angetrieben von der RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; und RakuXR&trade; sind Marken von RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI und <span class="kanji-logo">&#x697D;</span>XR sind stilisierte Marken von RakuAI, LLC.
+            5 erteilte US-Patente (Priorität: Juli 2012).
+        </p>
+    </div>
+</footer>
+
+<script src="/js/api-config.js"></script>
+<script>
+(function() {
+    'use strict';
+
+    // ---- API base (resolved by /js/api-config.js) ----
+    // Defensive fallback if api-config.js failed to load — defaults to prod which is the safest target.
+    var API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
+
+    var TOKEN_KEY = 'raku_access_token';
+    var USER_KEY  = 'raku_user';
+
+    // ---- Element refs ----
+    var needsSignin   = document.getElementById('needsSignin');
+    var step1Panel    = document.getElementById('step1Panel');
+    var step2Panel    = document.getElementById('step2Panel');
+    var registerSuccess = document.getElementById('registerSuccess');
+    var step1Indicator = document.getElementById('step1-indicator');
+    var step2Indicator = document.getElementById('step2-indicator');
+    var step3Indicator = document.getElementById('step3-indicator');
+
+    var ndaCheckbox  = document.getElementById('ndaAccept');
+    var ndaSubmitBtn = document.getElementById('ndaSubmitBtn');
+    var ndaErrorBanner = document.getElementById('ndaErrorBanner');
+
+    var profileForm  = document.getElementById('profileForm');
+    var profileSubmitBtn = document.getElementById('profileSubmitBtn');
+    var profileErrorBanner = document.getElementById('profileErrorBanner');
+
+    var workEmailEl  = document.getElementById('workEmail');
+    var fullNameEl   = document.getElementById('fullName');
+    var useCaseEl    = document.getElementById('useCase');
+    var useCaseCounter = document.getElementById('useCase-counter');
+
+    // ---- Token bootstrap ----
+    //
+    // The original /developers/register.html shipped a bug: if the user
+    // had no session token it window.location.href'd to login.html. But
+    // /developers/login.html requires an existing API key — which a
+    // brand-new developer doesn't have until their NDA is accepted and
+    // their account is approved. Result: an infinite redirect loop.
+    //
+    // Fix: do NOT auto-redirect. Show an inline "sign in to continue"
+    // panel that links to BOTH login.html (for returning developers) and
+    // the marketing-site account-creation entry point (for net-new users).
+    // Wrap localStorage access — it can throw in private-mode browsers
+    // or sandboxed iframes where storage is disabled. Falling through to
+    // the signed-out nudge is the right behaviour in those cases.
+    var token = null;
+    var userJson = null;
+    try {
+        token = localStorage.getItem(TOKEN_KEY);
+        userJson = localStorage.getItem(USER_KEY);
+    } catch (_) {
+        // localStorage unavailable; proceed as signed-out.
+    }
+    var cachedUser = null;
+    if (userJson) {
+        try { cachedUser = JSON.parse(userJson); } catch (_) { cachedUser = null; }
+    }
+
+    if (!token) {
+        // Hide the NDA panel and step indicator; show only the sign-in nudge.
+        step1Panel.classList.remove('active');
+        needsSignin.style.display = 'block';
+    } else if (cachedUser) {
+        // Prefill what we know.
+        if (cachedUser.email)        workEmailEl.value = cachedUser.email;
+        if (cachedUser.display_name) fullNameEl.value  = cachedUser.display_name;
+        if (cachedUser.email) {
+            workEmailEl.setAttribute('readonly', 'readonly');
+        }
+    }
+
+    // ---- Step 1: NDA submit ----
+    ndaCheckbox.addEventListener('change', function() {
+        ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+        hideBanner(ndaErrorBanner);
+    });
+
+    ndaSubmitBtn.addEventListener('click', function() {
+        if (!ndaCheckbox.checked) return;
+        handleNdaAccept();
+    });
+
+    async function handleNdaAccept() {
+        hideBanner(ndaErrorBanner);
+        ndaSubmitBtn.disabled = true;
+        ndaSubmitBtn.textContent = 'Wird verarbeitet…';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/developer/nda', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify({ accept: true }),
+            });
+
+            // 409 = NDA already accepted; that's fine — proceed to the
+            // profile step so a returning user can finish/update their
+            // profile without having to wipe their account.
+            if (resp.ok || resp.status === 409) {
+                advanceToStep2();
+                return;
+            }
+
+            if (resp.status === 401) {
+                showBanner(ndaErrorBanner, 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.');
+                ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+                ndaSubmitBtn.textContent = 'NDA akzeptieren & fortfahren';
+                return;
+            }
+
+            var msg = 'NDA-Annahme fehlgeschlagen. Bitte erneut versuchen.';
+            try {
+                var data = await resp.json();
+                if (data && data.detail) msg = data.detail;
+            } catch (_) { /* keep default */ }
+            showBanner(ndaErrorBanner, msg);
+            ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+            ndaSubmitBtn.textContent = 'NDA akzeptieren & fortfahren';
+        } catch (_) {
+            showBanner(ndaErrorBanner, 'Netzwerkfehler. Bitte prüfen Sie Ihre Verbindung und versuchen es erneut.');
+            ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+            ndaSubmitBtn.textContent = 'NDA akzeptieren & fortfahren';
+        }
+    }
+
+    function advanceToStep2() {
+        step1Panel.classList.remove('active');
+        step2Panel.classList.add('active');
+        step1Indicator.classList.remove('active');
+        step1Indicator.classList.add('done');
+        step2Indicator.classList.add('active');
+        // Focus the first input so keyboard users land where they should.
+        setTimeout(function() {
+            var first = step2Panel.querySelector('input, select, textarea');
+            if (first) try { first.focus(); } catch (_) {}
+        }, 50);
+    }
+
+    // ---- Step 2: char counter ----
+    useCaseEl.addEventListener('input', updateUseCaseCounter);
+    function updateUseCaseCounter() {
+        var len = useCaseEl.value.length;
+        useCaseCounter.textContent = len + ' / 2000 (mind. 10)';
+        if (len > 0 && (len < 10 || len > 2000)) {
+            useCaseCounter.classList.add('invalid');
+        } else {
+            useCaseCounter.classList.remove('invalid');
+        }
+    }
+
+    // ---- Step 2: validate + submit ----
+    profileForm.addEventListener('submit', function(ev) {
+        ev.preventDefault();
+        handleProfileSubmit();
+    });
+
+    function readSelectedPlatforms() {
+        var nodes = document.querySelectorAll('input[name="target_platform"]:checked');
+        var out = [];
+        for (var i = 0; i < nodes.length; i++) out.push(nodes[i].value);
+        return out;
+    }
+
+    function readRadio(name) {
+        var node = document.querySelector('input[name="' + name + '"]:checked');
+        return node ? node.value : '';
+    }
+
+    function setFieldError(id, msg) {
+        var el = document.getElementById(id + '-error');
+        if (!el) return;
+        if (msg) {
+            el.textContent = msg;
+            el.classList.add('visible');
+        } else {
+            el.textContent = '';
+            el.classList.remove('visible');
+        }
+    }
+
+    function clearAllFieldErrors() {
+        ['fullName', 'workEmail', 'company', 'role', 'country', 'industry',
+         'target_platform', 'useCase', 'team_size', 'funding_stage'].forEach(function(id) {
+            setFieldError(id, '');
+        });
+        hideBanner(profileErrorBanner);
+    }
+
+    function validateProfile() {
+        clearAllFieldErrors();
+        var ok = true;
+
+        var fullName = fullNameEl.value.trim();
+        if (!fullName) { setFieldError('fullName', 'Pflichtfeld.'); ok = false; }
+
+        var workEmail = workEmailEl.value.trim();
+        if (!workEmail || workEmail.indexOf('@') === -1) {
+            setFieldError('workEmail', 'Eine gültige E-Mail-Adresse ist erforderlich.'); ok = false;
+        }
+
+        var company = document.getElementById('company').value.trim();
+        if (!company) { setFieldError('company', 'Pflichtfeld.'); ok = false; }
+        else if (company.length > 200) { setFieldError('company', 'Maximal 200 Zeichen.'); ok = false; }
+
+        var role = document.getElementById('role').value.trim();
+        if (!role) { setFieldError('role', 'Pflichtfeld.'); ok = false; }
+        else if (role.length > 100) { setFieldError('role', 'Maximal 100 Zeichen.'); ok = false; }
+
+        var country = document.getElementById('country').value;
+        if (!country || country.length !== 2) {
+            setFieldError('country', 'Bitte wählen Sie ein Land aus.'); ok = false;
+        }
+
+        var industry = document.getElementById('industry').value;
+        if (!industry) { setFieldError('industry', 'Bitte wählen Sie eine Branche aus.'); ok = false; }
+
+        var platforms = readSelectedPlatforms();
+        if (platforms.length === 0) {
+            setFieldError('target_platform', 'Mindestens eine Plattform auswählen.'); ok = false;
+        }
+
+        var useCase = useCaseEl.value.trim();
+        if (useCase.length < 10) {
+            setFieldError('useCase', 'Bitte beschreiben Sie Ihren Anwendungsfall (mindestens 10 Zeichen).'); ok = false;
+        } else if (useCase.length > 2000) {
+            setFieldError('useCase', 'Maximal 2000 Zeichen.'); ok = false;
+        }
+
+        var teamSize = readRadio('team_size');
+        if (!teamSize) { setFieldError('team_size', 'Bitte wählen Sie eine Teamgröße aus.'); ok = false; }
+
+        var fundingStage = readRadio('funding_stage');
+        if (!fundingStage) { setFieldError('funding_stage', 'Bitte wählen Sie eine Finanzierungsphase aus.'); ok = false; }
+
+        return ok ? {
+            // The full_name / work_email fields are collected for the
+            // form but aren't part of the /profile/extended schema yet —
+            // backend will pick them up in a follow-up. Don't send them.
+            company: company,
+            role: role,
+            country: country,
+            industry: industry,
+            target_platform: platforms,
+            use_case: useCase,
+            team_size: teamSize,
+            funding_stage: fundingStage,
+            opt_in_newsletter: document.getElementById('optNewsletter').checked,
+            opt_in_partner_program: document.getElementById('optPartner').checked,
+            opt_in_beta_access: document.getElementById('optBeta').checked,
+        } : null;
+    }
+
+    async function handleProfileSubmit() {
+        var payload = validateProfile();
+        if (!payload) {
+            showBanner(profileErrorBanner, 'Bitte korrigieren Sie die markierten Felder und versuchen es erneut.');
+            return;
+        }
+
+        profileSubmitBtn.disabled = true;
+        profileSubmitBtn.textContent = 'Wird übermittelt…';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/developer/profile/extended', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (resp.ok) {
+                // Success: persist token (already there) and route to dashboard.
+                // The token was set by /api/v1/auth/token at sign-in; nothing
+                // else to do but ensure it's still present.
+                try {
+                    if (!localStorage.getItem(TOKEN_KEY) && token) {
+                        localStorage.setItem(TOKEN_KEY, token);
+                    }
+                } catch (_) { /* private-mode / sandboxed: token still in memory */ }
+                step2Panel.classList.remove('active');
+                registerSuccess.style.display = 'block';
+                step2Indicator.classList.remove('active');
+                step2Indicator.classList.add('done');
+                step3Indicator.classList.add('active');
+                // Auto-route after a short pause so the user sees the success state.
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 1200);
+                return;
+            }
+
+            if (resp.status === 401) {
+                showBanner(profileErrorBanner, 'Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.');
+                profileSubmitBtn.disabled = false;
+                profileSubmitBtn.textContent = 'Profil absenden & Registrierung abschließen';
+                return;
+            }
+
+            if (resp.status >= 400 && resp.status < 500) {
+                var msg = 'Übermittlung abgelehnt (HTTP ' + resp.status + ').';
+                try {
+                    var data = await resp.json();
+                    if (data && data.detail) {
+                        if (typeof data.detail === 'string') msg = data.detail;
+                        else msg = 'Validierungsfehler: Bitte überprüfen Sie Ihre Eingaben.';
+                    }
+                } catch (_) { /* keep default */ }
+                showBanner(profileErrorBanner, msg);
+                profileSubmitBtn.disabled = false;
+                profileSubmitBtn.textContent = 'Profil absenden & Registrierung abschließen';
+                return;
+            }
+
+            // 5xx — let them retry.
+            showBanner(profileErrorBanner, 'Serverfehler (HTTP ' + resp.status + '). Bitte versuchen Sie es in einem Moment erneut.');
+            profileSubmitBtn.disabled = false;
+            profileSubmitBtn.textContent = 'Profil absenden & Registrierung abschließen';
+        } catch (_) {
+            showBanner(profileErrorBanner, 'Netzwerkfehler. Bitte prüfen Sie Ihre Verbindung und versuchen es erneut.');
+            profileSubmitBtn.disabled = false;
+            profileSubmitBtn.textContent = 'Profil absenden & Registrierung abschließen';
+        }
+    }
+
+    function showBanner(el, msg) {
+        el.textContent = msg;
+        el.classList.add('visible');
+    }
+    function hideBanner(el) {
+        el.textContent = '';
+        el.classList.remove('visible');
+    }
+})();
+</script>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>

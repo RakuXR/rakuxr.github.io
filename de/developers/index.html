@@ -1,0 +1,467 @@
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../../developers/index.html @ 52a4f1d
+  Date: 2026-05-17
+  Language: de (German)
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entwicklerportal - RakuAI</title>
+    <meta name="description" content="Räumliche KI-Erlebnisse mit der RakuForge-API in Minuten erstellen. 21 World-Model-Endpunkte. 5 Szenarien. Eine API.">
+    <meta property="og:title" content="Entwicklerportal - RakuAI">
+    <meta property="og:description" content="21 World-Model-Endpunkte. 5 Szenarien. Eine API. Bauen Sie räumliche KI-Erlebnisse in Minuten.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/de/developers/">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/de/developers/">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        .dev-hero {
+            padding: 100px 0 80px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+        .dev-hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .dev-hero .subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        .code-hero {
+            background: #0d0d2b;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 12px;
+            padding: 28px 32px;
+            font-family: 'SFMono-Regular', Consolas, 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 2;
+            color: var(--text-secondary);
+            overflow-x: auto;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            text-align: left;
+        }
+        .code-hero .kw { color: var(--accent-bright); }
+        .code-hero .str { color: var(--success); }
+        .code-hero .comment { color: #555580; }
+        .code-hero .fn { color: #ff79c6; }
+        .dev-cta-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .dev-cta-group .btn-dev {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 14px 36px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: background 0.2s, transform 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .dev-cta-group .btn-dev:hover {
+            background: var(--accent-bright);
+            transform: translateY(-2px);
+        }
+        .dev-cta-group .btn-dev-outline {
+            display: inline-block;
+            border: 2px solid var(--accent);
+            color: var(--accent-bright);
+            padding: 12px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+        }
+        .dev-cta-group .btn-dev-outline:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            padding: 64px 0;
+        }
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+        .feature-card .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+        .feature-card h3 {
+            font-size: 1.2rem;
+            color: var(--accent-bright);
+            margin-bottom: 10px;
+        }
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .pricing-section {
+            padding: 80px 0;
+            background: var(--bg-secondary);
+        }
+        .pricing-section h2 {
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .pricing-section .section-sub {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 48px;
+            font-size: 1.05rem;
+        }
+        .pricing-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .price-card {
+            background: var(--bg-primary);
+            border: 2px solid #222244;
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+        .price-card:hover {
+            transform: translateY(-4px);
+        }
+        .price-card.featured {
+            border-color: var(--accent);
+            box-shadow: 0 0 30px rgba(108, 92, 231, 0.15);
+        }
+        .price-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .price-card .price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-bright);
+            margin-bottom: 4px;
+        }
+        .price-card .price-period {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        .price-card ul {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 24px;
+            padding: 0;
+        }
+        .price-card ul li {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-bottom: 1px solid #1a1a3a;
+        }
+        .price-card ul li::before {
+            content: "\2713";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .price-card .btn-price {
+            display: inline-block;
+            width: 100%;
+            padding: 10px 0;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+        .price-card .btn-price.primary {
+            background: var(--accent);
+            color: white;
+        }
+        .price-card .btn-price.primary:hover {
+            background: var(--accent-bright);
+        }
+        .price-card .btn-price.outline {
+            border: 1px solid var(--accent);
+            color: var(--accent-bright);
+            background: transparent;
+        }
+        .price-card .btn-price.outline:hover {
+            background: var(--accent);
+            color: white;
+        }
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            padding: 40px 0;
+            flex-wrap: wrap;
+        }
+        .stat-item { text-align: center; }
+        .stat-item .stat-number {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--accent-bright);
+        }
+        .stat-item .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .dev-bottom-cta {
+            text-align: center;
+            padding: 80px 0;
+        }
+        .dev-bottom-cta h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+        .dev-bottom-cta p {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 1.05rem;
+        }
+        @media (max-width: 900px) {
+            .pricing-grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .dev-hero h1 { font-size: 2rem; }
+            .pricing-grid-4 {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+            .code-hero { font-size: 0.8rem; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">TM</sup> Entwicklerportal &nbsp;|&nbsp; <a href="../../developers/docs.html">API-Referenz</a> &nbsp;|&nbsp; <a href="../../scenarios/">Szenarien</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Startseite</a>
+            <a href="../../engine/">Engine</a>
+            <a href="../../api/">API-Dokumentation</a>
+            <a href="../../games/">Spiele</a>
+            <a href="../why-rakuai.html">Warum RakuAI</a>
+            <a href="../developers/">Entwickler</a>
+            <a href="../../press.html">Presse</a>
+            <a href="login.html" class="nav-signin">Anmelden</a>
+            <a href="../../developers/" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="dev-hero">
+    <div class="container">
+        <div class="beta-badge" style="display:inline-block;background:var(--accent);color:white;padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:600;margin-bottom:24px;">RakuForge API</div>
+        <h1>Räumliche KI-Erlebnisse in Minuten erstellen</h1>
+        <p class="subtitle">21 World-Model-Endpunkte. 5 Szenarien. Eine API.</p>
+
+        <div class="code-hero">
+            <span class="kw">import</span> raku<br>
+            world = raku.<span class="fn">create_world</span>(<span class="str">"my_game"</span>, gps={<span class="str">"lat"</span>: <span class="str">37.78</span>, <span class="str">"lng"</span>: <span class="str">-122.41</span>})<br>
+            raku.<span class="fn">create_entity</span>(world, type=<span class="str">"npc"</span>, gps={<span class="str">"lat"</span>: <span class="str">37.7801</span>, <span class="str">"lng"</span>: <span class="str">-122.4102</span>})
+        </div>
+
+        <div class="dev-cta-group">
+            <a href="register.html" class="btn-dev">API-Schlüssel anfordern</a>
+            <a href="../../developers/docs.html" class="btn-dev-outline">Dokumentation lesen</a>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-number">21</div>
+                <div class="stat-label">API-Endpunkte</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Szenarien</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">~300ms</div>
+                <div class="stat-label">Ø Antwortzeit</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">REST</div>
+                <div class="stat-label">+ SSE-Streaming</div>
+            </div>
+        </div>
+
+        <div class="feature-cards">
+            <div class="feature-card">
+                <div class="card-icon">&#x1F30D;</div>
+                <h3>World Model</h3>
+                <p>Persistente 3D-Welten erstellen, importieren und verwalten, verankert an reale GPS-Koordinaten. Import von 3D Tiles, Szenengraphen und Tiefenkarten.</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x1F916;</div>
+                <h3>KI-Agenten</h3>
+                <p>Intelligente NPCs mit Verhaltensbäumen und LLM-gestützten Dialogen spawnen. Agenten beobachten, handeln und lernen in Echtzeit aus Belohnungen.</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x2699;</div>
+                <h3>Physik</h3>
+                <p>Starre Körper hinzufügen, Simulationen Schritt für Schritt ausführen und reale Gefahren modellieren. Feuerausbreitung, Strukturzusammenbruch, Geschossbahnen.</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x1F50A;</div>
+                <h3>Räumliches Audio</h3>
+                <p>3D-Audioquellen in der Welt positionieren. Besucher hören historisch korrekte Klanglandschaften, die sich mit ihrer GPS-Position ändern.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pricing-section">
+    <div class="container">
+        <h2>Einfache, skalierbare Preise</h2>
+        <p class="section-sub">Kostenlos starten. Mitwachsen. Keine Kreditkarte erforderlich.</p>
+
+        <div class="pricing-grid-4">
+            <div class="price-card">
+                <h3>Free</h3>
+                <div class="price">0 $</div>
+                <div class="price-period">dauerhaft</div>
+                <ul>
+                    <li>100 Welten / Monat</li>
+                    <li>10 Entitäten / Welt</li>
+                    <li>1 KI-Agent</li>
+                    <li>100 m GPS-Radius</li>
+                    <li>Community-Support</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">Loslegen</a>
+            </div>
+
+            <div class="price-card">
+                <h3>Creative</h3>
+                <div class="price">9,99 $</div>
+                <div class="price-period">pro Monat</div>
+                <ul>
+                    <li>1.000 Welten / Monat</li>
+                    <li>100 Entitäten / Welt</li>
+                    <li>5 KI-Agenten</li>
+                    <li>1 km GPS-Radius</li>
+                    <li>E-Mail-Support</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">Testen</a>
+            </div>
+
+            <div class="price-card featured">
+                <h3>Pro</h3>
+                <div class="price">29,99 $</div>
+                <div class="price-period">pro Monat</div>
+                <ul>
+                    <li>10.000 Welten / Monat</li>
+                    <li>1.000 Entitäten / Welt</li>
+                    <li>20 KI-Agenten</li>
+                    <li>8-Spieler-Multiplayer</li>
+                    <li>10 km GPS-Radius</li>
+                    <li>Priority-Support</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">Testen</a>
+            </div>
+
+            <div class="price-card">
+                <h3>Enterprise</h3>
+                <div class="price">Individuell</div>
+                <div class="price-period">Kontakt aufnehmen</div>
+                <ul>
+                    <li>Unbegrenzte Welten</li>
+                    <li>Unbegrenzte Entitäten</li>
+                    <li>Unbegrenzte KI-Agenten</li>
+                    <li>Individueller Multiplayer</li>
+                    <li>Individueller GPS-Radius</li>
+                    <li>Dedizierter Support</li>
+                </ul>
+                <a href="../contact.html" class="btn-price outline">Vertrieb kontaktieren</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dev-bottom-cta">
+    <div class="container">
+        <h2>Bereit, räumliche KI zu bauen?</h2>
+        <p>Holen Sie sich Ihren API-Schlüssel in 30 Sekunden und erstellen Sie Welten.</p>
+        <div class="dev-cta-group">
+            <a href="register.html" class="btn-dev">API-Schlüssel anfordern</a>
+            <a href="../../developers/docs.html" class="btn-dev-outline">Dokumentation lesen</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../../engine/">Engine</a>
+            <a href="../../api/">API</a>
+            <a href="../docs.html">Dokumentation</a>
+            <a href="../../games/">Arcade</a>
+            <a href="../../press.html">Presse</a>
+            <a href="../developers/">Entwickler</a>
+            <a href="../../privacy.html">Datenschutz</a>
+            <a href="../../terms.html">AGB</a>
+            <a href="../contact.html">Kontakt</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 erteilte US-Patente (Priorität: Juli 2012) &bull; Betrieben mit der RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; und RakuXR&trade; sind Marken von RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI und <span class="kanji-logo">&#x697D;</span>XR sind stilisierte Marken von RakuAI, LLC.
+            5 erteilte US-Patente (Priorität: Juli 2012).
+        </p>
+    </div>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>
