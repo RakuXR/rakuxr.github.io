@@ -40,9 +40,9 @@
         the iframe-embedding risk and ensure no destructive action is
         possible without user interaction we can re-verify.
     -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="stylesheet" href="style.css">
-    <script src="https://js.hcaptcha.com/1/api.js" async defer crossorigin="anonymous"
+    <script src="https://js.hcaptcha.com/1/api.js?render=explicit&onload=__rakuOnHCaptchaLoad__" async defer crossorigin="anonymous"
             referrerpolicy="no-referrer"></script>
 </head>
 <body>
@@ -909,10 +909,35 @@
 (function () {
     var cfg = window.RAKU_PUBLIC_CONFIG || {};
     var key = cfg.hcaptcha_site_key;
+    // Auto-render is disabled (?render=explicit on the API script) — without
+    // a real sitekey we bail entirely so hCaptcha never tries to validate
+    // an empty key and floods the console. When a sitekey IS configured,
+    // we set it on each widget AND explicitly call hcaptcha.render so the
+    // captcha actually appears.
     if (!key || key === 'PLACEHOLDER_INJECT_AT_DEPLOY') return;
     var widgets = document.querySelectorAll('.h-captcha');
-    for (var i = 0; i < widgets.length; i++) {
-        widgets[i].setAttribute('data-sitekey', key);
+    var renderWidgets = function () {
+        if (!window.hcaptcha || typeof window.hcaptcha.render !== 'function') return;
+        for (var i = 0; i < widgets.length; i++) {
+            widgets[i].setAttribute('data-sitekey', key);
+            // Skip already-rendered widgets (data-hcaptcha-widget-id is set
+            // by the SDK on first render).
+            if (widgets[i].dataset.hcaptchaWidgetId) continue;
+            try {
+                window.hcaptcha.render(widgets[i], {sitekey: key});
+            } catch (e) {
+                console.warn('hcaptcha render failed', e);
+            }
+        }
+    };
+    if (window.hcaptcha && window.hcaptcha.render) {
+        // SDK already loaded (e.g. on a soft-navigation reload).
+        renderWidgets();
+    } else {
+        // Standard hCaptcha pattern: ?render=explicit&onload=<fn> tells
+        // the SDK to call window.<fn>() exactly once when it's ready.
+        // No polling needed.
+        window.__rakuOnHCaptchaLoad__ = renderWidgets;
     }
 })();
 
