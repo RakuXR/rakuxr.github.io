@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarifs - RakuAI</title>
+    <meta name="description" content="Tarifs RakuAI. Offre gratuite avec 10 générations/jour. Offre Pro à 14,99 $/mois pour la génération prioritaire, l'AI haute qualité et l'export.">
+    <meta property="og:title" content="Tarifs - RakuAI">
+    <meta property="og:description" content="Créez de vrais jeux jouables en les décrivant à l'AI. Démarrez gratuitement, passez à Pro pour 14,99 $/mois.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/fr/pricing">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/fr/pricing.html">
+    <link rel="stylesheet" href="../style.css">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <style>
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .pricing-card {
+            background: var(--bg-secondary);
+            border: 2px solid #222244;
+            border-radius: 16px;
+            padding: 40px 32px;
+            position: relative;
+        }
+        .pricing-card.featured {
+            border-color: var(--accent);
+            box-shadow: 0 0 40px rgba(108, 92, 231, 0.25);
+        }
+        .pricing-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        .pricing-card .price {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 16px 0 8px;
+        }
+        .pricing-card .price-period {
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+        .pricing-card .price-note {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        .pricing-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 32px;
+        }
+        .pricing-card ul li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+        .pricing-card ul li::before {
+            content: "\2713";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 10px;
+        }
+        .pricing-card ul li.pro-only::before {
+            content: "\2B50";
+        }
+        .best-value-ribbon {
+            position: absolute;
+            top: 16px;
+            right: -32px;
+            background: var(--success);
+            color: var(--bg-primary);
+            padding: 4px 40px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transform: rotate(45deg);
+            letter-spacing: 0.05em;
+        }
+        .upgrade-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
+        }
+        .upgrade-btn-pro {
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: white;
+        }
+        .upgrade-btn-free {
+            background: transparent;
+            color: var(--accent-bright);
+            border: 2px solid var(--accent);
+        }
+        .guarantee {
+            text-align: center;
+            margin-top: 32px;
+            padding: 24px;
+            background: rgba(0, 206, 201, 0.08);
+            border: 1px solid rgba(0, 206, 201, 0.2);
+            border-radius: 12px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .guarantee h4 {
+            color: var(--success);
+            margin-bottom: 8px;
+        }
+        .guarantee p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        /* Upgrade banner (reusable component) */
+        .upgrade-banner {
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(163, 136, 255, 0.1));
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .upgrade-banner-text h4 {
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+        .upgrade-banner-text p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+        .upgrade-banner .btn {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        @media (max-width: 768px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            .upgrade-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../pricing.html @ b41cc9c
+  Date: 2026-05-17
+  Language: fr (French)
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — Le runtime universel pour les World Models &nbsp;|&nbsp; <a href="index.html#for-studios">Pour les studios et développeurs →</a> &nbsp;&nbsp; Aussi : <a href="index.html#quickstart">Essayer la démo grand public →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">Accueil</a>
+            <a href="../engine/">Moteur</a>
+            <a href="../api/">Documentation API</a>
+            <a href="../games/">Jeux</a>
+            <a href="why-rakuai.html">Pourquoi RakuAI</a>
+            <a href="developers/">Développeurs</a>
+            <a href="../press.html">Presse</a>
+            <a href="../blog/">Blog</a>
+            <a href="../pricing.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <h1>Tarifs simples et transparents</h1>
+        <p class="subtitle">Démarrez gratuitement. Essayez Pro 7 jours gratuits. Passez à Pro quand vous êtes prêt.</p>
+
+        <!-- K.9: Monthly/Annual Toggle -->
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 24px; align-items: center;">
+            <span id="toggle-monthly-label" style="font-weight: 700; color: var(--accent-bright);">Mensuel</span>
+            <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                <input type="checkbox" id="billing-toggle" onchange="toggleBillingPeriod()" style="opacity: 0; width: 0; height: 0;">
+                <span style="position: absolute; inset: 0; background: #333; border-radius: 28px; transition: 0.3s;"></span>
+                <span id="toggle-knob" style="position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; background: var(--accent-bright); border-radius: 50%; transition: 0.3s;"></span>
+            </label>
+            <span id="toggle-annual-label" style="font-weight: 400; color: var(--text-secondary);">Annuel <span style="color: var(--success); font-size: 0.85rem; font-weight: 700;">Économisez 17 %</span></span>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="pricing-grid">
+            <!-- Free Tier -->
+            <div class="pricing-card">
+                <h3>Gratuit</h3>
+                <div class="price">0 $</div>
+                <p class="price-note">Sans carte de crédit</p>
+                <ul>
+                    <li>10 générations de jeu par jour</li>
+                    <li>Tous les modèles de jeu</li>
+                    <li>Création de jeu pilotée par AI</li>
+                    <li>Lecture et partage dans le navigateur</li>
+                    <li>Support XR</li>
+                    <li>Support communautaire</li>
+                </ul>
+                <a href="index.html#create" class="upgrade-btn upgrade-btn-free">Commencer gratuitement</a>
+            </div>
+
+            <!-- Pro Tier -->
+            <div class="pricing-card featured" style="overflow: hidden;">
+                <div class="best-value-ribbon">MEILLEUR CHOIX</div>
+                <h3 style="color: var(--accent-bright);">Pro</h3>
+                <div class="price" id="pro-price">14,99 $<span class="price-period"> / mois</span></div>
+                <p class="price-note" id="pro-price-note">Essai gratuit de 7 jours &middot; Résiliable à tout moment</p>
+                <ul>
+                    <li>100 générations de jeu par jour</li>
+                    <li class="pro-only">File de génération prioritaire</li>
+                    <li class="pro-only">Modèle AI de qualité supérieure</li>
+                    <li class="pro-only">Export des configs de jeu</li>
+                    <li class="pro-only">Export autonome (.exe)</li>
+                    <li>Tous les modèles + personnalisés</li>
+                    <li>Réseau multijoueur</li>
+                    <li>Sauvegardes cloud</li>
+                    <li>Profiler de performance</li>
+                    <li>Support prioritaire</li>
+                </ul>
+                <button onclick="handleUpgradeClick()" class="upgrade-btn upgrade-btn-pro" id="upgrade-pro-btn">
+                    Démarrer l'essai gratuit de 7 jours
+                </button>
+                <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
+                    <a href="../pro-features.html" style="color: var(--accent-bright);">Voir toutes les fonctionnalités Pro &rarr;</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="guarantee">
+            <h4>Sans risque</h4>
+            <p>Résiliez à tout moment depuis les paramètres de votre compte. Aucun engagement de longue durée. Vos jeux vous appartiennent toujours, même si vous repassez à l'offre gratuite.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Upgrade Success Banner (shown after Stripe redirect) -->
+<section class="section" id="upgrade-success" style="display: none;">
+    <div class="container">
+        <div class="upgrade-banner" style="border-color: var(--success); background: rgba(0, 206, 201, 0.1);">
+            <div class="upgrade-banner-text">
+                <h4 style="color: var(--success);">Bienvenue dans Pro !</h4>
+                <p>Votre compte a été mis à niveau. Vous disposez désormais de 100 générations/jour, de la file prioritaire et de l'AI haute qualité.</p>
+            </div>
+            <a href="index.html#create" class="btn btn-primary">Commencer à créer</a>
+        </div>
+    </div>
+</section>
+
+<!-- Enterprise -->
+<section class="section" id="enterprise">
+    <div class="container" style="text-align: center;">
+        <h2>Licences entreprise et studio</h2>
+        <p style="color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.05rem;">
+            Vous développez un titre commercial, vous publiez sur console ou vous évaluez une intégration de plateforme ? Nous proposons des licences sur mesure pour les studios et les partenaires de plateforme.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto 40px;">
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
+                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">Studio</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Équipes publiant des jeux commerciaux. Builds personnalisés, support prioritaire, accès anticipé aux nouvelles fonctionnalités.</p>
+            </div>
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
+                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">Plateforme</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Constructeurs de consoles et plateformes XR. Intégration en profondeur, co-marketing, support ingénierie dédié.</p>
+            </div>
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
+                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">OEM</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Licences de pré-installation et bundling pour les fabricants de matériel. Options en marque blanche disponibles.</p>
+            </div>
+        </div>
+        <a href="enterprise.html" class="btn btn-primary">Contacter le service ventes entreprise</a>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 16px;">Technologie protégée par brevet. NDA disponible pour les analyses techniques approfondies.</p>
+    </div>
+</section>
+
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Foire aux questions</h2>
+        <div class="faq">
+            <div class="faq-item">
+                <h3>Que se passe-t-il quand j'atteins ma limite quotidienne ?</h3>
+                <p>Les utilisateurs gratuits disposent de 10 générations par jour. Lorsque vous atteignez la limite, vous verrez une option pour passer à Pro et obtenir 100 générations/jour, ou attendre le lendemain. Vos jeux existants restent jouables.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Quelle est la différence entre l'AI Gratuite et l'AI Pro ?</h3>
+                <p>L'offre Gratuite utilise notre modèle AI rapide pour des générations rapides. L'offre Pro utilise un modèle de qualité supérieure qui produit des configurations de jeu plus créatives et détaillées, avec des mécaniques de gameplay plus riches.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Comment fonctionne l'essai gratuit ?</h3>
+                <p>Votre essai Pro de 7 jours démarre immédiatement avec un accès complet à toutes les fonctionnalités Pro. Vous ne serez pas débité tant que l'essai n'est pas terminé. Résiliez à tout moment pendant l'essai et vous ne serez pas facturé.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Y a-t-il un plan annuel ?</h3>
+                <p>Oui ! Activez le commutateur « Annuel » ci-dessus pour voir la tarification annuelle à 149,99 $/an &mdash; soit 2 mois offerts par rapport à la facturation mensuelle.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Puis-je résilier à tout moment ?</h3>
+                <p>Oui. Résiliez depuis les paramètres de votre compte ou via le portail client Stripe. Vos fonctionnalités Pro restent actives jusqu'à la fin de votre période de facturation. Pas de remboursement nécessaire &mdash; il suffit de résilier.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Quels moyens de paiement acceptez-vous ?</h3>
+                <p>Nous utilisons Stripe pour un traitement sécurisé des paiements. Toutes les principales cartes de crédit et de débit, ainsi qu'Apple Pay / Google Pay, sont acceptés.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Puis-je vendre les jeux que je crée ?</h3>
+                <p>Oui. Vous êtes propriétaire des jeux que vous créez. L'offre Pro inclut l'export autonome pour une distribution commerciale sur Steam, itch.io ou toute autre plateforme.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- K.11: Referral Section -->
+<section class="section" id="referral-section" style="display: none;">
+    <div class="container" style="text-align: center;">
+        <h2>Partagez RakuAI, gagnez des récompenses</h2>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: -24px auto 32px;">
+            Partagez votre lien de parrainage avec vos amis. Lorsqu'ils passent à Pro, vous êtes tous les deux récompensés.
+        </p>
+        <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px; max-width: 500px; margin: 0 auto;">
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 8px;">Votre lien de parrainage :</p>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="referral-link" readonly style="flex: 1; background: var(--bg-primary); border: 1px solid #333; border-radius: 6px; padding: 12px; color: var(--text-primary); font-size: 0.9rem;">
+                <button onclick="copyReferralLink()" class="btn btn-primary" style="padding: 12px 20px; white-space: nowrap;" id="copy-ref-btn">Copier</button>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;" id="referral-stats"></p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../engine/">Moteur</a>
+            <a href="../api/">API</a>
+            <a href="../docs.html">Docs</a>
+            <a href="../games/">Arcade</a>
+            <a href="../press.html">Presse</a>
+            <a href="developers/">Développeurs</a>
+            <a href="../privacy.html">Confidentialité</a>
+            <a href="../terms.html">Conditions</a>
+            <a href="contact.html">Contact</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 brevets américains délivrés (Priorité : juillet 2012) &bull; Propulsé par le moteur RakuAI</p>
+        <p class="trademark-notice">
+            RakuAI&trade; et RakuXR&trade; sont des marques déposées de RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI et <span class="kanji-logo">&#x697D;</span>XR sont des marques stylisées de RakuAI, LLC.
+            5 brevets américains délivrés (Priorité : juillet 2012).
+        </p>
+    </div>
+</footer>
+
+<script>
+// --- Stripe Checkout Upgrade Flow ---
+const API_BASE = window.RAKU_API_BASE || 'https://api.raku.games';
+let currentBillingPeriod = 'monthly';
+
+function getAuthToken() {
+    return localStorage.getItem('raku_access_token');
+}
+
+// K.9: Monthly/Annual Toggle
+function toggleBillingPeriod() {
+    const toggle = document.getElementById('billing-toggle');
+    const knob = document.getElementById('toggle-knob');
+    const monthlyLabel = document.getElementById('toggle-monthly-label');
+    const annualLabel = document.getElementById('toggle-annual-label');
+    const priceEl = document.getElementById('pro-price');
+    const noteEl = document.getElementById('pro-price-note');
+    const btn = document.getElementById('upgrade-pro-btn');
+
+    if (toggle.checked) {
+        currentBillingPeriod = 'annual';
+        knob.style.left = '27px';
+        monthlyLabel.style.fontWeight = '400';
+        monthlyLabel.style.color = 'var(--text-secondary)';
+        annualLabel.style.fontWeight = '700';
+        annualLabel.querySelector('span') && (annualLabel.style.color = 'var(--accent-bright)');
+        priceEl.innerHTML = '149,99 $<span class="price-period"> / an</span>';
+        noteEl.textContent = 'Essai gratuit de 7 jours · Économisez 29,89 $/an';
+        btn.textContent = 'Démarrer l\'essai gratuit de 7 jours';
+    } else {
+        currentBillingPeriod = 'monthly';
+        knob.style.left = '3px';
+        monthlyLabel.style.fontWeight = '700';
+        monthlyLabel.style.color = 'var(--accent-bright)';
+        annualLabel.style.fontWeight = '400';
+        annualLabel.style.color = 'var(--text-secondary)';
+        priceEl.innerHTML = '14,99 $<span class="price-period"> / mois</span>';
+        noteEl.textContent = 'Essai gratuit de 7 jours · Résiliable à tout moment';
+        btn.textContent = 'Démarrer l\'essai gratuit de 7 jours';
+    }
+}
+
+async function handleUpgradeClick() {
+    const token = getAuthToken();
+    if (!token) {
+        window.location.href = 'index.html#create';
+        return;
+    }
+
+    const btn = document.getElementById('upgrade-pro-btn');
+    btn.textContent = 'Redirection vers le paiement...';
+    btn.disabled = true;
+
+    // K.11: Check for referral code in URL
+    const params = new URLSearchParams(window.location.search);
+    const referralCode = params.get('ref') || null;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/v1/billing/create-checkout-session`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                billing_period: currentBillingPeriod,
+                enable_trial: true,
+                referral_code: referralCode,
+            }),
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || 'Failed to create checkout session');
+        }
+
+        const data = await response.json();
+        window.location.href = data.checkout_url;
+    } catch (error) {
+        console.error('Upgrade error:', error);
+        btn.textContent = 'Démarrer l\'essai gratuit de 7 jours';
+        btn.disabled = false;
+        alert('Impossible de démarrer le paiement. Veuillez réessayer ou contacter le support.');
+    }
+}
+
+// K.11: Referral link copy
+function copyReferralLink() {
+    const input = document.getElementById('referral-link');
+    navigator.clipboard.writeText(input.value).then(() => {
+        const btn = document.getElementById('copy-ref-btn');
+        btn.textContent = 'Copié !';
+        setTimeout(() => { btn.textContent = 'Copier'; }, 2000);
+    });
+}
+
+// K.11: Load referral section for logged-in users
+async function loadReferralSection() {
+    const token = getAuthToken();
+    if (!token) return;
+
+    try {
+        const resp = await fetch(`${API_BASE}/api/v1/billing/referral`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!resp.ok) return;
+
+        let data = await resp.json();
+
+        // Generate code if none exists
+        if (!data.referral_code) {
+            const genResp = await fetch(`${API_BASE}/api/v1/billing/referral`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (genResp.ok) data = await genResp.json();
+        }
+
+        if (data.referral_code) {
+            document.getElementById('referral-section').style.display = 'block';
+            document.getElementById('referral-link').value = data.referral_url;
+            document.getElementById('referral-stats').textContent =
+                `${data.total_referrals} parrainage${data.total_referrals !== 1 ? 's' : ''} · ${data.successful_conversions} conversion${data.successful_conversions !== 1 ? 's' : ''}`;
+        }
+    } catch (e) {
+        // Referral section just stays hidden
+    }
+}
+
+// Show success banner if redirected from Stripe
+(function init() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('session_id')) {
+        const banner = document.getElementById('upgrade-success');
+        if (banner) {
+            banner.style.display = 'block';
+            banner.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+    // K.11: Show referral link if ref param present
+    if (params.get('ref')) {
+        const noteEl = document.getElementById('pro-price-note');
+        if (noteEl) noteEl.textContent = 'Parrainé par un ami · Essai gratuit de 7 jours';
+    }
+    // K.11: Load referral section
+    loadReferralSection();
+})();
+</script>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>
