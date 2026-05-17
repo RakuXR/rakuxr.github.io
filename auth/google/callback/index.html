@@ -58,6 +58,7 @@
     </div>
 </div>
 
+<script src="/js/public-config.js"></script>
 <script>
 /**
  * Google OAuth callback handler.
@@ -81,7 +82,9 @@ var RAKU_API_BASE = (function() {
 })();
 
 // --- Google OAuth config ---
-var GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID';
+// Pulled from /js/public-config.js. Real value injected at deploy time.
+var GOOGLE_CLIENT_ID = (window.RAKU_PUBLIC_CONFIG && window.RAKU_PUBLIC_CONFIG.google_oauth_client_id)
+    || 'PLACEHOLDER_INJECT_AT_DEPLOY';
 var GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
 function showError(msg) {

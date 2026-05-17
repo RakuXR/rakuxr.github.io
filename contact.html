@@ -12,9 +12,8 @@
     <meta property="og:url" content="https://rakuai.com/contact">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="canonical" href="https://rakuai.com/contact.html">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai https://api.rakuai.com https://formspree.io; frame-src https://hcaptcha.com;">
     <link rel="stylesheet" href="style.css">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
     <style>
         .contact-form {
             max-width: 600px;
@@ -337,7 +336,7 @@
                 } else {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Send Message';
-                    var errorMsg = (data && data.errors)
+                    var errorMsg = (data && Array.isArray(data.errors))
                         ? data.errors.map(function(err) { return err.message; }).join(', ')
                         : (data && data.error) || 'Unknown error';
                     alert('Form error: ' + errorMsg);

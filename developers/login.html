@@ -361,18 +361,16 @@
             // If the user came here from another page, bounce them back.
             // Otherwise hand off to the developer portal entry point.
             //
-            // Open-redirect prevention: ?return= must be a SAME-ORIGIN
-            // absolute path. We reject:
-            //   - anything that doesn't start with a single '/'
-            //   - protocol-relative URLs like '//evil.example' (browsers
-            //     resolve these to a foreign origin)
-            //   - any value whose resolved origin differs from the current
-            //     page (covers backslash tricks, full URLs, etc.)
-            // The default landing page is register.html (NDA-acceptance
-            // flow continues there once the user has a token).
+            // Open-redirect prevention: ?return= must resolve to a path on
+            // the SAME origin. We parse with the URL constructor (which
+            // canonicalises backslashes, percent-encoded slashes, full
+            // schemes, protocol-relative '//evil.example', etc.) and then
+            // compare resolved.origin to the current origin. Any mismatch
+            // falls back to the default landing page (register.html,
+            // where the NDA-acceptance flow continues once a token exists).
             var ret = new URLSearchParams(window.location.search).get('return');
             var safeReturn = 'register.html';
-            if (ret && ret.charAt(0) === '/' && ret.charAt(1) !== '/' && ret.charAt(1) !== '\\') {
+            if (ret) {
                 try {
                     var resolved = new URL(ret, window.location.origin);
                     if (resolved.origin === window.location.origin) {

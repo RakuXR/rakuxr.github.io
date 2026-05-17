@@ -13,7 +13,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="canonical" href="https://rakuai.com/enterprise.html">
     <link rel="stylesheet" href="style.css">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai https://api.rakuai.com https://formspree.io; frame-src https://hcaptcha.com;">
     <style>
         .enterprise-hero {
             padding: 80px 0 60px;
@@ -529,9 +529,9 @@
                 } else {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Submit Enterprise Inquiry';
-                    var errorMsg = (data && data.errors)
+                    var errorMsg = (data && Array.isArray(data.errors))
                         ? data.errors.map(function(err) { return err.message; }).join(', ')
-                        : 'An error occurred. Please try again.';
+                        : (data && data.error) || 'An error occurred. Please try again.';
                     alert('Form error: ' + errorMsg);
                 }
             });
