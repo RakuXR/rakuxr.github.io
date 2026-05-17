@@ -229,7 +229,8 @@
     'use strict';
 
     // ---- API base (resolved by /js/api-config.js) ----
-    var API_BASE = window.RAKU_API_BASE;
+    // Defensive fallback if api-config.js failed to load — defaults to prod which is the safest target.
+    var API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
 
     // ---- localStorage key names (must match register.html) ----
     const TOKEN_KEY   = 'raku_access_token';
