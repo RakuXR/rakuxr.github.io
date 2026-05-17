@@ -1006,6 +1006,15 @@ var RAKU_API_BASE = (function() {
     var shareCardPreview = document.getElementById('share-card-preview');
     var lastGenerationResult = null;
 
+    // Map Korean genre display names back to English URL slugs.
+    var GENRE_SLUGS = {
+        '플랫포머': 'platformer', 'RPG': 'rpg', '퍼즐': 'puzzle',
+        '비주얼 노벨': 'visual_novel', '타워 디펜스': 'tower_defense', '끝없는 러너': 'runner',
+        '카드 게임': 'card', '시뮬레이션': 'simulation', '샌드박스': 'sandbox',
+        '레이싱': 'racing', '리듬': 'rhythm', '로그라이크': 'roguelike',
+        '스페이스 슈터': 'space_shooter'
+    };
+
     // --- Progress UI controller ---
     function resetProgress() {
         allStages.forEach(function(s) {
@@ -1093,19 +1102,19 @@ var RAKU_API_BASE = (function() {
 
     function estimatePlaytime(genre) {
         var estimates = {
-            'Platformer': '5-15분',
+            '플랫포머': '5-15분',
             'RPG': '15-30분',
-            'Puzzle': '5-10분',
-            'Visual Novel': '10-20분',
-            'Tower Defense': '10-20분',
-            'Endless Runner': '3-10분',
-            'Card Game': '5-15분',
-            'Simulation': '10-30분',
-            'Sandbox': '15-30분',
-            'Racing': '5-10분',
-            'Rhythm': '3-8분',
-            'Roguelike': '10-25분',
-            'Space Shooter': '5-10분'
+            '퍼즐': '5-10분',
+            '비주얼 노벨': '10-20분',
+            '타워 디펜스': '10-20분',
+            '끝없는 러너': '3-10분',
+            '카드 게임': '5-15분',
+            '시뮬레이션': '10-30분',
+            '샌드박스': '15-30분',
+            '레이싱': '5-10분',
+            '리듬': '3-8분',
+            '로그라이크': '10-25분',
+            '스페이스 슈터': '5-10분'
         };
         return estimates[genre] || '5-15분';
     }
@@ -1120,7 +1129,8 @@ var RAKU_API_BASE = (function() {
         if (!data) return;
 
         var config = data.raku_config || data;
-        var genre = (config.genre || data.genre || 'puzzle').toLowerCase().replace(/\s+/g, '_');
+        var rawGenre = config.genre || data.genre || 'puzzle';
+        var genre = GENRE_SLUGS[rawGenre] || rawGenre.toLowerCase().replace(/\s+/g, '_');
         var title = encodeURIComponent(config.title || data.title || 'Raku Game');
 
         // Store config in sessionStorage for the player page to read
@@ -1140,7 +1150,7 @@ var RAKU_API_BASE = (function() {
         if (!data) return;
 
         var config = data.raku_config || data;
-        var title = config.title || config.game_title || 'game';
+        var title = config.title || config.game_title || '게임';
         var filename = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.raku';
         var blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
@@ -1422,7 +1432,7 @@ var RAKU_API_BASE = (function() {
 
         // Genre badge
         ctx.font = 'bold 22px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-        var badgeText = (genre || 'Game').toUpperCase();
+        var badgeText = (genre || '게임').toUpperCase();
         var badgeWidth = ctx.measureText(badgeText).width + 32;
         var badgeX = 80;
         var badgeY = 80;
@@ -1435,7 +1445,7 @@ var RAKU_API_BASE = (function() {
         // Game title
         ctx.font = 'bold 56px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
         ctx.fillStyle = '#ffffff';
-        wrapText(ctx, title || 'Untitled Game', 80, 200, w - 160, 64, 2);
+        wrapText(ctx, title || '제목 없는 게임', 80, 200, w - 160, 64, 2);
 
         // Description
         if (description) {
@@ -1469,7 +1479,7 @@ var RAKU_API_BASE = (function() {
         // Tagline
         ctx.font = '20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.fillText('Describe Any Game. Play It Instantly.', 80, h - 10);
+        ctx.fillText('어떤 게임이든 설명만으로 즉시 플레이하세요.', 80, h - 10);
 
         // URL
         ctx.font = '20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
@@ -1496,26 +1506,24 @@ var RAKU_API_BASE = (function() {
     }
 
     function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
-        var words = text.split(' ');
         var line = '';
         var lineCount = 0;
-        for (var i = 0; i < words.length; i++) {
-            var testLine = line + words[i] + ' ';
-            var metrics = ctx.measureText(testLine);
-            if (metrics.width > maxWidth && line !== '') {
+        for (var n = 0; n < text.length; n++) {
+            var testLine = line + text[n];
+            if (ctx.measureText(testLine).width > maxWidth && n > 0) {
                 lineCount++;
                 if (lineCount >= maxLines) {
-                    ctx.fillText(line.trim().slice(0, -3) + '...', x, y);
+                    ctx.fillText(line.slice(0, -1) + '...', x, y);
                     return;
                 }
-                ctx.fillText(line.trim(), x, y);
-                line = words[i] + ' ';
+                ctx.fillText(line, x, y);
+                line = text[n];
                 y += lineHeight;
             } else {
                 line = testLine;
             }
         }
-        ctx.fillText(line.trim(), x, y);
+        ctx.fillText(line, x, y);
     }
 
     // --- Build share URL with query params ---
@@ -1540,7 +1548,7 @@ var RAKU_API_BASE = (function() {
     resultShareBtn.addEventListener('click', function() {
         var data = lastGenerationResult;
         var config = (data && data.raku_config) || data || {};
-        var title = config.title || config.game_title || 'My Raku Game';
+        var title = config.title || config.game_title || '내 Raku 게임';
         var shareUrl = buildShareUrl(data);
         var shareText = '"' + title + '" — RakuAI로 만든 게임을 확인해 보세요!';
 
@@ -1582,7 +1590,7 @@ var RAKU_API_BASE = (function() {
     resultDownloadCardBtn.addEventListener('click', function() {
         var data = lastGenerationResult;
         var config = (data && data.raku_config) || data || {};
-        var title = config.title || config.game_title || 'My Raku Game';
+        var title = config.title || config.game_title || '내 Raku 게임';
         var genre = config.genre || '';
         var desc = config.description || '';
 
