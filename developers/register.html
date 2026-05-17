@@ -534,17 +534,14 @@
     </div>
 </footer>
 
+<script src="/js/api-config.js"></script>
 <script>
 (function() {
     'use strict';
 
-    // ---- API base detection (matches developers/login.html) ----
-    var API_BASE = window.RAKU_API_BASE || (function() {
-        var h = window.location.hostname;
-        if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
-        if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
-        return 'https://api.rakuai.com';
-    })();
+    // ---- API base (resolved by /js/api-config.js) ----
+    // Defensive fallback if api-config.js failed to load — defaults to prod which is the safest target.
+    var API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
 
     var TOKEN_KEY = 'raku_access_token';
     var USER_KEY  = 'raku_user';
