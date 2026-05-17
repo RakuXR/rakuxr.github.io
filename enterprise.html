@@ -529,9 +529,9 @@
                 } else {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Submit Enterprise Inquiry';
-                    var errorMsg = (data && data.errors)
+                    var errorMsg = (data && Array.isArray(data.errors))
                         ? data.errors.map(function(err) { return err.message; }).join(', ')
-                        : 'An error occurred. Please try again.';
+                        : (data && data.error) || 'An error occurred. Please try again.';
                     alert('Form error: ' + errorMsg);
                 }
             });

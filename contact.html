@@ -336,7 +336,7 @@
                 } else {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Send Message';
-                    var errorMsg = (data && data.errors)
+                    var errorMsg = (data && Array.isArray(data.errors))
                         ? data.errors.map(function(err) { return err.message; }).join(', ')
                         : (data && data.error) || 'Unknown error';
                     alert('Form error: ' + errorMsg);
