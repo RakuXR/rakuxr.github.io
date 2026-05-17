@@ -42,7 +42,7 @@
     -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="stylesheet" href="style.css">
-    <script src="https://js.hcaptcha.com/1/api.js?render=explicit" async defer crossorigin="anonymous"
+    <script src="https://js.hcaptcha.com/1/api.js?render=explicit&onload=__rakuOnHCaptchaLoad__" async defer crossorigin="anonymous"
             referrerpolicy="no-referrer"></script>
 </head>
 <body>
@@ -931,22 +931,13 @@
         }
     };
     if (window.hcaptcha && window.hcaptcha.render) {
+        // SDK already loaded (e.g. on a soft-navigation reload).
         renderWidgets();
     } else {
-        // Defer until the SDK calls us back. The render=explicit script
-        // mode dispatches an 'onload' callback name via the URL when set;
-        // we fall back to a one-shot polling loop bounded at ~5s for
-        // simplicity.
-        var attempts = 0;
-        var poll = setInterval(function () {
-            attempts++;
-            if (window.hcaptcha && window.hcaptcha.render) {
-                clearInterval(poll);
-                renderWidgets();
-            } else if (attempts > 50) {
-                clearInterval(poll);
-            }
-        }, 100);
+        // Standard hCaptcha pattern: ?render=explicit&onload=<fn> tells
+        // the SDK to call window.<fn>() exactly once when it's ready.
+        // No polling needed.
+        window.__rakuOnHCaptchaLoad__ = renderWidgets;
     }
 })();
 
