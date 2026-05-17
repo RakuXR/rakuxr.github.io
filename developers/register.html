@@ -171,6 +171,7 @@
             <a href="../why-rakuai.html">Why RakuAI</a>
             <a href="../developers/">Developers</a>
             <a href="../press.html">Press</a>
+            <a href="login.html" class="nav-signin">Sign In</a>
             <a href="../ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
         </div>
     </div>
@@ -270,8 +271,9 @@
     async function handleRegister() {
         const token = localStorage.getItem('raku_access_token');
         if (!token) {
-            alert('Please log in first to request developer access.');
-            window.location.href = '../index.html#create';
+            // Send the user to the developer sign-in page and bring them back
+            // to /developers/register.html once they have a session token.
+            window.location.href = 'login.html?return=/developers/register.html';
             return;
         }
 
