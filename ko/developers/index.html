@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개발자 포털 - RakuAI</title>
+    <meta name="description" content="RakuForge API로 몇 분 만에 공간 AI 경험을 구축하세요. 월드 모델 엔드포인트 21개. 시나리오 5개. 단일 API.">
+    <meta property="og:title" content="개발자 포털 - RakuAI">
+    <meta property="og:description" content="월드 모델 엔드포인트 21개. 시나리오 5개. 단일 API. 몇 분 만에 공간 AI 경험을 구축하세요.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ko/developers/">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/ko/developers/">
+    <link rel="stylesheet" href="../../style.css">
+    <!--
+      Machine-translated by Claude. Pending human review.
+      Source: ../../developers/index.html @ b41cc9c
+      Date: 2026-05-17
+      Language: ko (Korean)
+    -->
+    <style>
+        .dev-hero {
+            padding: 100px 0 80px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+        .dev-hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .dev-hero .subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        .code-hero {
+            background: #0d0d2b;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 12px;
+            padding: 28px 32px;
+            font-family: 'SFMono-Regular', Consolas, 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 2;
+            color: var(--text-secondary);
+            overflow-x: auto;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            text-align: left;
+        }
+        .code-hero .kw { color: var(--accent-bright); }
+        .code-hero .str { color: var(--success); }
+        .code-hero .comment { color: #555580; }
+        .code-hero .fn { color: #ff79c6; }
+        .dev-cta-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .dev-cta-group .btn-dev {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 14px 36px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: background 0.2s, transform 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .dev-cta-group .btn-dev:hover {
+            background: var(--accent-bright);
+            transform: translateY(-2px);
+        }
+        .dev-cta-group .btn-dev-outline {
+            display: inline-block;
+            border: 2px solid var(--accent);
+            color: var(--accent-bright);
+            padding: 12px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+        }
+        .dev-cta-group .btn-dev-outline:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            padding: 64px 0;
+        }
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+        .feature-card .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+        .feature-card h3 {
+            font-size: 1.2rem;
+            color: var(--accent-bright);
+            margin-bottom: 10px;
+        }
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .pricing-section {
+            padding: 80px 0;
+            background: var(--bg-secondary);
+        }
+        .pricing-section h2 {
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .pricing-section .section-sub {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 48px;
+            font-size: 1.05rem;
+        }
+        .pricing-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .price-card {
+            background: var(--bg-primary);
+            border: 2px solid #222244;
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+        .price-card:hover {
+            transform: translateY(-4px);
+        }
+        .price-card.featured {
+            border-color: var(--accent);
+            box-shadow: 0 0 30px rgba(108, 92, 231, 0.15);
+        }
+        .price-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .price-card .price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-bright);
+            margin-bottom: 4px;
+        }
+        .price-card .price-period {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        .price-card ul {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 24px;
+            padding: 0;
+        }
+        .price-card ul li {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-bottom: 1px solid #1a1a3a;
+        }
+        .price-card ul li::before {
+            content: "\2713";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .price-card .btn-price {
+            display: inline-block;
+            width: 100%;
+            padding: 10px 0;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+        .price-card .btn-price.primary {
+            background: var(--accent);
+            color: white;
+        }
+        .price-card .btn-price.primary:hover {
+            background: var(--accent-bright);
+        }
+        .price-card .btn-price.outline {
+            border: 1px solid var(--accent);
+            color: var(--accent-bright);
+            background: transparent;
+        }
+        .price-card .btn-price.outline:hover {
+            background: var(--accent);
+            color: white;
+        }
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            padding: 40px 0;
+            flex-wrap: wrap;
+        }
+        .stat-item { text-align: center; }
+        .stat-item .stat-number {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--accent-bright);
+        }
+        .stat-item .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .dev-bottom-cta {
+            text-align: center;
+            padding: 80px 0;
+        }
+        .dev-bottom-cta h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+        .dev-bottom-cta p {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 1.05rem;
+        }
+        @media (max-width: 900px) {
+            .pricing-grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .dev-hero h1 { font-size: 2rem; }
+            .pricing-grid-4 {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+            .code-hero { font-size: 0.8rem; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">TM</sup> 개발자 포털 &nbsp;|&nbsp; <a href="docs.html">API 레퍼런스</a> &nbsp;|&nbsp; <a href="../../scenarios/">시나리오</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">홈</a>
+            <a href="../../engine/">엔진</a>
+            <a href="../../api/">API 문서</a>
+            <a href="../../games/">게임</a>
+            <a href="../why-rakuai.html">RakuAI를 선택하는 이유</a>
+            <a href="../developers/">개발자</a>
+            <a href="../../press.html">언론</a>
+            <a href="login.html" class="nav-signin">로그인</a>
+            <a href="../../developers/" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="dev-hero">
+    <div class="container">
+        <div class="beta-badge" style="display:inline-block;background:var(--accent);color:white;padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:600;margin-bottom:24px;">RakuForge API</div>
+        <h1>몇 분 만에 공간 AI 경험을 구축하세요</h1>
+        <p class="subtitle">월드 모델 엔드포인트 21개. 시나리오 5개. 단일 API.</p>
+
+        <div class="code-hero">
+            <span class="kw">import</span> raku<br>
+            world = raku.<span class="fn">create_world</span>(<span class="str">"my_game"</span>, gps={<span class="str">"lat"</span>: <span class="str">37.78</span>, <span class="str">"lng"</span>: <span class="str">-122.41</span>})<br>
+            raku.<span class="fn">create_entity</span>(world, type=<span class="str">"npc"</span>, gps={<span class="str">"lat"</span>: <span class="str">37.7801</span>, <span class="str">"lng"</span>: <span class="str">-122.4102</span>})
+        </div>
+
+        <div class="dev-cta-group">
+            <a href="register.html" class="btn-dev">API 키 받기</a>
+            <a href="docs.html" class="btn-dev-outline">문서 보기</a>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-number">21</div>
+                <div class="stat-label">API 엔드포인트</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5</div>
+                <div class="stat-label">시나리오</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">~300ms</div>
+                <div class="stat-label">평균 응답</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">REST</div>
+                <div class="stat-label">+ SSE 스트리밍</div>
+            </div>
+        </div>
+
+        <div class="feature-cards">
+            <div class="feature-card">
+                <div class="card-icon">&#x1F30D;</div>
+                <h3>월드 모델</h3>
+                <p>실제 GPS 좌표에 고정된 영속적인 3D 월드를 생성·인제스트·관리합니다. 3D Tiles, 씬 그래프, 뎁스 맵을 임포트할 수 있습니다.</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x1F916;</div>
+                <h3>AI 에이전트</h3>
+                <p>행동 트리와 LLM 기반 대화를 갖춘 지능형 NPC를 스폰하세요. 에이전트는 실시간으로 관찰·행동하고 보상으로부터 학습합니다.</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x2699;</div>
+                <h3>물리</h3>
+                <p>강체를 추가하고 시뮬레이션을 스텝하며 실제 세계 위험을 모델링합니다. 화재 확산, 구조 붕괴, 발사체 궤적.</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x1F50A;</div>
+                <h3>공간 오디오</h3>
+                <p>월드에 3D 오디오 소스를 배치합니다. 방문자는 GPS 위치에 따라 변화하는 역사적으로 정확한 사운드스케이프를 듣게 됩니다.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pricing-section">
+    <div class="container">
+        <h2>심플하고 확장 가능한 요금제</h2>
+        <p class="section-sub">무료로 시작하세요. 성장에 맞춰 확장하세요. 신용카드 불필요.</p>
+
+        <div class="pricing-grid-4">
+            <div class="price-card">
+                <h3>Free</h3>
+                <div class="price">$0</div>
+                <div class="price-period">영구 무료</div>
+                <ul>
+                    <li>월 100개 월드</li>
+                    <li>월드당 엔티티 10개</li>
+                    <li>AI 에이전트 1개</li>
+                    <li>GPS 반경 100m</li>
+                    <li>커뮤니티 지원</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">시작하기</a>
+            </div>
+
+            <div class="price-card">
+                <h3>Creative</h3>
+                <div class="price">$9.99</div>
+                <div class="price-period">월</div>
+                <ul>
+                    <li>월 1,000개 월드</li>
+                    <li>월드당 엔티티 100개</li>
+                    <li>AI 에이전트 5개</li>
+                    <li>GPS 반경 1km</li>
+                    <li>이메일 지원</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">체험 시작</a>
+            </div>
+
+            <div class="price-card featured">
+                <h3>Pro</h3>
+                <div class="price">$29.99</div>
+                <div class="price-period">월</div>
+                <ul>
+                    <li>월 10,000개 월드</li>
+                    <li>월드당 엔티티 1,000개</li>
+                    <li>AI 에이전트 20개</li>
+                    <li>8인 멀티플레이어</li>
+                    <li>GPS 반경 10km</li>
+                    <li>우선 지원</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">체험 시작</a>
+            </div>
+
+            <div class="price-card">
+                <h3>Enterprise</h3>
+                <div class="price">맞춤형</div>
+                <div class="price-period">문의 바랍니다</div>
+                <ul>
+                    <li>무제한 월드</li>
+                    <li>무제한 엔티티</li>
+                    <li>무제한 AI 에이전트</li>
+                    <li>커스텀 멀티플레이어</li>
+                    <li>커스텀 GPS 반경</li>
+                    <li>전담 지원</li>
+                </ul>
+                <a href="../contact.html" class="btn-price outline">영업팀 문의</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dev-bottom-cta">
+    <div class="container">
+        <h2>공간 AI를 구축할 준비가 되셨나요?</h2>
+        <p>30초 만에 API 키를 받고 월드를 만들기 시작하세요.</p>
+        <div class="dev-cta-group">
+            <a href="register.html" class="btn-dev">API 키 받기</a>
+            <a href="docs.html" class="btn-dev-outline">문서 보기</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../../engine/">엔진</a>
+            <a href="../../api/">API</a>
+            <a href="../../docs.html">문서</a>
+            <a href="../../games/">아케이드</a>
+            <a href="../../press.html">언론</a>
+            <a href="../developers/">개발자</a>
+            <a href="../../privacy.html">개인정보</a>
+            <a href="../../terms.html">이용약관</a>
+            <a href="../contact.html">문의</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 미국 등록 특허 5건 (우선일: 2012년 7월) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 및 RakuXR&trade;은 RakuAI, LLC의 상표입니다.
+            <span class="kanji-logo">&#x697D;</span>AI와 <span class="kanji-logo">&#x697D;</span>XR은 RakuAI, LLC의 스타일화된 마크입니다.
+            미국 등록 특허 5건 (우선일: 2012년 7월).
+        </p>
+    </div>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>
