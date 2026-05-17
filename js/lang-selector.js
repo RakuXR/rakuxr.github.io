@@ -21,10 +21,10 @@
  *     to exist for that locale, links to the localized equivalent; else
  *     falls back to the locale's `index.html`. This avoids 404s from
  *     deep-linking into a locale tree that doesn't yet have that page.
- *   - Today only EN and JA pages exist; the remaining seven locale
- *     trees are being added by parallel translation PRs. Those locales
- *     all fall through to their (future) `index.html` until the
- *     availability map is updated.
+ *   - The AVAILABILITY map lists the Tier-1 pages for all 9 locales.
+ *     EN/JA trees exist today; the other seven are being added by
+ *     parallel translation PRs (#178-#185). Until those merge, links
+ *     to those locales will 404 — that's a known transient state.
  *   - Dropdown is keyboard accessible (Tab focusable, Enter/Space open,
  *     ArrowUp/ArrowDown navigate, Esc closes), closes on click-outside
  *     or item selection, and marks the current locale with a checkmark.
@@ -92,6 +92,20 @@
         'developers/support.html'
     ];
 
+    // Tier-1 page set shared by all seven incoming locale trees
+    // (pt-BR, es, fr, de, zh-CN, zh-TW, ko). Each translation PR
+    // (#178-#185) lands the same 10 pages, so they share one list.
+    // Until those PRs merge the destinations 404 — the map describes
+    // the eventual state so deep-linking works as soon as they land.
+    var TIER1_PAGES = [
+        '', 'index.html',
+        'why-rakuai.html', 'pricing.html', 'enterprise.html',
+        'developer-guide.html', 'contact.html',
+        'developers/', 'developers/index.html',
+        'developers/login.html', 'developers/register.html',
+        'developers/dashboard.html'
+    ];
+
     function toSet(arr) {
         var s = {};
         for (var i = 0; i < arr.length; i++) s[arr[i]] = true;
@@ -100,9 +114,14 @@
 
     var AVAILABILITY = {
         'en':    toSet(EN_PAGES),
-        'ja':    toSet(JA_PAGES)
-        // Other locales: no pages yet — every link falls back to
-        // /<locale>/index.html until their translation PRs land.
+        'ja':    toSet(JA_PAGES),
+        'pt-BR': toSet(TIER1_PAGES),
+        'es':    toSet(TIER1_PAGES),
+        'fr':    toSet(TIER1_PAGES),
+        'de':    toSet(TIER1_PAGES),
+        'zh-CN': toSet(TIER1_PAGES),
+        'zh-TW': toSet(TIER1_PAGES),
+        'ko':    toSet(TIER1_PAGES)
     };
 
     // Localized tooltip / aria-label for the globe button. Falls back to
@@ -119,25 +138,62 @@
         'es':    'Cambiar idioma'
     };
 
+    // Minimal fallback styles for pages that don't load /style.css
+    // (e.g. press.html, engine/index.html, scenarios/*). Pages WITH
+    // style.css get the canonical look — these rules are lower-
+    // specificity duplicates that the canonical sheet overrides via
+    // the cascade order (this <style> is injected into <head> before
+    // style.css evaluation continues).
+    var FALLBACK_CSS = [
+        '.lang-selector { position: relative; display: inline-block; margin-left: 8px; vertical-align: middle; }',
+        '.lang-globe { background: none; border: 1px solid currentColor; border-radius: 6px; padding: 4px 10px; cursor: pointer; color: inherit; font-size: 0.9rem; font-family: inherit; line-height: 1; }',
+        '.lang-globe:hover { background: rgba(255,255,255,0.06); }',
+        '.lang-menu { position: absolute; right: 0; top: calc(100% + 6px); min-width: 200px; background: #14142a; border: 1px solid #2a2a4a; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); padding: 6px 0; z-index: 1000; display: none; }',
+        '.lang-menu.is-open { display: block; }',
+        '.lang-menu a { display: block; padding: 8px 14px; color: #e8e8f0; text-decoration: none; font-size: 0.92rem; }',
+        '.lang-menu a:hover, .lang-menu a:focus { background: rgba(108,92,231,0.15); }',
+        '.lang-menu a.is-current { font-weight: 700; }',
+        '.lang-menu a.is-current::before { content: \'\\2713  \'; }',
+        '@media (max-width: 600px) { .lang-menu { right: 4px; min-width: 160px; } }'
+    ].join('\n');
+
+    function injectFallbackStyles() {
+        if (document.querySelector('style[data-lang-selector-fallback]')) return;
+        var s = document.createElement('style');
+        s.setAttribute('data-lang-selector-fallback', '');
+        s.textContent = FALLBACK_CSS;
+        document.head.appendChild(s);
+    }
+
     function findNav() {
         return document.querySelector('nav .nav-links, nav .links')
             || document.querySelector('nav');
     }
 
-    // Returns the current locale code. Prefers <html lang>; falls back
-    // to scanning the path for a known /<locale>/ prefix.
+    // Returns the current locale code. Prefers <html lang> (case-
+    // insensitive, with region-subtag fallback so `en-US` matches `en`);
+    // falls back to scanning the path for a known /<locale>/ prefix
+    // (tolerating either `/ja` or `/ja/`).
     function currentLocale() {
         var html = document.documentElement;
         var lang = html && (html.lang || html.getAttribute('lang'));
         if (lang) {
+            lang = lang.toLowerCase();
             for (var i = 0; i < LOCALES.length; i++) {
-                if (LOCALES[i].code === lang) return LOCALES[i].code;
+                var code = LOCALES[i].code.toLowerCase();
+                if (code === lang || lang.indexOf(code + '-') === 0) {
+                    return LOCALES[i].code;
+                }
             }
         }
         var path = window.location.pathname;
         for (var j = 0; j < LOCALES.length; j++) {
-            var p = LOCALES[j].prefix;
-            if (p && path.indexOf('/' + p) === 0) return LOCALES[j].code;
+            var p = LOCALES[j].prefix; // e.g. 'ja/'
+            if (!p) continue;
+            var pNoSlash = p.replace(/\/$/, '');
+            if (path === '/' + pNoSlash || path.indexOf('/' + p) === 0) {
+                return LOCALES[j].code;
+            }
         }
         return 'en';
     }
@@ -148,7 +204,10 @@
     // leading slash.
     function currentPageKey(currentCode) {
         var path = window.location.pathname.replace(/^\/+/, '');
-        var loc = LOCALES.find(function (l) { return l.code === currentCode; });
+        var loc;
+        for (var k = 0; k < LOCALES.length; k++) {
+            if (LOCALES[k].code === currentCode) { loc = LOCALES[k]; break; }
+        }
         if (loc && loc.prefix && path.indexOf(loc.prefix) === 0) {
             path = path.slice(loc.prefix.length);
         }
@@ -160,8 +219,11 @@
     function urlFor(targetLocale, pageKey) {
         var base = '/' + targetLocale.prefix; // '/' for EN, '/ja/', etc.
         var avail = AVAILABILITY[targetLocale.code];
-        if (avail && avail[pageKey]) {
-            return base + pageKey;
+        if (avail) {
+            // Tolerate trailing-slash mismatch: `/developers` (pageKey
+            // `developers`) should still resolve via `developers/`.
+            if (avail[pageKey]) return base + pageKey;
+            if (avail[pageKey + '/']) return base + pageKey + '/';
         }
         return base + 'index.html';
     }
@@ -232,7 +294,10 @@
             if (open) {
                 // Focus the current locale's item first if present,
                 // else the first item.
-                var idx = items.findIndex(function (a) { return a.classList.contains('is-current'); });
+                var idx = -1;
+                for (var k = 0; k < items.length; k++) {
+                    if (items[k].classList.contains('is-current')) { idx = k; break; }
+                }
                 (items[idx >= 0 ? idx : 0] || btn).focus();
             }
         }
@@ -302,6 +367,8 @@
         var nav = findNav();
         if (!nav) return;
         if (nav.querySelector('.lang-globe')) return; // idempotent
+
+        injectFallbackStyles();
 
         var currentCode = currentLocale();
         var pageKey = currentPageKey(currentCode);
