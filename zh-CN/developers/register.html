@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发者注册 - RakuAI</title>
+    <meta name="description" content="申请 RakuAI 开发者访问权限。签署 NDA，完善资料，获取 API 密钥。">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        .register-container {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+        .register-container h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .register-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        .nda-box {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 32px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        .nda-box h3 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+        .nda-box h4 {
+            color: var(--accent-bright);
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+        .nda-box ol, .nda-box ul {
+            padding-left: 24px;
+            margin-bottom: 12px;
+        }
+        .nda-box li {
+            margin-bottom: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label,
+        .form-group > .group-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+        .form-group .hint {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .form-group textarea {
+            min-height: 110px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-group input[readonly] {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .radio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+        }
+        .radio-grid label,
+        .checkbox-grid label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 400;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+        .radio-grid input[type="radio"],
+        .checkbox-grid input[type="checkbox"] {
+            accent-color: var(--accent);
+            margin: 0;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
+        }
+        .opt-in-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .opt-in-list label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 400;
+            line-height: 1.5;
+            cursor: pointer;
+        }
+        .opt-in-list input[type="checkbox"] {
+            margin-top: 3px;
+            accent-color: var(--accent);
+        }
+        .char-counter {
+            display: block;
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .char-counter.invalid { color: #ff8a7e; }
+
+        .field-error {
+            color: #ff8a7e;
+            font-size: 0.85rem;
+            margin-top: 6px;
+            display: none;
+        }
+        .field-error.visible { display: block; }
+
+        .form-error-banner {
+            margin: 16px 0;
+            padding: 12px 14px;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            border-radius: 8px;
+            color: #ff8a7e;
+            font-size: 0.92rem;
+            display: none;
+        }
+        .form-error-banner.visible { display: block; }
+
+        .nda-checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 24px 0;
+        }
+        .nda-checkbox-group input[type="checkbox"] {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+        .nda-checkbox-group label {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+        .btn-register {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-register:hover { background: var(--accent-bright); }
+        .btn-register:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .register-success {
+            display: none;
+            text-align: center;
+            padding: 48px 24px;
+        }
+        .register-success h2 {
+            color: var(--success);
+            font-size: 1.8rem;
+            margin-bottom: 16px;
+        }
+        .register-success p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.7;
+        }
+        .needs-signin {
+            display: none;
+            padding: 28px;
+            margin-bottom: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 12px;
+            text-align: center;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .needs-signin a { color: var(--accent-bright); }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .step.active { color: var(--accent-bright); }
+        .step.done { color: var(--success); }
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        section.step-panel { display: none; }
+        section.step-panel.active { display: block; }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../../developers/register.html @ 52a4f1d7f283da1cfd06e0377ba68b9c389f5f3a
+  Date: 2026-05-17
+  Language: zh-CN (Simplified Chinese, Mainland)
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — 世界模型的通用运行时 &nbsp;|&nbsp; <a href="../index.html#for-studios">面向工作室与开发者 →</a> &nbsp;&nbsp; 也可：<a href="../index.html#quickstart">试用消费者 Demo →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">首页</a>
+            <a href="../../engine/">引擎</a>
+            <a href="../../api/">API 文档</a>
+            <a href="../../games/">游戏</a>
+            <a href="../why-rakuai.html">为什么选 RakuAI</a>
+            <a href="../developers/">开发者</a>
+            <a href="../../press.html">新闻媒体</a>
+            <a href="login.html" class="nav-signin">登录</a>
+            <a href="../../developers/register.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<div class="register-container">
+    <div class="step-indicator">
+        <div class="step active" id="step1-indicator"><span class="step-num">1</span> 阅读 NDA</div>
+        <div class="step" id="step2-indicator"><span class="step-num">2</span> 完善资料</div>
+        <div class="step" id="step3-indicator"><span class="step-num">3</span> 审核与 API 密钥</div>
+    </div>
+
+    <div class="needs-signin" id="needsSignin">
+        <h2 style="color: var(--text-primary); margin-bottom: 12px;">请先登录以继续</h2>
+        <p>
+            开发者注册需要一个 RakuAI 账号。如果你已经有账号，
+            <a href="login.html?return=/zh-CN/developers/register.html">用你的 API 密钥登录</a>。
+            还没有 RakuAI 账号？请从
+            <a href="../index.html#quickstart">主站</a>创建账号，然后回到本页面继续。
+            <!-- TRANSLATION: alt phrasing "请回到本页面" -->
+        </p>
+    </div>
+
+    <!-- Step 1: NDA acceptance -->
+    <section class="step-panel active" id="step1Panel">
+        <h1>开发者访问申请</h1>
+        <p class="subtitle">请先阅读下面的 NDA，然后继续填写资料。</p>
+
+        <div class="nda-box" id="ndaBox">
+            <h3>RakuAI 开发者保密协议（NDA）</h3>
+            <p><strong>生效日期：</strong>自接受之日起</p>
+
+            <h4>1. 定义</h4>
+            <p>“保密信息”指通过 RakuAI 开发者计划提供的任何非公开技术信息、文档、API 规范、SDK 源代码、游戏配置模式（.raku 格式）以及专有算法。</p>
+
+            <h4>2. 义务</h4>
+            <ol>
+                <li>你同意对所有保密信息严格保密。</li>
+                <li>你不得对任何 RakuAI 软件、SDK 或运行时二进制文件进行逆向工程、反编译或反汇编。</li>
+                <li>你不得向未获授权的第三方分享 API 密钥、SDK 构建或内部文档。</li>
+                <li>你将仅出于开发与 RakuAI 平台集成的应用之目的使用开发者工具。</li>
+            </ol>
+
+            <h4>3. 允许的用途</h4>
+            <ul>
+                <li>使用 RakuAI API 构建应用与游戏</li>
+                <li>与你的开发团队分享公开文档</li>
+                <li>发布用 RakuAI 创建的游戏（须做适当的 AI 披露）</li>
+                <li>向 RakuAI 团队提供反馈与 Bug 报告</li>
+            </ul>
+
+            <h4>4. 有效期</h4>
+            <p>本协议在你参与开发者计划期间持续有效，并在终止后再延续两（2）年。</p>
+
+            <h4>5. 终止</h4>
+            <p>任何一方均可提前 30 天书面通知终止本协议。终止后，你必须销毁你持有的所有保密信息。</p>
+
+            <h4>6. 适用法律</h4>
+            <p>本协议受美利坚合众国特拉华州法律管辖。</p>
+        </div>
+
+        <div class="nda-checkbox-group">
+            <input type="checkbox" id="ndaAccept">
+            <label for="ndaAccept">我已阅读并同意 RakuAI 开发者保密协议。我理解违反本协议可能导致开发者访问权限被撤销以及承担相应法律责任。</label>
+        </div>
+
+        <div class="form-error-banner" id="ndaErrorBanner" aria-live="polite"></div>
+
+        <button class="btn-register" id="ndaSubmitBtn" type="button" disabled>接受 NDA 并继续</button>
+    </section>
+
+    <!-- Step 2: Extended profile -->
+    <section class="step-panel" id="step2Panel" aria-labelledby="step2Heading">
+        <h1 id="step2Heading">介绍一下你自己</h1>
+        <p class="subtitle">简短的资料可以帮助我们把你的访问请求转到合适的团队。除非标注为“可选”，所有字段均为必填。</p>
+
+        <form id="profileForm" novalidate>
+            <div class="form-group">
+                <label for="fullName">姓名</label>
+                <input type="text" id="fullName" name="fullName" autocomplete="name" maxlength="100" required>
+                <div class="field-error" id="fullName-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="workEmail">工作邮箱</label>
+                <input type="email" id="workEmail" name="workEmail" autocomplete="email" maxlength="200" required>
+                <span class="hint">如果可用，会从你的账号自动填入。</span>
+                <div class="field-error" id="workEmail-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="company">公司 / 组织</label>
+                <input type="text" id="company" name="company" autocomplete="organization" maxlength="200" required>
+                <div class="field-error" id="company-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="role">职位 / 角色</label>
+                <input type="text" id="role" name="role" autocomplete="organization-title" maxlength="100" required>
+                <div class="field-error" id="role-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="country">国家 / 地区</label>
+                <select id="country" name="country" autocomplete="country" required>
+                    <option value="">请选择……</option>
+                    <option value="US">美国</option>
+                    <option value="CA">加拿大</option>
+                    <option value="GB">英国</option>
+                    <option value="DE">德国</option>
+                    <option value="FR">法国</option>
+                    <option value="NL">荷兰</option>
+                    <option value="SE">瑞典</option>
+                    <option value="ES">西班牙</option>
+                    <option value="IT">意大利</option>
+                    <option value="JP">日本</option>
+                    <option value="KR">韩国</option>
+                    <option value="CN">中国</option>
+                    <option value="IN">印度</option>
+                    <option value="SG">新加坡</option>
+                    <option value="AU">澳大利亚</option>
+                    <option value="NZ">新西兰</option>
+                    <option value="BR">巴西</option>
+                    <option value="MX">墨西哥</option>
+                    <option value="AE">阿联酋</option>
+                    <option value="IL">以色列</option>
+                    <option value="ZA">南非</option>
+                    <option value="XX">其他</option>
+                </select>
+                <span class="hint">ISO 3166-1 alpha-2 代码。未列出请选“其他”。</span>
+                <div class="field-error" id="country-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="industry">行业方向</label>
+                <select id="industry" name="industry" required>
+                    <option value="">请选择……</option>
+                    <option value="gaming">游戏</option>
+                    <option value="enterprise">企业</option>
+                    <option value="education">教育</option>
+                    <option value="defense">国防</option>
+                    <option value="tourism">旅游</option>
+                    <option value="fitness">健身</option>
+                    <option value="healthcare">医疗健康</option>
+                    <option value="other">其他</option>
+                </select>
+                <div class="field-error" id="industry-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="group" aria-labelledby="targetPlatformLabel">
+                <span class="group-label" id="targetPlatformLabel">目标平台（至少选一项）</span>
+                <div class="checkbox-grid" id="targetPlatformGrid">
+                    <label><input type="checkbox" name="target_platform" value="xr"> XR（VR/AR/MR）</label>
+                    <label><input type="checkbox" name="target_platform" value="web"> Web</label>
+                    <label><input type="checkbox" name="target_platform" value="mobile"> 移动端</label>
+                    <label><input type="checkbox" name="target_platform" value="desktop"> 桌面端</label>
+                    <label><input type="checkbox" name="target_platform" value="console"> 主机</label>
+                </div>
+                <div class="field-error" id="target_platform-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="useCase">使用场景描述</label>
+                <textarea id="useCase" name="useCase" maxlength="2000" minlength="10" required></textarea>
+                <span class="char-counter" id="useCase-counter" aria-live="polite">0 / 2000（至少 10）</span>
+                <div class="field-error" id="useCase-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="radiogroup" aria-labelledby="teamSizeLabel">
+                <span class="group-label" id="teamSizeLabel">团队规模</span>
+                <div class="radio-grid">
+                    <label><input type="radio" name="team_size" value="solo"> 个人</label>
+                    <label><input type="radio" name="team_size" value="2-10"> 2–10</label>
+                    <label><input type="radio" name="team_size" value="11-50"> 11–50</label>
+                    <label><input type="radio" name="team_size" value="51-200"> 51–200</label>
+                    <label><input type="radio" name="team_size" value="200+"> 200+</label>
+                </div>
+                <div class="field-error" id="team_size-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="radiogroup" aria-labelledby="fundingLabel">
+                <span class="group-label" id="fundingLabel">融资阶段</span>
+                <div class="radio-grid">
+                    <label><input type="radio" name="funding_stage" value="bootstrapped"> 自筹资金</label>
+                    <label><input type="radio" name="funding_stage" value="preseed"> Pre-seed</label>
+                    <label><input type="radio" name="funding_stage" value="seed"> 种子轮</label>
+                    <label><input type="radio" name="funding_stage" value="seriesA"> A 轮</label>
+                    <label><input type="radio" name="funding_stage" value="seriesB+"> B 轮及以上</label>
+                    <label><input type="radio" name="funding_stage" value="public"> 已上市</label>
+                    <label><input type="radio" name="funding_stage" value="none"> 不适用</label>
+                </div>
+                <div class="field-error" id="funding_stage-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">可选订阅</span>
+                <div class="opt-in-list">
+                    <label><input type="checkbox" id="optNewsletter"> 向我发送 RakuAI 开发者通讯。</label>
+                    <label><input type="checkbox" id="optPartner"> 我对 RakuAI 合作伙伴计划感兴趣。</label>
+                    <label><input type="checkbox" id="optBeta"> 在 Beta 功能可用时，给我抢先体验权限。</label>
+                </div>
+            </div>
+
+            <div class="form-error-banner" id="profileErrorBanner" aria-live="polite"></div>
+
+            <button type="submit" class="btn-register" id="profileSubmitBtn">提交资料并完成注册</button>
+        </form>
+    </section>
+
+    <div class="register-success" id="registerSuccess">
+        <h2>资料已提交！</h2>
+        <p>你的开发者申请已进入管理员审核队列。我们会带你去仪表盘查看状态，并在审核通过后创建 API 密钥。</p>
+        <a href="dashboard.html" class="btn-register" style="display: inline-block; width: auto; padding: 14px 36px; text-decoration: none;">进入仪表盘</a>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../../engine/">引擎</a>
+            <a href="../../api/">API</a>
+            <a href="../docs.html">文档</a>
+            <a href="../../games/">街机厅</a>
+            <a href="../../press.html">新闻媒体</a>
+            <a href="../developers/">开发者</a>
+            <a href="../../privacy.html">隐私</a>
+            <a href="../../terms.html">条款</a>
+            <a href="../contact.html">联系我们</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 项美国授权专利（优先权日：2012 年 7 月） &bull; 由 RakuAI 引擎驱动</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 和 RakuXR&trade; 是 RakuAI, LLC 的商标。
+            <span class="kanji-logo">&#x697D;</span>AI 与 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的设计化商标。
+            5 项美国授权专利（优先权日：2012 年 7 月）。
+        </p>
+    </div>
+</footer>
+
+<script>
+(function() {
+    'use strict';
+
+    var API_BASE = window.RAKU_API_BASE || (function() {
+        var h = window.location.hostname;
+        if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
+        if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
+        return 'https://api.rakuai.com';
+    })();
+
+    var TOKEN_KEY = 'raku_access_token';
+    var USER_KEY  = 'raku_user';
+
+    var needsSignin   = document.getElementById('needsSignin');
+    var step1Panel    = document.getElementById('step1Panel');
+    var step2Panel    = document.getElementById('step2Panel');
+    var registerSuccess = document.getElementById('registerSuccess');
+    var step1Indicator = document.getElementById('step1-indicator');
+    var step2Indicator = document.getElementById('step2-indicator');
+    var step3Indicator = document.getElementById('step3-indicator');
+
+    var ndaCheckbox  = document.getElementById('ndaAccept');
+    var ndaSubmitBtn = document.getElementById('ndaSubmitBtn');
+    var ndaErrorBanner = document.getElementById('ndaErrorBanner');
+
+    var profileForm  = document.getElementById('profileForm');
+    var profileSubmitBtn = document.getElementById('profileSubmitBtn');
+    var profileErrorBanner = document.getElementById('profileErrorBanner');
+
+    var workEmailEl  = document.getElementById('workEmail');
+    var fullNameEl   = document.getElementById('fullName');
+    var useCaseEl    = document.getElementById('useCase');
+    var useCaseCounter = document.getElementById('useCase-counter');
+
+    var token = null;
+    var userJson = null;
+    try {
+        token = localStorage.getItem(TOKEN_KEY);
+        userJson = localStorage.getItem(USER_KEY);
+    } catch (_) {
+        // localStorage unavailable; proceed as signed-out.
+    }
+    var cachedUser = null;
+    if (userJson) {
+        try { cachedUser = JSON.parse(userJson); } catch (_) { cachedUser = null; }
+    }
+
+    if (!token) {
+        step1Panel.classList.remove('active');
+        needsSignin.style.display = 'block';
+    } else if (cachedUser) {
+        if (cachedUser.email)        workEmailEl.value = cachedUser.email;
+        if (cachedUser.display_name) fullNameEl.value  = cachedUser.display_name;
+        if (cachedUser.email) {
+            workEmailEl.setAttribute('readonly', 'readonly');
+        }
+    }
+
+    ndaCheckbox.addEventListener('change', function() {
+        ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+        hideBanner(ndaErrorBanner);
+    });
+
+    ndaSubmitBtn.addEventListener('click', function() {
+        if (!ndaCheckbox.checked) return;
+        handleNdaAccept();
+    });
+
+    async function handleNdaAccept() {
+        hideBanner(ndaErrorBanner);
+        ndaSubmitBtn.disabled = true;
+        ndaSubmitBtn.textContent = '处理中……';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/developer/nda', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify({ accept: true }),
+            });
+
+            if (resp.ok || resp.status === 409) {
+                advanceToStep2();
+                return;
+            }
+
+            if (resp.status === 401) {
+                showBanner(ndaErrorBanner, '你的会话已过期，请重新登录。');
+                ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+                ndaSubmitBtn.textContent = '接受 NDA 并继续';
+                return;
+            }
+
+            var msg = 'NDA 接受失败，请重试。';
+            try {
+                var data = await resp.json();
+                if (data && data.detail) msg = data.detail;
+            } catch (_) { /* keep default */ }
+            showBanner(ndaErrorBanner, msg);
+            ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+            ndaSubmitBtn.textContent = '接受 NDA 并继续';
+        } catch (_) {
+            showBanner(ndaErrorBanner, '网络错误，请检查连接后重试。');
+            ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+            ndaSubmitBtn.textContent = '接受 NDA 并继续';
+        }
+    }
+
+    function advanceToStep2() {
+        step1Panel.classList.remove('active');
+        step2Panel.classList.add('active');
+        step1Indicator.classList.remove('active');
+        step1Indicator.classList.add('done');
+        step2Indicator.classList.add('active');
+        setTimeout(function() {
+            var first = step2Panel.querySelector('input, select, textarea');
+            if (first) try { first.focus(); } catch (_) {}
+        }, 50);
+    }
+
+    useCaseEl.addEventListener('input', updateUseCaseCounter);
+    function updateUseCaseCounter() {
+        var len = useCaseEl.value.length;
+        useCaseCounter.textContent = len + ' / 2000（至少 10）';
+        if (len > 0 && (len < 10 || len > 2000)) {
+            useCaseCounter.classList.add('invalid');
+        } else {
+            useCaseCounter.classList.remove('invalid');
+        }
+    }
+
+    profileForm.addEventListener('submit', function(ev) {
+        ev.preventDefault();
+        handleProfileSubmit();
+    });
+
+    function readSelectedPlatforms() {
+        var nodes = document.querySelectorAll('input[name="target_platform"]:checked');
+        var out = [];
+        for (var i = 0; i < nodes.length; i++) out.push(nodes[i].value);
+        return out;
+    }
+
+    function readRadio(name) {
+        var node = document.querySelector('input[name="' + name + '"]:checked');
+        return node ? node.value : '';
+    }
+
+    function setFieldError(id, msg) {
+        var el = document.getElementById(id + '-error');
+        if (!el) return;
+        if (msg) {
+            el.textContent = msg;
+            el.classList.add('visible');
+        } else {
+            el.textContent = '';
+            el.classList.remove('visible');
+        }
+    }
+
+    function clearAllFieldErrors() {
+        ['fullName', 'workEmail', 'company', 'role', 'country', 'industry',
+         'target_platform', 'useCase', 'team_size', 'funding_stage'].forEach(function(id) {
+            setFieldError(id, '');
+        });
+        hideBanner(profileErrorBanner);
+    }
+
+    function validateProfile() {
+        clearAllFieldErrors();
+        var ok = true;
+
+        var fullName = fullNameEl.value.trim();
+        if (!fullName) { setFieldError('fullName', '必填。'); ok = false; }
+
+        var workEmail = workEmailEl.value.trim();
+        if (!workEmail || workEmail.indexOf('@') === -1) {
+            setFieldError('workEmail', '请输入有效的邮箱。'); ok = false;
+        }
+
+        var company = document.getElementById('company').value.trim();
+        if (!company) { setFieldError('company', '必填。'); ok = false; }
+        else if (company.length > 200) { setFieldError('company', '最多 200 个字符。'); ok = false; }
+
+        var role = document.getElementById('role').value.trim();
+        if (!role) { setFieldError('role', '必填。'); ok = false; }
+        else if (role.length > 100) { setFieldError('role', '最多 100 个字符。'); ok = false; }
+
+        var country = document.getElementById('country').value;
+        if (!country || country.length !== 2) {
+            setFieldError('country', '请选择国家 / 地区。'); ok = false;
+        }
+
+        var industry = document.getElementById('industry').value;
+        if (!industry) { setFieldError('industry', '请选择行业。'); ok = false; }
+
+        var platforms = readSelectedPlatforms();
+        if (platforms.length === 0) {
+            setFieldError('target_platform', '至少选择一个平台。'); ok = false;
+        }
+
+        var useCase = useCaseEl.value.trim();
+        if (useCase.length < 10) {
+            setFieldError('useCase', '请描述你的使用场景（至少 10 个字符）。'); ok = false;
+        } else if (useCase.length > 2000) {
+            setFieldError('useCase', '最多 2000 个字符。'); ok = false;
+        }
+
+        var teamSize = readRadio('team_size');
+        if (!teamSize) { setFieldError('team_size', '请选择团队规模。'); ok = false; }
+
+        var fundingStage = readRadio('funding_stage');
+        if (!fundingStage) { setFieldError('funding_stage', '请选择融资阶段。'); ok = false; }
+
+        return ok ? {
+            company: company,
+            role: role,
+            country: country,
+            industry: industry,
+            target_platform: platforms,
+            use_case: useCase,
+            team_size: teamSize,
+            funding_stage: fundingStage,
+            opt_in_newsletter: document.getElementById('optNewsletter').checked,
+            opt_in_partner_program: document.getElementById('optPartner').checked,
+            opt_in_beta_access: document.getElementById('optBeta').checked,
+        } : null;
+    }
+
+    async function handleProfileSubmit() {
+        var payload = validateProfile();
+        if (!payload) {
+            showBanner(profileErrorBanner, '请修正高亮字段后重试。');
+            return;
+        }
+
+        profileSubmitBtn.disabled = true;
+        profileSubmitBtn.textContent = '提交中……';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/developer/profile/extended', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (resp.ok) {
+                try {
+                    if (!localStorage.getItem(TOKEN_KEY) && token) {
+                        localStorage.setItem(TOKEN_KEY, token);
+                    }
+                } catch (_) { /* private-mode / sandboxed: token still in memory */ }
+                step2Panel.classList.remove('active');
+                registerSuccess.style.display = 'block';
+                step2Indicator.classList.remove('active');
+                step2Indicator.classList.add('done');
+                step3Indicator.classList.add('active');
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 1200);
+                return;
+            }
+
+            if (resp.status === 401) {
+                showBanner(profileErrorBanner, '你的会话已过期，请重新登录。');
+                profileSubmitBtn.disabled = false;
+                profileSubmitBtn.textContent = '提交资料并完成注册';
+                return;
+            }
+
+            if (resp.status >= 400 && resp.status < 500) {
+                var msg = '提交被拒绝（HTTP ' + resp.status + '）。';
+                try {
+                    var data = await resp.json();
+                    if (data && data.detail) {
+                        if (typeof data.detail === 'string') msg = data.detail;
+                        else msg = '校验错误：请检查你的填写。';
+                    }
+                } catch (_) { /* keep default */ }
+                showBanner(profileErrorBanner, msg);
+                profileSubmitBtn.disabled = false;
+                profileSubmitBtn.textContent = '提交资料并完成注册';
+                return;
+            }
+
+            showBanner(profileErrorBanner, '服务器错误（HTTP ' + resp.status + '），请稍候重试。');
+            profileSubmitBtn.disabled = false;
+            profileSubmitBtn.textContent = '提交资料并完成注册';
+        } catch (_) {
+            showBanner(profileErrorBanner, '网络错误，请检查连接后重试。');
+            profileSubmitBtn.disabled = false;
+            profileSubmitBtn.textContent = '提交资料并完成注册';
+        }
+    }
+
+    function showBanner(el, msg) {
+        el.textContent = msg;
+        el.classList.add('visible');
+    }
+    function hideBanner(el) {
+        el.textContent = '';
+        el.classList.remove('visible');
+    }
+})();
+</script>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>
