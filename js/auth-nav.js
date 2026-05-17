@@ -16,17 +16,22 @@
  *     marketing/docs page) and falls back to bare `<nav>` for the engine
  *     dashboard, which uses a flatter nav structure.
  *   - When `localStorage.raku_access_token` is set, the label/href become
- *     "Dashboard" -> `developers/dashboard.html`; otherwise "Sign In" ->
- *     `developers/login.html`.
+ *     "Dashboard" -> `/developers/dashboard.html`; otherwise "Sign In" ->
+ *     `/developers/login.html`.
  *   - Japanese pages (under `/ja/` or `<html lang="ja">`) get localized
  *     labels: "サインイン" / "ダッシュボード".
- *   - The href is computed as a relative path from the current page so it
- *     works at any depth (root, /ja/, /engine/, /tutorials/, /scenarios/,
- *     /blog/<slug>/).
+ *   - The href is an absolute site path (`/developers/...`). The script
+ *     itself is loaded via the same absolute convention (`/js/auth-nav.js`),
+ *     so the site is already deployed at the domain root; matching that
+ *     here avoids subtle bugs with directory URLs like `/engine/` or `/ja/`
+ *     where relative-path math would resolve to a non-existent
+ *     `/engine/developers/login.html`.
  *   - Inserts the link BEFORE any `.lang-toggle` so the EN/JA toggle stays
  *     rightmost.
- *   - Idempotent: if a `.nav-signin` or `.nav-dashboard` link is already in
- *     the nav (some pages already hand-coded one), nothing is injected.
+ *   - Idempotent and self-healing: if a `.nav-signin` or `.nav-dashboard`
+ *     link is already in the nav (some pages hand-coded one before this
+ *     script existed), it is UPDATED in place rather than skipped — so the
+ *     "Dashboard" swap for logged-in users still happens on those pages.
  *
  * Plain vanilla JS, no dependencies. Loaded with `defer` so it does not
  * block page rendering.
@@ -59,39 +64,34 @@
         return /\/ja(\/|$)/.test(window.location.pathname);
     }
 
-    // Compute the relative prefix from the current page back to the site root,
-    // so we can build a path like `developers/login.html` that works from
-    // /index.html, /ja/index.html, /engine/index.html, /tutorials/foo.html,
-    // /blog/<slug>/index.html, etc.
-    function relPrefix() {
-        var path = window.location.pathname.replace(/\/+$/, '');
-        var segs = path.split('/').slice(1, -1); // drop leading '' and the file
-        if (!segs.length) return '';
-        var out = '';
-        for (var i = 0; i < segs.length; i++) out += '../';
-        return out;
+    function applyState(link, loggedIn, ja) {
+        link.href = '/developers/' + (loggedIn ? 'dashboard.html' : 'login.html');
+        link.className = loggedIn ? 'nav-dashboard' : 'nav-signin';
+        if (ja) {
+            link.textContent = loggedIn ? 'ダッシュボード' : 'サインイン';
+        } else {
+            link.textContent = loggedIn ? 'Dashboard' : 'Sign In';
+        }
     }
 
     function inject() {
         var nav = findNav();
         if (!nav) return;
-        // Idempotency: bail if any flavour of sign-in/dashboard link is
-        // already present (some pages hand-coded the link before this script
-        // existed).
-        if (nav.querySelector('.nav-signin, .nav-dashboard')) return;
 
         var loggedIn = isLoggedIn();
         var ja = isJa();
-        var prefix = relPrefix();
+
+        // If a hand-coded sign-in/dashboard link already exists on the page,
+        // update it in place so the auth state stays consistent across the
+        // whole site. Otherwise create and insert a fresh one.
+        var existing = nav.querySelector('.nav-signin, .nav-dashboard');
+        if (existing) {
+            applyState(existing, loggedIn, ja);
+            return;
+        }
 
         var a = document.createElement('a');
-        a.href = prefix + 'developers/' + (loggedIn ? 'dashboard.html' : 'login.html');
-        a.className = loggedIn ? 'nav-dashboard' : 'nav-signin';
-        if (ja) {
-            a.textContent = loggedIn ? 'ダッシュボード' : 'サインイン';
-        } else {
-            a.textContent = loggedIn ? 'Dashboard' : 'Sign In';
-        }
+        applyState(a, loggedIn, ja);
 
         // Keep the EN/JA toggle rightmost by inserting before it when present.
         var lang = nav.querySelector('.lang-toggle');
