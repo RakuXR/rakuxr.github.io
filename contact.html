@@ -337,7 +337,7 @@
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Send Message';
                     var errorMsg = (data && Array.isArray(data.errors) && data.errors.length > 0)
-                        ? data.errors.map(function(err) { return err.message || 'Unknown error'; }).join(', ')
+                        ? data.errors.map(function(err) { return (err && err.message) || 'Unknown error'; }).join(', ')
                         : (data && typeof data.error === 'string' ? data.error : null) || 'Unknown error';
                     alert('Form error: ' + errorMsg);
                 }
