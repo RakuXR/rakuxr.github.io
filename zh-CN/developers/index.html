@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发者门户 - RakuAI</title>
+    <meta name="description" content="用 RakuForge API 几分钟构建空间 AI 体验。21 个世界模型接口，5 个应用场景，一套 API。">
+    <meta property="og:title" content="开发者门户 - RakuAI">
+    <meta property="og:description" content="21 个世界模型接口，5 个应用场景，一套 API。几分钟构建空间 AI 体验。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/zh-CN/developers/">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/zh-CN/developers/">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        .dev-hero {
+            padding: 100px 0 80px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+        .dev-hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .dev-hero .subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        .code-hero {
+            background: #0d0d2b;
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 12px;
+            padding: 28px 32px;
+            font-family: 'SFMono-Regular', Consolas, 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 2;
+            color: var(--text-secondary);
+            overflow-x: auto;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            text-align: left;
+        }
+        .code-hero .kw { color: var(--accent-bright); }
+        .code-hero .str { color: var(--success); }
+        .code-hero .comment { color: #555580; }
+        .code-hero .fn { color: #ff79c6; }
+        .dev-cta-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .dev-cta-group .btn-dev {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 14px 36px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: background 0.2s, transform 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .dev-cta-group .btn-dev:hover {
+            background: var(--accent-bright);
+            transform: translateY(-2px);
+        }
+        .dev-cta-group .btn-dev-outline {
+            display: inline-block;
+            border: 2px solid var(--accent);
+            color: var(--accent-bright);
+            padding: 12px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: background 0.2s, color 0.2s, transform 0.2s;
+        }
+        .dev-cta-group .btn-dev-outline:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            padding: 64px 0;
+        }
+        .feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+        .feature-card .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+        }
+        .feature-card h3 {
+            font-size: 1.2rem;
+            color: var(--accent-bright);
+            margin-bottom: 10px;
+        }
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .pricing-section {
+            padding: 80px 0;
+            background: var(--bg-secondary);
+        }
+        .pricing-section h2 {
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .pricing-section .section-sub {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 48px;
+            font-size: 1.05rem;
+        }
+        .pricing-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .price-card {
+            background: var(--bg-primary);
+            border: 2px solid #222244;
+            border-radius: 16px;
+            padding: 32px 24px;
+            text-align: center;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+        .price-card:hover {
+            transform: translateY(-4px);
+        }
+        .price-card.featured {
+            border-color: var(--accent);
+            box-shadow: 0 0 30px rgba(108, 92, 231, 0.15);
+        }
+        .price-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .price-card .price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-bright);
+            margin-bottom: 4px;
+        }
+        .price-card .price-period {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        .price-card ul {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 24px;
+            padding: 0;
+        }
+        .price-card ul li {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-bottom: 1px solid #1a1a3a;
+        }
+        .price-card ul li::before {
+            content: "\2713";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .price-card .btn-price {
+            display: inline-block;
+            width: 100%;
+            padding: 10px 0;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+        .price-card .btn-price.primary {
+            background: var(--accent);
+            color: white;
+        }
+        .price-card .btn-price.primary:hover {
+            background: var(--accent-bright);
+        }
+        .price-card .btn-price.outline {
+            border: 1px solid var(--accent);
+            color: var(--accent-bright);
+            background: transparent;
+        }
+        .price-card .btn-price.outline:hover {
+            background: var(--accent);
+            color: white;
+        }
+        .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            padding: 40px 0;
+            flex-wrap: wrap;
+        }
+        .stat-item { text-align: center; }
+        .stat-item .stat-number {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--accent-bright);
+        }
+        .stat-item .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .dev-bottom-cta {
+            text-align: center;
+            padding: 80px 0;
+        }
+        .dev-bottom-cta h2 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+        .dev-bottom-cta p {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 1.05rem;
+        }
+        @media (max-width: 900px) {
+            .pricing-grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .dev-hero h1 { font-size: 2rem; }
+            .pricing-grid-4 {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+            }
+            .code-hero { font-size: 0.8rem; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../../developers/index.html @ 52a4f1d7f283da1cfd06e0377ba68b9c389f5f3a
+  Date: 2026-05-17
+  Language: zh-CN (Simplified Chinese, Mainland)
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">TM</sup> 开发者门户 &nbsp;|&nbsp; <a href="docs.html">API 参考</a> &nbsp;|&nbsp; <a href="../../scenarios/">应用场景</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">首页</a>
+            <a href="../../engine/">引擎</a>
+            <a href="../../api/">API 文档</a>
+            <a href="../../games/">游戏</a>
+            <a href="../why-rakuai.html">为什么选 RakuAI</a>
+            <a href="../developers/">开发者</a>
+            <a href="../../press.html">新闻媒体</a>
+            <a href="login.html" class="nav-signin">登录</a>
+            <a href="../../developers/index.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="dev-hero">
+    <div class="container">
+        <div class="beta-badge" style="display:inline-block;background:var(--accent);color:white;padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:600;margin-bottom:24px;">RakuForge API</div>
+        <h1>几分钟构建空间 AI 体验</h1>
+        <p class="subtitle">21 个世界模型接口。5 个应用场景。一套 API。</p>
+
+        <div class="code-hero">
+            <span class="kw">import</span> raku<br>
+            world = raku.<span class="fn">create_world</span>(<span class="str">"my_game"</span>, gps={<span class="str">"lat"</span>: <span class="str">37.78</span>, <span class="str">"lng"</span>: <span class="str">-122.41</span>})<br>
+            raku.<span class="fn">create_entity</span>(world, type=<span class="str">"npc"</span>, gps={<span class="str">"lat"</span>: <span class="str">37.7801</span>, <span class="str">"lng"</span>: <span class="str">-122.4102</span>})
+        </div>
+
+        <div class="dev-cta-group">
+            <a href="register.html" class="btn-dev">获取 API 密钥</a>
+            <a href="docs.html" class="btn-dev-outline">阅读文档</a>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-number">21</div>
+                <div class="stat-label">API 接口</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5</div>
+                <div class="stat-label">应用场景</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">~300ms</div>
+                <div class="stat-label">平均响应</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">REST</div>
+                <div class="stat-label">+ SSE 流式传输</div>
+            </div>
+        </div>
+
+        <div class="feature-cards">
+            <div class="feature-card">
+                <div class="card-icon">&#x1F30D;</div>
+                <h3>世界模型</h3>
+                <p>创建、接入并管理锚定于真实 GPS 坐标的持久化 3D 世界。导入 3D Tiles、场景图与深度图。</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x1F916;</div>
+                <h3>AI 智能体</h3>
+                <p>生成带行为树与 LLM 对话的智能 NPC。智能体实时观察、行动，并从奖励中学习。</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x2699;</div>
+                <h3>物理</h3>
+                <p>添加刚体、推进仿真步进、建模真实世界的危险情境。火势蔓延、结构倒塌、抛射轨迹。</p>
+            </div>
+            <div class="feature-card">
+                <div class="card-icon">&#x1F50A;</div>
+                <h3>空间音频</h3>
+                <p>在世界中放置 3D 音源。访客听到的历史音景会随 GPS 位置变化而改变。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pricing-section">
+    <div class="container">
+        <h2>简单、可扩展的定价</h2>
+        <p class="section-sub">从免费开始，随业务成长。无需信用卡。</p>
+
+        <div class="pricing-grid-4">
+            <div class="price-card">
+                <h3>免费版</h3>
+                <div class="price">$0</div>
+                <div class="price-period">永久免费</div>
+                <ul>
+                    <li>每月 100 个世界</li>
+                    <li>每个世界 10 个实体</li>
+                    <li>1 个 AI 智能体</li>
+                    <li>100 米 GPS 半径</li>
+                    <li>社区支持</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">开始使用</a>
+            </div>
+
+            <div class="price-card">
+                <h3>创作版</h3>
+                <div class="price">$9.99</div>
+                <div class="price-period">每月</div>
+                <ul>
+                    <li>每月 1,000 个世界</li>
+                    <li>每个世界 100 个实体</li>
+                    <li>5 个 AI 智能体</li>
+                    <li>1 公里 GPS 半径</li>
+                    <li>邮件支持</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">开始试用</a>
+            </div>
+
+            <div class="price-card featured">
+                <h3>专业版</h3>
+                <div class="price">$29.99</div>
+                <div class="price-period">每月</div>
+                <ul>
+                    <li>每月 10,000 个世界</li>
+                    <li>每个世界 1,000 个实体</li>
+                    <li>20 个 AI 智能体</li>
+                    <li>8 人多人游戏</li>
+                    <li>10 公里 GPS 半径</li>
+                    <li>优先支持</li>
+                </ul>
+                <a href="register.html" class="btn-price primary">开始试用</a>
+            </div>
+
+            <div class="price-card">
+                <h3>企业版</h3>
+                <div class="price">定制</div>
+                <div class="price-period">联系我们</div>
+                <ul>
+                    <li>无限世界</li>
+                    <li>无限实体</li>
+                    <li>无限 AI 智能体</li>
+                    <li>定制多人游戏</li>
+                    <li>定制 GPS 半径</li>
+                    <li>专属支持</li>
+                </ul>
+                <a href="../contact.html" class="btn-price outline">联系销售</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="dev-bottom-cta">
+    <div class="container">
+        <h2>准备好构建空间 AI 了吗？</h2>
+        <p>30 秒内获取你的 API 密钥，开始创建世界。</p>
+        <div class="dev-cta-group">
+            <a href="register.html" class="btn-dev">获取 API 密钥</a>
+            <a href="docs.html" class="btn-dev-outline">阅读文档</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../../engine/">引擎</a>
+            <a href="../../api/">API</a>
+            <a href="../docs.html">文档</a>
+            <a href="../../games/">街机厅</a>
+            <a href="../../press.html">新闻媒体</a>
+            <a href="../developers/">开发者</a>
+            <a href="../../privacy.html">隐私</a>
+            <a href="../../terms.html">条款</a>
+            <a href="../contact.html">联系我们</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 项美国授权专利（优先权日：2012 年 7 月） &bull; 由 RakuAI 引擎驱动</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 和 RakuXR&trade; 是 RakuAI, LLC 的商标。
+            <span class="kanji-logo">&#x697D;</span>AI 与 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的设计化商标。
+            5 项美国授权专利（优先权日：2012 年 7 月）。
+        </p>
+    </div>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>

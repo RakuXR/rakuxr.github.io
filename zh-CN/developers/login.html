@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发者登录 - RakuAI</title>
+    <meta name="description" content="使用你的 API 密钥登录 RakuAI 开发者门户。">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        .login-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 56px 24px;
+        }
+        .login-container h1 {
+            font-size: 1.75rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .login-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        .login-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 28px;
+        }
+        .login-card label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .login-card input[type="password"],
+        .login-card input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            font-family: 'Courier New', ui-monospace, monospace;
+            font-size: 0.95rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .login-card input:focus {
+            outline: none;
+            border-color: var(--accent-bright);
+        }
+        .reveal-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .reveal-toggle input { margin: 0; }
+
+        .login-card button {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-bright), #8e7cff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .login-card button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-box, .success-box {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .error-box {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            color: #ff8a7e;
+        }
+        .success-box {
+            background: rgba(108, 92, 231, 0.1);
+            border: 1px solid rgba(108, 92, 231, 0.35);
+            color: var(--text-primary);
+        }
+
+        .footer-note {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .footer-note a { color: var(--accent-bright); }
+
+        .signed-in-state {
+            display: none;
+            text-align: center;
+        }
+        .signed-in-state .user-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .signed-in-state .user-card .email {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin: 4px 0;
+        }
+        .signed-in-state .user-card .tier {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            border-radius: 999px;
+            background: rgba(108, 92, 231, 0.2);
+            color: var(--accent-bright);
+        }
+        .signed-in-state .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .btn-secondary {
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid rgba(108, 92, 231, 0.4);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../../developers/login.html @ 52a4f1d7f283da1cfd06e0377ba68b9c389f5f3a
+  Date: 2026-05-17
+  Language: zh-CN (Simplified Chinese, Mainland)
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — 世界模型的通用运行时 &nbsp;|&nbsp; <a href="../index.html#for-studios">面向工作室与开发者 →</a> &nbsp;&nbsp; 也可：<a href="../index.html#quickstart">试用消费者 Demo →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">首页</a>
+            <a href="../../engine/">引擎</a>
+            <a href="../../api/">API 文档</a>
+            <a href="../../games/">游戏</a>
+            <a href="../why-rakuai.html">为什么选 RakuAI</a>
+            <a href="../developers/">开发者</a>
+            <a href="../../press.html">新闻媒体</a>
+            <a href="login.html" class="nav-signin">登录</a>
+            <a href="../../developers/login.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<div class="login-container">
+    <!-- Signed-out: API-key sign-in form -->
+    <div id="signed-out-state">
+        <h1>开发者登录</h1>
+        <p class="subtitle">粘贴你的 <code>raku_</code> API 密钥以获取会话令牌。新开发者：<a href="register.html">在此申请访问权限</a>。</p>
+
+        <form class="login-card" id="login-form" autocomplete="off">
+            <label for="api-key">API 密钥</label>
+            <input
+                type="password"
+                id="api-key"
+                name="api-key"
+                placeholder="raku_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="off"
+                required
+            >
+            <label class="reveal-toggle">
+                <input type="checkbox" id="reveal-key"> 显示密钥
+            </label>
+
+            <button type="submit" id="submit-btn">登录</button>
+
+            <div class="error-box" id="error-box"></div>
+            <div class="success-box" id="success-box">已登录，正在跳转……</div>
+        </form>
+
+        <p class="footer-note">
+            还没有 API 密钥？<a href="register.html">先签署 NDA 并申请开发者访问权限</a>，待管理员审核通过后再回来这里登录。
+        </p>
+    </div>
+
+    <!-- Signed-in: show user info + Sign Out -->
+    <div id="signed-in-state" class="signed-in-state">
+        <h1>你已登录</h1>
+        <p class="subtitle">会话令牌已缓存在你的浏览器中。请通过导航栏的开发者门户链接继续。</p>
+
+        <div class="user-card">
+            <div class="email" id="signed-in-email">—</div>
+            <span class="tier" id="signed-in-tier">—</span>
+        </div>
+
+        <div class="actions">
+            <a class="btn-secondary" href="register.html">进入门户</a>
+            <button type="button" class="btn-secondary" id="signout-btn">退出登录</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // ---- API base detection (matches developers/register.html convention) ----
+    var API_BASE = window.RAKU_API_BASE || (function() {
+        var h = window.location.hostname;
+        if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
+        if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
+        return 'https://api.rakuai.com';
+    })();
+
+    // ---- localStorage key names (must match register.html) ----
+    const TOKEN_KEY   = 'raku_access_token';
+    const REFRESH_KEY = 'raku_refresh_token';
+    const USER_KEY    = 'raku_user';
+
+    // ---- Elements ----
+    const signedOutEl = document.getElementById('signed-out-state');
+    const signedInEl  = document.getElementById('signed-in-state');
+    const form        = document.getElementById('login-form');
+    const input       = document.getElementById('api-key');
+    const reveal      = document.getElementById('reveal-key');
+    const submitBtn   = document.getElementById('submit-btn');
+    const errorBox    = document.getElementById('error-box');
+    const successBox  = document.getElementById('success-box');
+    const emailEl     = document.getElementById('signed-in-email');
+    const tierEl      = document.getElementById('signed-in-tier');
+    const signOutBtn  = document.getElementById('signout-btn');
+
+    // ---- Helpers ----
+    function showSignedIn(user) {
+        signedOutEl.style.display = 'none';
+        signedInEl.style.display  = 'block';
+        emailEl.textContent = (user && user.email) || '（未知邮箱）';
+        tierEl.textContent  = (user && user.tier)  || '未知';
+    }
+    function showSignedOut() {
+        signedOutEl.style.display = 'block';
+        signedInEl.style.display  = 'none';
+    }
+    function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.style.display = 'block';
+        successBox.style.display = 'none';
+    }
+    function clearError() {
+        errorBox.style.display = 'none';
+        errorBox.textContent = '';
+    }
+
+    // ---- Already-signed-in detection ----
+    var existing = localStorage.getItem(TOKEN_KEY);
+    if (existing) {
+        var userStr = localStorage.getItem(USER_KEY);
+        var user = null;
+        try { user = userStr ? JSON.parse(userStr) : null; } catch (_) { user = null; }
+        showSignedIn(user);
+    } else {
+        showSignedOut();
+    }
+
+    // ---- Reveal-key toggle ----
+    reveal.addEventListener('change', function() {
+        input.type = reveal.checked ? 'text' : 'password';
+    });
+
+    // ---- Sign-out ----
+    signOutBtn.addEventListener('click', function() {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(REFRESH_KEY);
+        localStorage.removeItem(USER_KEY);
+        showSignedOut();
+        input.value = '';
+        clearError();
+    });
+
+    // ---- Sign-in ----
+    form.addEventListener('submit', async function(ev) {
+        ev.preventDefault();
+        clearError();
+
+        var apiKey = (input.value || '').trim();
+        if (!apiKey) {
+            showError('请粘贴你的 API 密钥。');
+            return;
+        }
+        if (apiKey.indexOf('raku_') !== 0) {
+            showError('看起来不像 raku_ 开头的 API 密钥。请检查你是否复制了完整的值。');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = '登录中……';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/auth/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ api_key: apiKey }),
+            });
+
+            if (resp.status === 401) {
+                showError('该 API 密钥无效、已撤销，或没有关联的开发者账号。请仔细核对密钥；若尚未申请，请先申请访问权限。');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '登录';
+                return;
+            }
+            if (resp.status === 422) {
+                showError('API 密钥字段缺失或格式错误。');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '登录';
+                return;
+            }
+            if (!resp.ok) {
+                showError('登录失败（HTTP ' + resp.status + '）。请重试，或在持续出错时联系客服。');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '登录';
+                return;
+            }
+
+            var data = await resp.json();
+            if (!data || !data.access_token) {
+                showError('服务器返回了意外的响应。登录未完成。');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '登录';
+                return;
+            }
+
+            // Persist the session — same keys developers/register.html reads.
+            localStorage.setItem(TOKEN_KEY, data.access_token);
+            if (data.refresh_token) localStorage.setItem(REFRESH_KEY, data.refresh_token);
+            if (data.user) localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+            // Clear the raw key from the form so it doesn't sit in the DOM.
+            input.value = '';
+
+            successBox.style.display = 'block';
+
+            var ret = new URLSearchParams(window.location.search).get('return');
+            var safeReturn = 'register.html';
+            if (ret && ret.charAt(0) === '/' && ret.charAt(1) !== '/' && ret.charAt(1) !== '\\') {
+                try {
+                    var resolved = new URL(ret, window.location.origin);
+                    if (resolved.origin === window.location.origin) {
+                        safeReturn = resolved.pathname + resolved.search + resolved.hash;
+                    }
+                } catch (_) {
+                    // Malformed URL — fall back to the default.
+                }
+            }
+            setTimeout(function() { window.location.href = safeReturn; }, 600);
+
+        } catch (e) {
+            showError('连接 API 时发生网络错误。请检查网络后重试。');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '登录';
+        }
+    });
+})();
+</script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>
