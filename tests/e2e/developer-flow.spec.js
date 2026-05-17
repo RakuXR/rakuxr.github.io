@@ -22,22 +22,24 @@ const { test, expect } = require('@playwright/test');
 
 /**
  * Attach a console listener that collects only "real" errors. Returns the
- * array; caller asserts it's empty at end of test. Filters out:
+ * array; caller asserts it's empty at end of test. Filters are intentionally
+ * narrow — domain/scheme-specific only — so that genuine local 404s and
+ * other asset-load failures surface as test regressions rather than being
+ * swallowed by a broad "Failed to load resource" catch-all.
+ *
+ * Ignored:
  *   - favicon 404s (deploy-only asset)
- *   - any error mentioning api.rakuai.com / raku-api / api.raku.games
- *     (real backend hosts that CI has no network path to)
- *   - generic "Failed to load resource" lines that downstream from the above
+ *   - net::ERR_* network failures (CI has no path to real backend hosts)
+ *   - errors mentioning api.rakuai.com / api.raku.games (real backend hosts)
  */
 function captureConsoleErrors(page) {
     /** @type {string[]} */
     const errors = [];
     const ignorePatterns = [
         /favicon/i,
-        /api\.rakuai\.com/i,
-        /raku-api[-.]/i,
-        /api\.raku\.games/i,
         /net::ERR_/i,
-        /Failed to load resource/i,
+        /api\.rakuai\.com/i,
+        /api\.raku\.games/i,
     ];
 
     page.on('console', (msg) => {
@@ -81,8 +83,9 @@ for (const { path, jaPortal } of NAV_PAGES) {
         const expectedPath = jaPortal
             ? '/ja/developers/login.html'
             : '/developers/login.html';
-        // Allow either a site-absolute path or a full URL ending in the path.
-        expect(href).toMatch(new RegExp(expectedPath.replace(/\//g, '\\/') + '$'));
+        // endsWith() handles both site-absolute paths and full URLs without
+        // the dot-escaping footgun of building a RegExp from a path string.
+        expect(href.endsWith(expectedPath)).toBe(true);
 
         expect(errors, `unexpected console errors on ${path}: ${errors.join(' | ')}`).toEqual([]);
     });
@@ -136,25 +139,25 @@ test('register: signed-out nudge shown, step1 hidden when no token', async ({ pa
 });
 
 // ---------------------------------------------------------------------------
-// Test 4 — login page resolves a non-empty API base
+// Test 4 — login page actually consumes window.RAKU_API_BASE override
 // ---------------------------------------------------------------------------
 
-test('login: window.RAKU_API_BASE override resolves to non-empty string', async ({ page }) => {
-    const errors = captureConsoleErrors(page);
+test('login.html consumes RAKU_API_BASE override for API calls', async ({ page }) => {
+    await page.addInitScript(() => { window.RAKU_API_BASE = 'http://override.example/'; });
 
-    // Simulate a deployment that pre-sets the API base (matches how staging /
-    // prod inject `window.RAKU_API_BASE` via a small inline script). If the
-    // override hook ever gets dropped, this read will return undefined and
-    // the test fails.
-    await page.addInitScript(() => {
-        window.RAKU_API_BASE = 'https://api.rakuai.com';
+    var firstApiUrl = null;
+    page.on('request', (req) => {
+        if (firstApiUrl) return;
+        var url = req.url();
+        if (url.includes('/api/v1/auth/token')) firstApiUrl = url;
     });
 
     await page.goto('/developers/login.html');
+    await page.fill('#api-key', 'raku_dummy_test_key_for_assertion');
+    await page.click('#submit-btn');
 
-    const apiBase = await page.evaluate(() => window.RAKU_API_BASE);
-    expect(typeof apiBase).toBe('string');
-    expect(apiBase).not.toBe('');
+    await page.waitForRequest(req => req.url().includes('/api/v1/auth/token'), { timeout: 5000 }).catch(() => {});
 
-    expect(errors, `unexpected console errors on login.html: ${errors.join(' | ')}`).toEqual([]);
+    expect(firstApiUrl).not.toBeNull();
+    expect(firstApiUrl).toMatch(/^http:\/\/override\.example\//);
 });

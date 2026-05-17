@@ -17,7 +17,12 @@ module.exports = defineConfig({
     testDir: './e2e',
     timeout: 30_000,
     expect: { timeout: 5_000 },
-    fullyParallel: true,
+    // Run tests serially. The backing static server is `python3 -m http.server`,
+    // which is single-threaded and serializes requests anyway; parallelism only
+    // adds contention and flaky timeouts. `fullyParallel:false` + `workers:1`
+    // makes the execution model explicit (and removes the prior config's
+    // self-contradiction of fullyParallel:true with workers:1).
+    fullyParallel: false,
     retries: 0,
     workers: 1,
     reporter: [['list']],
