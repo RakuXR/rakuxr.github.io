@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ゲームを探す — RakuAI</title>
+    <meta name="description" content="RakuAI コミュニティが作ったゲームを閲覧。ブラウザですぐにプレイ可能。">
+    <meta property="og:title" content="ゲームを探す — RakuAI">
+    <meta property="og:description" content="RakuAI コミュニティが作ったゲームを閲覧。ブラウザですぐにプレイ可能。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ja/discover.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .discover-hero {
+            text-align: center;
+            padding: 3rem 1rem 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .discover-hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .discover-hero p { color: #888; font-size: 1.1rem; }
+
+        .genre-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            padding: 0 1rem 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .genre-btn {
+            background: #1a1a2e;
+            border: 1px solid #333;
+            color: #ccc;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .genre-btn:hover { border-color: #6c5ce7; color: #fff; }
+        .genre-btn.active { background: #6c5ce7; border-color: #6c5ce7; color: #fff; }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 0 2rem 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .game-card {
+            background: #1a1a2e;
+            border: 1px solid #2a2a3e;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: border-color 0.2s, transform 0.2s;
+            cursor: pointer;
+        }
+        .game-card:hover { border-color: #6c5ce7; transform: translateY(-2px); }
+        .game-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: #fff; }
+        .game-card .genre-tag {
+            display: inline-block;
+            background: #2d2b55;
+            color: #a29bfe;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .game-card .description { color: #888; font-size: 0.9rem; line-height: 1.4; margin-bottom: 1rem; }
+        .game-card .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        .play-btn {
+            background: #6c5ce7;
+            color: #fff;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .play-btn:hover { background: #5b4bd5; }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: #666;
+        }
+        .empty-state h3 { color: #888; margin-bottom: 0.5rem; }
+
+        .load-more {
+            display: block;
+            margin: 0 auto 3rem;
+            background: transparent;
+            border: 1px solid #444;
+            color: #ccc;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .load-more:hover { border-color: #6c5ce7; color: #fff; }
+
+        .sort-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 1rem;
+        }
+        .sort-bar .result-count { color: #666; font-size: 0.9rem; }
+        .sort-bar select {
+            background: #1a1a2e;
+            color: #ccc;
+            border: 1px solid #333;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: discover.html @ 15f4453
+  Date: 2026-05-17
+-->
+    <nav>
+        <div class="container">
+            <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+            <div class="nav-links">
+                <a href="index.html">ホーム</a>
+                <a href="../engine/">エンジン</a>
+                <a href="../api/">API ドキュメント</a>
+                <a href="../games/">ゲーム</a>
+                <a href="why-rakuai.html">なぜ RakuAI</a>
+                <a href="developers/">開発者</a>
+                <a href="../press.html">プレス</a>
+                <a href="../blog/">ブログ</a>
+                <a href="../discover.html" class="lang-toggle">EN</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="discover-hero">
+        <h1>ゲームを探す</h1>
+        <p>RakuAI コミュニティが作ったゲームを閲覧できます。ゲームをクリックすると、すぐにプレイできます。</p>
+    </section>
+
+    <div class="genre-filters" id="genre-filters">
+        <button class="genre-btn active" data-genre="">すべて</button>
+    </div>
+
+    <div class="sort-bar">
+        <span class="result-count" id="result-count"></span>
+        <select id="sort-select">
+            <option value="recent">新着順</option>
+            <option value="popular">人気順</option>
+        </select>
+    </div>
+
+    <div class="game-grid" id="game-grid"></div>
+
+    <button class="load-more" id="load-more" style="display:none;">もっと見る</button>
+
+    <div class="empty-state" id="empty-state" style="display:none;">
+        <h3>ゲームはまだありません</h3>
+        <p>最初の<a href="/" style="color:#6c5ce7;">ゲームを作成・公開</a>してみませんか！</p>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="../engine/">エンジン</a>
+                <a href="../api/">API</a>
+                <a href="docs.html">ドキュメント</a>
+                <a href="../games/">アーケード</a>
+                <a href="../press.html">プレス</a>
+                <a href="developers/">開発者</a>
+                <a href="privacy.html">プライバシー</a>
+                <a href="terms.html">利用規約</a>
+                <a href="contact.html">お問い合わせ</a>
+                <a href="https://github.com/RakuXR">GitHub</a>
+                <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+            </div>
+            <p>&copy; 2026 RakuAI, LLC &bull; 米国特許 5 件取得済み（優先日：2012 年 7 月） &bull; RakuAI エンジン搭載</p>
+            <p class="trademark-notice">
+            RakuAI&trade; および RakuXR&trade; は RakuAI, LLC の商標です。
+            <span class="kanji-logo">&#x697D;</span>AI および <span class="kanji-logo">&#x697D;</span>XR は RakuAI, LLC のスタイライズド・マークです。
+            米国特許 5 件取得済み（優先日：2012 年 7 月）。
+        </p>
+        </div>
+    </footer>
+
+    <script src="../js/api-client.js"></script>
+    <script>
+    (function() {
+        var currentGenre = '';
+        var currentSort = 'recent';
+        var currentOffset = 0;
+        var PAGE_SIZE = 20;
+        var totalGames = 0;
+
+        var grid = document.getElementById('game-grid');
+        var loadMoreBtn = document.getElementById('load-more');
+        var emptyState = document.getElementById('empty-state');
+        var resultCount = document.getElementById('result-count');
+        var sortSelect = document.getElementById('sort-select');
+
+        loadGenres();
+        loadGames(true);
+
+        sortSelect.addEventListener('change', function() {
+            currentSort = this.value;
+            currentOffset = 0;
+            loadGames(true);
+        });
+
+        loadMoreBtn.addEventListener('click', function() {
+            currentOffset += PAGE_SIZE;
+            loadGames(false);
+        });
+
+        async function loadGenres() {
+            try {
+                var data = await RakuAPI.apiFetch('/api/v1/community/discover/genres');
+                if (!data.ok) return;
+                var result = await data.json();
+                var container = document.getElementById('genre-filters');
+
+                var KNOWN_GENRES = [
+                    'puzzle', 'card_battle', 'space_shooter', 'runner', 'platformer',
+                    'tower_defense', 'racing', 'rpg', 'fighting', 'rhythm',
+                    'sports', 'simulation', 'sandbox'
+                ];
+
+                KNOWN_GENRES.forEach(function(genre) {
+                    var btn = document.createElement('button');
+                    btn.className = 'genre-btn';
+                    btn.dataset.genre = genre;
+                    btn.textContent = genre.replace(/_/g, ' ');
+
+                    var found = result.genres.find(function(g) { return g.genre === genre; });
+                    if (found) {
+                        btn.textContent += ' (' + found.count + ')';
+                    }
+
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.genre-btn').forEach(function(b) { b.classList.remove('active'); });
+                        btn.classList.add('active');
+                        currentGenre = genre;
+                        currentOffset = 0;
+                        loadGames(true);
+                    });
+                    container.appendChild(btn);
+                });
+            } catch (e) {
+                // Genres are optional UI enhancement
+            }
+        }
+
+        async function loadGames(replace) {
+            try {
+                var url = '/api/v1/community/discover?sort=' + currentSort
+                    + '&offset=' + currentOffset
+                    + '&limit=' + PAGE_SIZE;
+                if (currentGenre) {
+                    url += '&genre=' + encodeURIComponent(currentGenre);
+                }
+
+                var resp = await RakuAPI.apiFetch(url);
+                if (!resp.ok) throw new Error('Failed to load');
+                var data = await resp.json();
+
+                totalGames = data.total;
+                resultCount.textContent = totalGames + ' 件のゲーム';
+
+                if (replace) {
+                    grid.innerHTML = '';
+                }
+
+                if (data.games.length === 0 && currentOffset === 0) {
+                    emptyState.style.display = 'block';
+                    loadMoreBtn.style.display = 'none';
+                    return;
+                }
+
+                emptyState.style.display = 'none';
+
+                data.games.forEach(function(game) {
+                    var card = document.createElement('div');
+                    card.className = 'game-card';
+                    card.innerHTML = '<h3>' + escapeHtml(game.title) + '</h3>'
+                        + '<span class="genre-tag">' + escapeHtml(game.genre.replace(/_/g, ' ')) + '</span>'
+                        + '<p class="description">' + escapeHtml(truncate(game.description, 120)) + '</p>'
+                        + '<div class="card-footer">'
+                        + '<span>' + timeAgo(game.created_at) + '</span>'
+                        + '<button class="play-btn">プレイ</button>'
+                        + '</div>';
+
+                    card.addEventListener('click', function() {
+                        window.location.href = '/ja/share.html?id=' + encodeURIComponent(game.id);
+                    });
+                    grid.appendChild(card);
+                });
+
+                if (currentOffset + PAGE_SIZE < totalGames) {
+                    loadMoreBtn.style.display = 'block';
+                } else {
+                    loadMoreBtn.style.display = 'none';
+                }
+            } catch (e) {
+                if (currentOffset === 0) {
+                    emptyState.style.display = 'block';
+                }
+            }
+        }
+
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        function truncate(str, max) {
+            if (!str) return '';
+            return str.length > max ? str.substring(0, max) + '...' : str;
+        }
+
+        function timeAgo(dateStr) {
+            if (!dateStr) return '';
+            var diff = Date.now() - new Date(dateStr).getTime();
+            var mins = Math.floor(diff / 60000);
+            if (mins < 1) return 'たった今';
+            if (mins < 60) return mins + ' 分前';
+            var hours = Math.floor(mins / 60);
+            if (hours < 24) return hours + ' 時間前';
+            var days = Math.floor(hours / 24);
+            if (days < 30) return days + ' 日前';
+            return new Date(dateStr).toLocaleDateString();
+        }
+
+        document.querySelector('.genre-btn[data-genre=""]').addEventListener('click', function() {
+            document.querySelectorAll('.genre-btn').forEach(function(b) { b.classList.remove('active'); });
+            this.classList.add('active');
+            currentGenre = '';
+            currentOffset = 0;
+            loadGames(true);
+        });
+    })();
+    </script>
+<script src="/js/auth-nav.js" defer></script>
+</body>
+</html>

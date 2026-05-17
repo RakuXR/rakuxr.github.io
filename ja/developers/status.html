@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パートナーシップ準備ステータス - RakuAI 開発者</title>
+    <meta name="description" content="RakuAI 全リポジトリのパートナーシップ準備状況とマルチプロバイダー戦略のステータス。">
+    <meta property="og:title" content="パートナーシップ準備ステータス - RakuAI 開発者">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ja/developers/status.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/ja/developers/status.html">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        :root {
+            --accent-border-alpha: rgba(108, 92, 231, 0.2);
+        }
+        .status-hero {
+            padding: 80px 0 40px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+        .status-hero h1 {
+            font-size: 2.4rem;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .status-hero .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        .status-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 24px 64px;
+        }
+        .status-content p.intro {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 32px;
+            font-size: 0.95rem;
+        }
+        .summary-bar {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        .summary-stat {
+            text-align: center;
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-border-alpha);
+            border-radius: 8px;
+            min-width: 120px;
+        }
+        .summary-stat .number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--success);
+        }
+        .summary-stat .number.amber {
+            color: #ffc107;
+        }
+        .summary-stat .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .track-section {
+            margin-bottom: 40px;
+        }
+        .track-section h2 {
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--accent-border-alpha);
+            color: var(--accent-bright);
+        }
+        .status-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+        .status-table th {
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--accent-border-alpha);
+        }
+        .status-table td {
+            padding: 10px 12px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .status-table td:first-child {
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 0.85rem;
+            color: var(--accent-bright);
+            white-space: nowrap;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .badge-complete {
+            background: rgba(0, 206, 201, 0.15);
+            color: var(--success);
+        }
+        .badge-landed {
+            background: rgba(0, 206, 201, 0.15);
+            color: var(--success);
+        }
+        .badge-eng-complete {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+        }
+        .badge-pending {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+        }
+        .cross-repo-section {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.15);
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 40px;
+        }
+        .cross-repo-section h2 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: var(--accent-bright);
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .cross-repo-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .cross-repo-list li {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .cross-repo-list li:last-child {
+            border-bottom: none;
+        }
+        .cross-repo-list code {
+            background: rgba(108, 92, 231, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+            font-size: 0.85rem;
+            color: var(--accent-bright);
+        }
+        .last-updated {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-top: 48px;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: developers/status.html @ 15f4453
+  Date: 2026-05-17
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — World Model のためのユニバーサルランタイム &nbsp;|&nbsp; <a href="../index.html#for-studios">スタジオ・開発者向け →</a> &nbsp;&nbsp; また: <a href="../index.html#quickstart">コンシューマー版デモを試す →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">ホーム</a>
+            <a href="../../engine/">エンジン</a>
+            <a href="../../api/">API ドキュメント</a>
+            <a href="../../games/">ゲーム</a>
+            <a href="../why-rakuai.html">なぜ RakuAI</a>
+            <a href="index.html">開発者</a>
+            <a href="../press.html">プレス</a>
+            <a href="../../developers/status.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="status-hero">
+    <div class="container">
+        <h1>パートナーシップ準備ステータス</h1>
+        <p class="subtitle">すべてのパートナーシップトラックでエンジニアリング完了。Google エコシステム統合は評価準備が整っています。</p>
+    </div>
+</section>
+
+<div class="status-content">
+
+    <div class="summary-bar">
+        <div class="summary-stat">
+            <div class="number">6</div>
+            <div class="label">完了トラック</div>
+        </div>
+        <div class="summary-stat">
+            <div class="number amber">1</div>
+            <div class="label">エンジニアリング完了</div>
+        </div>
+        <div class="summary-stat">
+            <div class="number">7</div>
+            <div class="label">プロバイダー</div>
+        </div>
+        <div class="summary-stat">
+            <div class="number">15/15</div>
+            <div class="label">コンプライアンス</div>
+        </div>
+    </div>
+
+    <p class="intro">
+        Raku ランタイムのパートナーシップ準備プログラムは、環境コントラクト、キャッシュ、ライブ協調処理、Google エコシステム連携、パートナーデモ、AI エージェントオーケストレーションをカバーする 7 つの統合トラックを提供します。エンジニアリング作業はすべて完了しています。トラック E には残り 3 件のオペレータ作業（準備レビュー、ドライラン、公開）があります。
+    </p>
+
+    <!-- Track A -->
+    <div class="track-section">
+        <h2>トラック A &mdash; 環境コントラクト <span class="badge badge-complete">完了</span></h2>
+        <table class="status-table">
+            <thead>
+                <tr><th>タスク</th><th>説明</th><th>ステータス</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>A-01</td><td>環境コントラクト修正＋スキーマ分割</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>A-02</td><td>スキーマ整合＋7 プロバイダー enum</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>A-03</td><td>適合テストスイート＋CTest ゲート</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Track B -->
+    <div class="track-section">
+        <h2>トラック B &mdash; キャプチャ＋取り込み <span class="badge badge-complete">完了</span></h2>
+        <table class="status-table">
+            <thead>
+                <tr><th>タスク</th><th>説明</th><th>ステータス</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>B-01</td><td>キャプチャパック形式＋ジャンルショーケース</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>B-02</td><td>CLI インポートツール＋スキーマ検証</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>B-03</td><td>エッジケース強化＋不正パックテスト</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Track C -->
+    <div class="track-section">
+        <h2>トラック C &mdash; ライブ協調処理 <span class="badge badge-complete">完了</span></h2>
+        <table class="status-table">
+            <thead>
+                <tr><th>タスク</th><th>説明</th><th>ステータス</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>C-01</td><td>プロトコル仕様 (14 メッセージ型、7 状態マシン)</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>C-01b</td><td>ILiveCoprocessor インターフェース＋StubCoprocessor</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>C-01c</td><td>WebSocket トランスポート＋LoopbackTransport</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>C-02a</td><td>予算強制 (4 段階のグラデュエート)</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>C-02b</td><td>障害連鎖＋復旧＋カオス注入</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>C-03</td><td>パフォーマンスベンチマーク＋カオス適合 (10 テスト)</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Track D -->
+    <div class="track-section">
+        <h2>トラック D &mdash; Google エコシステム <span class="badge badge-complete">完了</span></h2>
+        <table class="status-table">
+            <thead>
+                <tr><th>タスク</th><th>説明</th><th>ステータス</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>D-01a</td><td>Tiles3D アダプター＋tileset パーサー</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>D-01b</td><td>オフラインモード対応 LRU タイルキャッシュ</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>D-02</td><td>Imagen アセット支援設計</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>D-02a</td><td>Imagen 支援サービス (13 ジャンル、安全性、SynthID)</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>D-03</td><td>ARCore 相互運用態勢</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>D-04</td><td>Agones デプロイ態勢</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Track E -->
+    <div class="track-section">
+        <h2>トラック E &mdash; パートナーデモ <span class="badge badge-eng-complete">エンジニアリング完了</span></h2>
+        <table class="status-table">
+            <thead>
+                <tr><th>タスク</th><th>説明</th><th>ステータス</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>E-01</td><td>デモスキャフォールド＋評価ハーネス</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>E-02</td><td>キャッシュ済みオーバーレイデモ (インタラクティブ、オフライン)</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>E-03</td><td>3D Tiles 地理空間デモ</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>E-04</td><td>Imagen アセット支援デモ</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>E-05</td><td>CI 評価ランナー＋コンプライアンス (21/21、15/15)</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>E-DoD</td><td>準備レビュー、ドライラン、Cloud Storage 公開</td><td><span class="badge badge-pending">オペレータ作業待ち</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Track H2 -->
+    <div class="track-section">
+        <h2>トラック H2 &mdash; World Model プロバイダー <span class="badge badge-complete">完了</span></h2>
+        <table class="status-table">
+            <thead>
+                <tr><th>タスク</th><th>説明</th><th>ステータス</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>H2-01</td><td>プロバイダーアダプターインターフェース (7 プロバイダー)</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>H2-02</td><td>プロバイダーレジストリ＋ディスカバリー</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>H2-03</td><td>Marble＋コミュニティアダプター</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>H2-04</td><td>Veo アダプター (Sora を置き換え)</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Track H3 -->
+    <div class="track-section">
+        <h2>トラック H3 &mdash; MCP エージェントコントローラー <span class="badge badge-complete">完了</span></h2>
+        <table class="status-table">
+            <thead>
+                <tr><th>タスク</th><th>説明</th><th>ステータス</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>H3-01</td><td>MCP サーバースケルトン＋型付きツールハンドラー</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>H3-02</td><td>セキュア境界 (認証、レート制限、監査)</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>H3-03</td><td>サンドボックスシミュレーション＋SandboxWorld</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+                <tr><td>H3-04</td><td>マルチエージェントオーケストレータ (ロール、予算、メッセージング)</td><td><span class="badge badge-landed">マージ済み</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Cross-repo -->
+    <div class="cross-repo-section">
+        <h2>クロスリポジトリ統合</h2>
+        <ul class="cross-repo-list">
+            <li><code>raku-runtime</code> &mdash; コアエンジン: 環境コントラクト、協調処理プロトコル、予算強制、パートナーデモ、評価ランナー。TRACK-STATUS v5.0。</li>
+            <li><code>raku-api</code> &mdash; バックエンド: 環境バリデータ (7 プロバイダー)、sora&rarr;veo 移行、非推奨エイリアス対応。</li>
+            <li><code>raku-sdk</code> &mdash; C# バインディング: P/Invoke 宣言 2,553 件、パートナーシップ準備ガイド、プロバイダー型リファレンス。</li>
+            <li><code>raku-governance</code> &mdash; 意思決定記録: セッションログ、ADR（sora の非推奨化）、戦略整合。</li>
+        </ul>
+    </div>
+
+    <p class="last-updated">最終更新: 2026-03-25 &mdash; TRACK-STATUS v5.0</p>
+
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../../engine/">エンジン</a>
+            <a href="../../api/">API</a>
+            <a href="../docs.html">ドキュメント</a>
+            <a href="../../games/">アーケード</a>
+            <a href="../press.html">プレス</a>
+            <a href="index.html">開発者</a>
+            <a href="../privacy.html">プライバシー</a>
+            <a href="../terms.html">利用規約</a>
+            <a href="../contact.html">お問い合わせ</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 米国特許 5 件取得済み（優先日：2012 年 7 月） &bull; RakuAI エンジン搭載</p>
+        <p class="trademark-notice">
+            RakuAI&trade; および RakuXR&trade; は RakuAI, LLC の商標です。
+            <span class="kanji-logo">&#x697D;</span>AI および <span class="kanji-logo">&#x697D;</span>XR は RakuAI, LLC のスタイライズド・マークです。
+            米国特許 5 件取得済み（優先日：2012 年 7 月）。
+        </p>
+    </div>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+</body>
+</html>
