@@ -532,9 +532,9 @@
                 } else {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'エンタープライズお問い合わせを送信';
-                    var errorMsg = (data && Array.isArray(data.errors))
-                        ? data.errors.map(function(err) { return err.message; }).join(', ')
-                        : (data && data.error) || 'エラーが発生しました。もう一度お試しください。';
+                    var errorMsg = (data && Array.isArray(data.errors) && data.errors.length > 0)
+                        ? data.errors.map(function(err) { return (err && err.message) || '不明なエラー'; }).join(', ')
+                        : (data && typeof data.error === 'string' ? data.error : null) || 'エラーが発生しました。もう一度お試しください。';
                     alert('フォームエラー: ' + errorMsg);
                 }
             });
