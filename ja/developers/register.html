@@ -541,17 +541,13 @@
     </div>
 </footer>
 
+<script src="/js/api-config.js"></script>
 <script>
 (function() {
     'use strict';
 
-    // ---- API base detection (matches developers/login.html) ----
-    var API_BASE = window.RAKU_API_BASE || (function() {
-        var h = window.location.hostname;
-        if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
-        if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
-        return 'https://api.rakuai.com';
-    })();
+    // ---- API base (shared detection in /js/api-config.js) ----
+    var API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
 
     var TOKEN_KEY = 'raku_access_token';
     var USER_KEY  = 'raku_user';
@@ -575,8 +571,15 @@
 
     var workEmailEl  = document.getElementById('workEmail');
     var fullNameEl   = document.getElementById('fullName');
+    var companyEl    = document.getElementById('company');
+    var roleEl       = document.getElementById('role');
+    var countryEl    = document.getElementById('country');
+    var industryEl   = document.getElementById('industry');
     var useCaseEl    = document.getElementById('useCase');
     var useCaseCounter = document.getElementById('useCase-counter');
+    var optNewsletterEl = document.getElementById('optNewsletter');
+    var optPartnerEl    = document.getElementById('optPartner');
+    var optBetaEl       = document.getElementById('optBeta');
 
     // ---- Token bootstrap ----
     //
@@ -745,24 +748,24 @@
         if (!fullName) { setFieldError('fullName', '必須項目です。'); ok = false; }
 
         var workEmail = workEmailEl.value.trim();
-        if (!workEmail || workEmail.indexOf('@') === -1) {
+        if (!workEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(workEmail)) {
             setFieldError('workEmail', '有効なメールアドレスを入力してください。'); ok = false;
         }
 
-        var company = document.getElementById('company').value.trim();
+        var company = companyEl.value.trim();
         if (!company) { setFieldError('company', '必須項目です。'); ok = false; }
         else if (company.length > 200) { setFieldError('company', '最大 200 文字までです。'); ok = false; }
 
-        var role = document.getElementById('role').value.trim();
+        var role = roleEl.value.trim();
         if (!role) { setFieldError('role', '必須項目です。'); ok = false; }
         else if (role.length > 100) { setFieldError('role', '最大 100 文字までです。'); ok = false; }
 
-        var country = document.getElementById('country').value;
+        var country = countryEl.value;
         if (!country || country.length !== 2) {
             setFieldError('country', '国・地域を選択してください。'); ok = false;
         }
 
-        var industry = document.getElementById('industry').value;
+        var industry = industryEl.value;
         if (!industry) { setFieldError('industry', '業種を選択してください。'); ok = false; }
 
         var platforms = readSelectedPlatforms();
@@ -795,9 +798,9 @@
             use_case: useCase,
             team_size: teamSize,
             funding_stage: fundingStage,
-            opt_in_newsletter: document.getElementById('optNewsletter').checked,
-            opt_in_partner_program: document.getElementById('optPartner').checked,
-            opt_in_beta_access: document.getElementById('optBeta').checked,
+            opt_in_newsletter: optNewsletterEl.checked,
+            opt_in_partner_program: optPartnerEl.checked,
+            opt_in_beta_access: optBetaEl.checked,
         } : null;
     }
 
@@ -822,14 +825,7 @@
             });
 
             if (resp.ok) {
-                // Success: persist token (already there) and route to dashboard.
-                // The token was set by /api/v1/auth/token at sign-in; nothing
-                // else to do but ensure it's still present.
-                try {
-                    if (!localStorage.getItem(TOKEN_KEY) && token) {
-                        localStorage.setItem(TOKEN_KEY, token);
-                    }
-                } catch (_) { /* private-mode / sandboxed: token still in memory */ }
+                // Token was already loaded from localStorage at boot; no need to re-persist.
                 step2Panel.classList.remove('active');
                 registerSuccess.style.display = 'block';
                 step2Indicator.classList.remove('active');
