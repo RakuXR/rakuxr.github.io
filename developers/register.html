@@ -282,7 +282,8 @@
         submitBtn.textContent = 'Processing...';
 
         try {
-            const API_BASE = window.RAKU_API_BASE;
+            // Defensive fallback if api-config.js failed to load — defaults to prod which is the safest target.
+            const API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
             const response = await fetch(`${API_BASE}/api/v1/developer/nda`, {
                 method: 'POST',
                 headers: {
