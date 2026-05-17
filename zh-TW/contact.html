@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聯絡我們 - RakuAI</title>
+    <meta name="description" content="與 RakuAI 團隊聯繫。寄送回饋、問題或合作邀約。">
+    <meta property="og:title" content="聯絡我們 - RakuAI">
+    <meta property="og:description" content="與 RakuAI 團隊聯繫。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/zh-TW/contact">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/zh-TW/contact.html">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <link rel="stylesheet" href="../style.css">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <style>
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 24px;
+        }
+        .form-group label {
+            display: block;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 2px solid #222244;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        .form-group select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        .captcha-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .captcha-group .captcha-question {
+            color: var(--accent-bright);
+            font-weight: 700;
+            font-size: 1.1rem;
+            white-space: nowrap;
+        }
+        .captcha-group input {
+            max-width: 100px;
+        }
+        .form-submit {
+            display: inline-block;
+            padding: 14px 40px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+        .form-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.3);
+            background: var(--accent-bright);
+        }
+        .form-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .form-error {
+            color: #ff6b6b;
+            font-size: 0.85rem;
+            margin-top: 6px;
+            display: none;
+        }
+        .form-success {
+            background: rgba(0, 206, 201, 0.15);
+            border: 2px solid var(--success);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            display: none;
+        }
+        .form-success h3 {
+            color: var(--success);
+            margin-bottom: 8px;
+        }
+        .hp-field {
+            position: absolute;
+            left: -9999px;
+            opacity: 0;
+            height: 0;
+            width: 0;
+            overflow: hidden;
+        }
+        .contact-alt {
+            max-width: 600px;
+            margin: 48px auto 0;
+            text-align: center;
+        }
+        .contact-alt-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .contact-alt-item {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .contact-alt-item h4 {
+            color: var(--accent-bright);
+            margin-bottom: 8px;
+        }
+        .contact-alt-item a {
+            color: var(--accent-bright);
+            text-decoration: none;
+        }
+        .contact-alt-item a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .contact-alt-grid {
+                grid-template-columns: 1fr;
+            }
+            .captcha-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .captcha-group input {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../contact.html @ 52a4f1d7f283da1cfd06e0377ba68b9c389f5f3a
+  Date: 2026-05-17
+  Language: zh-TW (Traditional Chinese, Taiwan)
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — 世界模型的通用執行環境 &nbsp;|&nbsp; <a href="index.html#for-studios">面向工作室與開發者 →</a> &nbsp;&nbsp; 或：<a href="index.html#quickstart">試試消費者示範 →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">首頁</a>
+            <a href="../engine/">引擎</a>
+            <a href="../api/">API 文件</a>
+            <a href="../games/">遊戲</a>
+            <a href="why-rakuai.html">為何選擇 RakuAI</a>
+            <a href="developers/">開發者</a>
+            <a href="../press.html">媒體</a>
+            <a href="../blog/">部落格</a>
+            <a href="../contact.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <h1>聯絡我們</h1>
+        <p class="subtitle">有問題、回饋或合作邀約嗎？我們很樂意聽到你的聲音。</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+
+        <div class="form-success" id="form-success">
+            <h3>訊息已送出</h3>
+            <p style="color: var(--text-secondary);">感謝你的來信。我們會盡快回覆。</p>
+        </div>
+
+        <form class="contact-form" id="contact-form" action="https://formspree.io/f/xaqpnyng" method="POST">
+            <div class="form-group">
+                <label for="name">姓名</label>
+                <input type="text" id="name" name="name" required autocomplete="name" placeholder="你的姓名" aria-label="姓名">
+            </div>
+
+            <div class="form-group">
+                <label for="email">電子郵件</label>
+                <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com" aria-label="電子郵件位址">
+            </div>
+
+            <div class="form-group">
+                <label for="subject">主旨</label>
+                <select id="subject" name="subject" required aria-label="主旨">
+                    <option value="" disabled selected>請選擇主題</option>
+                    <option value="General Question">一般問題</option>
+                    <option value="Bug Report">Bug 回報</option>
+                    <option value="Feature Request">功能建議</option>
+                    <option value="Partnership / Business">合作／商務</option>
+                    <option value="SDK / Runtime Access Request">SDK／執行環境使用權申請</option>
+                    <option value="Pro Subscription">Pro 訂閱</option>
+                    <option value="Other">其他</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="message">訊息</label>
+                <textarea id="message" name="message" required placeholder="告訴我們你的想法..." aria-label="訊息"></textarea>
+            </div>
+
+            <!-- Honeypot: hidden from real users, filled by bots -->
+            <div class="hp-field" aria-hidden="true">
+                <label for="website">Website</label>
+                <input type="text" id="website" name="_gotcha" tabindex="-1" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="captcha">驗證你是真人</label>
+                <div class="captcha-group">
+                    <span class="captcha-question" id="captcha-question"></span>
+                    <input type="number" id="captcha" name="captcha_answer" required placeholder="?" aria-label="驗證答案">
+                </div>
+                <div class="form-error" id="captcha-error">答案錯誤，請再試一次。</div>
+            </div>
+
+            <input type="hidden" name="_subject" value="RakuAI Contact Form">
+
+            <button type="submit" class="form-submit" id="submit-btn" aria-label="送出訊息">送出訊息</button>
+        </form>
+
+        <div class="contact-alt" style="margin-top: 48px;">
+            <h3>申請 SDK／執行環境使用權</h3>
+            <p style="color: var(--text-secondary); margin-top: 12px;">有興趣用 RakuAI SDK 開發，或把執行環境整合進你的專案嗎？請使用上方表單，並在主旨選擇 <strong>「SDK／執行環境使用權申請」</strong>。我們會持續審核申請，通常於 48 小時內回覆。</p>
+        </div>
+
+        <div class="contact-alt">
+            <h3>其他聯絡方式</h3>
+            <div class="contact-alt-grid">
+                <div class="contact-alt-item">
+                    <h4>一般詢問</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">所有詢問請使用上方聯絡表單。我們團隊通常於 48 小時內回覆。</p>
+                    <p style="margin-top: 8px;"><a href="#contact-form">送出詢問 →</a></p>
+                </div>
+                <div class="contact-alt-item">
+                    <h4>Bug 回報</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">發現問題？請直接到 GitHub 回報。</p>
+                    <p style="margin-top: 8px;"><a href="https://github.com/RakuXR/raku-api/discussions/new?category=bug-reports">回報 Bug →</a></p>
+                </div>
+                <div class="contact-alt-item">
+                    <h4>產品回饋</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">協助塑造 RakuAI 平台的未來。</p>
+                    <p style="margin-top: 8px;"><a href="https://github.com/RakuXR/raku-api/discussions/new?category=beta-feedback">分享回饋 →</a></p>
+                </div>
+                <div class="contact-alt-item">
+                    <h4>SDK 開發者</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">在用 SDK 開發嗎？加入開發者討論。</p>
+                    <p style="margin-top: 8px;"><a href="https://github.com/RakuXR/raku-sdk/discussions">開發者論壇 →</a></p>
+                </div>
+                <div class="contact-alt-item">
+                    <h4>LinkedIn</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">追蹤我們以獲得公司動態與公告。</p>
+                    <p style="margin-top: 8px;"><a href="https://www.linkedin.com/company/rakuai">RakuAI 的 LinkedIn →</a></p>
+                </div>
+                <div class="contact-alt-item">
+                    <h4>GitHub</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">原始碼、發行版本與社群。</p>
+                    <p style="margin-top: 8px;"><a href="https://github.com/RakuXR">RakuXR on GitHub →</a></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<script>
+(function() {
+    var a = Math.floor(Math.random() * 10) + 1;
+    var b = Math.floor(Math.random() * 10) + 1;
+    var answer = a + b;
+    document.getElementById('captcha-question').textContent = a + ' + ' + b + ' = ?';
+
+    var form = document.getElementById('contact-form');
+    var captchaInput = document.getElementById('captcha');
+    var captchaError = document.getElementById('captcha-error');
+    var successMsg = document.getElementById('form-success');
+    var submitBtn = document.getElementById('submit-btn');
+
+    form.addEventListener('submit', function(e) {
+        captchaError.style.display = 'none';
+
+        if (parseInt(captchaInput.value, 10) !== answer) {
+            e.preventDefault();
+            captchaError.style.display = 'block';
+            captchaInput.value = '';
+            captchaInput.focus();
+            return;
+        }
+
+        e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.textContent = '送出中...';
+
+        var formData = new FormData(form);
+        formData.delete('captcha_answer');
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'Accept': 'application/json' }
+        }).then(function(response) {
+            return response.json().then(function(data) {
+                if (response.ok) {
+                    form.style.display = 'none';
+                    successMsg.style.display = 'block';
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '送出訊息';
+                    var errorMsg = (data && data.errors)
+                        ? data.errors.map(function(err) { return err.message; }).join(', ')
+                        : (data && data.error) || '未知錯誤';
+                    alert('表單錯誤：' + errorMsg);
+                }
+            });
+        }).catch(function(err) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = '送出訊息';
+            alert('網路錯誤。請檢查連線後再試。');
+        });
+    });
+})();
+</script>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../engine/">引擎</a>
+            <a href="../api/">API</a>
+            <a href="../docs.html">文件</a>
+            <a href="../games/">電玩中心</a>
+            <a href="../press.html">媒體</a>
+            <a href="developers/">開發者</a>
+            <a href="../privacy.html">隱私權</a>
+            <a href="../terms.html">條款</a>
+            <a href="contact.html">聯絡我們</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 項美國已獲核准專利（優先權日：2012 年 7 月）&bull; 由 RakuAI 引擎驅動</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 與 RakuXR&trade; 是 RakuAI, LLC 的商標。
+            <span class="kanji-logo">&#x697D;</span>AI 與 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的設計化商標。
+            5 項美國已獲核准專利（優先權日：2012 年 7 月）。
+        </p>
+    </div>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>
