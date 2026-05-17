@@ -2,7 +2,8 @@
  * api-config.js
  *
  * Resolves the RakuAI backend base URL for the current environment.
- * Loaded with `defer` from any page that needs to call the API.
+ * Loaded SYNCHRONOUSLY (without `defer`) so window.RAKU_API_BASE is
+ * set before any inline consumer script runs.
  *
  *   - localhost / 127.0.0.1 / empty hostname (file://) -> dev backend
  *   - staging.rakuai.com                              -> Fly.io staging
