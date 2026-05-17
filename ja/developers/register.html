@@ -5,11 +5,11 @@
     <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>開発者登録 - RakuAI</title>
-    <meta name="description" content="RakuAI 開発者アクセスを登録。NDA に同意して API キーを取得します。">
+    <meta name="description" content="RakuAI 開発者アクセスを登録。NDA に同意し、プロフィールを入力して API キーを取得します。">
     <link rel="stylesheet" href="../../style.css">
     <style>
         .register-container {
-            max-width: 640px;
+            max-width: 720px;
             margin: 0 auto;
             padding: 48px 24px;
         }
@@ -55,39 +55,142 @@
         .form-group {
             margin-bottom: 20px;
         }
-        .form-group label {
+        .form-group label,
+        .form-group > .group-label {
             display: block;
             font-weight: 600;
             margin-bottom: 6px;
             font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+        .form-group .hint {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            font-weight: 400;
+            margin-top: 4px;
         }
         .form-group input[type="text"],
-        .form-group input[type="email"] {
+        .form-group input[type="email"],
+        .form-group select,
+        .form-group textarea {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px 14px;
             background: var(--bg-secondary);
             border: 1px solid rgba(108, 92, 231, 0.3);
             border-radius: 8px;
             color: var(--text-primary);
             font-size: 1rem;
+            box-sizing: border-box;
+            font-family: inherit;
         }
-        .form-group input:focus {
+        .form-group textarea {
+            min-height: 110px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: var(--accent);
         }
-        .checkbox-group {
+        .form-group input[readonly] {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .radio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+        }
+        .radio-grid label,
+        .checkbox-grid label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 400;
+            cursor: pointer;
+            margin-bottom: 0;
+        }
+        .radio-grid input[type="radio"],
+        .checkbox-grid input[type="checkbox"] {
+            accent-color: var(--accent);
+            margin: 0;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
+        }
+        .opt-in-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .opt-in-list label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 400;
+            line-height: 1.5;
+            cursor: pointer;
+        }
+        .opt-in-list input[type="checkbox"] {
+            margin-top: 3px;
+            accent-color: var(--accent);
+        }
+        .char-counter {
+            display: block;
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .char-counter.invalid { color: #ff8a7e; }
+
+        .field-error {
+            color: #ff8a7e;
+            font-size: 0.85rem;
+            margin-top: 6px;
+            display: none;
+        }
+        .field-error.visible { display: block; }
+
+        .form-error-banner {
+            margin: 16px 0;
+            padding: 12px 14px;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            border-radius: 8px;
+            color: #ff8a7e;
+            font-size: 0.92rem;
+            display: none;
+        }
+        .form-error-banner.visible { display: block; }
+
+        .nda-checkbox-group {
             display: flex;
             align-items: flex-start;
             gap: 12px;
             margin: 24px 0;
         }
-        .checkbox-group input[type="checkbox"] {
+        .nda-checkbox-group input[type="checkbox"] {
             margin-top: 4px;
             width: 18px;
             height: 18px;
             accent-color: var(--accent);
         }
-        .checkbox-group label {
+        .nda-checkbox-group label {
             font-size: 0.95rem;
             line-height: 1.5;
             color: var(--text-secondary);
@@ -125,12 +228,24 @@
             margin-bottom: 24px;
             line-height: 1.7;
         }
-        .register-form { display: block; }
+        .needs-signin {
+            display: none;
+            padding: 28px;
+            margin-bottom: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 12px;
+            text-align: center;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .needs-signin a { color: var(--accent-bright); }
         .step-indicator {
             display: flex;
             justify-content: center;
             gap: 32px;
             margin-bottom: 32px;
+            flex-wrap: wrap;
         }
         .step {
             display: flex;
@@ -152,17 +267,15 @@
             font-weight: 700;
             font-size: 0.8rem;
         }
+        section.step-panel { display: none; }
+        section.step-panel.active { display: block; }
     </style>
 </head>
 <body>
 <!--
   Machine-translated by Claude. Pending human review.
-  Source: developers/register.html @ 15f4453
+  Source: ../developers/register.html @ 808dc174106767492b6d4c6fba8b471e1a77b954
   Date: 2026-05-17
-  NOTE: PR-B is rewriting the English source of this file (expanded
-  registration form). This JA translation is based on the pre-PR-B
-  version on PR-A's HEAD. A follow-up resync pass is needed after PR-B
-  merges so this page picks up the expanded form fields.
 -->
 
 <div class="beta-announcement-bar">
@@ -189,13 +302,30 @@
 <div class="register-container">
     <div class="step-indicator">
         <div class="step active" id="step1-indicator"><span class="step-num">1</span> NDA を読む</div>
-        <div class="step" id="step2-indicator"><span class="step-num">2</span> 同意して登録</div>
-        <div class="step" id="step3-indicator"><span class="step-num">3</span> API キー取得</div>
+        <div class="step" id="step2-indicator"><span class="step-num">2</span> プロフィール入力</div>
+        <div class="step" id="step3-indicator"><span class="step-num">3</span> 承認 &amp; API キー</div>
     </div>
 
-    <div class="register-form" id="registerForm">
+    <!-- Signed-out helper: shown only if we discover no session token. We
+         do NOT auto-redirect to login.html — that's what produced the
+         "NDA -> login loop" bug, since a brand-new developer can't sign
+         in via /developers/login.html (it requires an existing API key
+         they haven't been issued yet). Instead we point them at the
+         account-creation entry points and let them come back. -->
+    <div class="needs-signin" id="needsSignin">
+        <h2 style="color: var(--text-primary); margin-bottom: 12px;">続行するにはサインインしてください</h2>
+        <p>
+            開発者登録には RakuAI アカウントが必要です。すでにアカウントをお持ちの場合は、
+            <a href="login.html?return=/ja/developers/register.html">API キーでサインイン</a>してください。
+            RakuAI を初めてご利用の方は、
+            <a href="../index.html#quickstart">メインサイト</a>からアカウントを作成し、このページに戻ってきてください。
+        </p>
+    </div>
+
+    <!-- Step 1: NDA acceptance -->
+    <section class="step-panel active" id="step1Panel">
         <h1>開発者アクセス</h1>
-        <p class="subtitle">以下の NDA をお読みいただき、登録して API キーを受け取ってください。</p>
+        <p class="subtitle">以下の NDA をご確認のうえ、プロフィールの入力にお進みください。</p>
 
         <div class="nda-box" id="ndaBox">
             <h3>RakuAI 開発者向け秘密保持契約</h3>
@@ -230,17 +360,159 @@
             <p>本契約は、アメリカ合衆国デラウェア州法に準拠します。</p>
         </div>
 
-        <div class="checkbox-group">
+        <div class="nda-checkbox-group">
             <input type="checkbox" id="ndaAccept">
             <label for="ndaAccept">RakuAI 開発者向け秘密保持契約を読み、同意します。本契約に違反した場合、開発者アクセスが取り消され、法的措置の対象となる可能性があることを理解しています。</label>
         </div>
 
-        <button class="btn-register" id="submitBtn" disabled onclick="handleRegister()">NDA に同意してアクセスをリクエスト</button>
-    </div>
+        <div class="form-error-banner" id="ndaErrorBanner" aria-live="polite"></div>
+
+        <button class="btn-register" id="ndaSubmitBtn" type="button" disabled>NDA に同意して続行</button>
+    </section>
+
+    <!-- Step 2: Extended profile -->
+    <section class="step-panel" id="step2Panel" aria-labelledby="step2Heading">
+        <h1 id="step2Heading">あなたについて教えてください</h1>
+        <!-- TRANSLATION: alt phrasing "簡単なプロフィールにご記入いただければ、適切なチームへアクセスリクエストを割り当てることができます。" -->
+        <p class="subtitle">簡単なプロフィールを入力いただくことで、アクセスリクエストを適切なチームに割り当てます。「任意」と記載のない項目はすべて必須です。</p>
+
+        <form id="profileForm" novalidate>
+            <div class="form-group">
+                <label for="fullName">氏名</label>
+                <input type="text" id="fullName" name="fullName" autocomplete="name" maxlength="100" required>
+                <div class="field-error" id="fullName-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="workEmail">仕事用メールアドレス</label>
+                <input type="email" id="workEmail" name="workEmail" autocomplete="email" maxlength="200" required>
+                <span class="hint">利用可能な場合はアカウント情報から自動入力されます。</span>
+                <div class="field-error" id="workEmail-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="company">会社・組織</label>
+                <input type="text" id="company" name="company" autocomplete="organization" maxlength="200" required>
+                <div class="field-error" id="company-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="role">役職</label>
+                <input type="text" id="role" name="role" autocomplete="organization-title" maxlength="100" required>
+                <div class="field-error" id="role-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="country">国・地域</label>
+                <select id="country" name="country" autocomplete="country" required>
+                    <option value="">選択してください…</option>
+                    <option value="US">アメリカ合衆国</option>
+                    <option value="CA">カナダ</option>
+                    <option value="GB">イギリス</option>
+                    <option value="DE">ドイツ</option>
+                    <option value="FR">フランス</option>
+                    <option value="NL">オランダ</option>
+                    <option value="SE">スウェーデン</option>
+                    <option value="ES">スペイン</option>
+                    <option value="IT">イタリア</option>
+                    <option value="JP">日本</option>
+                    <option value="KR">韓国</option>
+                    <option value="CN">中国</option>
+                    <option value="IN">インド</option>
+                    <option value="SG">シンガポール</option>
+                    <option value="AU">オーストラリア</option>
+                    <option value="NZ">ニュージーランド</option>
+                    <option value="BR">ブラジル</option>
+                    <option value="MX">メキシコ</option>
+                    <option value="AE">アラブ首長国連邦</option>
+                    <option value="IL">イスラエル</option>
+                    <option value="ZA">南アフリカ</option>
+                    <option value="XX">その他</option>
+                </select>
+                <span class="hint">ISO 3166-1 alpha-2 コード。リストにない場合は「その他」を選択してください。</span>
+                <div class="field-error" id="country-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="industry">業種</label>
+                <select id="industry" name="industry" required>
+                    <option value="">選択してください…</option>
+                    <option value="gaming">ゲーム</option>
+                    <option value="enterprise">エンタープライズ</option>
+                    <option value="education">教育</option>
+                    <option value="defense">防衛</option>
+                    <option value="tourism">観光</option>
+                    <option value="fitness">フィットネス</option>
+                    <option value="healthcare">ヘルスケア</option>
+                    <option value="other">その他</option>
+                </select>
+                <div class="field-error" id="industry-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="group" aria-labelledby="targetPlatformLabel">
+                <span class="group-label" id="targetPlatformLabel">ターゲットプラットフォーム（1つ以上選択）</span>
+                <div class="checkbox-grid" id="targetPlatformGrid">
+                    <label><input type="checkbox" name="target_platform" value="xr"> XR (VR/AR/MR)</label>
+                    <label><input type="checkbox" name="target_platform" value="web"> Web</label>
+                    <label><input type="checkbox" name="target_platform" value="mobile"> モバイル</label>
+                    <label><input type="checkbox" name="target_platform" value="desktop"> デスクトップ</label>
+                    <label><input type="checkbox" name="target_platform" value="console"> コンソール</label>
+                </div>
+                <div class="field-error" id="target_platform-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="useCase">ユースケースの説明</label>
+                <textarea id="useCase" name="useCase" maxlength="2000" minlength="10" required></textarea>
+                <span class="char-counter" id="useCase-counter" aria-live="polite">0 / 2000（最低 10 文字）</span>
+                <div class="field-error" id="useCase-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="radiogroup" aria-labelledby="teamSizeLabel">
+                <span class="group-label" id="teamSizeLabel">チーム規模</span>
+                <div class="radio-grid">
+                    <!-- TRANSLATION: alt phrasing for "Solo" — "1人" -->
+                    <label><input type="radio" name="team_size" value="solo"> 個人</label>
+                    <label><input type="radio" name="team_size" value="2-10"> 2〜10</label>
+                    <label><input type="radio" name="team_size" value="11-50"> 11〜50</label>
+                    <label><input type="radio" name="team_size" value="51-200"> 51〜200</label>
+                    <label><input type="radio" name="team_size" value="200+"> 200 以上</label>
+                </div>
+                <div class="field-error" id="team_size-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group" role="radiogroup" aria-labelledby="fundingLabel">
+                <span class="group-label" id="fundingLabel">資金調達ステージ</span>
+                <div class="radio-grid">
+                    <label><input type="radio" name="funding_stage" value="bootstrapped"> ブートストラップ</label>
+                    <label><input type="radio" name="funding_stage" value="preseed"> プレシード</label>
+                    <label><input type="radio" name="funding_stage" value="seed"> シード</label>
+                    <label><input type="radio" name="funding_stage" value="seriesA"> シリーズA</label>
+                    <label><input type="radio" name="funding_stage" value="seriesB+"> シリーズB以降</label>
+                    <label><input type="radio" name="funding_stage" value="public"> 上場</label>
+                    <label><input type="radio" name="funding_stage" value="none"> 該当なし</label>
+                </div>
+                <div class="field-error" id="funding_stage-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <span class="group-label">任意のオプトイン</span>
+                <div class="opt-in-list">
+                    <label><input type="checkbox" id="optNewsletter"> RakuAI 開発者ニュースレターを受信する。</label>
+                    <label><input type="checkbox" id="optPartner"> RakuAI パートナープログラムに興味がある。</label>
+                    <label><input type="checkbox" id="optBeta"> ベータ機能の早期アクセスを希望する（利用可能になり次第）。</label>
+                </div>
+            </div>
+
+            <div class="form-error-banner" id="profileErrorBanner" aria-live="polite"></div>
+
+            <button type="submit" class="btn-register" id="profileSubmitBtn">プロフィールを送信して登録を完了</button>
+        </form>
+    </section>
 
     <div class="register-success" id="registerSuccess">
-        <h2>ようこそ、開発者の皆さん！</h2>
-        <p>開発者アクセスが有効化されました。API キーを作成して、RakuAI API による構築を始められます。</p>
+        <h2>プロフィールを送信しました！</h2>
+        <p>開発者申請は管理者の承認待ちキューに追加されました。ダッシュボードに移動し、ステータスの確認と（承認後）API キーの作成が行えます。</p>
         <a href="dashboard.html" class="btn-register" style="display: inline-block; width: auto; padding: 14px 36px; text-decoration: none;">ダッシュボードへ</a>
     </div>
 </div>
@@ -269,61 +541,345 @@
     </div>
 </footer>
 
+<script src="/js/api-config.js"></script>
 <script>
-    const ndaCheckbox = document.getElementById('ndaAccept');
-    const submitBtn = document.getElementById('submitBtn');
+(function() {
+    'use strict';
 
+    // ---- API base (shared detection in /js/api-config.js) ----
+    var API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
+
+    var TOKEN_KEY = 'raku_access_token';
+    var USER_KEY  = 'raku_user';
+
+    // ---- Element refs ----
+    var needsSignin   = document.getElementById('needsSignin');
+    var step1Panel    = document.getElementById('step1Panel');
+    var step2Panel    = document.getElementById('step2Panel');
+    var registerSuccess = document.getElementById('registerSuccess');
+    var step1Indicator = document.getElementById('step1-indicator');
+    var step2Indicator = document.getElementById('step2-indicator');
+    var step3Indicator = document.getElementById('step3-indicator');
+
+    var ndaCheckbox  = document.getElementById('ndaAccept');
+    var ndaSubmitBtn = document.getElementById('ndaSubmitBtn');
+    var ndaErrorBanner = document.getElementById('ndaErrorBanner');
+
+    var profileForm  = document.getElementById('profileForm');
+    var profileSubmitBtn = document.getElementById('profileSubmitBtn');
+    var profileErrorBanner = document.getElementById('profileErrorBanner');
+
+    var workEmailEl  = document.getElementById('workEmail');
+    var fullNameEl   = document.getElementById('fullName');
+    var companyEl    = document.getElementById('company');
+    var roleEl       = document.getElementById('role');
+    var countryEl    = document.getElementById('country');
+    var industryEl   = document.getElementById('industry');
+    var useCaseEl    = document.getElementById('useCase');
+    var useCaseCounter = document.getElementById('useCase-counter');
+    var optNewsletterEl = document.getElementById('optNewsletter');
+    var optPartnerEl    = document.getElementById('optPartner');
+    var optBetaEl       = document.getElementById('optBeta');
+
+    // ---- Token bootstrap ----
+    //
+    // The original /developers/register.html shipped a bug: if the user
+    // had no session token it window.location.href'd to login.html. But
+    // /developers/login.html requires an existing API key — which a
+    // brand-new developer doesn't have until their NDA is accepted and
+    // their account is approved. Result: an infinite redirect loop.
+    //
+    // Fix: do NOT auto-redirect. Show an inline "sign in to continue"
+    // panel that links to BOTH login.html (for returning developers) and
+    // the marketing-site account-creation entry point (for net-new users).
+    // Wrap localStorage access — it can throw in private-mode browsers
+    // or sandboxed iframes where storage is disabled. Falling through to
+    // the signed-out nudge is the right behaviour in those cases.
+    var token = null;
+    var userJson = null;
+    try {
+        token = localStorage.getItem(TOKEN_KEY);
+        userJson = localStorage.getItem(USER_KEY);
+    } catch (_) {
+        // localStorage unavailable; proceed as signed-out.
+    }
+    var cachedUser = null;
+    if (userJson) {
+        try { cachedUser = JSON.parse(userJson); } catch (_) { cachedUser = null; }
+    }
+
+    if (!token) {
+        // Hide the NDA panel and step indicator; show only the sign-in nudge.
+        step1Panel.classList.remove('active');
+        needsSignin.style.display = 'block';
+    } else if (cachedUser) {
+        // Prefill what we know.
+        if (cachedUser.email)        workEmailEl.value = cachedUser.email;
+        if (cachedUser.display_name) fullNameEl.value  = cachedUser.display_name;
+        if (cachedUser.email) {
+            workEmailEl.setAttribute('readonly', 'readonly');
+        }
+    }
+
+    // ---- Step 1: NDA submit ----
     ndaCheckbox.addEventListener('change', function() {
-        submitBtn.disabled = !this.checked;
+        ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+        hideBanner(ndaErrorBanner);
     });
 
-    async function handleRegister() {
-        const token = localStorage.getItem('raku_access_token');
-        if (!token) {
-            // Send the user to the developer sign-in page and bring them back here.
-            window.location.href = 'login.html?return=/ja/developers/register.html';
-            return;
-        }
+    ndaSubmitBtn.addEventListener('click', function() {
+        if (!ndaCheckbox.checked) return;
+        handleNdaAccept();
+    });
 
-        submitBtn.disabled = true;
-        submitBtn.textContent = '処理中…';
+    async function handleNdaAccept() {
+        hideBanner(ndaErrorBanner);
+        ndaSubmitBtn.disabled = true;
+        ndaSubmitBtn.textContent = '処理中…';
 
         try {
-            const API_BASE = window.RAKU_API_BASE || (function() {
-                const h = window.location.hostname;
-                if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
-                if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
-                return 'https://api.rakuai.com';
-            })();
-            const response = await fetch(`${API_BASE}/api/v1/developer/nda`, {
+            var resp = await fetch(API_BASE + '/api/v1/developer/nda', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
+                    'Authorization': 'Bearer ' + token,
                 },
                 body: JSON.stringify({ accept: true }),
             });
 
-            if (response.ok) {
-                document.getElementById('registerForm').style.display = 'none';
-                document.getElementById('registerSuccess').style.display = 'block';
-                document.getElementById('step1-indicator').classList.remove('active');
-                document.getElementById('step1-indicator').classList.add('done');
-                document.getElementById('step2-indicator').classList.remove('active');
-                document.getElementById('step2-indicator').classList.add('done');
-                document.getElementById('step3-indicator').classList.add('active');
-            } else {
-                const data = await response.json();
-                alert(data.detail || '登録に失敗しました。もう一度お試しください。');
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'NDA に同意してアクセスをリクエスト';
+            // 409 = NDA already accepted; that's fine — proceed to the
+            // profile step so a returning user can finish/update their
+            // profile without having to wipe their account.
+            if (resp.ok || resp.status === 409) {
+                advanceToStep2();
+                return;
             }
-        } catch {
-            alert('ネットワークエラーです。接続を確認してもう一度お試しください。');
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'NDA に同意してアクセスをリクエスト';
+
+            if (resp.status === 401) {
+                showBanner(ndaErrorBanner, 'セッションの有効期限が切れました。もう一度サインインしてください。');
+                ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+                ndaSubmitBtn.textContent = 'NDA に同意して続行';
+                return;
+            }
+
+            var msg = 'NDA の同意に失敗しました。もう一度お試しください。';
+            try {
+                var data = await resp.json();
+                if (data && data.detail) msg = data.detail;
+            } catch (_) { /* keep default */ }
+            showBanner(ndaErrorBanner, msg);
+            ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+            ndaSubmitBtn.textContent = 'NDA に同意して続行';
+        } catch (_) {
+            showBanner(ndaErrorBanner, 'ネットワークエラーです。接続を確認してもう一度お試しください。');
+            ndaSubmitBtn.disabled = !ndaCheckbox.checked;
+            ndaSubmitBtn.textContent = 'NDA に同意して続行';
         }
     }
+
+    function advanceToStep2() {
+        step1Panel.classList.remove('active');
+        step2Panel.classList.add('active');
+        step1Indicator.classList.remove('active');
+        step1Indicator.classList.add('done');
+        step2Indicator.classList.add('active');
+        // Focus the first input so keyboard users land where they should.
+        setTimeout(function() {
+            var first = step2Panel.querySelector('input, select, textarea');
+            if (first) try { first.focus(); } catch (_) {}
+        }, 50);
+    }
+
+    // ---- Step 2: char counter ----
+    useCaseEl.addEventListener('input', updateUseCaseCounter);
+    function updateUseCaseCounter() {
+        var len = useCaseEl.value.length;
+        useCaseCounter.textContent = len + ' / 2000（最低 10 文字）';
+        if (len > 0 && (len < 10 || len > 2000)) {
+            useCaseCounter.classList.add('invalid');
+        } else {
+            useCaseCounter.classList.remove('invalid');
+        }
+    }
+
+    // ---- Step 2: validate + submit ----
+    profileForm.addEventListener('submit', function(ev) {
+        ev.preventDefault();
+        handleProfileSubmit();
+    });
+
+    function readSelectedPlatforms() {
+        var nodes = document.querySelectorAll('input[name="target_platform"]:checked');
+        var out = [];
+        for (var i = 0; i < nodes.length; i++) out.push(nodes[i].value);
+        return out;
+    }
+
+    function readRadio(name) {
+        var node = document.querySelector('input[name="' + name + '"]:checked');
+        return node ? node.value : '';
+    }
+
+    function setFieldError(id, msg) {
+        var el = document.getElementById(id + '-error');
+        if (!el) return;
+        if (msg) {
+            el.textContent = msg;
+            el.classList.add('visible');
+        } else {
+            el.textContent = '';
+            el.classList.remove('visible');
+        }
+    }
+
+    function clearAllFieldErrors() {
+        ['fullName', 'workEmail', 'company', 'role', 'country', 'industry',
+         'target_platform', 'useCase', 'team_size', 'funding_stage'].forEach(function(id) {
+            setFieldError(id, '');
+        });
+        hideBanner(profileErrorBanner);
+    }
+
+    function validateProfile() {
+        clearAllFieldErrors();
+        var ok = true;
+
+        var fullName = fullNameEl.value.trim();
+        if (!fullName) { setFieldError('fullName', '必須項目です。'); ok = false; }
+
+        var workEmail = workEmailEl.value.trim();
+        if (!workEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(workEmail)) {
+            setFieldError('workEmail', '有効なメールアドレスを入力してください。'); ok = false;
+        }
+
+        var company = companyEl.value.trim();
+        if (!company) { setFieldError('company', '必須項目です。'); ok = false; }
+        else if (company.length > 200) { setFieldError('company', '最大 200 文字までです。'); ok = false; }
+
+        var role = roleEl.value.trim();
+        if (!role) { setFieldError('role', '必須項目です。'); ok = false; }
+        else if (role.length > 100) { setFieldError('role', '最大 100 文字までです。'); ok = false; }
+
+        var country = countryEl.value;
+        if (!country || country.length !== 2) {
+            setFieldError('country', '国・地域を選択してください。'); ok = false;
+        }
+
+        var industry = industryEl.value;
+        if (!industry) { setFieldError('industry', '業種を選択してください。'); ok = false; }
+
+        var platforms = readSelectedPlatforms();
+        if (platforms.length === 0) {
+            setFieldError('target_platform', 'プラットフォームを1つ以上選択してください。'); ok = false;
+        }
+
+        var useCase = useCaseEl.value.trim();
+        if (useCase.length < 10) {
+            setFieldError('useCase', 'ユースケースを入力してください（最低 10 文字）。'); ok = false;
+        } else if (useCase.length > 2000) {
+            setFieldError('useCase', '最大 2000 文字までです。'); ok = false;
+        }
+
+        var teamSize = readRadio('team_size');
+        if (!teamSize) { setFieldError('team_size', 'チーム規模を選択してください。'); ok = false; }
+
+        var fundingStage = readRadio('funding_stage');
+        if (!fundingStage) { setFieldError('funding_stage', '資金調達ステージを選択してください。'); ok = false; }
+
+        return ok ? {
+            // The full_name / work_email fields are collected for the
+            // form but aren't part of the /profile/extended schema yet —
+            // backend will pick them up in a follow-up. Don't send them.
+            company: company,
+            role: role,
+            country: country,
+            industry: industry,
+            target_platform: platforms,
+            use_case: useCase,
+            team_size: teamSize,
+            funding_stage: fundingStage,
+            opt_in_newsletter: optNewsletterEl.checked,
+            opt_in_partner_program: optPartnerEl.checked,
+            opt_in_beta_access: optBetaEl.checked,
+        } : null;
+    }
+
+    async function handleProfileSubmit() {
+        var payload = validateProfile();
+        if (!payload) {
+            showBanner(profileErrorBanner, 'ハイライトされた項目を修正してもう一度お試しください。');
+            return;
+        }
+
+        profileSubmitBtn.disabled = true;
+        profileSubmitBtn.textContent = '送信中…';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/developer/profile/extended', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (resp.ok) {
+                // Token was already loaded from localStorage at boot; no need to re-persist.
+                step2Panel.classList.remove('active');
+                registerSuccess.style.display = 'block';
+                step2Indicator.classList.remove('active');
+                step2Indicator.classList.add('done');
+                step3Indicator.classList.add('active');
+                // Auto-route after a short pause so the user sees the success state.
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 1200);
+                return;
+            }
+
+            if (resp.status === 401) {
+                showBanner(profileErrorBanner, 'セッションの有効期限が切れました。もう一度サインインしてください。');
+                profileSubmitBtn.disabled = false;
+                profileSubmitBtn.textContent = 'プロフィールを送信して登録を完了';
+                return;
+            }
+
+            if (resp.status >= 400 && resp.status < 500) {
+                var msg = '送信が拒否されました (HTTP ' + resp.status + ')。';
+                try {
+                    var data = await resp.json();
+                    if (data && data.detail) {
+                        if (typeof data.detail === 'string') msg = data.detail;
+                        else msg = 'バリデーションエラー: 入力内容をご確認ください。';
+                    }
+                } catch (_) { /* keep default */ }
+                showBanner(profileErrorBanner, msg);
+                profileSubmitBtn.disabled = false;
+                profileSubmitBtn.textContent = 'プロフィールを送信して登録を完了';
+                return;
+            }
+
+            // 5xx — let them retry.
+            showBanner(profileErrorBanner, 'サーバーエラー (HTTP ' + resp.status + ')。しばらくしてからもう一度お試しください。');
+            profileSubmitBtn.disabled = false;
+            profileSubmitBtn.textContent = 'プロフィールを送信して登録を完了';
+        } catch (_) {
+            showBanner(profileErrorBanner, 'ネットワークエラーです。接続を確認してもう一度お試しください。');
+            profileSubmitBtn.disabled = false;
+            profileSubmitBtn.textContent = 'プロフィールを送信して登録を完了';
+        }
+    }
+
+    function showBanner(el, msg) {
+        el.textContent = msg;
+        el.classList.add('visible');
+    }
+    function hideBanner(el) {
+        el.textContent = '';
+        el.classList.remove('visible');
+    }
+})();
 </script>
 
 <script src="/js/auth-nav.js" defer></script>
