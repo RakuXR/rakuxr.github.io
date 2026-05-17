@@ -291,6 +291,13 @@
             menu.hidden = !open;
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
             wrapper.classList.toggle('is-open', open);
+            // Also mirror the state onto the menu element itself so CSS
+            // selectors that key off `.lang-menu.is-open` (the fallback
+            // stylesheet, and the defensive rule in style.css) actually
+            // flip from `display: none` to `display: block`. Without this
+            // mirror the wrapper opens but the menu stays hidden — the
+            // exact symptom reported after PR #180 shipped.
+            menu.classList.toggle('is-open', open);
             if (open) {
                 // Focus the current locale's item first if present,
                 // else the first item.
