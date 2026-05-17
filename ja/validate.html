@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>.raku ファイルを検証 - RakuAI</title>
+    <meta name="description" content="AI が生成した .raku ゲームファイルを貼り付け、実行前に構造、必須フィールド、スキーマ準拠を検証します。">
+    <meta property="og:title" content=".raku ファイルを検証 - RakuAI">
+    <meta property="og:description" content="AI 生成 .raku ゲームファイルの即時検証。構造的な問題を検出し、修正案を提示します。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ja/validate.html">
+    <link rel="canonical" href="https://rakuai.com/ja/validate.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .validator-container {
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+        .validator-textarea {
+            width: 100%;
+            min-height: 320px;
+            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.85rem;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            border: 2px solid #333;
+            border-radius: 10px;
+            padding: 1rem;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        .validator-textarea:focus {
+            border-color: var(--accent, #6c5ce7);
+            outline: none;
+        }
+        .validate-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 12px 32px;
+            background: var(--accent, #6c5ce7);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .validate-btn:hover { background: #5a4bd1; transform: translateY(-1px); }
+        .validate-btn:active { transform: translateY(0); }
+
+        .results-panel {
+            margin-top: 1.5rem;
+            border-radius: 10px;
+            padding: 1.5rem;
+            display: none;
+        }
+        .results-panel.show { display: block; }
+        .results-pass {
+            background: #0d3320;
+            border: 2px solid #27ae60;
+        }
+        .results-fail {
+            background: #3d1212;
+            border: 2px solid #e74c3c;
+        }
+        .results-warn {
+            background: #3d2e12;
+            border: 2px solid #f39c12;
+        }
+
+        .result-item {
+            padding: 8px 12px;
+            margin: 6px 0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        .result-error { background: rgba(231, 76, 60, 0.15); border-left: 3px solid #e74c3c; }
+        .result-warning { background: rgba(243, 156, 18, 0.15); border-left: 3px solid #f39c12; }
+        .result-ok { background: rgba(39, 174, 96, 0.15); border-left: 3px solid #27ae60; }
+        .result-info { background: rgba(52, 152, 219, 0.15); border-left: 3px solid #3498db; }
+
+        .stats-bar {
+            display: flex;
+            gap: 1.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .stat-chip {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .stat-pass { background: #27ae60; color: white; }
+        .stat-fail { background: #e74c3c; color: white; }
+        .stat-warn { background: #f39c12; color: white; }
+        .stat-info { background: #3498db; color: white; }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../validate.html @ b41cc9cbafd79383966041df1c3e3d2b8d5fde2c
+  Date: 2026-05-17
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — World Model のためのユニバーサルランタイム &nbsp;|&nbsp; <a href="index.html#for-studios">スタジオ・開発者向け →</a> &nbsp;&nbsp; また: <a href="index.html#quickstart">コンシューマー版デモを試す →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">ホーム</a>
+            <a href="../engine/">エンジン</a>
+            <a href="../api/">API ドキュメント</a>
+            <a href="../games/">ゲーム</a>
+            <a href="why-rakuai.html">なぜ RakuAI</a>
+            <a href="developers/">開発者</a>
+            <a href="press.html">プレス</a>
+            <a href="../blog/">ブログ</a>
+            <a href="../validate.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero" style="padding: 60px 0 40px;">
+    <div class="container">
+        <h1>.raku ファイルを検証</h1>
+        <p class="subtitle">完全な検証ツールは SDK アクセスでご利用いただけます。</p>
+    </div>
+</section>
+
+<div class="validator-container">
+    <div style="background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(0, 206, 201, 0.1)); border: 2px solid var(--accent); border-radius: 16px; padding: 40px; text-align: center; margin-top: 24px;">
+        <h3 style="font-size: 1.6rem; color: var(--accent-bright); margin-bottom: 16px;">検証ツールは SDK でご利用可能</h3>
+        <!-- TRANSLATION: alt phrasing "SDK 契約者向けの検証ツール" -->
+        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 24px;">自動修正、スキーマ準拠チェック、詳細なエラーレポートを備えた完全な .raku ファイル検証は、SDK アクセスでご利用いただけます。</p>
+        <a href="index.html#create" class="btn btn-primary">作成を始める</a>
+    </div>
+</div>
+
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+        <h2>AI でゲームを作る</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
+            任意の AI アシスタントを使って、作りたいゲームを説明するだけ。SDK にはプロンプトテンプレート、検証ツール、必要なものがすべて揃っています。
+        </p>
+        <div class="cta-group">
+            <a href="index.html#create" class="btn btn-primary">作成を始める</a>
+            <a href="templates.html" class="btn btn-secondary">テンプレートを見る</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../engine/">エンジン</a>
+            <a href="../api/">API</a>
+            <a href="docs.html">ドキュメント</a>
+            <a href="../games/">アーケード</a>
+            <a href="press.html">プレス</a>
+            <a href="developers/">開発者</a>
+            <a href="privacy.html">プライバシー</a>
+            <a href="terms.html">利用規約</a>
+            <a href="contact.html">お問い合わせ</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 米国特許 5 件取得済み（優先日：2012 年 7 月） &bull; RakuAI エンジン搭載</p>
+        <p class="trademark-notice">
+            RakuAI&trade; および RakuXR&trade; は RakuAI, LLC の商標です。
+            <span class="kanji-logo">&#x697D;</span>AI および <span class="kanji-logo">&#x697D;</span>XR は RakuAI, LLC のスタイライズド・マークです。
+            米国特許 5 件取得済み（優先日：2012 年 7 月）。
+        </p>
+    </div>
+</footer>
+
+
+<script src="/js/auth-nav.js" defer></script>
+</body>
+</html>

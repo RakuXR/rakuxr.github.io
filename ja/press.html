@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プレス・メディア — RakuAI</title>
+    <meta name="description" content="RakuAI のプレスキット — AI ネイティブな空間ゲームエンジン。会社概要、主要ファクト、創業者プロフィール、メディアリソース。">
+    <meta property="og:title" content="RakuAI プレスキット">
+    <meta property="og:description" content="RakuAI を取材するジャーナリストのためのすべて：会社概要、主要ファクト、創業者プロフィール、そしてプラットフォームの違い。">
+    <link rel="canonical" href="https://rakuai.com/ja/press.html">
+    <style>
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #111128;
+            --text-primary: #e8e8f0;
+            --text-secondary: #9090b0;
+            --accent: #6c5ce7;
+            --accent-bright: #a388ff;
+            --success: #00cec9;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        nav {
+            background: rgba(10, 10, 26, 0.95);
+            border-bottom: 1px solid rgba(108, 92, 231, 0.2);
+            padding: 16px 0;
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .nav-inner {
+            max-width: 1200px; margin: 0 auto; padding: 0 24px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo { font-size: 1.4rem; font-weight: 800; background: linear-gradient(135deg, var(--accent-bright), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; letter-spacing: 2px; }
+        .logo .kanji { font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; font-size: 1.2rem; margin-right: 4px; }
+        .logo sup { font-size: 0.5em; vertical-align: super; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; margin-left: 24px; font-size: 0.95rem; }
+        .nav-links a:hover { color: var(--accent-bright); }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+        .hero {
+            padding: 100px 0 60px;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+        .hero h1 {
+            font-size: 3rem; font-weight: 800; margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .hero p { font-size: 1.2rem; color: var(--text-secondary); max-width: 640px; margin: 0 auto; }
+
+        .press-section { padding: 60px 0; }
+        .press-section + .press-section { border-top: 1px solid rgba(108, 92, 231, 0.15); }
+        .section-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 24px; }
+        .section-subtitle { font-size: 1.4rem; font-weight: 700; margin-bottom: 16px; color: var(--accent-bright); }
+
+        .overview-text {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.8;
+            max-width: 800px;
+            margin-bottom: 16px;
+        }
+
+        .facts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .fact-item {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 20px 24px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .fact-label {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--accent-bright);
+            min-width: 100px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .fact-value {
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .diff-list {
+            list-style: none;
+            margin-top: 12px;
+        }
+        .diff-list li {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+        .diff-list li strong {
+            color: var(--text-primary);
+        }
+
+        .founder-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 16px;
+            padding: 36px 32px;
+            max-width: 600px;
+        }
+        .founder-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .founder-title {
+            color: var(--accent-bright);
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .founder-bio {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+        .founder-bio p { margin-bottom: 10px; }
+
+        .interview-box {
+            background: linear-gradient(135deg, #1a1a3a, #111128);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 36px 32px;
+            max-width: 700px;
+        }
+        .interview-box h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+        .interview-box p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+        .interview-box a {
+            color: var(--accent-bright);
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1rem;
+        }
+        .interview-box a:hover { text-decoration: underline; }
+
+        .news-item {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.7;
+            max-width: 700px;
+        }
+
+        .showcase-box {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 16px;
+            padding: 36px 32px;
+            max-width: 800px;
+        }
+        .showcase-box h3 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: var(--accent-bright);
+        }
+        .showcase-box ul {
+            list-style: none;
+            margin-bottom: 28px;
+        }
+        .showcase-box ul li {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(108, 92, 231, 0.1);
+        }
+        .showcase-box ul li::before {
+            content: "\2713 ";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .showcase-steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+        .showcase-steps li {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(108, 92, 231, 0.1);
+            counter-increment: step-counter;
+        }
+        .showcase-steps li::before {
+            content: counter(step-counter) ". ";
+            color: var(--accent-bright);
+            font-weight: 700;
+            margin-right: 4px;
+        }
+
+        .btn {
+            display: inline-block; padding: 14px 36px; border-radius: 8px; font-weight: 700;
+            text-decoration: none; font-size: 1rem; transition: opacity 0.2s;
+        }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { opacity: 0.85; }
+
+        footer { text-align: center; padding: 40px 0; color: var(--text-secondary); font-size: 0.85rem; border-top: 1px solid rgba(108, 92, 231, 0.15); }
+        footer a { color: var(--accent-bright); text-decoration: none; }
+
+        @media (max-width: 700px) {
+            .hero h1 { font-size: 2rem; }
+            .facts-grid { grid-template-columns: 1fr; }
+            .fact-item { flex-direction: column; gap: 4px; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../press.html @ b41cc9cbafd79383966041df1c3e3d2b8d5fde2c
+  Date: 2026-05-17
+-->
+
+<nav>
+    <div class="nav-inner">
+        <a href="index.html" class="logo">RAKUAI<sup>&trade;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">ホーム</a>
+            <a href="../engine/">エンジン</a>
+            <a href="../api/">API ドキュメント</a>
+            <a href="../games/">ゲーム</a>
+            <a href="why-rakuai.html">なぜ RakuAI</a>
+            <a href="developers/">開発者</a>
+            <a href="press.html">プレス</a>
+            <a href="../blog/">ブログ</a>
+            <a href="../press.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <h1>プレス・メディア</h1>
+        <p>RakuAI を取材するジャーナリスト・アナリストに必要なものを、ひとまとめに。</p>
+    </div>
+</section>
+
+<!-- Company Overview -->
+<section class="press-section">
+    <div class="container">
+        <h2 class="section-title">会社概要</h2>
+        <p class="overview-text">
+            RakuAI は、自然言語から実際の GPS 座標上にインタラクティブな 3D 体験を生成する、AI ネイティブな空間ゲームエンジンです。2012 年に創業され、AI ゲーム生成、デュアルデバイス AR インタラクション、ロケーションベース体験を対象とする 5 件の米国特許を保有しています。
+        </p>
+        <p class="overview-text">
+            プラットフォームは、10,328 個のネイティブエンジン関数に支えられた 9,500 以上の REST API エンドポイント（17 のサブシステムルーター）から、5 つの市場にサービスを提供しています：観光 AR（TimeLens）、企業向けトレーニング（SafeSpace）、フィットネスゲーミング（TrailQuest）、開発者ツール（RakuForge API）、そして防衛・公共安全（TacView）。エンジンは 18 のネイティブ DLL にまたがり、物理シミュレーション、空間オーディオ、AI エージェントの行動ツリー、オンデバイス ML、マルチプレイヤーネットワーキング、GPS にアンカーされたワールドの永続化をカバーします。
+        </p>
+    </div>
+</section>
+
+<!-- Key Facts -->
+<section class="press-section">
+    <div class="container">
+        <h2 class="section-title">主要ファクト</h2>
+        <div class="facts-grid">
+            <div class="fact-item">
+                <span class="fact-label">創業</span>
+                <span class="fact-value">2012 年 7 月（カリフォルニア州セント・メアリーズ・カレッジ）</span>
+            </div>
+            <div class="fact-item">
+                <span class="fact-label">特許</span>
+                <span class="fact-value">米国特許 5 件取得済み（優先日：2012 年 7 月）</span>
+            </div>
+            <div class="fact-item">
+                <span class="fact-label">API 表面</span>
+                <span class="fact-value">エンジン関数 10,328 個、REST エンドポイント 9,500 以上、ルーター 17、DLL 18</span>
+            </div>
+            <div class="fact-item">
+                <span class="fact-label">プラットフォーム</span>
+                <span class="fact-value">Android（ARCore）、iOS（予定）、Web、AR グラス</span>
+            </div>
+            <div class="fact-item">
+                <span class="fact-label">AI 統合</span>
+                <span class="fact-value">プラグ可能な LLM ブリッジ経由で Claude、GPT-4、Gemini に対応</span>
+            </div>
+            <div class="fact-item">
+                <span class="fact-label">技術</span>
+                <span class="fact-value">Google 3D Tiles、ARCore Geospatial API、空間オーディオ、物理、行動ツリー</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Founder -->
+<section class="press-section">
+    <div class="container">
+        <h2 class="section-title">創業者</h2>
+        <div class="founder-card">
+            <div class="founder-name">Kevin Griffin</div>
+            <div class="founder-title">創業者 兼 CEO</div>
+            <div class="founder-bio">
+                <p>Syufy Enterprises（映画館、エンターテインメント、不動産）の CMO。2012 年 7 月より RakuAI のクリエイター兼インベンター。</p>
+                <p>RakuAI は、AI と空間コンピューティングの交差点を探るカリフォルニア州セント・メアリーズ・カレッジの研究プロジェクトとして始まりました。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- What Makes RakuAI Different -->
+<section class="press-section">
+    <div class="container">
+        <h2 class="section-title">RakuAI が他と違う理由</h2>
+        <ul class="diff-list">
+            <li><strong>独自の交差点：</strong>AI 生成ゲームコンテンツ ＋ 空間コンピューティング ＋ GPS アンカー体験。この 3 つすべての交差点に立つ、資金を調達した競合は他に存在しません。</li>
+            <li><strong>10 年早い特許ポートフォリオ：</strong>2012 年 7 月の優先日を持つ 5 件の取得済み特許 — 生成 AI の波そのものを 10 年先取り。</li>
+            <li><strong>1 つのエンジン、5 つの収益源：</strong>18 の DLL にまたがる 10,328 個のネイティブ関数に支えられた 9,500 以上の REST エンドポイントが、観光、研修、フィットネス、ゲーム、防衛を 1 つのコードベースから動かします。</li>
+        </ul>
+    </div>
+</section>
+
+<!-- Available for Interview -->
+<section class="press-section">
+    <div class="container">
+        <h2 class="section-title">取材を受け付けています</h2>
+        <div class="interview-box">
+            <h3>創業者に話を聞く</h3>
+            <p>Kevin Griffin は、空間 AI の未来、AR ゲーミング、そして生成 AI とロケーションベース体験の融合について、取材を受け付けています。</p>
+            <a href="mailto:press@rakuai.com">press@rakuai.com</a>
+        </div>
+    </div>
+</section>
+
+<!-- In the News -->
+<section class="press-section">
+    <div class="container">
+        <h2 class="section-title">メディア掲載</h2>
+        <div class="news-item">
+            RakuAI は最近、AR Insider による「適応的で、知性を持ち、ローカルな AR ゲーミング」の特集で取り上げられました。
+        </div>
+    </div>
+</section>
+
+<!-- API Showcase -->
+<section class="press-section">
+    <div class="container">
+        <h2 class="section-title">作れるもの</h2>
+        <div class="showcase-box">
+            <h3>応用例</h3>
+            <ul>
+                <li>時代衣装の AI NPC が実際の場所を案内する、歴史 AR ツアー</li>
+                <li>実在の建物の高精細 3D モデルを使った消防隊向け訓練シミュレーション</li>
+                <li>歩くペースが戦闘結果を左右する、フィットネス×クエストゲーム</li>
+                <li>実際の街並みに重ねられるタワーディフェンスゲーム</li>
+                <li>法執行機関のオペレーション向けの 3D 戦術オーバーレイ</li>
+            </ul>
+
+            <h3>仕組み（概要）</h3>
+            <ol class="showcase-steps">
+                <li>GPS 座標にアンカーされたワールドを作成</li>
+                <li>Google Maps から実世界の 3D ジオメトリを取り込む</li>
+                <li>インタラクティブなエンティティを実在の場所に配置</li>
+                <li>個性と記憶を持つ AI 駆動の NPC を追加</li>
+                <li>物理、空間オーディオ、マルチプレイヤーを実行</li>
+                <li>プレイヤーはスマホのカメラを通して体験</li>
+            </ol>
+        </div>
+    </div>
+</section>
+
+<!-- Try the Demo -->
+<section class="press-section" style="text-align: center;">
+    <div class="container">
+        <h2 class="section-title">実際に動かしてみる</h2>
+        <p class="overview-text" style="text-align: center; margin: 0 auto 24px;">インタラクティブなデモを試す — どんなゲームでも、言葉にすれば RakuAI が生成します。</p>
+        <a href="index.html#create" class="btn btn-primary">デモを試す</a>
+    </div>
+</section>
+
+<footer>
+    <div class="container" style="text-align: center;">
+        <p>&copy; 2026 RakuAI, LLC &bull; 米国特許 5 件取得済み（優先日：2012 年 7 月） &bull; RakuAI エンジン搭載</p>
+        <p style="margin-top: 10px;">
+            <a href="../engine/">エンジン</a> &nbsp;|&nbsp;
+            <a href="../api/">API</a> &nbsp;|&nbsp;
+            <a href="docs.html">ドキュメント</a> &nbsp;|&nbsp;
+            <a href="../games/">アーケード</a> &nbsp;|&nbsp;
+            <a href="press.html">プレス</a> &nbsp;|&nbsp;
+            <a href="developers/">開発者</a> &nbsp;|&nbsp;
+            <a href="privacy.html">プライバシー</a> &nbsp;|&nbsp;
+            <a href="terms.html">利用規約</a> &nbsp;|&nbsp;
+            <a href="contact.html">お問い合わせ</a> &nbsp;|&nbsp;
+            <a href="https://github.com/RakuXR">GitHub</a>
+        </p>
+        <p class="trademark-notice">
+            RakuAI&trade; および RakuXR&trade; は RakuAI, LLC の商標です。
+            <span class="kanji-logo">&#x697D;</span>AI および <span class="kanji-logo">&#x697D;</span>XR は RakuAI, LLC のスタイライズド・マークです。
+            米国特許 5 件取得済み（優先日：2012 年 7 月）。
+        </p>
+    </div>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+</body>
+</html>
