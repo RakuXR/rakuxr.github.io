@@ -1,0 +1,407 @@
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../../developers/login.html @ 52a4f1d
+  Date: 2026-05-17
+  Language: de (German)
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entwickler-Anmeldung - RakuAI</title>
+    <meta name="description" content="Melden Sie sich mit Ihrem API-Schlüssel beim RakuAI Entwicklerportal an.">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        .login-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 56px 24px;
+        }
+        .login-container h1 {
+            font-size: 1.75rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .login-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        .login-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 28px;
+        }
+        .login-card label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .login-card input[type="password"],
+        .login-card input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            font-family: 'Courier New', ui-monospace, monospace;
+            font-size: 0.95rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .login-card input:focus {
+            outline: none;
+            border-color: var(--accent-bright);
+        }
+        .reveal-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .reveal-toggle input { margin: 0; }
+
+        .login-card button {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-bright), #8e7cff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .login-card button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-box, .success-box {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .error-box {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            color: #ff8a7e;
+        }
+        .success-box {
+            background: rgba(108, 92, 231, 0.1);
+            border: 1px solid rgba(108, 92, 231, 0.35);
+            color: var(--text-primary);
+        }
+
+        .footer-note {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .footer-note a { color: var(--accent-bright); }
+
+        .signed-in-state {
+            display: none;
+            text-align: center;
+        }
+        .signed-in-state .user-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .signed-in-state .user-card .email {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin: 4px 0;
+        }
+        .signed-in-state .user-card .tier {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            border-radius: 999px;
+            background: rgba(108, 92, 231, 0.2);
+            color: var(--accent-bright);
+        }
+        .signed-in-state .actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .btn-secondary {
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid rgba(108, 92, 231, 0.4);
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — Die universelle Runtime für World Models &nbsp;|&nbsp; <a href="../index.html#for-studios">Für Studios &amp; Entwickler →</a> &nbsp;&nbsp; Außerdem: <a href="../index.html#quickstart">Verbraucher-Demo testen →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Startseite</a>
+            <a href="../../engine/">Engine</a>
+            <a href="../../api/">API-Dokumentation</a>
+            <a href="../../games/">Spiele</a>
+            <a href="../why-rakuai.html">Warum RakuAI</a>
+            <a href="../developers/">Entwickler</a>
+            <a href="../../press.html">Presse</a>
+            <a href="login.html" class="nav-signin">Anmelden</a>
+            <a href="../../developers/login.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<div class="login-container">
+    <!-- Signed-out: API-key sign-in form -->
+    <div id="signed-out-state">
+        <h1>Entwickler-Anmeldung</h1>
+        <p class="subtitle">Fügen Sie Ihren <code>raku_</code>-API-Schlüssel ein, um ein Sitzungs-Token zu erhalten. Neue Entwickler: <a href="register.html">hier Zugang anfordern</a>.</p>
+
+        <form class="login-card" id="login-form" autocomplete="off">
+            <label for="api-key">API-Schlüssel</label>
+            <input
+                type="password"
+                id="api-key"
+                name="api-key"
+                placeholder="raku_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                spellcheck="false"
+                autocapitalize="off"
+                autocomplete="off"
+                required
+            >
+            <label class="reveal-toggle">
+                <input type="checkbox" id="reveal-key"> Schlüssel anzeigen
+            </label>
+
+            <button type="submit" id="submit-btn">Anmelden</button>
+
+            <div class="error-box" id="error-box"></div>
+            <div class="success-box" id="success-box">Angemeldet. Weiterleitung…</div>
+        </form>
+
+        <p class="footer-note">
+            Noch keinen API-Schlüssel? <a href="register.html">Akzeptieren Sie die NDA und fordern Sie Entwicklerzugang an</a>, und kehren Sie hierher zurück, sobald ein Administrator Ihr Konto freigegeben hat.
+        </p>
+    </div>
+
+    <!-- Signed-in: show user info + Sign Out -->
+    <div id="signed-in-state" class="signed-in-state">
+        <h1>Sie sind angemeldet</h1>
+        <p class="subtitle">Sitzungs-Token im Browser zwischengespeichert. Verwenden Sie die Links zum Entwicklerportal in der Navigation.</p>
+
+        <div class="user-card">
+            <div class="email" id="signed-in-email">—</div>
+            <span class="tier" id="signed-in-tier">—</span>
+        </div>
+
+        <div class="actions">
+            <a class="btn-secondary" href="register.html">Weiter zum Portal</a>
+            <button type="button" class="btn-secondary" id="signout-btn">Abmelden</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+
+    // ---- API base detection (matches developers/register.html convention) ----
+    var API_BASE = window.RAKU_API_BASE || (function() {
+        var h = window.location.hostname;
+        if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
+        if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
+        return 'https://api.rakuai.com';
+    })();
+
+    // ---- localStorage key names (must match register.html) ----
+    const TOKEN_KEY   = 'raku_access_token';
+    const REFRESH_KEY = 'raku_refresh_token';
+    const USER_KEY    = 'raku_user';
+
+    // ---- Elements ----
+    const signedOutEl = document.getElementById('signed-out-state');
+    const signedInEl  = document.getElementById('signed-in-state');
+    const form        = document.getElementById('login-form');
+    const input       = document.getElementById('api-key');
+    const reveal      = document.getElementById('reveal-key');
+    const submitBtn   = document.getElementById('submit-btn');
+    const errorBox    = document.getElementById('error-box');
+    const successBox  = document.getElementById('success-box');
+    const emailEl     = document.getElementById('signed-in-email');
+    const tierEl      = document.getElementById('signed-in-tier');
+    const signOutBtn  = document.getElementById('signout-btn');
+
+    // ---- Helpers ----
+    function showSignedIn(user) {
+        signedOutEl.style.display = 'none';
+        signedInEl.style.display  = 'block';
+        emailEl.textContent = (user && user.email) || '(unbekannte E-Mail)';
+        tierEl.textContent  = (user && user.tier)  || 'unbekannt';
+    }
+    function showSignedOut() {
+        signedOutEl.style.display = 'block';
+        signedInEl.style.display  = 'none';
+    }
+    function showError(msg) {
+        errorBox.textContent = msg;
+        errorBox.style.display = 'block';
+        successBox.style.display = 'none';
+    }
+    function clearError() {
+        errorBox.style.display = 'none';
+        errorBox.textContent = '';
+    }
+
+    // ---- Already-signed-in detection ----
+    var existing = localStorage.getItem(TOKEN_KEY);
+    if (existing) {
+        var userStr = localStorage.getItem(USER_KEY);
+        var user = null;
+        try { user = userStr ? JSON.parse(userStr) : null; } catch (_) { user = null; }
+        showSignedIn(user);
+    } else {
+        showSignedOut();
+    }
+
+    // ---- Reveal-key toggle ----
+    reveal.addEventListener('change', function() {
+        input.type = reveal.checked ? 'text' : 'password';
+    });
+
+    // ---- Sign-out ----
+    signOutBtn.addEventListener('click', function() {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(REFRESH_KEY);
+        localStorage.removeItem(USER_KEY);
+        showSignedOut();
+        input.value = '';
+        clearError();
+    });
+
+    // ---- Sign-in ----
+    form.addEventListener('submit', async function(ev) {
+        ev.preventDefault();
+        clearError();
+
+        var apiKey = (input.value || '').trim();
+        if (!apiKey) {
+            showError('Bitte fügen Sie Ihren API-Schlüssel ein.');
+            return;
+        }
+        if (apiKey.indexOf('raku_') !== 0) {
+            showError('Das sieht nicht wie ein raku_-API-Schlüssel aus. Bitte prüfen Sie, ob Sie den vollständigen Wert kopiert haben.');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Anmeldung läuft…';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/auth/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ api_key: apiKey }),
+            });
+
+            if (resp.status === 401) {
+                showError('Dieser API-Schlüssel ist ungültig, widerrufen oder mit keinem Entwicklerkonto verknüpft. Prüfen Sie den Schlüssel oder fordern Sie Zugang an, falls Sie noch keinen haben.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Anmelden';
+                return;
+            }
+            if (resp.status === 422) {
+                showError('Fehlendes oder fehlerhaftes API-Schlüssel-Feld.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Anmelden';
+                return;
+            }
+            if (!resp.ok) {
+                showError('Anmeldung fehlgeschlagen (HTTP ' + resp.status + '). Bitte erneut versuchen oder den Support kontaktieren, falls das Problem weiterhin besteht.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Anmelden';
+                return;
+            }
+
+            var data = await resp.json();
+            if (!data || !data.access_token) {
+                showError('Unerwartete Antwort vom Server. Anmeldung wurde nicht abgeschlossen.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Anmelden';
+                return;
+            }
+
+            // Persist the session — same keys developers/register.html reads.
+            localStorage.setItem(TOKEN_KEY, data.access_token);
+            if (data.refresh_token) localStorage.setItem(REFRESH_KEY, data.refresh_token);
+            if (data.user) localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+            // Clear the raw key from the form so it doesn't sit in the DOM.
+            input.value = '';
+
+            successBox.style.display = 'block';
+
+            // If the user came here from another page, bounce them back.
+            // Otherwise hand off to the developer portal entry point.
+            //
+            // Open-redirect prevention: ?return= must be a SAME-ORIGIN
+            // absolute path. We reject:
+            //   - anything that doesn't start with a single '/'
+            //   - protocol-relative URLs like '//evil.example' (browsers
+            //     resolve these to a foreign origin)
+            //   - any value whose resolved origin differs from the current
+            //     page (covers backslash tricks, full URLs, etc.)
+            // The default landing page is register.html (NDA-acceptance
+            // flow continues there once the user has a token).
+            var ret = new URLSearchParams(window.location.search).get('return');
+            var safeReturn = 'register.html';
+            if (ret && ret.charAt(0) === '/' && ret.charAt(1) !== '/' && ret.charAt(1) !== '\\') {
+                try {
+                    var resolved = new URL(ret, window.location.origin);
+                    if (resolved.origin === window.location.origin) {
+                        safeReturn = resolved.pathname + resolved.search + resolved.hash;
+                    }
+                } catch (_) {
+                    // Malformed URL — fall back to the default.
+                }
+            }
+            setTimeout(function() { window.location.href = safeReturn; }, 600);
+
+        } catch (e) {
+            showError('Netzwerkfehler beim Erreichen der API. Bitte prüfen Sie Ihre Verbindung und versuchen es erneut.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Anmelden';
+        }
+    });
+})();
+</script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>
