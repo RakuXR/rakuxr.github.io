@@ -972,6 +972,15 @@ var RAKU_API_BASE = (function() {
     var shareCardPreview = document.getElementById('share-card-preview');
     var lastGenerationResult = null;
 
+    // Map Chinese genre display names back to English URL slugs.
+    var GENRE_SLUGS = {
+        '平台跳跃': 'platformer', '角色扮演': 'rpg', '解谜': 'puzzle',
+        '视觉小说': 'visual_novel', '塔防': 'tower_defense', '跑酷': 'runner',
+        '卡牌游戏': 'card', '模拟': 'simulation', '沙盒': 'sandbox',
+        '竞速': 'racing', '节奏': 'rhythm', '肉鸽': 'roguelike',
+        '太空射击': 'space_shooter'
+    };
+
     // --- Progress UI controller ---
     function resetProgress() {
         allStages.forEach(function(s) {
@@ -1057,19 +1066,19 @@ var RAKU_API_BASE = (function() {
 
     function estimatePlaytime(genre) {
         var estimates = {
-            'Platformer': '5-15 分钟',
-            'RPG': '15-30 分钟',
-            'Puzzle': '5-10 分钟',
-            'Visual Novel': '10-20 分钟',
-            'Tower Defense': '10-20 分钟',
-            'Endless Runner': '3-10 分钟',
-            'Card Game': '5-15 分钟',
-            'Simulation': '10-30 分钟',
-            'Sandbox': '15-30 分钟',
-            'Racing': '5-10 分钟',
-            'Rhythm': '3-8 分钟',
-            'Roguelike': '10-25 分钟',
-            'Space Shooter': '5-10 分钟'
+            '平台跳跃': '5-15 分钟',
+            '角色扮演': '15-30 分钟',
+            '解谜': '5-10 分钟',
+            '视觉小说': '10-20 分钟',
+            '塔防': '10-20 分钟',
+            '跑酷': '3-10 分钟',
+            '卡牌游戏': '5-15 分钟',
+            '模拟': '10-30 分钟',
+            '沙盒': '15-30 分钟',
+            '竞速': '5-10 分钟',
+            '节奏': '3-8 分钟',
+            '肉鸽': '10-25 分钟',
+            '太空射击': '5-10 分钟'
         };
         return estimates[genre] || '5-15 分钟';
     }
@@ -1084,7 +1093,8 @@ var RAKU_API_BASE = (function() {
         if (!data) return;
 
         var config = data.raku_config || data;
-        var genre = (config.genre || data.genre || 'puzzle').toLowerCase().replace(/\s+/g, '_');
+        var rawGenre = config.genre || data.genre || 'puzzle';
+        var genre = GENRE_SLUGS[rawGenre] || rawGenre.toLowerCase().replace(/\s+/g, '_');
         var title = encodeURIComponent(config.title || data.title || 'Raku Game');
 
         sessionStorage.setItem('raku_play_config', JSON.stringify(config));
@@ -1102,7 +1112,7 @@ var RAKU_API_BASE = (function() {
         if (!data) return;
 
         var config = data.raku_config || data;
-        var title = config.title || config.game_title || 'game';
+        var title = config.title || config.game_title || '游戏';
         var filename = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.raku';
         var blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
@@ -1380,7 +1390,7 @@ var RAKU_API_BASE = (function() {
 
         ctx.font = 'bold 56px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
         ctx.fillStyle = '#ffffff';
-        wrapText(ctx, title || 'Untitled Game', 80, 200, w - 160, 64, 2);
+        wrapText(ctx, title || '未命名游戏', 80, 200, w - 160, 64, 2);
 
         if (description) {
             ctx.font = '26px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
@@ -1409,7 +1419,7 @@ var RAKU_API_BASE = (function() {
 
         ctx.font = '20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.fillText('Describe Any Game. Play It Instantly.', 80, h - 10);
+        ctx.fillText('描述任意游戏，即刻开玩。', 80, h - 10);
 
         ctx.font = '20px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
         ctx.fillStyle = 'rgba(0, 206, 201, 0.7)';
@@ -1435,26 +1445,24 @@ var RAKU_API_BASE = (function() {
     }
 
     function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
-        var words = text.split(' ');
         var line = '';
         var lineCount = 0;
-        for (var i = 0; i < words.length; i++) {
-            var testLine = line + words[i] + ' ';
-            var metrics = ctx.measureText(testLine);
-            if (metrics.width > maxWidth && line !== '') {
+        for (var n = 0; n < text.length; n++) {
+            var testLine = line + text[n];
+            if (ctx.measureText(testLine).width > maxWidth && n > 0) {
                 lineCount++;
                 if (lineCount >= maxLines) {
-                    ctx.fillText(line.trim().slice(0, -3) + '...', x, y);
+                    ctx.fillText(line.slice(0, -1) + '...', x, y);
                     return;
                 }
-                ctx.fillText(line.trim(), x, y);
-                line = words[i] + ' ';
+                ctx.fillText(line, x, y);
+                line = text[n];
                 y += lineHeight;
             } else {
                 line = testLine;
             }
         }
-        ctx.fillText(line.trim(), x, y);
+        ctx.fillText(line, x, y);
     }
 
     function buildShareUrl(data) {
@@ -1477,7 +1485,7 @@ var RAKU_API_BASE = (function() {
     resultShareBtn.addEventListener('click', function() {
         var data = lastGenerationResult;
         var config = (data && data.raku_config) || data || {};
-        var title = config.title || config.game_title || 'My Raku Game';
+        var title = config.title || config.game_title || '我的 Raku 游戏';
         var shareUrl = buildShareUrl(data);
         var shareText = '快来看 “' + title + '”——我用 RakuAI 创建的游戏！';
 
@@ -1517,7 +1525,7 @@ var RAKU_API_BASE = (function() {
     resultDownloadCardBtn.addEventListener('click', function() {
         var data = lastGenerationResult;
         var config = (data && data.raku_config) || data || {};
-        var title = config.title || config.game_title || 'My Raku Game';
+        var title = config.title || config.game_title || '我的 Raku 游戏';
         var genre = config.genre || '';
         var desc = config.description || '';
 
