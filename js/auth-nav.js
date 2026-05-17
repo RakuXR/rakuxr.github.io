@@ -43,9 +43,12 @@
 
     function findNav() {
         // Most pages use <nav><div class="container"><div class="nav-links">.
-        // engine/index.html uses a flatter <nav>...<a>...<a></nav> with no
-        // .nav-links wrapper, so fall back to the <nav> element itself.
-        return document.querySelector('nav .nav-links') || document.querySelector('nav');
+        // why-rakuai.html uses <nav class="site-nav"><div class="container">
+        // <div class="links">, so check that container too before falling
+        // back to the bare <nav> element (used by engine/index.html, which
+        // has a flatter <nav>...<a>...<a></nav> structure).
+        return document.querySelector('nav .nav-links, nav .links')
+            || document.querySelector('nav');
     }
 
     function isLoggedIn() {
@@ -93,10 +96,14 @@
         var a = document.createElement('a');
         applyState(a, loggedIn, ja);
 
-        // Keep the EN/JA toggle rightmost by inserting before it when present.
+        // Keep the EN/JA toggle rightmost by inserting before it when
+        // present. The toggle may not be a direct child of the container
+        // we're injecting into (e.g. .site-nav puts both .links and the
+        // toggle inside .container), so use lang.parentNode to do the
+        // insert at its actual home rather than throwing NotFoundError.
         var lang = nav.querySelector('.lang-toggle');
-        if (lang) {
-            nav.insertBefore(a, lang);
+        if (lang && lang.parentNode) {
+            lang.parentNode.insertBefore(a, lang);
         } else {
             nav.appendChild(a);
         }
