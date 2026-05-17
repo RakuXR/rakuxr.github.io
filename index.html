@@ -786,6 +786,7 @@
 
 <!-- Upgrade Banner (shown when approaching daily limit) -->
 <div id="upgrade-banner-slot" class="container" style="padding-top: 0;"></div>
+<script src="js/public-config.js"></script>
 <script src="js/api-client.js"></script>
 <script src="js/raku-bridge.js"></script>
 <script src="js/share-flow.js"></script>
@@ -862,7 +863,7 @@
                 autocomplete="new-password"
             >
             <div class="hcaptcha-wrapper">
-                <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITE_KEY" data-theme="dark" data-callback="onCaptchaPass" data-expired-callback="onCaptchaExpire"></div>
+                <div class="h-captcha" data-sitekey="" data-theme="dark" data-callback="onCaptchaPass" data-expired-callback="onCaptchaExpire"></div>
             </div>
             <p id="signup-error" class="modal-error" hidden></p>
             <button type="submit" id="signup-submit" class="btn btn-primary modal-submit" disabled>
@@ -903,6 +904,18 @@
 <div id="chat-sidebar-overlay" class="chat-sidebar-overlay" hidden></div>
 
 <script>
+// Inject hCaptcha site key from /js/public-config.js into the widget
+// before hCaptcha's async script picks it up. Keys never live in HTML.
+(function () {
+    var cfg = window.RAKU_PUBLIC_CONFIG || {};
+    var key = cfg.hcaptcha_site_key;
+    if (!key || key === 'PLACEHOLDER_INJECT_AT_DEPLOY') return;
+    var widgets = document.querySelectorAll('.h-captcha');
+    for (var i = 0; i < widgets.length; i++) {
+        widgets[i].setAttribute('data-sitekey', key);
+    }
+})();
+
 /**
  * RakuAI Configuration (J.2)
  * Set RAKU_API_BASE to point to the backend API.
@@ -1963,9 +1976,12 @@ var RAKU_API_BASE = (function() {
         if (prompt) {
             sessionStorage.setItem('raku_pending_prompt', prompt);
         }
-        // Google client ID: set via meta tag or env. Replace placeholder with real value.
+        // Google client ID: from public-config.js, with meta tag override for dev.
         var metaClientId = document.querySelector('meta[name="google-client-id"]');
-        var GOOGLE_CLIENT_ID = (metaClientId && metaClientId.content) || 'YOUR_GOOGLE_CLIENT_ID';
+        var cfg = window.RAKU_PUBLIC_CONFIG || {};
+        var GOOGLE_CLIENT_ID = (metaClientId && metaClientId.content)
+            || cfg.google_oauth_client_id
+            || 'PLACEHOLDER_INJECT_AT_DEPLOY';
         var REDIRECT_URI = encodeURIComponent(window.location.origin + '/auth/google/callback.html');
         var SCOPE = encodeURIComponent('email profile openid');
         window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth'
