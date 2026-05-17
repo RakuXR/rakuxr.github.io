@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方案與定價 - RakuAI</title>
+    <meta name="description" content="RakuAI 方案與定價。免費方案每天 10 次生成。Pro 方案每月 $14.99 — 享優先生成、高品質 AI 與匯出功能。">
+    <meta property="og:title" content="方案與定價 - RakuAI">
+    <meta property="og:description" content="只要描述，AI 就為你打造可玩的遊戲。從免費開始，每月 $14.99 升級到 Pro。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/zh-TW/pricing">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/zh-TW/pricing.html">
+    <link rel="stylesheet" href="../style.css">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <style>
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .pricing-card {
+            background: var(--bg-secondary);
+            border: 2px solid #222244;
+            border-radius: 16px;
+            padding: 40px 32px;
+            position: relative;
+        }
+        .pricing-card.featured {
+            border-color: var(--accent);
+            box-shadow: 0 0 40px rgba(108, 92, 231, 0.25);
+        }
+        .pricing-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        .pricing-card .price {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 16px 0 8px;
+        }
+        .pricing-card .price-period {
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+        .pricing-card .price-note {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        .pricing-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 32px;
+        }
+        .pricing-card ul li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+        .pricing-card ul li::before {
+            content: "\2713";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 10px;
+        }
+        .pricing-card ul li.pro-only::before {
+            content: "\2B50";
+        }
+        .best-value-ribbon {
+            position: absolute;
+            top: 16px;
+            right: -32px;
+            background: var(--success);
+            color: var(--bg-primary);
+            padding: 4px 40px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transform: rotate(45deg);
+            letter-spacing: 0.05em;
+        }
+        .upgrade-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
+        }
+        .upgrade-btn-pro {
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: white;
+        }
+        .upgrade-btn-free {
+            background: transparent;
+            color: var(--accent-bright);
+            border: 2px solid var(--accent);
+        }
+        .guarantee {
+            text-align: center;
+            margin-top: 32px;
+            padding: 24px;
+            background: rgba(0, 206, 201, 0.08);
+            border: 1px solid rgba(0, 206, 201, 0.2);
+            border-radius: 12px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .guarantee h4 {
+            color: var(--success);
+            margin-bottom: 8px;
+        }
+        .guarantee p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .upgrade-banner {
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(163, 136, 255, 0.1));
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .upgrade-banner-text h4 {
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+        .upgrade-banner-text p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin: 0;
+        }
+        .upgrade-banner .btn {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        @media (max-width: 768px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+            .upgrade-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../pricing.html @ 52a4f1d7f283da1cfd06e0377ba68b9c389f5f3a
+  Date: 2026-05-17
+  Language: zh-TW (Traditional Chinese, Taiwan)
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — 世界模型的通用執行環境 &nbsp;|&nbsp; <a href="index.html#for-studios">面向工作室與開發者 →</a> &nbsp;&nbsp; 或：<a href="index.html#quickstart">試試消費者示範 →</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">首頁</a>
+            <a href="../engine/">引擎</a>
+            <a href="../api/">API 文件</a>
+            <a href="../games/">遊戲</a>
+            <a href="why-rakuai.html">為何選擇 RakuAI</a>
+            <a href="developers/">開發者</a>
+            <a href="../press.html">媒體</a>
+            <a href="../blog/">部落格</a>
+            <a href="../pricing.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <h1>簡單、透明的定價</h1>
+        <p class="subtitle">免費開始。Pro 7 天免費試用。準備好再升級。</p>
+
+        <!-- K.9: Monthly/Annual Toggle -->
+        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 24px; align-items: center;">
+            <span id="toggle-monthly-label" style="font-weight: 700; color: var(--accent-bright);">月繳</span>
+            <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
+                <input type="checkbox" id="billing-toggle" onchange="toggleBillingPeriod()" style="opacity: 0; width: 0; height: 0;">
+                <span style="position: absolute; inset: 0; background: #333; border-radius: 28px; transition: 0.3s;"></span>
+                <span id="toggle-knob" style="position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; background: var(--accent-bright); border-radius: 50%; transition: 0.3s;"></span>
+            </label>
+            <span id="toggle-annual-label" style="font-weight: 400; color: var(--text-secondary);">年繳 <span style="color: var(--success); font-size: 0.85rem; font-weight: 700;">省 17%</span></span>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="pricing-grid">
+            <!-- Free Tier -->
+            <div class="pricing-card">
+                <h3>免費</h3>
+                <div class="price">$0</div>
+                <p class="price-note">免信用卡</p>
+                <ul>
+                    <li>每天 10 次遊戲生成</li>
+                    <li>所有遊戲模板</li>
+                    <li>AI 驅動的遊戲創作</li>
+                    <li>瀏覽器遊玩與分享</li>
+                    <li>XR 支援</li>
+                    <li>社群支援</li>
+                </ul>
+                <a href="index.html#create" class="upgrade-btn upgrade-btn-free">免費開始創作</a>
+            </div>
+
+            <!-- Pro Tier -->
+            <div class="pricing-card featured" style="overflow: hidden;">
+                <div class="best-value-ribbon">最超值</div>
+                <h3 style="color: var(--accent-bright);">Pro</h3>
+                <div class="price" id="pro-price">$14.99<span class="price-period"> / 月</span></div>
+                <p class="price-note" id="pro-price-note">7 天免費試用 &middot; 隨時取消</p>
+                <ul>
+                    <li>每天 100 次遊戲生成</li>
+                    <li class="pro-only">優先生成佇列</li>
+                    <li class="pro-only">更高品質的 AI 模型</li>
+                    <li class="pro-only">匯出遊戲設定</li>
+                    <li class="pro-only">獨立執行檔匯出（.exe）</li>
+                    <li>所有模板 + 自訂</li>
+                    <li>多人連線網路</li>
+                    <li>雲端存檔</li>
+                    <li>效能分析器</li>
+                    <li>優先支援</li>
+                </ul>
+                <button onclick="handleUpgradeClick()" class="upgrade-btn upgrade-btn-pro" id="upgrade-pro-btn">
+                    開始 7 天免費試用
+                </button>
+                <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
+                    <a href="../pro-features.html" style="color: var(--accent-bright);">查看所有 Pro 功能 &rarr;</a>
+                </p>
+            </div>
+        </div>
+
+        <div class="guarantee">
+            <h4>零風險</h4>
+            <p>可隨時從帳號設定取消。無長期合約。即使降級，你的遊戲永遠是你的。</p>
+        </div>
+    </div>
+</section>
+
+<!-- Upgrade Success Banner (shown after Stripe redirect) -->
+<section class="section" id="upgrade-success" style="display: none;">
+    <div class="container">
+        <div class="upgrade-banner" style="border-color: var(--success); background: rgba(0, 206, 201, 0.1);">
+            <div class="upgrade-banner-text">
+                <h4 style="color: var(--success);">歡迎加入 Pro！</h4>
+                <p>你的帳號已升級。現在擁有每天 100 次生成、優先佇列與高品質 AI。</p>
+            </div>
+            <a href="index.html#create" class="btn btn-primary">開始創作</a>
+        </div>
+    </div>
+</section>
+
+<!-- Enterprise -->
+<section class="section" id="enterprise">
+    <div class="container" style="text-align: center;">
+        <h2>企業與工作室授權</h2>
+        <p style="color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.05rem;">
+            正在打造商業作品、要上主機平台，或評估平台整合？我們提供工作室與平台合作夥伴的客製授權。
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto 40px;">
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
+                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">工作室</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">推出商業遊戲的團隊。客製建置、優先支援、新功能搶先體驗。</p>
+            </div>
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
+                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">平台</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">主機製造商與 XR 平台。深度整合、聯合行銷、專屬工程支援。</p>
+            </div>
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
+                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">OEM</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">硬體製造商的預載與綁售授權。提供白牌方案。</p>
+            </div>
+        </div>
+        <a href="enterprise.html" class="btn btn-primary">聯絡企業業務</a>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 16px;">受專利保護的技術。可簽 NDA 進行技術深入交流。</p>
+    </div>
+</section>
+
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>常見問題</h2>
+        <div class="faq">
+            <div class="faq-item">
+                <h3>達到每日上限後會怎樣？</h3>
+                <p>免費使用者每天有 10 次生成。達到上限時，會出現升級到 Pro（每天 100 次）的選項，或等到隔天。既有遊戲仍可遊玩。</p>
+            </div>
+            <div class="faq-item">
+                <h3>Free 和 Pro 的 AI 有什麼差別？</h3>
+                <p>Free 使用我們的快速 AI 模型，方便快速生成。Pro 使用更高品質的模型，能產出更具創意、更細緻、玩法更豐富的遊戲設定。</p>
+            </div>
+            <div class="faq-item">
+                <h3>免費試用怎麼運作？</h3>
+                <p>你的 7 天 Pro 試用會立即啟動，享有所有 Pro 功能。試用結束前不會扣款。試用期間隨時取消即不會被扣款。</p>
+            </div>
+            <div class="faq-item">
+                <h3>有年繳方案嗎？</h3>
+                <p>有！切換上方的「年繳」開關即可看到年費 $149.99 &mdash; 比月繳省下相當於 2 個月的費用。</p>
+            </div>
+            <div class="faq-item">
+                <h3>可以隨時取消嗎？</h3>
+                <p>可以。在帳號設定或 Stripe 客戶入口取消。你的 Pro 功能會持續到計費週期結束。不需退款 &mdash; 直接取消即可。</p>
+            </div>
+            <div class="faq-item">
+                <h3>接受哪些付款方式？</h3>
+                <p>我們使用 Stripe 進行安全付款處理。支援主要信用卡、簽帳金融卡，以及 Apple Pay / Google Pay。</p>
+            </div>
+            <div class="faq-item">
+                <h3>我創作的遊戲可以販售嗎？</h3>
+                <p>可以。你擁有你創作的遊戲。Pro 方案包含獨立執行檔匯出，可在 Steam、itch.io 或任何平台進行商業發行。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- K.11: Referral Section -->
+<section class="section" id="referral-section" style="display: none;">
+    <div class="container" style="text-align: center;">
+        <h2>分享 RakuAI，賺取獎勵</h2>
+        <p style="color: var(--text-secondary); max-width: 600px; margin: -24px auto 32px;">
+            分享你的推薦連結給朋友。當他們升級 Pro，雙方都能獲得獎勵。
+        </p>
+        <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px; max-width: 500px; margin: 0 auto;">
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 8px;">你的推薦連結：</p>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="text" id="referral-link" readonly style="flex: 1; background: var(--bg-primary); border: 1px solid #333; border-radius: 6px; padding: 12px; color: var(--text-primary); font-size: 0.9rem;">
+                <button onclick="copyReferralLink()" class="btn btn-primary" style="padding: 12px 20px; white-space: nowrap;" id="copy-ref-btn">複製</button>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;" id="referral-stats"></p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../engine/">引擎</a>
+            <a href="../api/">API</a>
+            <a href="../docs.html">文件</a>
+            <a href="../games/">電玩中心</a>
+            <a href="../press.html">媒體</a>
+            <a href="developers/">開發者</a>
+            <a href="../privacy.html">隱私權</a>
+            <a href="../terms.html">條款</a>
+            <a href="contact.html">聯絡我們</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 項美國已獲核准專利（優先權日：2012 年 7 月）&bull; 由 RakuAI 引擎驅動</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 與 RakuXR&trade; 是 RakuAI, LLC 的商標。
+            <span class="kanji-logo">&#x697D;</span>AI 與 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的設計化商標。
+            5 項美國已獲核准專利（優先權日：2012 年 7 月）。
+        </p>
+    </div>
+</footer>
+
+<script>
+const API_BASE = window.RAKU_API_BASE || 'https://api.raku.games';
+let currentBillingPeriod = 'monthly';
+
+function getAuthToken() {
+    return localStorage.getItem('raku_access_token');
+}
+
+function toggleBillingPeriod() {
+    const toggle = document.getElementById('billing-toggle');
+    const knob = document.getElementById('toggle-knob');
+    const monthlyLabel = document.getElementById('toggle-monthly-label');
+    const annualLabel = document.getElementById('toggle-annual-label');
+    const priceEl = document.getElementById('pro-price');
+    const noteEl = document.getElementById('pro-price-note');
+    const btn = document.getElementById('upgrade-pro-btn');
+
+    if (toggle.checked) {
+        currentBillingPeriod = 'annual';
+        knob.style.left = '27px';
+        monthlyLabel.style.fontWeight = '400';
+        monthlyLabel.style.color = 'var(--text-secondary)';
+        annualLabel.style.fontWeight = '700';
+        annualLabel.querySelector('span') && (annualLabel.style.color = 'var(--accent-bright)');
+        priceEl.innerHTML = '$149.99<span class="price-period"> / 年</span>';
+        noteEl.textContent = '7 天免費試用 · 每年省 $29.89';
+        btn.textContent = '開始 7 天免費試用';
+    } else {
+        currentBillingPeriod = 'monthly';
+        knob.style.left = '3px';
+        monthlyLabel.style.fontWeight = '700';
+        monthlyLabel.style.color = 'var(--accent-bright)';
+        annualLabel.style.fontWeight = '400';
+        annualLabel.style.color = 'var(--text-secondary)';
+        priceEl.innerHTML = '$14.99<span class="price-period"> / 月</span>';
+        noteEl.textContent = '7 天免費試用 · 隨時取消';
+        btn.textContent = '開始 7 天免費試用';
+    }
+}
+
+async function handleUpgradeClick() {
+    const token = getAuthToken();
+    if (!token) {
+        window.location.href = 'index.html#create';
+        return;
+    }
+
+    const btn = document.getElementById('upgrade-pro-btn');
+    btn.textContent = '正在前往結帳...';
+    btn.disabled = true;
+
+    const params = new URLSearchParams(window.location.search);
+    const referralCode = params.get('ref') || null;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/v1/billing/create-checkout-session`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                billing_period: currentBillingPeriod,
+                enable_trial: true,
+                referral_code: referralCode,
+            }),
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || '無法建立結帳階段');
+        }
+
+        const data = await response.json();
+        window.location.href = data.checkout_url;
+    } catch (error) {
+        console.error('Upgrade error:', error);
+        btn.textContent = '開始 7 天免費試用';
+        btn.disabled = false;
+        alert('無法開始結帳。請再試一次或聯絡客服。');
+    }
+}
+
+function copyReferralLink() {
+    const input = document.getElementById('referral-link');
+    navigator.clipboard.writeText(input.value).then(() => {
+        const btn = document.getElementById('copy-ref-btn');
+        btn.textContent = '已複製！';
+        setTimeout(() => { btn.textContent = '複製'; }, 2000);
+    });
+}
+
+async function loadReferralSection() {
+    const token = getAuthToken();
+    if (!token) return;
+
+    try {
+        const resp = await fetch(`${API_BASE}/api/v1/billing/referral`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!resp.ok) return;
+
+        let data = await resp.json();
+
+        if (!data.referral_code) {
+            const genResp = await fetch(`${API_BASE}/api/v1/billing/referral`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (genResp.ok) data = await genResp.json();
+        }
+
+        if (data.referral_code) {
+            document.getElementById('referral-section').style.display = 'block';
+            document.getElementById('referral-link').value = data.referral_url;
+            document.getElementById('referral-stats').textContent =
+                `${data.total_referrals} 次推薦 · ${data.successful_conversions} 次成功轉換`;
+        }
+    } catch (e) {
+    }
+}
+
+(function init() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('session_id')) {
+        const banner = document.getElementById('upgrade-success');
+        if (banner) {
+            banner.style.display = 'block';
+            banner.scrollIntoView({ behavior: 'smooth' });
+        }
+    }
+    if (params.get('ref')) {
+        const noteEl = document.getElementById('pro-price-note');
+        if (noteEl) noteEl.textContent = '由朋友推薦 · 7 天免費試用';
+    }
+    loadReferralSection();
+})();
+</script>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>
