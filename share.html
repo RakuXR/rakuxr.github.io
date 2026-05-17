@@ -355,25 +355,27 @@ var RAKU_API_BASE = (function() {
     }
 
     function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
-        var words = text.split(' ');
+        // Character-based wrapping so CJK locales (which lack inter-word
+        // spaces) wrap on character boundaries instead of producing one
+        // unwrapped line that overflows the card.
         var line = '';
         var lineCount = 0;
-        for (var i = 0; i < words.length; i++) {
-            var testLine = line + words[i] + ' ';
-            if (ctx.measureText(testLine).width > maxWidth && line !== '') {
+        for (var n = 0; n < text.length; n++) {
+            var testLine = line + text[n];
+            if (ctx.measureText(testLine).width > maxWidth && n > 0) {
                 lineCount++;
                 if (lineCount >= maxLines) {
-                    ctx.fillText(line.trim().slice(0, -3) + '...', x, y);
+                    ctx.fillText(line.slice(0, -1) + '...', x, y);
                     return;
                 }
-                ctx.fillText(line.trim(), x, y);
-                line = words[i] + ' ';
+                ctx.fillText(line, x, y);
+                line = text[n];
                 y += lineHeight;
             } else {
                 line = testLine;
             }
         }
-        ctx.fillText(line.trim(), x, y);
+        ctx.fillText(line, x, y);
     }
 
     // Download card
