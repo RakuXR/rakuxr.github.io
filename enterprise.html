@@ -530,8 +530,8 @@
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Submit Enterprise Inquiry';
                     var errorMsg = (data && Array.isArray(data.errors) && data.errors.length > 0)
-                        ? data.errors.map(function(err) { return err.message || 'Unknown error'; }).join(', ')
-                        : (data && typeof data.error === 'string' ? data.error : null) || 'Unknown error';
+                        ? data.errors.map(function(err) { return (err && err.message) || 'An error occurred'; }).join(', ')
+                        : (data && typeof data.error === 'string' ? data.error : null) || 'An error occurred. Please try again.';
                     alert('Form error: ' + errorMsg);
                 }
             });
