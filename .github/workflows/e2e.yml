@@ -1,0 +1,76 @@
+name: E2E
+
+# Runs Playwright client-side smoke tests on every PR and every push to main.
+# Total wall-clock target: < 30s on a warm runner. The longest items are
+# the npm install of @playwright/test and the Chromium browser download.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          # No package-lock.json is committed under tests/ — the suite is
+          # small enough that a fresh resolve on each run is cheap. The
+          # Playwright version is pinned in package.json for determinism.
+
+      - name: Install Playwright (deps + browser)
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Start static server (repo root)
+        # auth-nav.js is loaded via `<script src="/js/auth-nav.js" defer>`,
+        # which only resolves when the server is rooted at the repo root —
+        # not at /tests. Serve from the parent dir and bind to all
+        # interfaces so 127.0.0.1:8080 works for Playwright.
+        working-directory: ${{ github.workspace }}
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 >/tmp/http.log 2>&1 &
+          echo $! > /tmp/http.pid
+
+      - name: Wait for server
+        run: |
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:8080/index.html > /dev/null; then echo "ready"; exit 0; fi
+            sleep 1
+          done
+          echo "server never came up"; exit 1
+
+      - name: Run Playwright tests
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:8080
+        run: npx playwright test
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: |
+            tests/test-results
+            tests/playwright-report
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Stop static server
+        if: always()
+        working-directory: ${{ github.workspace }}
+        run: |
+          if [ -f /tmp/http.pid ]; then
+            kill "$(cat /tmp/http.pid)" 2>/dev/null || true
+          fi
