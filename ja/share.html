@@ -45,7 +45,7 @@
             <a href="../games/">ゲーム</a>
             <a href="why-rakuai.html">なぜ RakuAI</a>
             <a href="developers/">開発者</a>
-            <a href="../press.html">プレス</a>
+            <a href="press.html">プレス</a>
             <a href="../blog/">ブログ</a>
             <a href="../share.html" class="lang-toggle">EN</a>
         </div>
@@ -138,7 +138,7 @@
             <a href="../api/">API</a>
             <a href="docs.html">ドキュメント</a>
             <a href="../games/">アーケード</a>
-            <a href="../press.html">プレス</a>
+            <a href="press.html">プレス</a>
             <a href="developers/">開発者</a>
             <a href="privacy.html">プライバシー</a>
             <a href="terms.html">利用規約</a>
@@ -360,25 +360,24 @@ var RAKU_API_BASE = (function() {
     }
 
     function wrapText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
-        var words = text.split(' ');
         var line = '';
         var lineCount = 0;
-        for (var i = 0; i < words.length; i++) {
-            var testLine = line + words[i] + ' ';
-            if (ctx.measureText(testLine).width > maxWidth && line !== '') {
+        for (var n = 0; n < text.length; n++) {
+            var testLine = line + text[n];
+            if (ctx.measureText(testLine).width > maxWidth && n > 0) {
                 lineCount++;
                 if (lineCount >= maxLines) {
-                    ctx.fillText(line.trim().slice(0, -3) + '...', x, y);
+                    ctx.fillText(line.slice(0, -1) + '...', x, y);
                     return;
                 }
-                ctx.fillText(line.trim(), x, y);
-                line = words[i] + ' ';
+                ctx.fillText(line, x, y);
+                line = text[n];
                 y += lineHeight;
             } else {
                 line = testLine;
             }
         }
-        ctx.fillText(line.trim(), x, y);
+        ctx.fillText(line, x, y);
     }
 
     // Download card

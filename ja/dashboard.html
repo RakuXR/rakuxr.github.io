@@ -29,7 +29,7 @@
             <a href="../games/">ゲーム</a>
             <a href="why-rakuai.html">なぜ RakuAI</a>
             <a href="developers/">開発者</a>
-            <a href="../press.html">プレス</a>
+            <a href="press.html">プレス</a>
             <a href="../blog/">ブログ</a>
             <a href="../dashboard.html" class="lang-toggle">EN</a>
         </div>
@@ -103,7 +103,7 @@
             <a href="../api/">API</a>
             <a href="docs.html">ドキュメント</a>
             <a href="../games/">アーケード</a>
-            <a href="../press.html">プレス</a>
+            <a href="press.html">プレス</a>
             <a href="developers/">開発者</a>
             <a href="privacy.html">プライバシー</a>
             <a href="terms.html">利用規約</a>
@@ -126,7 +126,12 @@
     var __qs = new URLSearchParams(window.location.search);
     var __overrideAllowed = ['localhost', '127.0.0.1'].indexOf(window.location.hostname) !== -1;
     var __qsApiBase = __qs.get('api_base');
-    var API_BASE = (__overrideAllowed && __qsApiBase) ? __qsApiBase : 'https://raku-api-staging.fly.dev';
+    var API_BASE = (__overrideAllowed && __qsApiBase) ? __qsApiBase : (window.RAKU_API_BASE || (function() {
+        var h = window.location.hostname;
+        if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
+        if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
+        return 'https://api.rakuai.com';
+    })());
 
     var authGate = document.getElementById('dash-auth-gate');
     var dashMain = document.getElementById('dash-main');
@@ -138,7 +143,7 @@
     var topEmpty = document.getElementById('top-games-empty');
 
     // Check for auth token
-    var token = localStorage.getItem('raku_jwt') || sessionStorage.getItem('raku_jwt');
+    var token = localStorage.getItem('raku_access_token') || sessionStorage.getItem('raku_access_token');
     if (!token) return; // Show auth gate
 
     authGate.hidden = true;

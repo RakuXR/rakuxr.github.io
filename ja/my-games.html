@@ -35,7 +35,7 @@
             <a href="../games/">ゲーム</a>
             <a href="why-rakuai.html">なぜ RakuAI</a>
             <a href="developers/">開発者</a>
-            <a href="../press.html">プレス</a>
+            <a href="press.html">プレス</a>
             <a href="../blog/">ブログ</a>
             <a href="../my-games.html" class="lang-toggle">EN</a>
         </div>
@@ -157,7 +157,7 @@
             <a href="../api/">API</a>
             <a href="docs.html">ドキュメント</a>
             <a href="../games/">アーケード</a>
-            <a href="../press.html">プレス</a>
+            <a href="press.html">プレス</a>
             <a href="developers/">開発者</a>
             <a href="privacy.html">プライバシー</a>
             <a href="terms.html">利用規約</a>
@@ -201,7 +201,7 @@ var RAKU_API_BASE = (function() {
     var sortBy = document.getElementById('sort-by');
 
     var allGames = [];
-    var authToken = sessionStorage.getItem('raku_auth_token');
+    var authToken = (window.RakuAPI && RakuAPI.getToken()) || localStorage.getItem('raku_access_token') || sessionStorage.getItem('raku_access_token');
 
     // Check auth
     if (!authToken) {
@@ -229,7 +229,7 @@ var RAKU_API_BASE = (function() {
         .then(function(res) {
             if (res.status === 401) {
                 // Token expired — show auth gate
-                sessionStorage.removeItem('raku_auth_token');
+                if (window.RakuAPI) RakuAPI.clearAuth();
                 authGate.hidden = false;
                 dashboard.hidden = true;
                 loadingState.hidden = true;
