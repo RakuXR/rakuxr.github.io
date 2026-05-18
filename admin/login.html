@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Sign In — RakuAI</title>
+    <meta name="description" content="Administrator login to the RakuAI dashboard. Password + WebAuthn required.">
+    <meta name="robots" content="noindex, nofollow">
+    <!-- CSP: only the admin auth API + WebAuthn-internal JS, no third-party scripts. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-api.fly.dev https://raku-api-staging.fly.dev https://api.rakuai.com; base-uri 'self'; object-src 'none'; form-action 'self';">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body { background: var(--bg-primary); min-height: 100vh; }
+        .admin-login-shell {
+            max-width: 460px;
+            margin: 0 auto;
+            padding: 56px 24px;
+        }
+        .admin-login-shell h1 {
+            font-size: 1.75rem;
+            margin-bottom: 4px;
+            text-align: center;
+            background: linear-gradient(135deg, var(--accent-bright), #a388ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .admin-login-shell .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+            font-size: 0.95rem;
+        }
+        .admin-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.25);
+            border-radius: 14px;
+            padding: 28px;
+        }
+        .admin-card label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 12px 0 6px;
+        }
+        .admin-card input[type="email"],
+        .admin-card input[type="password"] {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 1rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 1px solid rgba(108, 92, 231, 0.35);
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        .admin-card input:focus {
+            outline: none;
+            border-color: var(--accent-bright);
+        }
+        .admin-card button {
+            display: block;
+            width: 100%;
+            margin-top: 18px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-bright), #8e7cff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .admin-card button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        .stage-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            background: rgba(108, 92, 231, 0.12);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 999px;
+            color: var(--accent-bright);
+        }
+        .stage-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-bright); }
+        .stage-dot.waiting { background: rgba(255,255,255,0.2); }
+
+        .error-box, .info-box {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .error-box { background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.35); color: #ff8a7e; }
+        .info-box  { background: rgba(108, 92, 231, 0.1); border: 1px solid rgba(108, 92, 231, 0.35); color: var(--text-primary); }
+
+        .footer-note { margin-top: 22px; text-align: center; font-size: 0.85rem; color: var(--text-secondary); }
+        .footer-note code { background: rgba(108, 92, 231, 0.12); padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">Home</a>
+            <a href="../developers/">Developers</a>
+        </div>
+    </div>
+</nav>
+
+<div class="admin-login-shell">
+    <h1>Admin Sign In</h1>
+    <p class="subtitle">Password + WebAuthn required. No bypass.</p>
+
+    <!-- Stage 1: password -->
+    <form class="admin-card" id="password-form" autocomplete="off">
+        <div class="stage-pill"><span class="stage-dot"></span> Step 1 of 2 — password</div>
+        <label for="admin-email">Email</label>
+        <input type="email" id="admin-email" name="email" autocomplete="username" required spellcheck="false">
+
+        <label for="admin-password">Password</label>
+        <input type="password" id="admin-password" name="password" autocomplete="current-password" required>
+
+        <button type="submit" id="password-btn">Continue</button>
+
+        <div class="error-box" id="password-err"></div>
+    </form>
+
+    <!-- Stage 2: WebAuthn -->
+    <form class="admin-card" id="webauthn-form" style="display:none;" autocomplete="off">
+        <div class="stage-pill"><span class="stage-dot"></span> Step 2 of 2 — security key</div>
+        <p style="color:var(--text-secondary); font-size:0.95rem; margin: 4px 0 14px;">
+            Touch your security key, scan your fingerprint, or use Windows Hello.
+        </p>
+        <button type="submit" id="webauthn-btn">Activate security key</button>
+        <button type="button" id="webauthn-back" style="background:transparent; color:var(--text-secondary); border:1px solid rgba(108,92,231,0.3); margin-top:10px;">← Back</button>
+        <div class="info-box" id="webauthn-info">Waiting for your security key…</div>
+        <div class="error-box" id="webauthn-err"></div>
+    </form>
+
+    <p class="footer-note">
+        First-time admin? Use the URL from <code>python -m raku_api.scripts.bootstrap_admin</code>.
+    </p>
+</div>
+
+<!-- api-config.js sets window.RAKU_API_BASE based on hostname; loaded
+     synchronously (no defer) so the inline script below can read it. -->
+<script src="../js/api-config.js"></script>
+<script src="./webauthn-helpers.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    var API_BASE = window.RAKU_API_BASE;
+
+    var pwForm = document.getElementById('password-form');
+    var pwBtn  = document.getElementById('password-btn');
+    var pwErr  = document.getElementById('password-err');
+    var emailEl = document.getElementById('admin-email');
+    var passEl  = document.getElementById('admin-password');
+
+    var waForm = document.getElementById('webauthn-form');
+    var waBtn  = document.getElementById('webauthn-btn');
+    var waBack = document.getElementById('webauthn-back');
+    var waErr  = document.getElementById('webauthn-err');
+    var waInfo = document.getElementById('webauthn-info');
+
+    var stepUpToken = null;
+
+    function showError(box, msg) { box.textContent = msg; box.style.display = 'block'; }
+    function clearError(box) { box.style.display = 'none'; box.textContent = ''; }
+
+    pwForm.addEventListener('submit', async function (ev) {
+        ev.preventDefault();
+        clearError(pwErr);
+        pwBtn.disabled = true; pwBtn.textContent = 'Signing in…';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/admin/auth/password', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailEl.value.trim(), password: passEl.value }),
+            });
+            if (!resp.ok) {
+                var msg = 'Sign-in failed.';
+                try { msg = (await resp.json()).detail || msg; } catch (_) {}
+                showError(pwErr, msg);
+                pwBtn.disabled = false; pwBtn.textContent = 'Continue';
+                return;
+            }
+            var data = await resp.json();
+            stepUpToken = data.step_up_token;
+            // Don't keep the password in DOM any longer than necessary.
+            passEl.value = '';
+            pwForm.style.display = 'none';
+            waForm.style.display = 'block';
+            waInfo.style.display = 'none';
+        } catch (e) {
+            showError(pwErr, 'Network error. Try again.');
+            pwBtn.disabled = false; pwBtn.textContent = 'Continue';
+        }
+    });
+
+    waBack.addEventListener('click', function () {
+        stepUpToken = null;
+        waForm.style.display = 'none';
+        pwForm.style.display = 'block';
+        clearError(waErr); clearError(pwErr);
+        pwBtn.disabled = false; pwBtn.textContent = 'Continue';
+    });
+
+    waForm.addEventListener('submit', async function (ev) {
+        ev.preventDefault();
+        clearError(waErr);
+        if (!stepUpToken) {
+            showError(waErr, 'Session expired. Sign in again.');
+            return;
+        }
+        waBtn.disabled = true; waBtn.textContent = 'Waiting for key…';
+        waInfo.style.display = 'block';
+
+        try {
+            // 1. Fetch options.
+            var optsResp = await fetch(API_BASE + '/api/v1/admin/auth/webauthn/options', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ step_up_token: stepUpToken }),
+            });
+            if (!optsResp.ok) {
+                var msg = 'Could not start WebAuthn ceremony.';
+                try { msg = (await optsResp.json()).detail || msg; } catch (_) {}
+                throw new Error(msg);
+            }
+            var opts = (await optsResp.json()).options;
+
+            // 2. Convert base64url strings -> ArrayBuffers (WebAuthn JS API).
+            var publicKey = window.rakuWebAuthn.decodeAuthenticationOptions(opts);
+
+            // 3. Talk to the authenticator.
+            var assertion = await navigator.credentials.get({ publicKey: publicKey });
+
+            // 4. Send the assertion to the server.
+            var assertionJson = window.rakuWebAuthn.encodeAuthenticationResponse(assertion);
+            var verifyResp = await fetch(API_BASE + '/api/v1/admin/auth/webauthn/verify', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ step_up_token: stepUpToken, response: assertionJson }),
+            });
+            if (!verifyResp.ok) {
+                var verr = 'WebAuthn verification failed.';
+                try { verr = (await verifyResp.json()).detail || verr; } catch (_) {}
+                throw new Error(verr);
+            }
+
+            // 5. Cookie is set. Redirect to the dashboard.
+            window.location.href = API_BASE + '/admin/dashboard';
+        } catch (e) {
+            showError(waErr, (e && e.message) || 'WebAuthn error.');
+            waInfo.style.display = 'none';
+            waBtn.disabled = false;
+            waBtn.textContent = 'Activate security key';
+        }
+    });
+})();
+</script>
+
+</body>
+</html>
