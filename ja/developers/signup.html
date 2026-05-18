@@ -1,0 +1,597 @@
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: ../../developers/signup.html @ 2dc5d26b4f2e5b0f5b90e4467b94ecfa4f5bdde4
+  Date: 2026-05-18
+  Language: ja (Japanese)
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>開発者アカウント作成 - RakuAI</title>
+    <meta name="description" content="RakuAI 開発者アクセスにサインアップ。メールアドレスとパスワード、または Google でアカウントを作成し、NDA とプロフィール入力を完了して API キーを取得できます。">
+    <!--
+      CSP — must allow:
+        * accounts.google.com (Google OAuth redirect)
+        * js.hcaptcha.com (loaded by other auth pages; allowed for consistency)
+        * connect-src for the RakuAI API (prod, staging, dev) plus the
+          Google token endpoint hop done by the backend (the page itself
+          only calls api.rakuai.com / localhost / fly.dev).
+      Same shape as /developers/register.html and /developers/login.html.
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://accounts.google.com https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://accounts.google.com https://hcaptcha.com https://*.hcaptcha.com; frame-src https://accounts.google.com https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        .signup-container {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+        .signup-container h1 {
+            font-size: 1.85rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .signup-container .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+        .signup-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+        .signup-card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 14px;
+            color: var(--text-primary);
+        }
+        .signup-card .card-sub {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-primary);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-bright);
+        }
+        .form-group .hint {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            margin-top: 4px;
+        }
+        .field-error {
+            color: #ff8a7e;
+            font-size: 0.85rem;
+            margin-top: 6px;
+            display: none;
+        }
+        .field-error.visible { display: block; }
+        .terms-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 12px 0 18px;
+        }
+        .terms-row input[type="checkbox"] {
+            margin-top: 3px;
+            accent-color: var(--accent);
+        }
+        .terms-row label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .terms-row a { color: var(--accent-bright); }
+        .btn-signup {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-signup:hover { background: var(--accent-bright); }
+        .btn-signup:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 12px 14px;
+            background: #fff;
+            color: #1f1f1f;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-google:hover { background: #f1f1f1; }
+        .form-error-banner {
+            margin: 14px 0;
+            padding: 12px 14px;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            border-radius: 8px;
+            color: #ff8a7e;
+            font-size: 0.92rem;
+            display: none;
+        }
+        .form-error-banner.visible { display: block; }
+        .form-info-banner {
+            margin: 0 0 16px;
+            padding: 10px 14px;
+            background: rgba(108, 92, 231, 0.12);
+            border: 1px solid rgba(108, 92, 231, 0.35);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            display: none;
+        }
+        .form-info-banner.visible { display: block; }
+        .alt-row {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 18px;
+        }
+        .alt-row a { color: var(--accent-bright); }
+        .have-key-card {
+            text-align: center;
+            background: var(--bg-secondary);
+            border: 1px dashed rgba(108, 92, 231, 0.3);
+            border-radius: 12px;
+            padding: 18px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        .have-key-card a { color: var(--accent-bright); font-weight: 600; }
+        .request-access-card {
+            display: none;
+        }
+        .request-access-card.visible { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">&trade;</sup> &mdash; ワールドモデルのための汎用ランタイム &nbsp;|&nbsp; <a href="../index.html#for-studios">スタジオ・開発者向け &rarr;</a>
+</div>
+
+<nav>
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="../index.html">ホーム</a>
+            <a href="../engine/">エンジン</a>
+            <a href="../api/">API ドキュメント</a>
+            <a href="../games/">ゲーム</a>
+            <a href="../why-rakuai.html">なぜ RakuAI</a>
+            <a href="../developers/">開発者</a>
+            <a href="../press.html">プレス</a>
+            <a href="login.html" class="nav-signin">サインイン</a>
+            <a href="../../developers/signup.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<div class="signup-container">
+    <h1>開発者アカウント作成</h1>
+    <p class="subtitle">早期アクセス期間中は無料。サインアップ後、NDA に同意して API キーをリクエストします。</p>
+
+    <!--
+      Option 1: email + password signup
+      Hidden if the /api/v1/auth/register endpoint isn't live yet
+      (see the runtime probe in the bootstrap script). When hidden we
+      surface the request-access card below as a third path.
+    -->
+    <div class="signup-card" id="emailCard">
+        <h2>メールアドレスでサインアップ</h2>
+        <div class="form-info-banner" id="emailInfoBanner" aria-live="polite"></div>
+        <form id="signupForm" autocomplete="on" novalidate>
+            <div class="form-group">
+                <label for="email">仕事用メールアドレス</label>
+                <input type="email" id="email" name="email" autocomplete="email" maxlength="200" required>
+                <div class="field-error" id="email-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">パスワード</label>
+                <input type="password" id="password" name="password" autocomplete="new-password" minlength="12" maxlength="200" required>
+                <span class="hint">12 文字以上。パスワードをメールで送ることはありません。</span>
+                <div class="field-error" id="password-error" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="displayName">表示名 <span style="color: var(--text-secondary); font-weight: 400;">（任意）</span></label>
+                <input type="text" id="displayName" name="displayName" autocomplete="name" maxlength="100">
+                <div class="field-error" id="displayName-error" aria-live="polite"></div>
+            </div>
+
+            <div class="terms-row">
+                <input type="checkbox" id="acceptTerms" required>
+                <label for="acceptTerms">
+                    <a href="../terms.html" target="_blank" rel="noopener">利用規約</a>および
+                    <a href="../privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意します。
+                </label>
+            </div>
+
+            <div class="form-error-banner" id="signupErrorBanner" aria-live="polite"></div>
+
+            <button type="submit" class="btn-signup" id="signupSubmitBtn" disabled>アカウント作成</button>
+        </form>
+    </div>
+
+    <!-- Option 2: Google OAuth -->
+    <div class="signup-card">
+        <h2>または Google で続行</h2>
+        <p class="card-sub">コンシューマー版サイトと同じ OAuth フローを使用します。完了後はこのページに戻り、NDA に同意します。</p>
+        <button type="button" class="btn-google" id="googleSignupBtn">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Google で続行
+        </button>
+    </div>
+
+    <!--
+      Option 3: request access via contact form. Hidden by default;
+      revealed by the bootstrap script if /api/v1/auth/register is
+      not yet available (PROMPT 4 hasn't shipped). Keeps the page
+      useful for net-new developers in the meantime.
+    -->
+    <div class="signup-card request-access-card" id="requestAccessCard">
+        <h2>または手動でアクセスをリクエスト</h2>
+        <p class="card-sub">
+            開発者認証のロールアウト完了まで、メールアドレスとパスワードによるサインアップは一時的にご利用いただけません。
+            お問い合わせフォームからアクセスをリクエストいただければ、登録の受付開始次第、招待をお送りいたします。
+        </p>
+        <a class="btn-signup" style="text-decoration: none; text-align: center;" href="../contact.html?subject=developer-access">お問い合わせフォームからアクセスをリクエスト</a>
+    </div>
+
+    <div class="have-key-card">
+        既に API キーをお持ちですか？
+        <a href="login.html">こちらからサインイン &rarr;</a>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="../engine/">エンジン</a>
+            <a href="../api/">API</a>
+            <a href="../docs.html">ドキュメント</a>
+            <a href="../games/">アーケード</a>
+            <a href="../press.html">プレス</a>
+            <a href="../developers/">開発者</a>
+            <a href="../privacy.html">プライバシー</a>
+            <a href="../terms.html">利用規約</a>
+            <a href="../contact.html">お問い合わせ</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 米国特許 5 件取得（優先日: 2012 年 7 月）&bull; RakuAI エンジン搭載</p>
+    </div>
+</footer>
+
+<script src="/js/api-config.js"></script>
+<script src="/js/public-config.js"></script>
+<script>
+(function() {
+    'use strict';
+
+    // ---- API base (resolved by /js/api-config.js) ----
+    var API_BASE = window.RAKU_API_BASE || 'https://api.rakuai.com';
+    var TOKEN_KEY = 'raku_access_token';
+    var REFRESH_KEY = 'raku_refresh_token';
+    var USER_KEY  = 'raku_user';
+
+    // ---- Element refs ----
+    var emailCard         = document.getElementById('emailCard');
+    var requestAccessCard = document.getElementById('requestAccessCard');
+    var signupForm        = document.getElementById('signupForm');
+    var signupSubmitBtn   = document.getElementById('signupSubmitBtn');
+    var signupErrorBanner = document.getElementById('signupErrorBanner');
+    var emailInfoBanner   = document.getElementById('emailInfoBanner');
+    var emailEl           = document.getElementById('email');
+    var passwordEl        = document.getElementById('password');
+    var displayNameEl     = document.getElementById('displayName');
+    var acceptTermsEl     = document.getElementById('acceptTerms');
+    var googleBtn         = document.getElementById('googleSignupBtn');
+
+    // ---- Already signed in? Skip straight to the NDA step. ----
+    try {
+        if (localStorage.getItem(TOKEN_KEY)) {
+            window.location.replace('register.html');
+            return;
+        }
+    } catch (_) { /* private mode: ignore */ }
+
+    // ---- Helpers ----
+    function showBanner(el, msg) {
+        el.textContent = msg;
+        el.classList.add('visible');
+    }
+    function hideBanner(el) {
+        el.textContent = '';
+        el.classList.remove('visible');
+    }
+    function setFieldError(id, msg) {
+        var el = document.getElementById(id + '-error');
+        if (!el) return;
+        if (msg) {
+            el.textContent = msg;
+            el.classList.add('visible');
+        } else {
+            el.textContent = '';
+            el.classList.remove('visible');
+        }
+    }
+    function clearAllFieldErrors() {
+        ['email', 'password', 'displayName'].forEach(function(id) { setFieldError(id, ''); });
+        hideBanner(signupErrorBanner);
+    }
+
+    // ---- Backend probe ----
+    //
+    // /api/v1/auth/register is being built by a parallel agent. If it's
+    // not live yet we hide the email/password form and surface the
+    // "request access via contact form" card so users are never stranded.
+    //
+    // We probe with OPTIONS (cheap, no body, doesn't side-effect the
+    // backend). 404 → hide form. Any other response (including 405 from
+    // backends that don't implement OPTIONS, or 4xx auth errors) → leave
+    // the form visible; the real POST will surface a useful error.
+    function probeRegisterEndpoint() {
+        return fetch(API_BASE + '/api/v1/auth/register', {
+            method: 'OPTIONS',
+            // No credentials / no Authorization — this is an unauth probe.
+        }).then(function(resp) {
+            return resp.status !== 404;
+        }).catch(function() {
+            // Network error: assume available so the user still gets a
+            // shot at signup; the real POST will produce the right error.
+            return true;
+        });
+    }
+
+    probeRegisterEndpoint().then(function(available) {
+        if (!available) {
+            emailCard.style.display = 'none';
+            requestAccessCard.classList.add('visible');
+        }
+    });
+
+    // ---- Enable/disable submit based on form state ----
+    function updateSubmitState() {
+        var emailOk    = emailEl.value.trim().length > 3 && emailEl.value.indexOf('@') > 0;
+        var passwordOk = passwordEl.value.length >= 12;
+        var termsOk    = acceptTermsEl.checked;
+        signupSubmitBtn.disabled = !(emailOk && passwordOk && termsOk);
+    }
+    emailEl.addEventListener('input', updateSubmitState);
+    passwordEl.addEventListener('input', updateSubmitState);
+    acceptTermsEl.addEventListener('change', updateSubmitState);
+
+    // ---- Form submit ----
+    signupForm.addEventListener('submit', function(ev) {
+        ev.preventDefault();
+        handleSignupSubmit();
+    });
+
+    function validate() {
+        clearAllFieldErrors();
+        var ok = true;
+
+        var email = emailEl.value.trim();
+        if (!email || email.indexOf('@') === -1) {
+            setFieldError('email', '有効なメールアドレスを入力してください。');
+            ok = false;
+        }
+
+        var password = passwordEl.value;
+        if (password.length < 12) {
+            setFieldError('password', 'パスワードは 12 文字以上である必要があります。');
+            ok = false;
+        }
+
+        if (!acceptTermsEl.checked) {
+            showBanner(signupErrorBanner, '利用規約とプライバシーポリシーに同意してください。');
+            ok = false;
+        }
+
+        return ok ? {
+            email: email,
+            password: password,
+            display_name: displayNameEl.value.trim() || undefined,
+        } : null;
+    }
+
+    async function handleSignupSubmit() {
+        var payload = validate();
+        if (!payload) return;
+
+        signupSubmitBtn.disabled = true;
+        signupSubmitBtn.textContent = 'アカウントを作成中…';
+
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (resp.status === 201 || resp.status === 200) {
+                var data = {};
+                try { data = await resp.json(); } catch (_) { /* keep empty */ }
+                if (!data.access_token) {
+                    showBanner(signupErrorBanner, 'アカウントは作成されましたが、セッションを開始できませんでした。手動でサインインしてください。');
+                    signupSubmitBtn.textContent = 'アカウント作成';
+                    updateSubmitState();
+                    return;
+                }
+                try {
+                    localStorage.setItem(TOKEN_KEY, data.access_token);
+                    if (data.refresh_token) localStorage.setItem(REFRESH_KEY, data.refresh_token);
+                    if (data.user) localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+                } catch (_) { /* private mode: still proceed */ }
+                window.location.href = 'register.html';
+                return;
+            }
+
+            if (resp.status === 409) {
+                showBanner(
+                    signupErrorBanner,
+                    '既にアカウントが存在します。サインインしてください'
+                );
+                // Replace the disabled submit with an explicit sign-in link too.
+                var existingLink = document.getElementById('signin-link-inline');
+                if (!existingLink) {
+                    var link = document.createElement('a');
+                    link.id = 'signin-link-inline';
+                    link.href = 'login.html';
+                    link.textContent = 'サインインへ →';
+                    link.style.display = 'block';
+                    link.style.marginTop = '8px';
+                    link.style.color = 'var(--accent-bright)';
+                    signupErrorBanner.appendChild(link);
+                }
+                signupSubmitBtn.textContent = 'アカウント作成';
+                updateSubmitState();
+                return;
+            }
+
+            if (resp.status === 422 || resp.status === 400) {
+                var msg = '入力内容に誤りがあります。内容をご確認ください。';
+                try {
+                    var data2 = await resp.json();
+                    if (data2 && data2.detail) {
+                        if (typeof data2.detail === 'string') msg = data2.detail;
+                        else if (Array.isArray(data2.detail) && data2.detail[0] && data2.detail[0].msg) msg = data2.detail[0].msg;
+                    }
+                } catch (_) { /* keep default */ }
+                showBanner(signupErrorBanner, msg);
+                signupSubmitBtn.textContent = 'アカウント作成';
+                updateSubmitState();
+                return;
+            }
+
+            if (resp.status === 404) {
+                // PROMPT 4's endpoint disappeared between probe and submit.
+                showBanner(
+                    signupErrorBanner,
+                    'メールサインアップは一時的にご利用いただけません。Google でのサインアップまたは下のアクセスリクエストフォームをご利用ください。'
+                );
+                emailCard.style.display = 'none';
+                requestAccessCard.classList.add('visible');
+                return;
+            }
+
+            if (resp.status === 429) {
+                showBanner(signupErrorBanner, '試行回数が多すぎます。数分後に再度お試しください。');
+                signupSubmitBtn.textContent = 'アカウント作成';
+                updateSubmitState();
+                return;
+            }
+
+            // 5xx — let them retry.
+            showBanner(signupErrorBanner, 'サーバーエラー (HTTP ' + resp.status + ')。少し時間をおいてから再度お試しください。');
+            signupSubmitBtn.textContent = 'アカウント作成';
+            updateSubmitState();
+        } catch (_) {
+            showBanner(signupErrorBanner, 'ネットワークエラーです。接続を確認してもう一度お試しください。');
+            signupSubmitBtn.textContent = 'アカウント作成';
+            updateSubmitState();
+        }
+    }
+
+    // ---- Google OAuth ----
+    //
+    // Reuses the same authorization-code flow already wired on
+    // /index.html and the consumer modal: redirect to Google with our
+    // client_id, Google bounces back to /auth/google/callback.html,
+    // which calls the backend code-exchange endpoint and stashes the
+    // resulting JWT in localStorage.raku_access_token. From there
+    // /ja/developers/register.html picks up the token and proceeds with
+    // NDA + profile.
+    //
+    // To make the callback know "we came from /ja/developers/signup.html"
+    // (so post-OAuth we route to the localized register.html, not /), we
+    // stash a hint in sessionStorage. /auth/google/callback.html already
+    // checks raku_pending_prompt; we add raku_post_auth_redirect for the
+    // dev-flow case. The callback handler validates this path with
+    // safeReturnPath() to prevent open-redirect attacks.
+    googleBtn.addEventListener('click', function() {
+        try {
+            sessionStorage.setItem('raku_post_auth_redirect', '/ja/developers/register.html');
+        } catch (_) { /* private mode: fall back to default redirect */ }
+
+        var metaClientId = document.querySelector('meta[name="google-client-id"]');
+        var cfg = window.RAKU_PUBLIC_CONFIG || {};
+        var GOOGLE_CLIENT_ID = (metaClientId && metaClientId.content)
+            || cfg.google_oauth_client_id
+            || 'PLACEHOLDER_INJECT_AT_DEPLOY';
+
+        if (GOOGLE_CLIENT_ID === 'PLACEHOLDER_INJECT_AT_DEPLOY') {
+            showBanner(signupErrorBanner, 'この環境では Google サインインが設定されていません。メールサインアップをご利用ください。');
+            return;
+        }
+
+        var REDIRECT_URI = encodeURIComponent(window.location.origin + '/auth/google/callback.html');
+        var SCOPE = encodeURIComponent('email profile openid');
+        window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth'
+            + '?client_id=' + GOOGLE_CLIENT_ID
+            + '&redirect_uri=' + REDIRECT_URI
+            + '&response_type=code'
+            + '&scope=' + SCOPE
+            + '&access_type=offline'
+            + '&prompt=consent';
+    });
+})();
+</script>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>

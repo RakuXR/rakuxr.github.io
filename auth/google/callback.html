@@ -50,6 +50,33 @@
     <script src="../../js/api-client.js"></script>
     <script>
     (function() {
+        // ---- Open-redirect guard ----
+        //
+        // Pages that want to be routed to a specific destination after
+        // OAuth (e.g. /developers/signup.html sets raku_post_auth_redirect
+        // to /developers/register.html) can stash a path in sessionStorage.
+        // We treat that value as UNTRUSTED — an attacker who can write to
+        // sessionStorage (XSS in another page on the same origin, or a
+        // crafted link that runs JS) should not be able to bounce a freshly
+        // signed-in user to an external phishing host.
+        //
+        // Accept only:
+        //   - starts with "/"
+        //   - second char is NOT "/" or "\\" (rejects "//evil.com" and
+        //     "/\\evil.com" protocol-relative tricks)
+        //   - resolves to the same origin via URL()
+        // Returns a sanitized "/path?query#hash" or null.
+        function safeReturnPath(raw) {
+            if (!raw || raw.charAt(0) !== '/' || raw.charAt(1) === '/' || raw.charAt(1) === '\\') return null;
+            try {
+                var resolved = new URL(raw, window.location.origin);
+                if (resolved.origin === window.location.origin) {
+                    return resolved.pathname + resolved.search + resolved.hash;
+                }
+            } catch (_) {}
+            return null;
+        }
+
         var params = new URLSearchParams(window.location.search);
         var code = params.get('code');
         var error = params.get('error');
@@ -67,7 +94,21 @@
                 document.getElementById('heading').textContent = 'Welcome!';
                 document.getElementById('status').textContent = 'Redirecting...';
 
-                // Check for pending prompt
+                // Priority 1: explicit post-auth redirect (e.g. developer
+                // signup wanting to land on /developers/register.html).
+                // Validated to same-origin to prevent open redirect.
+                var postAuthRaw = sessionStorage.getItem('raku_post_auth_redirect');
+                if (postAuthRaw) {
+                    sessionStorage.removeItem('raku_post_auth_redirect');
+                    var postAuthSafe = safeReturnPath(postAuthRaw);
+                    if (postAuthSafe) {
+                        window.location.href = postAuthSafe;
+                        return;
+                    }
+                }
+
+                // Priority 2: pending consumer-modal prompt — resume game
+                // generation on the homepage.
                 var pendingPrompt = sessionStorage.getItem('raku_pending_prompt');
                 if (pendingPrompt) {
                     sessionStorage.removeItem('raku_pending_prompt');
