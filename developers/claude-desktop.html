@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Wire RakuAI into Claude Desktop &mdash; RakuAI Developers</title>
+    <meta name="description" content="Add the RakuAI MCP server to Claude Desktop so the 6 runtime tools appear natively in your conversations. Step-by-step PowerShell + manual instructions.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://raku-api.fly.dev https://raku-api-staging.fly.dev https://api.rakuai.com; base-uri 'self'; object-src 'none';">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+    <style>
+        .dev-shell { max-width: 760px; margin: 0 auto; padding: 32px 24px 80px; }
+        .dev-shell h1 {
+            font-size: 2rem; margin-bottom: 6px;
+            background: linear-gradient(135deg, var(--accent-bright), #a388ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .dev-shell .lede {
+            color: var(--text-secondary); font-size: 1.05rem; margin-bottom: 28px;
+            border-bottom: 1px solid rgba(108,92,231,0.2); padding-bottom: 18px;
+        }
+        .dev-shell h2 { margin-top: 36px; font-size: 1.35rem; color: var(--accent-bright); }
+        .dev-shell h3 { margin-top: 22px; font-size: 1.1rem; }
+        .dev-shell p, .dev-shell li { line-height: 1.65; }
+        .dev-shell pre {
+            background: var(--bg-secondary); padding: 16px; border-radius: 8px;
+            overflow-x: auto; font-family: 'Courier New', ui-monospace, monospace;
+            font-size: 0.88rem; border: 1px solid rgba(108,92,231,0.25);
+        }
+        .dev-shell code {
+            background: rgba(108,92,231,0.15); padding: 2px 6px; border-radius: 4px;
+            font-family: 'Courier New', ui-monospace, monospace; font-size: 0.92em;
+        }
+        .dev-shell pre code { background: transparent; padding: 0; }
+        .download-card {
+            background: var(--bg-secondary); border: 1px solid rgba(108,92,231,0.3);
+            border-radius: 12px; padding: 20px; margin: 20px 0;
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        }
+        .download-card .info h3 { margin: 0 0 4px; color: var(--text-primary); }
+        .download-card .info p { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+        .download-btn {
+            background: linear-gradient(135deg, var(--accent-bright), #8e7cff);
+            color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none;
+            font-weight: 600; white-space: nowrap;
+        }
+        .callout {
+            background: rgba(108,92,231,0.08); border-left: 3px solid var(--accent-bright);
+            padding: 14px 18px; border-radius: 8px; margin: 16px 0;
+        }
+        .callout strong { color: var(--accent-bright); }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="/index.html">Home</a>
+            <a href="/engine/">Engine</a>
+            <a href="/api/">API Docs</a>
+            <a href="/games/">Games</a>
+            <a href="/why-rakuai.html">Why RakuAI</a>
+            <a href="/developers/" aria-current="page">Developers</a>
+            <a href="/blog/">Blog</a>
+        </div>
+    </div>
+</nav>
+
+<main class="dev-shell">
+    <h1>Wire RakuAI into Claude Desktop</h1>
+    <p class="lede">
+        The six MCP tools (<code>load_world_model</code>, <code>ingest_frame</code>, <code>get_scene_state</code>,
+        <code>set_render_target</code>, <code>start_simulation</code>, <code>get_metrics</code>) appear natively
+        in Claude Desktop as soon as you add <code>raku-mcp.fly.dev/mcp/</code> as an MCP server.
+        Two paths below &mdash; PowerShell auto-config, or manual JSON edit.
+    </p>
+
+    <h2>Prerequisites</h2>
+    <ol>
+        <li>A <code>raku_</code> API key &mdash; mint one at <a href="/developers/login.html">rakuai.com/developers/login.html</a>. New developers: <a href="/developers/register.html">request access</a>, accept the NDA, wait for an admin approval.</li>
+        <li>Claude Desktop installed (<a href="https://claude.ai/download">claude.ai/download</a>).</li>
+        <li>Windows: PowerShell 5+ or 7+. macOS / Linux: same shape, swap the config path.</li>
+    </ol>
+
+    <h2>Path A &mdash; PowerShell auto-config (recommended)</h2>
+    <p>
+        The MCP server expects a developer JWT in the <code>Authorization: Bearer ...</code> header.
+        JWTs expire in 24 hours, so the practical setup is a small script that exchanges your long-lived
+        API key for a fresh JWT and patches Claude Desktop's config file. Run it whenever the tools
+        stop appearing in Claude.
+    </p>
+
+    <div class="download-card">
+        <div class="info">
+            <h3>Refresh-RakuMcpJwt.ps1</h3>
+            <p>Exchanges your API key for a JWT, patches <code>claude_desktop_config.json</code>.</p>
+        </div>
+        <a class="download-btn" href="/developers/Refresh-RakuMcpJwt.ps1" download>Download</a>
+    </div>
+
+    <h3>Run it</h3>
+    <pre><code>$env:RAKU_API_KEY = "raku_your_long_lived_key_here"
+.\Refresh-RakuMcpJwt.ps1</code></pre>
+    <p>That's it. Restart Claude Desktop, start a new conversation, ask Claude to call <code>get_metrics</code> on the Raku runtime.</p>
+
+    <h3>Schedule it (optional)</h3>
+    <p>If you'd rather not run it manually, register a Windows scheduled task to run daily:</p>
+    <pre><code>schtasks /Create /SC DAILY /TN "Refresh Raku MCP JWT" `
+  /TR "powershell -NoProfile -File C:\path\to\Refresh-RakuMcpJwt.ps1" `
+  /ST 06:00</code></pre>
+
+    <div class="callout">
+        <strong>Long-term:</strong> we'll either bump the JWT TTL or accept the raw API key directly on
+        <code>raku-mcp.fly.dev</code> so this refresh step goes away. Until then, the script is the path.
+    </div>
+
+    <h2>Path B &mdash; manual JSON edit</h2>
+    <p>If you'd rather not run a script, edit Claude Desktop's config by hand. Location:</p>
+    <ul>
+        <li>Windows: <code>%APPDATA%\Claude\claude_desktop_config.json</code></li>
+        <li>macOS: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code></li>
+    </ul>
+    <p>Merge in (or create) the <code>mcpServers</code> section:</p>
+    <pre><code>{
+  "mcpServers": {
+    "raku": {
+      "type": "http",
+      "url": "https://raku-mcp.fly.dev/mcp/",
+      "headers": {
+        "Authorization": "Bearer &lt;your-24h-developer-JWT&gt;"
+      }
+    }
+  }
+}</code></pre>
+    <p>Mint the JWT once with <code>curl</code>:</p>
+    <pre><code>curl -sS -X POST https://api.rakuai.com/api/v1/auth/token \
+  -H 'Content-Type: application/json' \
+  -d '{"api_key":"raku_your_long_lived_key_here"}' \
+  | jq -r .access_token</code></pre>
+    <p>Paste the resulting token in place of <code>&lt;your-24h-developer-JWT&gt;</code> and restart Claude Desktop.</p>
+
+    <h2>Verify it's working</h2>
+    <p>Open a new conversation in Claude Desktop and prompt:</p>
+    <pre><code>Call get_metrics on the Raku runtime.</code></pre>
+    <p>You should see Claude invoke the <code>get_metrics</code> tool and return a JSON payload like:</p>
+    <pre><code>{
+  "fps": 0.0,
+  "sim_running": false,
+  "loaded_adapters": 0,
+  "status": "ok"
+}</code></pre>
+    <p>If you don't see the tools, double-check (1) the JWT hasn't expired, (2) the path is exactly <code>https://raku-mcp.fly.dev/mcp/</code> (trailing slash), (3) Claude Desktop was restarted after the config change.</p>
+
+    <h2>The six tools</h2>
+    <table style="width:100%; border-collapse:collapse; margin-top:8px;">
+        <thead><tr style="border-bottom:1px solid rgba(108,92,231,0.3);"><th style="text-align:left; padding:8px 12px;">Tool</th><th style="text-align:left; padding:8px 12px;">Mode</th><th style="text-align:left; padding:8px 12px;">What it does</th></tr></thead>
+        <tbody style="font-size:0.92rem;">
+            <tr><td style="padding:6px 12px; font-family:monospace;">get_metrics</td><td style="padding:6px 12px;">all</td><td style="padding:6px 12px;">FPS, frame time, adapter count, uptime &mdash; safe read.</td></tr>
+            <tr><td style="padding:6px 12px; font-family:monospace;">get_scene_state</td><td style="padding:6px 12px;">all</td><td style="padding:6px 12px;">Snapshot of nodes, physics bodies, loaded adapters, sim state.</td></tr>
+            <tr><td style="padding:6px 12px; font-family:monospace;">load_world_model</td><td style="padding:6px 12px;">sandbox/dev</td><td style="padding:6px 12px;">Register an adapter (Runway, Veo, Marble, Genie, content_pack).</td></tr>
+            <tr><td style="padding:6px 12px; font-family:monospace;">ingest_frame</td><td style="padding:6px 12px;">sandbox/dev</td><td style="padding:6px 12px;">Push a frame from a generative model into the scene graph.</td></tr>
+            <tr><td style="padding:6px 12px; font-family:monospace;">set_render_target</td><td style="padding:6px 12px;">sandbox/dev</td><td style="padding:6px 12px;">WebGL, VR headset, native window, or offscreen.</td></tr>
+            <tr><td style="padding:6px 12px; font-family:monospace;">start_simulation</td><td style="padding:6px 12px;">sandbox/dev</td><td style="padding:6px 12px;">Begin the simulation loop. Denied in production mode by design.</td></tr>
+        </tbody>
+    </table>
+    <p style="margin-top: 14px;"><a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/">Read more about the MCP boundary &rarr;</a></p>
+
+    <h2>Troubleshooting</h2>
+    <h3>The tools don't appear in Claude</h3>
+    <ul>
+        <li>Did you restart Claude Desktop? MCP config is read at launch only.</li>
+        <li>Open Claude Desktop's developer console (Help &rarr; Developer Tools). Look for MCP connection errors mentioning <code>raku</code>.</li>
+        <li>JWT expired? Re-run the PowerShell script.</li>
+    </ul>
+    <h3>The MCP server says &ldquo;Authentication failed&rdquo;</h3>
+    <ul>
+        <li>JWT format issue. Test it with curl: <code>curl -s https://raku-mcp.fly.dev/mcp/ -H "Authorization: Bearer $JWT" -X POST -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"x","version":"x"}}}'</code> &mdash; you should get a 200 with <code>serverInfo</code>.</li>
+        <li>Your developer account isn't approved yet. Check <code>/developer/profile</code> &mdash; <code>approved</code> must be <code>true</code>.</li>
+    </ul>
+    <h3>&ldquo;start_simulation is blocked in production mode&rdquo;</h3>
+    <p>That's correct. <code>raku-mcp.fly.dev</code> runs in production mode and refuses mutating tools by design. Read-only tools (<code>get_metrics</code>, <code>get_scene_state</code>) work; mutations need a sandbox or dev deployment. We'll publish a local-dev path shortly.</p>
+
+    <h2>Related</h2>
+    <ul>
+        <li><a href="/developers/">Developer portal</a></li>
+        <li><a href="/blog/bring-your-ai-we-bring-the-runtime/">Bring your AI, we bring the runtime</a></li>
+        <li><a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/">Six MCP tools, and what the adapters unlock next</a></li>
+        <li><a href="https://github.com/RakuXR/raku-sdk/blob/main/docs/adapters/CONTRACT.md">Adapter contract (GitHub)</a></li>
+    </ul>
+</main>
+
+<footer class="blog-footer">
+    <div class="container">
+        <p>&copy; 2026 RakuAI, LLC. <a href="/index.html">rakuai.com</a></p>
+    </div>
+</footer>
+
+</body>
+</html>
