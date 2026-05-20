@@ -196,12 +196,23 @@
 
 <section class="hero" id="create">
     <div class="container">
-        <div class="beta-badge">Prueba la demo</div>
-        <h1>Prueba la demo</h1>
+        <h1>Controla RakuAI desde Claude, ChatGPT o Gemini.</h1>
         <p class="subtitle">
-            Ve lo que puede hacer nuestro motor — describe cualquier idea de juego y míralo generarse.
+            Seis herramientas MCP. Desplegadas en producción. El runtime con el que tu asistente de IA habla cuando necesita construir, consultar o simular un mundo espacial.
         </p>
-        <div class="prompt-input-wrapper" id="prompt-wrapper">
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 24px 0 16px;">
+            <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">Lee el artículo sobre MCP &rarr;</a>
+            <a href="../blog/" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">Ver el registro de ingeniería &rarr;</a>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
+            Protegido por patentes &bull; MCP nativo &bull; Compatible con Claude, ChatGPT, Gemini, Copilot
+        </p>
+        <!--
+          es: legacy prompt-input UI retained (hidden) so the inline
+          generation/auth IIFE further down the file still binds to its
+          DOM IDs without throwing. Mirrors /index.html EN pivot.
+        -->
+        <div class="prompt-input-wrapper" id="prompt-wrapper" hidden aria-hidden="true" style="display: none;">
             <div class="prompt-sheet-handle" id="prompt-sheet-handle"></div>
             <textarea
                 id="prompt-input"
@@ -215,9 +226,6 @@
                 <button id="play-now-btn" class="btn btn-primary btn-play-now" disabled>¡Jugar ahora!</button>
             </div>
         </div>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
-            Pruébalo gratis &bull; Tecnología protegida por patentes
-        </p>
     </div>
 </section>
 
@@ -360,44 +368,40 @@
     <div class="container">
         <h2>Pruébalo en 60 segundos</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 24px;">
-            Tres pasos. Todo se hace con un clic desde el launcher.
+            Tres pasos. Tu asistente de IA controla el runtime.
         </p>
 
         <div class="steps" style="margin-bottom: 40px;">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>Describe tu juego</h3>
-                <p><a href="#create" class="feature-link">Escribe tu idea de juego</a> en el prompt de arriba. La AI analiza tu descripción y construye un juego jugable.</p>
+                <h3>Habla MCP</h3>
+                <p>Tu asistente de IA se conecta al servidor MCP de RakuAI vía stdio. Seis herramientas. Permisos deny-by-default.</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
-                <h3>Elige una plantilla y envíala a la AI</h3>
-                <p>Ve a la pestaña <strong>Crear</strong>. Elige entre 8 plantillas de juegos integradas (o escribe la tuya). Haz clic en <strong>&ldquo;Abrir en asistente AI&rdquo;</strong> &mdash; copia el prompt y abre ChatGPT, Claude o Gemini.</p>
+                <h3>Controla el runtime</h3>
+                <p>Carga un modelo del mundo. Envía frames. Consulta el estado de la escena. Configura el renderizado. Lee métricas.</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
-                <h3>Juega al instante</h3>
-                <p>Tu juego aparece en tu biblioteca <strong>Mis juegos</strong>. Haz clic para jugar &mdash; se lanza en menos de 1 segundo.</p>
+                <h3>Despliega experiencias espaciales</h3>
+                <p>Tu asistente construye, el runtime ejecuta. Web. Windows. XR.</p>
             </div>
         </div>
 
         <div style="background: #0d0d1f; border: 2px solid var(--accent); border-radius: 8px; padding: 24px; font-size: 0.95rem; line-height: 1.7; margin: 0 auto; max-width: 850px;">
-            <h3 style="color: var(--accent-bright); margin-bottom: 12px; font-size: 1.1rem;">Plantillas de juegos integradas</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 16px;">El launcher incluye estas plantillas listas para usar. Elige una y haz clic en enviar:</p>
+            <h3 style="color: var(--accent-bright); margin-bottom: 12px; font-size: 1.1rem;">Integraciones MCP de ejemplo</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Ejemplos que funcionan sobre el servidor MCP desplegado en producción:</p>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <span style="color: var(--text-primary);">&#x1F680; Space Shooter</span>
-                <span style="color: var(--text-primary);">&#x1F9D9; Mazmorra roguelike</span>
-                <span style="color: var(--text-primary);">&#x1F9E9; Puzzle de plataformas</span>
-                <span style="color: var(--text-primary);">&#x1F3F0; Tower Defense</span>
-                <span style="color: var(--text-primary);">&#x1F3CE; Juego de carreras</span>
-                <span style="color: var(--text-primary);">&#x1F3B5; Juego rítmico</span>
-                <span style="color: var(--text-primary);">&#x1F33F; Survival crafting</span>
-                <span style="color: var(--text-primary);">&#x270F;&#xFE0F; Prompt personalizado</span>
+                <span style="color: var(--text-primary);">&#x1F916; Claude Desktop</span>
+                <span style="color: var(--text-primary);">&#x270F;&#xFE0F; Cursor</span>
+                <span style="color: var(--text-primary);">&#x1F4BB; GitHub Copilot</span>
+                <span style="color: var(--text-primary);">&#x1F517; Cliente MCP personalizado</span>
             </div>
         </div>
 
         <p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">
-            ¿Quieres más control? <a href="../sdk.html" style="color: var(--accent-bright);">Explora el SDK</a> para prompts avanzados y personalización de plantillas.
+            ¿Quieres más detalle? <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" style="color: var(--accent-bright);">Lee el artículo &ldquo;Seis herramientas MCP&rdquo;</a>.
         </p>
     </div>
 </section>
@@ -408,18 +412,18 @@
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>Abre el launcher</h3>
-                <p>Inicia la plataforma RakuAI. El hub de juegos abre con pestañas para crear, gestionar y jugar.</p>
+                <h3>Arranca el servidor MCP</h3>
+                <p>Lanza el servidor MCP de RakuAI y añádelo a la configuración de tu asistente de IA. Conexión vía stdio, con seis herramientas expuestas.</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
-                <h3>Crea con AI</h3>
-                <p>Elige una plantilla o describe tu propio juego. Haz clic en <strong>&ldquo;Abrir en asistente AI&rdquo;</strong> &mdash; envía tu prompt a ChatGPT, Claude o Gemini.</p>
+                <h3>El asistente conduce</h3>
+                <p>Claude, ChatGPT, Gemini o Copilot invocan las herramientas para cargar modelos del mundo, enviar frames y consultar el estado de la escena. Seguro por defecto con permisos deny-by-default.</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
-                <h3>Juega desde tu biblioteca</h3>
-                <p>Tus juegos aparecen en la pestaña <strong>Mis juegos</strong> con íconos, conteos de jugadas y favoritos. Haz clic para lanzar en menos de 1 segundo. Sin Unity, sin Unreal, sin paso de build.</p>
+                <h3>El runtime ejecuta</h3>
+                <p>El runtime de RakuAI gestiona física, renderizado, audio espacial y XR. La misma escena se despliega en Web, Windows y headsets XR.</p>
             </div>
         </div>
     </div>
