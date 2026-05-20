@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>.raku File Schema - RakuAI</title>
-    <meta name="description" content="JSON Schema for .raku game definition files. Use this schema to generate valid games with AI assistants.">
-    <meta property="og:title" content=".raku File Schema - RakuAI">
-    <meta property="og:description" content="JSON Schema for .raku game definition files.">
+    <title>Runtime Schema &amp; MCP Contract &mdash; RakuAI</title>
+    <meta name="description" content="The runtime contract for the RakuAI engine: six MCP tools, adapter manifests, and scene-state schemas that any AI assistant can drive over Model Context Protocol.">
+    <meta property="og:title" content="Runtime Schema &amp; MCP Contract &mdash; RakuAI">
+    <meta property="og:description" content="The runtime contract for the RakuAI engine: six MCP tools and adapter schemas.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rakuai.com/schema.html">
     <link rel="canonical" href="https://rakuai.com/schema.html">
@@ -16,7 +16,7 @@
 <body>
 
 <div class="beta-announcement-bar">
-    &#x697D;AI<sup class="tm">™</sup> — The Universal Runtime for World Models &nbsp;|&nbsp; <a href="index.html#for-studios">For Studios &amp; Developers →</a> &nbsp;&nbsp; Also: <a href="index.html#quickstart">Try the Consumer Demo →</a>
+    &#x697D;AI<sup class="tm">&trade;</sup> &mdash; The Universal Runtime for World Models &nbsp;|&nbsp; <a href="index.html#for-studios">For Studios &amp; Developers &rarr;</a> &nbsp;&nbsp; Also: <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/">Read the MCP build log &rarr;</a>
 </div>
 
 <nav>
@@ -31,35 +31,35 @@
             <a href="developers/">Developers</a>
             <a href="press.html">Press</a>
             <a href="blog/">Blog</a>
-            <a href="ja/schema.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+            <a href="ja/schema.html" class="lang-toggle">&#x697D;AI<sup class="tm">&trade;</sup></a>
         </div>
     </div>
 </nav>
 
 <section class="hero">
     <div class="container">
-        <h1>.raku File Schema</h1>
-        <p class="subtitle">Everything AI needs to generate valid Raku game files</p>
+        <h1>Runtime Schema &amp; MCP Contract</h1>
+        <p class="subtitle">The standard contract any AI assistant uses to drive the RakuAI runtime &mdash; six MCP tools, adapter manifests, scene-state snapshots.</p>
     </div>
 </section>
 
 <section class="section">
     <div class="container">
-        <h2>For AI Assistants</h2>
+        <h2>For AI Assistants &amp; Agents</h2>
         <div class="features">
             <div class="feature">
-                <h3>Schema &amp; Validation</h3>
-                <p>The complete .raku file schema, validation tools, and generation guidelines are available with SDK access.</p>
-                <a href="index.html#create" style="color: var(--accent-bright);">Start Creating &rarr;</a>
+                <h3>Six MCP Tools</h3>
+                <p>The MCP server exposes a fixed surface &mdash; <code>load_world_model</code>, <code>ingest_frame</code>, <code>get_scene_state</code>, <code>set_render_target</code>, <code>start_simulation</code>, <code>get_metrics</code>. Read-only tools work in every mode; mutating tools are sandbox/dev only.</p>
+                <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" style="color: var(--accent-bright);">Read the MCP build log &rarr;</a>
             </div>
             <div class="feature">
-                <h3>AI Platform Integration</h3>
-                <p>Integration guides for ChatGPT, Claude, Gemini, and other AI assistants are included with the SDK.</p>
-                <a href="index.html#create" style="color: var(--accent-bright);">Start Creating &rarr;</a>
+                <h3>Standard Contract, Any Agent</h3>
+                <p>Drive the runtime from Claude Desktop, Cursor, custom GPTs, or any MCP-capable client. The tool surface is the same. Wiring guides for Claude Desktop are live now; more clients are in flight.</p>
+                <a href="developers/claude-desktop.html" style="color: var(--accent-bright);">Wire up Claude Desktop &rarr;</a>
             </div>
             <div class="feature">
                 <h3>API Reference</h3>
-                <p>Full API documentation is available under NDA. <a href="contact.html" style="color: var(--accent-bright);">Request NDA access</a> to receive API references and integration guides.</p>
+                <p>Full server, adapter, and scene-state schemas are available under NDA. <a href="contact.html" style="color: var(--accent-bright);">Request NDA access</a> for the complete integration kit.</p>
             </div>
         </div>
     </div>
@@ -67,12 +67,12 @@
 
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container">
-        <h2>.raku File Structure</h2>
+        <h2>The MCP Surface</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            A .raku file is a structured JSON document that defines your game. The engine reads the file and brings it to life in real time. Full structure documentation is available with SDK access.
+            Every external agent reaches the engine through the same six tools. Deny-by-default permissions, typed schemas, full audit log. The server is the boundary &mdash; the engine remains the authority on physics, collision, scoring, and multiplayer state.
         </p>
         <div style="text-align: center;">
-            <a href="index.html#create" class="btn btn-primary">Start Creating</a>
+            <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary">Read the MCP Docs</a>
         </div>
     </div>
 </section>
@@ -81,22 +81,22 @@
     <div class="container">
         <h2>Engine Subsystems</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            The Raku engine is modular with subsystems covering rendering, physics, audio, AI, XR, networking, animation, and more.
+            The Raku engine is modular with subsystems covering rendering, physics, audio, AI, XR, networking, animation, and more. Adapters plug in over the MCP boundary; the engine retains deterministic authority.
         </p>
         <p style="text-align: center; color: var(--text-secondary); margin-top: 24px;">
-            Full API documentation and subsystem details are available under NDA. <a href="index.html#create" style="color: var(--accent-bright);">Start creating &rarr;</a>
+            Full API documentation and subsystem details are available under NDA. <a href="contact.html" style="color: var(--accent-bright);">Request access &rarr;</a>
         </p>
     </div>
 </section>
 
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container">
-        <h2>Create Games with AI</h2>
+        <h2>Connect Your AI Assistant</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            Use any AI assistant (ChatGPT, Claude, Gemini) to describe your game concept. The AI generates a valid .raku file that the engine executes instantly.
+            Add the RakuAI MCP server to Claude Desktop, Cursor, or any MCP-capable client. The six tools appear natively in your conversations. Drive the runtime from the assistant you already use.
         </p>
         <p style="text-align: center;">
-            <a href="index.html#create" class="btn btn-primary">Start Creating</a>
+            <a href="developers/claude-desktop.html" class="btn btn-primary">Wire Up Claude Desktop</a>
         </p>
     </div>
 </section>
@@ -116,7 +116,7 @@
             <a href="https://github.com/RakuXR">GitHub</a>
             <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
         </div>
-        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; 5 Patents &middot; 9,500+ API Endpoints &middot; 18 Native DLLs</p>
         <p class="trademark-notice">
             RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
             <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
