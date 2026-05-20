@@ -176,12 +176,23 @@
 
 <section class="hero" id="create">
     <div class="container">
-        <div class="beta-badge">試玩示範</div>
-        <h1>試玩示範</h1>
+        <h1>從 Claude、ChatGPT 或 Gemini 驅動 RakuAI。</h1>
         <p class="subtitle">
-            看看我們的引擎能做什麼 — 描述任何遊戲構想，看它即時生成。
+            六個 MCP 工具。已部署至生產環境。當 AI 助理需要建構、查詢或模擬空間世界時，與之對話的執行階段。
         </p>
-        <div class="prompt-input-wrapper" id="prompt-wrapper">
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 24px 0 16px;">
+            <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">閱讀 MCP 解說 &rarr;</a>
+            <a href="../blog/" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">檢視工程日誌 &rarr;</a>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
+            受專利保護 &bull; MCP 原生 &bull; 適用於 Claude、ChatGPT、Gemini、Copilot
+        </p>
+        <!--
+          zh-TW: legacy prompt-input UI retained (hidden) so the inline
+          generation/auth IIFE further down the file still binds to its
+          DOM IDs without throwing. Mirrors /index.html EN pivot.
+        -->
+        <div class="prompt-input-wrapper" id="prompt-wrapper" hidden aria-hidden="true" style="display: none;">
             <div class="prompt-sheet-handle" id="prompt-sheet-handle"></div>
             <textarea
                 id="prompt-input"
@@ -195,9 +206,6 @@
                 <button id="play-now-btn" class="btn btn-primary btn-play-now" disabled>立即遊玩！</button>
             </div>
         </div>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
-            免費試用 &bull; 受專利保護的技術
-        </p>
     </div>
 </section>
 
@@ -340,44 +348,40 @@
     <div class="container">
         <h2>60 秒內試試看</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 24px;">
-            三個步驟。一切都在啟動器中一鍵完成。
+            三個步驟。AI 助理驅動執行階段。
         </p>
 
         <div class="steps" style="margin-bottom: 40px;">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>描述你的遊戲</h3>
-                <p>在上方提示框<a href="#create" class="feature-link">輸入你的遊戲構想</a>。AI 會分析描述並打造可遊玩的遊戲。</p>
+                <h3>說 MCP</h3>
+                <p>你的 AI 助理透過 stdio 連接到 RakuAI MCP 伺服器。六個工具。預設拒絕的權限模型。</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
-                <h3>挑選模板並發送給 AI</h3>
-                <p>前往 <strong>建立</strong> 分頁。從 8 個內建遊戲模板中挑選（或自己撰寫）。按一下 <strong>「在 AI 助理中開啟」</strong> &mdash; 它會複製提示並開啟 ChatGPT、Claude 或 Gemini。</p>
+                <h3>驅動執行階段</h3>
+                <p>載入世界模型。推送影格。查詢場景狀態。設定算繪。讀取指標。</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
-                <h3>立即遊玩</h3>
-                <p>你的遊戲會出現在 <strong>我的遊戲</strong> 庫中。按一下即玩 &mdash; 1 秒內啟動。</p>
+                <h3>交付空間體驗</h3>
+                <p>助理建構，執行階段執行。Web。Windows。XR。</p>
             </div>
         </div>
 
         <div style="background: #0d0d1f; border: 2px solid var(--accent); border-radius: 8px; padding: 24px; font-size: 0.95rem; line-height: 1.7; margin: 0 auto; max-width: 850px;">
-            <h3 style="color: var(--accent-bright); margin-bottom: 12px; font-size: 1.1rem;">內建遊戲模板</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 16px;">啟動器內建以下立即可用的模板。選一個、按發送即可：</p>
+            <h3 style="color: var(--accent-bright); margin-bottom: 12px; font-size: 1.1rem;">範例 MCP 整合</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">在已部署生產的 MCP 伺服器上運作的整合範例：</p>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <span style="color: var(--text-primary);">&#x1F680; 太空射擊</span>
-                <span style="color: var(--text-primary);">&#x1F9D9; Roguelike 地下城</span>
-                <span style="color: var(--text-primary);">&#x1F9E9; 解謎平台遊戲</span>
-                <span style="color: var(--text-primary);">&#x1F3F0; 塔防</span>
-                <span style="color: var(--text-primary);">&#x1F3CE; 賽車遊戲</span>
-                <span style="color: var(--text-primary);">&#x1F3B5; 節奏遊戲</span>
-                <span style="color: var(--text-primary);">&#x1F33F; 生存製作</span>
-                <span style="color: var(--text-primary);">&#x270F;&#xFE0F; 自訂提示</span>
+                <span style="color: var(--text-primary);">&#x1F916; Claude Desktop</span>
+                <span style="color: var(--text-primary);">&#x270F;&#xFE0F; Cursor</span>
+                <span style="color: var(--text-primary);">&#x1F4BB; GitHub Copilot</span>
+                <span style="color: var(--text-primary);">&#x1F517; 自訂 MCP 客戶端</span>
             </div>
         </div>
 
         <p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">
-            想要更多控制？<a href="../sdk.html" style="color: var(--accent-bright);">了解 SDK</a> 提供進階提示與模板自訂。
+            想了解更多？<a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" style="color: var(--accent-bright);">閱讀「六個 MCP 工具」解說</a>。
         </p>
     </div>
 </section>
@@ -388,18 +392,18 @@
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>開啟啟動器</h3>
-                <p>啟動 RakuAI 平台。遊戲中心會開啟，內含建立、管理與遊玩遊戲的分頁。</p>
+                <h3>啟動 MCP 伺服器</h3>
+                <p>啟動 RakuAI MCP 伺服器，並將其加入你的 AI 助理設定。透過 stdio 連接，並公開六個工具。</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
-                <h3>用 AI 建立</h3>
-                <p>挑選模板或自行描述遊戲。按一下 <strong>「在 AI 助理中開啟」</strong> &mdash; 它會把提示發送到 ChatGPT、Claude 或 Gemini。</p>
+                <h3>助理驅動</h3>
+                <p>Claude、ChatGPT、Gemini 或 Copilot 呼叫工具來載入世界模型、推送影格、查詢場景狀態。以預設拒絕的權限模型確保安全。</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
-                <h3>從你的遊戲庫遊玩</h3>
-                <p>你的遊戲會出現在 <strong>我的遊戲</strong> 分頁，附有圖示、遊玩次數與收藏。按一下，1 秒內啟動。不用 Unity，不用 Unreal，不用建置。</p>
+                <h3>執行階段執行</h3>
+                <p>RakuAI 執行階段處理物理、算繪、空間音訊與 XR。同一個場景部署至 Web、Windows、XR 頭戴裝置。</p>
             </div>
         </div>
     </div>
