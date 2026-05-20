@@ -4,113 +4,25 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>.raku ファイルを検証 - RakuAI</title>
-    <meta name="description" content="AI が生成した .raku ゲームファイルを貼り付け、実行前に構造、必須フィールド、スキーマ準拠を検証します。">
-    <meta property="og:title" content=".raku ファイルを検証 - RakuAI">
-    <meta property="og:description" content="AI 生成 .raku ゲームファイルの即時検証。構造的な問題を検出し、修正案を提示します。">
+    <title>アダプター・シーン状態の検証 &mdash; RakuAI</title>
+    <meta name="description" content="RakuAI ランタイムコントラクトの検証ツール: MCP ツールスキーマ、アダプターマニフェスト、シーン状態スナップショット。">
+    <meta property="og:title" content="アダプター・シーン状態の検証 &mdash; RakuAI">
+    <meta property="og:description" content="RakuAI ランタイムコントラクトの検証ツール: MCP ツール、アダプター、シーン状態。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rakuai.com/ja/validate.html">
     <link rel="canonical" href="https://rakuai.com/ja/validate.html">
     <link rel="stylesheet" href="../style.css">
-    <style>
-        .validator-container {
-            max-width: 960px;
-            margin: 2rem auto;
-            padding: 0 1.5rem;
-        }
-        .validator-textarea {
-            width: 100%;
-            min-height: 320px;
-            font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-            font-size: 0.85rem;
-            background: #1a1a2e;
-            color: #e0e0e0;
-            border: 2px solid #333;
-            border-radius: 10px;
-            padding: 1rem;
-            resize: vertical;
-            line-height: 1.5;
-        }
-        .validator-textarea:focus {
-            border-color: var(--accent, #6c5ce7);
-            outline: none;
-        }
-        .validate-btn {
-            display: inline-block;
-            margin-top: 1rem;
-            padding: 12px 32px;
-            background: var(--accent, #6c5ce7);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
-        }
-        .validate-btn:hover { background: #5a4bd1; transform: translateY(-1px); }
-        .validate-btn:active { transform: translateY(0); }
-
-        .results-panel {
-            margin-top: 1.5rem;
-            border-radius: 10px;
-            padding: 1.5rem;
-            display: none;
-        }
-        .results-panel.show { display: block; }
-        .results-pass {
-            background: #0d3320;
-            border: 2px solid #27ae60;
-        }
-        .results-fail {
-            background: #3d1212;
-            border: 2px solid #e74c3c;
-        }
-        .results-warn {
-            background: #3d2e12;
-            border: 2px solid #f39c12;
-        }
-
-        .result-item {
-            padding: 8px 12px;
-            margin: 6px 0;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 0.85rem;
-            line-height: 1.4;
-        }
-        .result-error { background: rgba(231, 76, 60, 0.15); border-left: 3px solid #e74c3c; }
-        .result-warning { background: rgba(243, 156, 18, 0.15); border-left: 3px solid #f39c12; }
-        .result-ok { background: rgba(39, 174, 96, 0.15); border-left: 3px solid #27ae60; }
-        .result-info { background: rgba(52, 152, 219, 0.15); border-left: 3px solid #3498db; }
-
-        .stats-bar {
-            display: flex;
-            gap: 1.5rem;
-            margin: 1rem 0;
-            flex-wrap: wrap;
-        }
-        .stat-chip {
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .stat-pass { background: #27ae60; color: white; }
-        .stat-fail { background: #e74c3c; color: white; }
-        .stat-warn { background: #f39c12; color: white; }
-        .stat-info { background: #3498db; color: white; }
-    </style>
 </head>
 <body>
-<!--
-  Machine-translated by Claude. Pending human review.
-  Source: ../validate.html @ b41cc9cbafd79383966041df1c3e3d2b8d5fde2c
-  Date: 2026-05-17
--->
+
+<!-- TODO: This page previously hosted a paste-and-validate UI for AI-generated
+     .raku game files. With the pivot to MCP-driven runtime positioning, this
+     page is reframed around validating the MCP contract (tool schemas,
+     adapter manifests, scene-state snapshots). The interactive validator is
+     in flight; copy is steady-state for now. -->
 
 <div class="beta-announcement-bar">
-    &#x697D;AI<sup class="tm">™</sup> — World Model のためのユニバーサルランタイム &nbsp;|&nbsp; <a href="index.html#for-studios">スタジオ・開発者向け →</a> &nbsp;&nbsp; また: <a href="index.html#quickstart">コンシューマー版デモを試す →</a>
+    &#x697D;AI<sup class="tm">&trade;</sup> &mdash; ワールドモデルのためのユニバーサルランタイム &nbsp;|&nbsp; <a href="index.html#for-studios">スタジオ・開発者向け &rarr;</a> &nbsp;&nbsp; <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/">MCP ビルドログを読む &rarr;</a>
 </div>
 
 <nav>
@@ -123,7 +35,7 @@
             <a href="../games/">ゲーム</a>
             <a href="why-rakuai.html">なぜ RakuAI</a>
             <a href="developers/">開発者</a>
-            <a href="press.html">プレス</a>
+            <a href="../press.html">プレス</a>
             <a href="../blog/">ブログ</a>
             <a href="../validate.html" class="lang-toggle">EN</a>
         </div>
@@ -132,29 +44,40 @@
 
 <section class="hero" style="padding: 60px 0 40px;">
     <div class="container">
-        <h1>.raku ファイルを検証</h1>
-        <p class="subtitle">完全な検証ツールは SDK アクセスでご利用いただけます。</p>
+        <h1>ランタイムコントラクトを検証</h1>
+        <p class="subtitle">MCP ツール呼び出し、アダプターマニフェスト、シーン状態スナップショットのスキーマ検証。</p>
     </div>
 </section>
 
-<div class="validator-container">
-    <div style="background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(0, 206, 201, 0.1)); border: 2px solid var(--accent); border-radius: 16px; padding: 40px; text-align: center; margin-top: 24px;">
-        <h3 style="font-size: 1.6rem; color: var(--accent-bright); margin-bottom: 16px;">検証ツールは SDK でご利用可能</h3>
-        <!-- TRANSLATION: alt phrasing "SDK 契約者向けの検証ツール" -->
-        <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 24px;">自動修正、スキーマ準拠チェック、詳細なエラーレポートを備えた完全な .raku ファイル検証は、SDK アクセスでご利用いただけます。</p>
-        <a href="index.html#create" class="btn btn-primary">作成を始める</a>
+<section class="section">
+    <div class="container">
+        <div style="background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(0, 206, 201, 0.1)); border: 2px solid var(--accent); border-radius: 16px; padding: 40px; text-align: center; margin-top: 24px; max-width: 760px; margin-left: auto; margin-right: auto;">
+            <h3 style="font-size: 1.6rem; color: var(--accent-bright); margin-bottom: 16px;">検証ツール準備中</h3>
+            <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto 24px;">
+                6 つのツールから成る MCP サーフェス（<code>load_world_model</code>、<code>ingest_frame</code>、
+                <code>get_scene_state</code>、<code>set_render_target</code>、<code>start_simulation</code>、
+                <code>get_metrics</code>）には、サーバーで強制される型付きスキーマがあります。アダプターマニフェストと
+                シーン状態スナップショットのためのスタンドアロンな貼り付け検証ツールは近日公開予定です。
+                現在は、ライブサーバーがすべての呼び出しを検証し、精密なエラーを返します。
+            </p>
+            <div class="cta-group" style="justify-content: center; flex-wrap: wrap;">
+                <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary">MCP ビルドログを読む</a>
+                <a href="developers/claude-desktop-mcp.html" class="btn btn-secondary">Claude Desktop を接続</a>
+            </div>
+        </div>
     </div>
-</div>
+</section>
 
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container" style="text-align: center;">
-        <h2>AI でゲームを作る</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 550px; margin-left: auto; margin-right: auto;">
-            任意の AI アシスタントを使って、作りたいゲームを説明するだけ。SDK にはプロンプトテンプレート、検証ツール、必要なものがすべて揃っています。
+        <h2>AI アシスタントを接続</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 600px; margin-left: auto; margin-right: auto;">
+            RakuAI MCP サーバーを Claude Desktop、Cursor、または任意の MCP 対応クライアントに追加してください。6 つのツールが
+            会話の中でネイティブに表示され、エンジンがワールドモデルに触れる前に、サーバーがすべての呼び出しを検証します。
         </p>
-        <div class="cta-group">
-            <a href="index.html#create" class="btn btn-primary">作成を始める</a>
-            <a href="templates.html" class="btn btn-secondary">テンプレートを見る</a>
+        <div class="cta-group" style="justify-content: center;">
+            <a href="developers/claude-desktop-mcp.html" class="btn btn-primary">Claude Desktop を接続</a>
+            <a href="developer-guide.html" class="btn btn-secondary">開発者ガイド</a>
         </div>
     </div>
 </section>
@@ -166,7 +89,7 @@
             <a href="../api/">API</a>
             <a href="docs.html">ドキュメント</a>
             <a href="../games/">アーケード</a>
-            <a href="press.html">プレス</a>
+            <a href="../press.html">プレス</a>
             <a href="developers/">開発者</a>
             <a href="privacy.html">プライバシー</a>
             <a href="terms.html">利用規約</a>
@@ -174,16 +97,12 @@
             <a href="https://github.com/RakuXR">GitHub</a>
             <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
         </div>
-        <p>&copy; 2026 RakuAI, LLC &bull; 米国特許 5 件取得済み（優先日：2012 年 7 月） &bull; RakuAI エンジン搭載</p>
-        <p class="trademark-notice">
-            RakuAI&trade; および RakuXR&trade; は RakuAI, LLC の商標です。
-            <span class="kanji-logo">&#x697D;</span>AI および <span class="kanji-logo">&#x697D;</span>XR は RakuAI, LLC のスタイライズド・マークです。
-            米国特許 5 件取得済み（優先日：2012 年 7 月）。
-        </p>
+        <p>&copy; 2026 RakuAI, LLC &bull; 取得済み米国特許 5 件（優先日: 2012 年 7 月）</p>
+        <p class="trademark-notice">RakuAI&trade; および RakuXR&trade; は RakuAI, LLC の商標です。<span class="kanji-logo">&#x697D;</span>AI と <span class="kanji-logo">&#x697D;</span>XR は RakuAI, LLC のスタイル化された商標です。</p>
     </div>
 </footer>
 
-
 <script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
 </body>
 </html>
