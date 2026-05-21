@@ -4,7 +4,7 @@
 - **Org**: RakuXR
 - **Repo**: rakuxr.github.io (GitHub Pages site)
 - **Live URL**: https://rakuai.com (production)
-- **Purpose**: Public website for RakuAI prompt-to-game platform
+- **Purpose**: Public website for RakuAI — the AI-native spatial runtime built for smart glasses. The platform LLM makers and smart-glasses manufacturers build with.
 - **Type**: Static HTML/CSS/JS (no build step — files deploy as-is)
 - **Master strategy**: `raku-governance/STRATEGY.md`
 
@@ -71,7 +71,7 @@ This is a static site — no build step. All HTML/CSS/JS files deploy as-is.
 
 | File | Purpose |
 |------|---------|
-| `index.html` | Landing page (will become prompt-to-game UX in Phase 2) |
+| `index.html` | Landing page (Supercharge your AI / MCP runtime positioning for smart glasses + LLM partners) |
 | `style.css` | Global styles |
 | `CNAME` | Custom domain → rakuai.com |
 | `.nojekyll` | Bypass Jekyll processing |
@@ -92,7 +92,7 @@ This is a static site — no build step. All HTML/CSS/JS files deploy as-is.
 
 ## Phase Roadmap (Website)
 - **Phase 1** ✅: IP protection, marketing site cleanup
-- **Phase 2**: Prompt input UX, registration, backend integration
+- **Phase 2**: MCP runtime positioning, smart-glasses + LLM-makers landing pages, partner outreach
 - **Phase 3**: Browser game player (WebGL/WASM), shareable links
 - **Phase 4**: Discover page, community features, remix
 - **Phase 5**: XR deep links, platform-specific landing pages
