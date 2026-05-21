@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RakuAI vs Unity vs Unreal — Honest Comparison for Smart Glasses and AI-Native</title>
+    <meta name="description" content="RakuAI vs Unity vs Unreal — honest comparison for smart glasses and AI-native use cases. Six MCP tools, 18ms motion-to-photon, dual-device architecture, multi-LLM by default.">
+    <meta name="keywords" content="RakuAI vs Unity, RakuAI vs Unreal, smart glasses engine, AI-native runtime, MCP game engine, dual-device architecture, motion-to-photon">
+    <meta property="og:title" content="RakuAI vs Unity vs Unreal — Honest Comparison for Smart Glasses and AI-Native">
+    <meta property="og:description" content="Three engines. Different design constraints. Different categories. Here's the honest comparison — RakuAI, Unity, and Unreal for smart glasses and AI-native experiences.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/compare.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RakuAI vs Unity vs Unreal — Honest Comparison for Smart Glasses and AI-Native">
+    <meta name="twitter:description" content="Three engines. Different design constraints. Different categories. Here's the honest comparison.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/compare.html">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .compare-hero {
+            padding: 80px 0 48px;
+            text-align: center;
+            background: radial-gradient(1200px 600px at 50% -100px, rgba(108, 92, 231, 0.22), transparent 60%);
+        }
+        .compare-hero h1 {
+            font-size: clamp(2rem, 4.5vw, 3.2rem);
+            line-height: 1.15;
+            margin-bottom: 18px;
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .compare-hero .subhead {
+            font-size: 1.15rem;
+            color: var(--text-secondary, #c0c0d0);
+            max-width: 760px;
+            margin: 0 auto;
+            line-height: 1.55;
+        }
+        .compare-section {
+            padding: 56px 0;
+        }
+        .compare-section h2 {
+            font-size: clamp(1.5rem, 2.8vw, 2rem);
+            margin-bottom: 28px;
+            text-align: center;
+        }
+        .compare-table-wrap {
+            overflow-x: auto;
+            border: 1px solid #2a2a44;
+            border-radius: 12px;
+            background: var(--bg-secondary, #111128);
+        }
+        table.compare-grid {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 760px;
+            font-size: 0.96rem;
+        }
+        table.compare-grid th,
+        table.compare-grid td {
+            text-align: left;
+            padding: 14px 18px;
+            border-bottom: 1px solid #22223c;
+            vertical-align: top;
+        }
+        table.compare-grid thead th {
+            font-weight: 700;
+            background: rgba(108, 92, 231, 0.08);
+            color: #e8e8f0;
+            position: sticky;
+            top: 0;
+        }
+        table.compare-grid thead th.raku-col {
+            color: #00cec9;
+        }
+        table.compare-grid tbody tr:last-child td {
+            border-bottom: none;
+        }
+        table.compare-grid td:first-child {
+            color: #9090b0;
+            font-weight: 500;
+        }
+        table.compare-grid td.raku-col {
+            background: rgba(0, 206, 201, 0.05);
+            color: #e8e8f0;
+        }
+        .takes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 8px;
+        }
+        .take-card {
+            background: var(--bg-secondary, #111128);
+            border: 1px solid #2a2a44;
+            border-radius: 12px;
+            padding: 24px;
+        }
+        .take-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 14px;
+            color: #a388ff;
+        }
+        .take-card.raku h3 {
+            color: #00cec9;
+        }
+        .take-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .take-card li {
+            padding: 6px 0 6px 22px;
+            position: relative;
+            line-height: 1.5;
+            color: #d4d4e4;
+        }
+        .take-card li::before {
+            content: "—";
+            position: absolute;
+            left: 0;
+            color: #6c5ce7;
+        }
+        .take-card.raku li::before {
+            color: #00cec9;
+        }
+        .picks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+        .pick {
+            background: var(--bg-secondary, #111128);
+            border: 1px solid #2a2a44;
+            border-radius: 12px;
+            padding: 22px;
+            line-height: 1.55;
+        }
+        .pick strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #a388ff;
+        }
+        .pick.raku {
+            border-color: rgba(0, 206, 201, 0.35);
+            background: rgba(0, 206, 201, 0.04);
+        }
+        .pick.raku strong {
+            color: #00cec9;
+        }
+        .category-quote {
+            max-width: 820px;
+            margin: 0 auto;
+            background: var(--bg-secondary, #111128);
+            border-left: 4px solid #00cec9;
+            border-radius: 8px;
+            padding: 28px 32px;
+            font-size: 1.08rem;
+            line-height: 1.65;
+            color: #e0e0ef;
+        }
+        .category-quote p + p {
+            margin-top: 14px;
+        }
+        .cta-row {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .cta-row .btn {
+            padding: 14px 28px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    5 Patents | 9,500+ API Endpoints | 18 Native DLLs | The AI-Native Spatial Game Engine — Now in Early Access
+</div>
+
+<nav>
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="engine/">Engine</a>
+            <a href="api/">API Docs</a>
+            <a href="games/">Games</a>
+            <a href="why-rakuai.html">Why RakuAI</a>
+            <a href="developers/">Developers</a>
+            <a href="press.html">Press</a>
+            <a href="blog/">Blog</a>
+            <a href="developers/login.html" class="nav-signin">Sign In</a>
+            <a href="ja/index.html" class="lang-toggle">&#x697D;AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<section class="compare-hero">
+    <div class="container">
+        <h1>RakuAI vs Unity vs Unreal &mdash; for smart glasses and AI-native experiences.</h1>
+        <p class="subhead">Three engines. Different design constraints. Different categories. Here&rsquo;s the honest comparison.</p>
+    </div>
+</section>
+
+<section class="compare-section">
+    <div class="container">
+        <h2>Headline comparison</h2>
+        <div class="compare-table-wrap">
+            <table class="compare-grid">
+                <thead>
+                    <tr>
+                        <th>Capability</th>
+                        <th class="raku-col">RakuAI</th>
+                        <th>Unity</th>
+                        <th>Unreal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>MCP support</td>
+                        <td class="raku-col">Six tools, runtime, every frame (since March 2026)</td>
+                        <td>Just released: scene manipulation, design time</td>
+                        <td>Not yet</td>
+                    </tr>
+                    <tr>
+                        <td>AI role</td>
+                        <td class="raku-col">Runtime primitive (every frame)</td>
+                        <td>Editor feature (design time)</td>
+                        <td>Plugin / addon</td>
+                    </tr>
+                    <tr>
+                        <td>Smart-glasses optimization</td>
+                        <td class="raku-col">Built for it (5 patents from 2012)</td>
+                        <td>General-purpose</td>
+                        <td>Console/VR-first</td>
+                    </tr>
+                    <tr>
+                        <td>Motion-to-photon target</td>
+                        <td class="raku-col">18 ms</td>
+                        <td>Varies (60 FPS-focused)</td>
+                        <td>90+ FPS in VR</td>
+                    </tr>
+                    <tr>
+                        <td>Dual-device architecture</td>
+                        <td class="raku-col">Native (phone-as-compute, glasses-as-display)</td>
+                        <td>Add-on</td>
+                        <td>Not designed for this</td>
+                    </tr>
+                    <tr>
+                        <td>Thermal envelope awareness</td>
+                        <td class="raku-col">Native (3 modes, dynamic quality fallback)</td>
+                        <td>Manual</td>
+                        <td>Manual</td>
+                    </tr>
+                    <tr>
+                        <td>On-device SLM (TFLite)</td>
+                        <td class="raku-col">Native</td>
+                        <td>Plugin</td>
+                        <td>Plugin</td>
+                    </tr>
+                    <tr>
+                        <td>World-model adapters</td>
+                        <td class="raku-col">First-class (Veo, Runway, custom)</td>
+                        <td>Not supported</td>
+                        <td>Not supported</td>
+                    </tr>
+                    <tr>
+                        <td>Multi-LLM by default</td>
+                        <td class="raku-col">Yes (Claude/ChatGPT/Gemini/Copilot)</td>
+                        <td>Editor only</td>
+                        <td>Editor only</td>
+                    </tr>
+                    <tr>
+                        <td>OpenXR conformance</td>
+                        <td class="raku-col">Yes</td>
+                        <td>Yes</td>
+                        <td>Yes</td>
+                    </tr>
+                    <tr>
+                        <td>Patent estate (smart glasses)</td>
+                        <td class="raku-col">5 granted patents (priority 2012)</td>
+                        <td>None</td>
+                        <td>None</td>
+                    </tr>
+                    <tr>
+                        <td>SDK languages</td>
+                        <td class="raku-col">6 (C#, C++, Python, TypeScript, Swift, Java)</td>
+                        <td>C#</td>
+                        <td>C++/Blueprint</td>
+                    </tr>
+                    <tr>
+                        <td>License model</td>
+                        <td class="raku-col">Partner-friendly</td>
+                        <td>Per-seat, runtime royalties at scale</td>
+                        <td>Per-seat + royalties</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="compare-section" style="background: rgba(108, 92, 231, 0.04);">
+    <div class="container">
+        <h2>The honest take</h2>
+        <div class="takes">
+            <div class="take-card">
+                <h3>Where Unity wins right now</h3>
+                <ul>
+                    <li>Massive asset store ecosystem</li>
+                    <li>Mature 2D and mobile game tooling</li>
+                    <li>Larger developer community</li>
+                    <li>Native MCP for design-time scene manipulation (just shipped, real win)</li>
+                </ul>
+            </div>
+            <div class="take-card">
+                <h3>Where Unreal wins right now</h3>
+                <ul>
+                    <li>Best-in-class VR and console graphics</li>
+                    <li>Nanite + Lumen rendering for high-fidelity scenes</li>
+                    <li>Strong cinematic tooling</li>
+                    <li>Mature multiplayer netcode</li>
+                </ul>
+            </div>
+            <div class="take-card raku">
+                <h3>Where RakuAI is the only choice</h3>
+                <ul>
+                    <li>Glasses-thermal-envelope-aware runtime</li>
+                    <li>World-model orchestration (every-frame LLM intent)</li>
+                    <li>Dual-device patent-protected architecture</li>
+                    <li>Multi-LLM by default (not bolted on)</li>
+                    <li>AI as runtime primitive, not editor feature</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="compare-section">
+    <div class="container">
+        <h2>When to pick which</h2>
+        <div class="picks">
+            <div class="pick">
+                <strong>Pick Unity if</strong>
+                Shipping a mobile or PC game, want maximum asset ecosystem, design-time AI assist is enough.
+            </div>
+            <div class="pick">
+                <strong>Pick Unreal if</strong>
+                Building a VR game on high-end hardware, prioritize photorealistic graphics, can afford the engine cost.
+            </div>
+            <div class="pick raku">
+                <strong>Pick RakuAI if</strong>
+                Shipping for smart glasses, want AI as a runtime primitive (not a feature), need world-model orchestration, building for the AI-native era.
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="compare-section" style="background: rgba(108, 92, 231, 0.04);">
+    <div class="container">
+        <h2>The category we&rsquo;re creating</h2>
+        <div class="category-quote">
+            <p>&ldquo;We&rsquo;re not trying to beat Unity at being Unity, or Unreal at being Unreal. We&rsquo;re building the engine category that doesn&rsquo;t exist yet: the smart-glasses-native AI runtime.</p>
+            <p>The smart-glasses category needs a runtime that was designed for it. Unity and Unreal weren&rsquo;t. We were.&rdquo;</p>
+        </div>
+    </div>
+</section>
+
+<section class="compare-section">
+    <div class="container">
+        <div class="cta-row">
+            <a href="/mcp" class="btn btn-primary">Drive your AI &rarr;</a>
+            <a href="/smart-glasses" class="btn" style="border: 1px solid var(--accent, #6c5ce7); color: var(--accent-bright, #a388ff);">For smart-glasses partners &rarr;</a>
+            <a href="/llm-makers" class="btn" style="border: 1px solid var(--accent, #6c5ce7); color: var(--accent-bright, #a388ff);">For LLM labs &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-links">
+            <a href="engine/">Engine</a>
+            <a href="api/">API</a>
+            <a href="docs.html">Docs</a>
+            <a href="games/">Arcade</a>
+            <a href="press.html">Press</a>
+            <a href="developers/">Developers</a>
+            <a href="privacy.html">Privacy</a>
+            <a href="terms.html">Terms</a>
+            <a href="contact.html">Contact</a>
+            <a href="https://github.com/RakuXR">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+</footer>
+
+</body>
+</html>
