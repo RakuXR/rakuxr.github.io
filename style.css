@@ -2617,3 +2617,334 @@ nav .lang-menu .lang-label { flex: 1; }
         max-width: calc(100vw - 24px);
     }
 }
+
+/* ============================================================
+   Hierarchical navigation — Solutions / Developers / Resources
+   Static HTML lives in every page; behaviour from js/nav-dropdown.js.
+   Spec: raku-governance/content/nav-design-2026-05.md
+   ============================================================ */
+
+nav .nav-primary {
+    list-style: none;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+nav .nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+nav .nav-item > a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+    padding: 6px 0;
+}
+
+nav .nav-item > a:hover {
+    color: var(--text-primary);
+}
+
+nav .nav-dropdown {
+    background: none;
+    border: 0;
+    color: var(--text-secondary);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 6px 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.2s;
+}
+
+nav .nav-dropdown::after {
+    content: "\25BE";  /* ▾ */
+    font-size: 0.7em;
+    transition: transform 0.2s;
+}
+
+nav .nav-dropdown:hover {
+    color: var(--text-primary);
+}
+
+nav .nav-dropdown[aria-expanded="true"] {
+    color: var(--accent-bright);
+}
+
+nav .nav-dropdown[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+}
+
+nav .nav-dropdown:focus-visible {
+    outline: 2px solid var(--accent-bright);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+nav .nav-dropdown-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid #222244;
+    border-radius: 10px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    padding: 12px;
+    min-width: 240px;
+    list-style: none;
+    z-index: 110;
+}
+
+nav .nav-dropdown-panel[hidden] { display: none; }
+
+nav .nav-dropdown-panel.panel-flip-right {
+    left: auto;
+    right: 0;
+}
+
+nav .nav-dropdown-panel li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav .nav-dropdown-panel a {
+    display: block;
+    padding: 9px 14px;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    line-height: 1.35;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+nav .nav-dropdown-panel a:hover,
+nav .nav-dropdown-panel a:focus-visible {
+    background: rgba(108, 92, 231, 0.12);
+    color: var(--text-primary);
+    outline: none;
+}
+
+nav .nav-dropdown-panel a[aria-current="page"] {
+    color: var(--accent-bright);
+    background: rgba(108, 92, 231, 0.08);
+}
+
+nav .nav-dropdown-panel .item-desc {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    opacity: 0.75;
+    margin-top: 2px;
+    font-weight: 400;
+    white-space: normal;
+}
+
+nav .nav-dropdown-panel.solutions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 16px;
+    min-width: 520px;
+}
+
+nav .nav-dropdown-panel.solutions .col-heading {
+    color: var(--accent-bright);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 4px 14px 6px;
+    border-bottom: 1px solid #222244;
+    margin-bottom: 4px;
+}
+
+nav .nav-dropdown-panel.solutions .col {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+nav .nav-utilities {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+nav .nav-mobile-toggle {
+    display: none;
+    background: none;
+    border: 0;
+    padding: 8px;
+    cursor: pointer;
+}
+
+nav .nav-mobile-toggle span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--text-primary);
+    margin: 4px 0;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+@media (max-width: 880px) {
+    nav .nav-mobile-toggle { display: block; }
+
+    /* On mobile: existing .nav-links flex row collapses into a drawer
+       triggered by the hamburger button. Triggered via .open class. */
+    nav .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 12px 0;
+        background: var(--bg-secondary);
+        border-top: 1px solid #222244;
+        border-bottom: 1px solid #222244;
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+    }
+    nav .nav-links.open { display: flex; }
+
+    nav .nav-primary {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        width: 100%;
+    }
+
+    nav .nav-item {
+        display: block;
+        padding: 4px 24px;
+    }
+
+    nav .nav-dropdown {
+        width: 100%;
+        justify-content: space-between;
+        padding: 10px 0;
+    }
+
+    nav .nav-dropdown-panel {
+        position: static;
+        margin-top: 0;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+        padding: 4px 0 8px 16px;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    nav .nav-dropdown-panel.solutions {
+        grid-template-columns: 1fr;
+        min-width: 0;
+    }
+
+    nav .nav-dropdown-panel.solutions .col-heading {
+        padding-left: 0;
+    }
+
+    nav .nav-utilities {
+        padding: 8px 24px 0;
+        border-top: 1px solid #222244;
+        margin-top: 8px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    nav .nav-dropdown::after,
+    nav .nav-dropdown-panel a {
+        transition: none;
+    }
+}
+
+/* ============================================================
+   Hierarchical footer — Solutions / Developers / Resources / Company
+   Replaces the legacy flat .footer-links row on every page that opts in.
+   ============================================================ */
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px;
+    text-align: left;
+    margin-bottom: 32px;
+}
+
+.footer-col h4 {
+    color: var(--accent-bright);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 14px;
+}
+
+.footer-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-col li {
+    margin: 0 0 8px;
+}
+
+.footer-col a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.92rem;
+    transition: color 0.2s;
+}
+
+.footer-col a:hover {
+    color: var(--accent-bright);
+}
+
+.footer-social {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 20px 0;
+    border-top: 1px solid #222244;
+    margin-top: 8px;
+}
+
+.footer-social a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.92rem;
+    transition: color 0.2s;
+}
+
+.footer-social a:hover {
+    color: var(--accent-bright);
+}
+
+@media (max-width: 720px) {
+    .footer-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+    }
+}
+
+@media (max-width: 420px) {
+    .footer-grid {
+        grid-template-columns: 1fr;
+    }
+}
