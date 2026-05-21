@@ -5,9 +5,9 @@
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ドキュメント - RakuAI</title>
-    <meta name="description" content="RakuAIゲームエンジンの使い方。AIと会話してゲームを作成。">
+    <meta name="description" content="RakuAI ランタイムのドキュメント。6 つのツールから成る MCP サーフェスを通じて、任意の AI アシスタントからエンジンを駆動できます。">
     <meta property="og:title" content="ドキュメント - RakuAI">
-    <meta property="og:description" content="RakuAIゲームエンジンの使い方。AIと会話してゲームを作成。">
+    <meta property="og:description" content="RakuAI ランタイムのドキュメント。MCP を通じて任意の AI アシスタントからエンジンを駆動。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rakuai.com/docs">
     <meta name="twitter:card" content="summary_large_image">
@@ -17,7 +17,7 @@
 <body>
 
 <div class="beta-announcement-bar">
-    &#x697D;AI<sup class="tm">™</sup> 公開中 — ゲームを説明して、すぐにプレイ | <a href="index.html#quickstart">楽AIを試す →</a>
+    &#x697D;AI<sup class="tm">&trade;</sup> &mdash; ワールドモデルのためのユニバーサルランタイム &nbsp;|&nbsp; <a href="index.html#for-studios">スタジオ・開発者向け &rarr;</a> &nbsp;&nbsp; <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/">MCP ビルドログを読む &rarr;</a>
 </div>
 
 <nav>
@@ -39,7 +39,7 @@
 <section class="hero">
     <div class="container">
         <h1>ドキュメント</h1>
-        <p class="subtitle">AIでゲームを作るために必要なすべて</p>
+        <p class="subtitle">6 つのツールから成る MCP サーフェスを通じて、任意の AI アシスタントから RakuAI ランタイムを駆動。</p>
     </div>
 </section>
 
@@ -49,18 +49,18 @@
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>スキーマを取得</h3>
-                <p>.rakuファイルスキーマがゲームフォーマットを定義します。<a href="https://github.com/RakuXR/raku-api/tree/main/samples" style="color: var(--accent-bright);">GitHub上のサンプルゲーム</a>を参照するか、完全なスキーマについては<a href="contact.html" style="color: var(--accent-bright);">SDKアクセスをリクエスト</a>してください。</p>
+                <h3>AI アシスタントを接続</h3>
+                <p>RakuAI MCP サーバーを Claude Desktop（または任意の MCP 対応クライアント）に組み込みます。6 つのツールが会話の中でネイティブに表示されます。<a href="developers/claude-desktop-mcp.html" style="color: var(--accent-bright);">Claude Desktop ガイド &rarr;</a></p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
-                <h3>AIにゲームを説明する</h3>
-                <p>任意のAIアシスタントを開いてゲームコンセプトを説明してください。SDKにはプロンプトテンプレートとリファレンスカードが含まれており、ゲームが一発で動作します。詳細は<a href="contact.html" style="color: var(--accent-bright);">SDKアクセスをリクエスト</a>してください。</p>
+                <h3>ランタイムを駆動</h3>
+                <p>任意の環境で読み取り専用の検査を行うには <code>get_metrics</code> や <code>get_scene_state</code> を呼び出します。サンドボックス／開発環境ではアダプターのロード、フレームの取り込み、レンダーターゲットの設定、シミュレーションの開始ができます。物理・衝突・スコアリングの権威はエンジンが保持します。</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
-                <h3>検証してプレイ</h3>
-                <p>.rakuファイルを検証してプレイ。<a href="contact.html" style="color: var(--accent-bright);">アクセスをリクエスト &rarr;</a></p>
+                <h3>ビルドログを読む</h3>
+                <p>6 つのツールの設計理由 — なぜこのツール、アダプターが次に何を解き放つのか — はブログで解説しています。<a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" style="color: var(--accent-bright);">MCP ビルドログを読む &rarr;</a></p>
             </div>
         </div>
     </div>
@@ -94,32 +94,30 @@
 
 <section class="section">
     <div class="container">
-        <h2>AI統合</h2>
+        <h2>6 つのツールから成る MCP サーフェス</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            AIプラットフォームはスキーマを使用して.rakuファイルを生成します。完全なスキーマ仕様とAPIリファレンスはSDKアクセスで利用可能です。
-            <a href="contact.html" style="color: var(--accent-bright);">SDKアクセスをリクエスト</a>して始めましょう。
+            外部エージェントはすべて同じ 6 つのツール — <code>load_world_model</code>、<code>ingest_frame</code>、<code>get_scene_state</code>、<code>set_render_target</code>、<code>start_simulation</code>、<code>get_metrics</code> — を通じてエンジンに到達します。標準コントラクト、任意のエージェント。
         </p>
-        <h2>対応AIプラットフォーム</h2>
+        <h2>対応 AI クライアント</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; margin-top: -32px;">
-            <a href="contact.html" style="color: var(--accent-bright); font-weight: 600;">SDKアクセスをリクエスト &rarr;</a>
-            プロンプト、スキーマ、検証ツール
+            <a href="developers/claude-desktop-mcp.html" style="color: var(--accent-bright); font-weight: 600;">Claude Desktop セットアップガイド &rarr;</a>
         </p>
         <div class="features">
             <div class="feature">
+                <h3>Claude Desktop</h3>
+                <p>RakuAI MCP サーバーを設定ファイルに追加すれば、6 つのツールが Claude の会話内でネイティブに表示されます。</p>
+            </div>
+            <div class="feature">
+                <h3>Cursor</h3>
+                <p>Cursor の MCP 統合経由で、IDE 内から直接ランタイムを駆動。コードを書きながらシーン状態を検査できます。</p>
+            </div>
+            <div class="feature">
                 <h3>ChatGPT (OpenAI)</h3>
-                <p>GPT-4およびGPT-4oは.rakuファイル生成に完全対応。最良の結果を得るために、SDK付属のプロンプトテンプレートをご使用ください。</p>
-            </div>
-            <div class="feature">
-                <h3>Claude (Anthropic)</h3>
-                <p>Claude OpusおよびSonnetモデルは構文的に正しい.rakuファイルを生成します。</p>
-            </div>
-            <div class="feature">
-                <h3>Gemini (Google)</h3>
-                <p>Gemini ProおよびUltraは.rakuスキーマに対応。マルチターン会話による反復的なゲームデザインに最適。</p>
+                <p>カスタム GPT または Plugin として MCP サーバーを接続。同じ 6 ツールでランタイムを駆動可能。</p>
             </div>
             <div class="feature">
                 <h3>GitHub Copilot</h3>
-                <p>VS CodeおよびVisual Studio拡張機能が.rakuファイルの補完と検証をSDKインストール時に提供します。</p>
+                <p>Copilot Chat の MCP 拡張により、IDE 内から RakuAI ランタイムを呼び出せます。</p>
             </div>
         </div>
     </div>
@@ -127,16 +125,12 @@
 
 <section class="section">
     <div class="container">
-        <h2>.rakuファイル形式</h2>
+        <h2>ランタイムコントラクト</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            ゲームは.rakuファイルとして定義されます &mdash; ランタイムが即座に実行する構造化されたJSONです。AIアシスタントにゲームを説明すると、プレイ可能な完全な.rakuファイルが生成されます。
+            ランタイムは決定論的な権威として動作します。エージェントはツールを呼び出してワールドモデルをロードし、フレームを供給し、状態を読み取ります。物理・衝突・スコアリング・マルチプレイヤー状態はエンジンが管轄します。
         </p>
         <p style="text-align: center; color: var(--text-secondary); margin-top: 16px;">
-            完全なスキーマドキュメントとサンプルファイルはSDKアクセスで利用可能です。
-            <a href="contact.html" style="color: var(--accent-bright);">SDKアクセスをリクエスト &rarr;</a>
-        </p>
-        <p style="text-align: center; color: var(--text-secondary); margin-top: 16px;">
-            <a href="https://github.com/RakuXR/raku-api/tree/main/samples" style="color: var(--accent-bright);">GitHubでサンプルゲームを見る &rarr;</a>
+            完全な MCP コントラクトとスキーマ仕様は <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" style="color: var(--accent-bright);">「6 つの MCP ツール」解説</a>を参照してください。
         </p>
     </div>
 </section>
@@ -145,13 +139,14 @@
 
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container">
-        <h2>APIリファレンス</h2>
+        <h2>API リファレンス</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px;">
-            レンダリング、物理、オーディオ、AI、XR、ネットワーキング、アニメーションなどをカバーする包括的なAPI。
-            完全なAPIドキュメントはSDKアクセスで利用可能です。
+            レンダリング、物理、オーディオ、AI、XR、ネットワーキング、アニメーションなどをカバーする包括的な REST API。
+            MCP サーフェスはこの API レイヤーの上に構築されています。
         </p>
         <div style="text-align: center;">
-            <a href="contact.html" class="btn btn-primary">完全なAPIドキュメントにアクセス</a>
+            <a href="../api/" class="btn btn-primary">API ドキュメント</a>
+            <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-secondary" style="margin-left: 8px;">MCP の解説を読む</a>
         </div>
     </div>
 </section>

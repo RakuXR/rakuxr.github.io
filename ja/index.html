@@ -206,12 +206,23 @@
 
 <section class="hero" id="create">
     <div class="container">
-        <div class="beta-badge">デモを試す</div>
-        <h1>デモを試す</h1>
+        <h1>Claude・ChatGPT・Gemini から RakuAI を駆動する。</h1>
         <p class="subtitle">
-            エンジンの実力を体感 — ゲームのアイデアを記述するだけで、生成される様子を見られます。
+            6 つの MCP ツール。本番デプロイ済み。AI アシスタントが空間ワールドをビルド・クエリ・シミュレートするときに通信するランタイムです。
         </p>
-        <div class="prompt-input-wrapper" id="prompt-wrapper">
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 24px 0 16px;">
+            <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">MCP の解説を読む &rarr;</a>
+            <a href="../blog/" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">エンジニアリングログを見る &rarr;</a>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
+            特許で保護 &bull; MCP ネイティブ &bull; Claude・ChatGPT・Gemini・Copilot で利用可能
+        </p>
+        <!--
+          ja: legacy prompt-input UI retained (hidden) so the inline
+          generation/auth IIFE further down the file still binds to its
+          DOM IDs without throwing. Mirrors /index.html EN pivot.
+        -->
+        <div class="prompt-input-wrapper" id="prompt-wrapper" hidden aria-hidden="true" style="display: none;">
             <div class="prompt-sheet-handle" id="prompt-sheet-handle"></div>
             <textarea
                 id="prompt-input"
@@ -225,9 +236,6 @@
                 <button id="play-now-btn" class="btn btn-primary btn-play-now" disabled>今すぐプレイ！</button>
             </div>
         </div>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 16px;">
-            無料でお試し可能 &bull; 特許で保護された技術
-        </p>
     </div>
 </section>
 
@@ -370,44 +378,40 @@
     <div class="container">
         <h2>60 秒で試す</h2>
         <p style="text-align: center; color: var(--text-secondary); margin-bottom: 24px;">
-            3 ステップ。ランチャーからすべてワンタッチで操作可能。
+            3 ステップ。AI アシスタントがランタイムを駆動します。
         </p>
 
         <div class="steps" style="margin-bottom: 40px;">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>ゲームを記述する</h3>
-                <p>上のプロンプトに<a href="#create" class="feature-link">ゲームのアイデアを入力</a>してください。AI が説明を解析し、プレイ可能なゲームを構築します。</p>
+                <h3>MCP を話す</h3>
+                <p>AI アシスタントは stdio 経由で RakuAI MCP サーバーに接続します。6 つのツール。デフォルトで拒否されるパーミッション。</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
-                <h3>テンプレートを選び、AI に送信</h3>
-                <p><strong>Create</strong> タブを開きます。8 つの組み込みゲームテンプレートから選択するか、独自のものを記述。<strong>「AI アシスタントで開く」</strong>をクリック &mdash; プロンプトがコピーされ、ChatGPT、Claude、または Gemini が開きます。</p>
+                <h3>ランタイムを駆動する</h3>
+                <p>ワールドモデルをロード。フレームをプッシュ。シーン状態をクエリ。レンダリングを構成。メトリクスを読み取り。</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
-                <h3>すぐにプレイ</h3>
-                <p>あなたのゲームが <strong>My Games</strong> ライブラリに表示されます。クリックでプレイ &mdash; 1 秒以内に起動します。</p>
+                <h3>空間体験をシップする</h3>
+                <p>アシスタントがビルドし、ランタイムが実行します。Web。Windows。XR。</p>
             </div>
         </div>
 
         <div style="background: #0d0d1f; border: 2px solid var(--accent); border-radius: 8px; padding: 24px; font-size: 0.95rem; line-height: 1.7; margin: 0 auto; max-width: 850px;">
-            <h3 style="color: var(--accent-bright); margin-bottom: 12px; font-size: 1.1rem;">組み込みゲームテンプレート</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 16px;">ランチャーには以下のすぐに使えるテンプレートが含まれています。1 つ選んで送信をクリック:</p>
+            <h3 style="color: var(--accent-bright); margin-bottom: 12px; font-size: 1.1rem;">サンプル MCP 統合</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">本番デプロイ済みの MCP サーバーで動作する統合例:</p>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <span style="color: var(--text-primary);">&#x1F680; スペースシューター</span>
-                <span style="color: var(--text-primary);">&#x1F9D9; ローグライクダンジョン</span>
-                <span style="color: var(--text-primary);">&#x1F9E9; パズルプラットフォーマー</span>
-                <span style="color: var(--text-primary);">&#x1F3F0; タワーディフェンス</span>
-                <span style="color: var(--text-primary);">&#x1F3CE; レーシングゲーム</span>
-                <span style="color: var(--text-primary);">&#x1F3B5; リズムゲーム</span>
-                <span style="color: var(--text-primary);">&#x1F33F; サバイバルクラフティング</span>
-                <span style="color: var(--text-primary);">&#x270F;&#xFE0F; カスタムプロンプト</span>
+                <span style="color: var(--text-primary);">&#x1F916; Claude Desktop</span>
+                <span style="color: var(--text-primary);">&#x270F;&#xFE0F; Cursor</span>
+                <span style="color: var(--text-primary);">&#x1F4BB; GitHub Copilot</span>
+                <span style="color: var(--text-primary);">&#x1F517; カスタム MCP クライアント</span>
             </div>
         </div>
 
         <p style="text-align: center; color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">
-            より細かい制御が必要ですか？ 高度なプロンプトやテンプレートのカスタマイズについては<a href="sdk.html" style="color: var(--accent-bright);">SDK をご覧ください</a>。
+            さらに詳しく知りたいですか？ <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" style="color: var(--accent-bright);">6 つの MCP ツール解説をご覧ください</a>。
         </p>
     </div>
 </section>
@@ -418,18 +422,18 @@
         <div class="steps">
             <div class="step">
                 <div class="step-number">1</div>
-                <h3>ランチャーを開く</h3>
-                <p>RakuAI プラットフォームを起動。ゲームの作成、管理、プレイ用タブを備えたゲームハブが開きます。</p>
+                <h3>MCP サーバーを起動</h3>
+                <p>RakuAI MCP サーバーを起動し、AI アシスタントの設定に追加します。stdio 経由で接続し、6 つのツールが公開されます。</p>
             </div>
             <div class="step">
                 <div class="step-number">2</div>
-                <h3>AI で作成</h3>
-                <p>テンプレートを選ぶか、自分のゲームを記述。<strong>「AI アシスタントで開く」</strong>をクリック &mdash; プロンプトが ChatGPT、Claude、または Gemini に送信されます。</p>
+                <h3>アシスタントが駆動</h3>
+                <p>Claude、ChatGPT、Gemini、または Copilot がツールを呼び出してワールドモデルをロードし、フレームをプッシュし、シーン状態をクエリします。デフォルト拒否のパーミッションで安全に。</p>
             </div>
             <div class="step">
                 <div class="step-number">3</div>
-                <h3>ライブラリからプレイ</h3>
-                <p>作成したゲームは <strong>My Games</strong> タブにアイコン、プレイ回数、お気に入りと共に表示されます。クリックで 1 秒以内に起動。Unity も Unreal もビルドステップも不要。</p>
+                <h3>ランタイムが実行</h3>
+                <p>RakuAI ランタイムが物理、レンダリング、空間音響、XR を処理。Web、Windows、XR ヘッドセットに同じシーンをデプロイ。</p>
             </div>
         </div>
     </div>
