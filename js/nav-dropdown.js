@@ -29,29 +29,35 @@
     window.__rakuNavDropdownInit__ = true;
 
     function init() {
-        var dropdowns = document.querySelectorAll('.nav-item.has-dropdown');
-        if (!dropdowns.length) return;
+        var navItems = document.querySelectorAll('.nav-primary > .nav-item');
+        if (!navItems.length) return;
 
         var triggers = [];
         var panels = [];
 
-        dropdowns.forEach(function (item) {
-            var trigger = item.querySelector('.nav-dropdown');
+        navItems.forEach(function (item) {
+            // Top-level item is either a dropdown button (.nav-dropdown) or
+            // a flat link (<a role="menuitem">). Both must be reachable via
+            // left/right arrow keys per WAI-ARIA menubar pattern.
+            var trigger = item.querySelector('.nav-dropdown') ||
+                          item.querySelector(':scope > a[role="menuitem"]');
             var panel = item.querySelector('.nav-dropdown-panel');
-            if (!trigger || !panel) return;
+            if (!trigger) return;
             triggers.push(trigger);
-            panels.push(panel);
+            panels.push(panel); // may be null for flat links
 
-            trigger.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                var wasOpen = trigger.getAttribute('aria-expanded') === 'true';
-                closeAll();
-                if (!wasOpen) openPanel(trigger, panel);
-            });
+            if (panel) {
+                trigger.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var wasOpen = trigger.getAttribute('aria-expanded') === 'true';
+                    closeAll();
+                    if (!wasOpen) openPanel(trigger, panel);
+                });
+            }
 
             trigger.addEventListener('keydown', function (e) {
-                if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                if (panel && (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ')) {
                     e.preventDefault();
                     openPanel(trigger, panel);
                     focusFirstItem(panel);
@@ -66,29 +72,31 @@
                 }
             });
 
-            panel.addEventListener('keydown', function (e) {
-                var items = Array.prototype.slice.call(
-                    panel.querySelectorAll('a[role="menuitem"], a')
-                );
-                var idx = items.indexOf(document.activeElement);
-                if (e.key === 'Escape') {
-                    e.preventDefault();
-                    closeAll();
-                    trigger.focus();
-                } else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    items[(idx + 1 + items.length) % items.length].focus();
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    items[(idx - 1 + items.length) % items.length].focus();
-                } else if (e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    moveTrigger(trigger, +1);
-                } else if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    moveTrigger(trigger, -1);
-                }
-            });
+            if (panel) {
+                panel.addEventListener('keydown', function (e) {
+                    var items = Array.prototype.slice.call(
+                        panel.querySelectorAll('a[role="menuitem"], a')
+                    );
+                    var idx = items.indexOf(document.activeElement);
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        closeAll();
+                        trigger.focus();
+                    } else if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        items[(idx + 1 + items.length) % items.length].focus();
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        items[(idx - 1 + items.length) % items.length].focus();
+                    } else if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        moveTrigger(trigger, +1);
+                    } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        moveTrigger(trigger, -1);
+                    }
+                });
+            }
         });
 
         function openPanel(trigger, panel) {
@@ -121,16 +129,18 @@
         function moveTrigger(currentTrigger, delta) {
             var idx = triggers.indexOf(currentTrigger);
             if (idx === -1) return;
-            var next = triggers[(idx + delta + triggers.length) % triggers.length];
-            next.focus();
+            var nextIdx = (idx + delta + triggers.length) % triggers.length;
+            var next = triggers[nextIdx];
+            // WAI-ARIA menubar: horizontal arrows move focus between top-level
+            // items only. Use ArrowDown / Enter / Space to enter the submenu.
             closeAll();
-            var nextPanel = panels[(idx + delta + triggers.length) % triggers.length];
-            openPanel(next, nextPanel);
-            focusFirstItem(nextPanel);
+            next.focus();
         }
 
-        // Click outside closes
+        // Click outside closes. Click on a link inside a panel also closes,
+        // so anchor links to same-page sections don't leave the menu open.
         document.addEventListener('click', function (e) {
+            if (e.target.closest('.nav-dropdown-panel a')) { closeAll(); return; }
             if (!e.target.closest('.nav-item.has-dropdown')) closeAll();
         });
 
