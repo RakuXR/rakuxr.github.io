@@ -116,6 +116,7 @@
         function closeAll() {
             triggers.forEach(function (t) { t.setAttribute('aria-expanded', 'false'); });
             panels.forEach(function (p) {
+                if (!p) return;
                 p.hidden = true;
                 p.classList.remove('panel-flip-right');
             });
