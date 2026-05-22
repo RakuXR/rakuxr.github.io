@@ -12,7 +12,7 @@ Three vectors converged on me this Saturday morning before I had finished my cof
 
 Unity just shipped Native MCP. Smart-glasses hardware is actually on people's faces now, not in a slide deck. And the LLM labs I have been talking to all want the same thing: a runtime that exposes spatial capabilities through a contract their models can drive, in production, every frame, without a custom integration per vendor.
 
-The engine I have been building toward since 2012 finally has a name for what it is. It is the runtime your AI inhabits in the real world. Not a tool the model picks up. A body the model lives in.
+The engine I started building in 2025, on top of patents I helped file over a decade ago, finally has a name for what it is. It is the runtime your AI inhabits in the real world. Not a tool the model picks up. A body the model lives in.
 
 This post is me writing that down honestly, with the receipts.
 
@@ -30,7 +30,7 @@ Read them together and what they describe is a system. Dual-mode wireless. A sma
 
 The priority date matters. July 2012. That is years before Meta Ray-Bans, before Xreal Air, before Android XR, before the current crop of LLM labs existed in their present form. The architecture in the filings is the architecture the industry is now converging on. We are not chasing the field. We are catching up to ourselves.
 
-I do not lead with patents because patents win arguments. I lead with them because they answer the most common question a serious partner asks in the second meeting, which is "how long have you actually been thinking about this." The answer is fourteen years and counting.
+I do not lead with patents because patents win arguments. I lead with them because they answer the most common question a serious partner asks in the second meeting, which is "how long have you actually been thinking about this." The honest answer is two numbers: the patents date to 2012, and the engine has been in active build since 2025. Old IP, new execution.
 
 ## Section 2. Why glasses need a different runtime
 
@@ -84,7 +84,7 @@ Different categories. Both valid. The pithy version I have started saying out lo
 
 > Unity is a tool your AI picks up. RakuAI is a body your AI inhabits.
 
-If you want an editor that gets smarter, Unity MCP is exciting and you should try it. If you want a runtime that gives your AI a place to live on a pair of glasses, that is a different problem and we have been solving it since 2012.
+If you want an editor that gets smarter, Unity MCP is exciting and you should try it. If you want a runtime that gives your AI a place to live on a pair of glasses, that is a different problem. The patents that make it possible were filed over a decade ago, and we have been building the engine since 2025.
 
 ## Section 5. Why we are talking about this now
 
@@ -98,7 +98,7 @@ Unity shipping MCP validated the category. We have been saying "the model should
 
 The patent estate gives us IP runway. The patents are granted, the priority date is solid, and the architecture they cover is the architecture the industry is converging on.
 
-And five years of building have produced a runtime that is actually ready. The MCP server is real. The adapters are landing. The thermal envelope is respected. The latency target is hit. The sub-millimeter anchoring works. The eighteen DLLs are green on Linux. The 100 percent test pass rate has held for three months.
+And a year of heads-down building since 2025 has produced a runtime that is actually ready. The MCP server is real. The adapters are landing. The thermal envelope is respected. The latency target is hit. The sub-millimeter anchoring works. The eighteen DLLs are green on Linux. The 100 percent test pass rate has held for three months.
 
 This is the moment to plant a flag.
 
@@ -110,11 +110,11 @@ Specific work, named honestly so it gets done.
 - **Production deployment harness.** Service template, environment-variable config, health-check endpoint, graceful shutdown, container packaging. Not glamorous. Necessary.
 - **Multi-provider fallback.** When the primary adapter is slow or unavailable, the server routes to a secondary. Shape is straightforward. Tests will be the work.
 - **Adapter bounty program.** Once one adapter ships, publish the contract and invite the ecosystem to write more. Our job stops being "integrate every model" and starts being "review the implementations."
-- **Partnership conversations on both sides.** Hardware partners on one side, model labs on the other. The runtime is the thing between them. That is the position I have been quietly setting up for fourteen years.
+- **Partnership conversations on both sides.** Hardware partners on one side, model labs on the other. The runtime is the thing between them. That is the position the patents set up over a decade ago, and the engine has been earning since 2025.
 
 ## Closing
 
-The runtime your AI inhabits in the real world. The category we have been building toward since 2012. Saturday morning, we have a name for it.
+The runtime your AI inhabits in the real world. The category the patents anticipated over a decade ago, and the engine has been building toward since 2025. Saturday morning, we have a name for it.
 
 If you are at a model lab, a glasses-hardware shop, or a studio that wants to ship spatial experiences in 2027, the contract is ready and the receipts are public. Three links to read next:
 
