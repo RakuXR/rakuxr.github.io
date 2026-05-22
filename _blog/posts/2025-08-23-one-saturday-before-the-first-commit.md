@@ -3,10 +3,45 @@ title: "One Saturday Before the First Commit"
 date: 2025-08-23
 author: Kevin Griffin
 tags: [design, pre-build, ar-glasses, patents, weekend-build]
-description: "A reflection from the last Saturday before the repos open. Three months of design work behind me. The agent roster locked. The demo suite specified. The SDK folder structure drawn. The API surface drafted. The patent estate ready to be the foundation. One Saturday from now I open the runtime repo."
+description: "The last Saturday before the repos open - three months of design work behind it. Agent roster locked. Demo suite specified. SDK folder structure drawn. API surface drafted. A decade-old patent estate ready to be the foundation. This is what it looks like to design a spatial runtime to fit its team before a single line ships."
 series: learning-to-code-with-ai
 slug: one-saturday-before-the-first-commit
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="A timeline of three months of design work converging on the first commit" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="firstCommit-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="firstCommit-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#firstCommit-bg)"/>
+  <text x="600" y="58" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">The Last Saturday of Pure Design</text>
+  <text x="600" y="92" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Three months on paper, converging on commit one</text>
+  <line x1="120" y1="240" x2="1020" y2="240" stroke="url(#firstCommit-accent)" stroke-width="4"/>
+  <g font-family="system-ui,sans-serif" font-size="14" fill="#c8c8e0" text-anchor="middle">
+    <circle cx="180" cy="240" r="10" fill="#6c5ce7"/><text x="180" y="200" fill="#a388ff" font-weight="700">Roster</text><text x="180" y="280" font-size="12" fill="#9090b0">10 agents</text>
+    <circle cx="360" cy="240" r="10" fill="#6c5ce7"/><text x="360" y="200" fill="#a388ff" font-weight="700">Demos</text><text x="360" y="280" font-size="12" fill="#9090b0">8 specified</text>
+    <circle cx="540" cy="240" r="10" fill="#6c5ce7"/><text x="540" y="200" fill="#a388ff" font-weight="700">Folders</text><text x="540" y="280" font-size="12" fill="#9090b0">structure drawn</text>
+    <circle cx="720" cy="240" r="10" fill="#6c5ce7"/><text x="720" y="200" fill="#a388ff" font-weight="700">API</text><text x="720" y="280" font-size="12" fill="#9090b0">surfaces drafted</text>
+    <circle cx="900" cy="240" r="10" fill="#00cec9"/><text x="900" y="200" fill="#00cec9" font-weight="700">Patents</text><text x="900" y="280" font-size="12" fill="#9090b0">decade-old IP</text>
+  </g>
+  <g>
+    <rect x="1020" y="208" width="150" height="64" rx="14" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
+    <circle cx="1020" cy="240" r="12" fill="#e84393"/>
+    <text x="1095" y="234" text-anchor="middle" fill="#e84393" font-family="system-ui,sans-serif" font-size="16" font-weight="700">Commit</text>
+    <text x="1095" y="256" text-anchor="middle" fill="#e84393" font-family="system-ui,sans-serif" font-size="16" font-weight="700">#1</text>
+  </g>
+  <text x="600" y="400" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="16">Design the workflow first. The codebase reflects it for years.</text>
+  <text x="600" y="432" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="14">AR1+ spec locked - latency budgets, thermal envelopes, sensor capabilities</text>
+</svg>
+<figcaption>Three months of no code, converging on the one commit the eventual archeology should find.</figcaption>
+</figure>
+
+<p class="post-hook">The engine that ships in 2027 will be the one that knew its team, its demos, and its API before commit one - not the dozen that started in 2025 and improvised. RakuAI spent a quarter designing the workflow so the codebase could reflect it for years.</p>
 
 This is the last Saturday before the first commit goes in. Next weekend the runtime repo opens. The SDK repo opens. The docs repo opens. The agents start working through the issue queue. The actual code begins.
 
@@ -78,3 +113,12 @@ If you are a developer thinking about building on this eventually, the SDK is be
 If you are a competitor reading this, the design phase is over. The build phase starts next weekend. I would rather you knew that than be surprised by it.
 
 One Saturday from now, the first commit. Today, the last Saturday of pure design work. The next time I write this blog, the code will have started.
+
+<div class="post-cta">
+<h3>The engine your model was designed to direct</h3>
+<p>Built before a line of code on a decade-old patent foundation - RakuAI is the spatial runtime LLM makers and hardware partners can build on with confidence.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/llm-makers.html">For AI Labs</a>
+<a class="cta-btn cta-secondary" href="/smart-glasses.html">For Smart-Glasses Makers</a>
+</div>
+</div>

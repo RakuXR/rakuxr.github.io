@@ -3,10 +3,50 @@ title: "When the Demo Crashed Silently"
 date: 2026-01-31
 author: Kevin Griffin
 tags: [debugging, error-logging, ux, placeholder-mode, weekend-build]
-description: "Spent this Saturday tracking down something worse than a crash. A demo that did not crash, did not error, and also did not work. The pause menu would not respond. The gameplay scene loaded a placeholder. The logs said nothing. Three hours of digging surfaced a missing GraphicRaycaster and a quiet placeholder fallback that needed to scream instead of whisper."
+description: "Worse than a crash: a demo that did not crash, did not error, and also did not work. Dead input. A placeholder scene wearing the costume of a finished game. Logs that said nothing. This is the Saturday I made the engine refuse to fail silently — the loud-failure, grep-able-error, audit-by-adjacency discipline that keeps a spatial runtime honest with the people building on it."
 series: learning-to-code-with-ai
 slug: when-the-demo-crashed-silently
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="A demo fails silently in placeholder mode until the fallback is promoted to a loud ERROR" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="silent-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="silent-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#silent-bg)"/>
+  <text x="600" y="60" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">When the Demo Crashed Silently</text>
+  <text x="600" y="96" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Looks finished. Does nothing. Says nothing.</text>
+  <g font-family="ui-monospace,monospace" font-size="15">
+    <rect x="100" y="150" width="430" height="250" rx="14" fill="#1a1a33" stroke="#9090b0" stroke-width="2"/>
+    <text x="125" y="190" fill="#9090b0">INFO  scene loaded</text>
+    <text x="125" y="220" fill="#9090b0">INFO  prefab fallback...</text>
+    <text x="125" y="250" fill="#9090b0">INFO  ...298 more lines</text>
+    <text x="125" y="320" fill="#9090b0" font-size="14">buried at INFO</text>
+    <text x="125" y="350" fill="#9090b0" font-size="14">no one sees it</text>
+  </g>
+  <g font-family="system-ui,sans-serif">
+    <path d="M540 275 L620 275" stroke="url(#silent-accent)" stroke-width="4"/>
+    <polygon points="620,275 602,266 602,284" fill="#a388ff"/>
+    <text x="580" y="260" text-anchor="middle" fill="#a388ff" font-size="13" font-weight="600">PROMOTE</text>
+  </g>
+  <g font-family="ui-monospace,monospace" font-size="15">
+    <rect x="640" y="150" width="460" height="250" rx="14" fill="#16213a" stroke="#e84393" stroke-width="2"/>
+    <text x="665" y="210" fill="#e84393" font-weight="700">ERROR PLACEHOLDER MODE:</text>
+    <text x="665" y="240" fill="#ff7aa8">gameplay prefabs missing,</text>
+    <text x="665" y="270" fill="#ff7aa8">demo will not function</text>
+    <text x="665" y="340" fill="#00cec9" font-size="14">survives any log filter</text>
+    <text x="665" y="368" fill="#00cec9" font-size="14">grep finds it instantly</text>
+  </g>
+</svg>
+<figcaption>Quiet degradation is a defect. The fallback has to scream.</figcaption>
+</figure>
+
+<p class="post-hook">A crash tells you something is wrong. A silent failure ships a polished, empty shell to your users — and your partners. The engine that wins trust is the one that refuses to whisper.</p>
 
 There is a class of bug that is worse than a crash. A crash at least tells you something is wrong. The bug I sat down with this Saturday morning was the other thing. The demo booted. The scene loaded. The UI rendered. The pause menu did not respond. The gameplay was a placeholder. No error. No exception. No log line above INFO. The engine had failed silently and was politely going through the motions of a working game.
 
@@ -75,3 +115,12 @@ If you are running an agent-driven workflow and your agents are doing refactors,
 Saturday afternoon. Demo speaks up when something is wrong. Pause menu responds to clicks again. The party with the polite empty demo is over.
 
 Back to building.
+
+<div class="post-cta">
+<h3>An engine that tells you which mode it is in</h3>
+<p>RakuAI surfaces every degraded mode loudly, at ERROR, with grep-able strings and audits that find the silent failures first. That is the reliability discipline a spatial runtime owes the teams building on it.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/why-rakuai.html">Why RakuAI</a>
+<a class="cta-btn cta-secondary" href="/developers/">Developer Docs</a>
+</div>
+</div>

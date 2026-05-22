@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <title>Every LLM Caller Got Prompt-Length Guards Today &mdash; RakuAI Blog</title>
-    <meta name="description" content="Spent this Saturday auditing every place in the runtime that talks to an LLM. Found that many of them could send unbounded prompts, with no length check, no truncation, no defense against an upstream caller that decided to attach the entire scene state to a request. Added guards to all of them. The audit and the guards are the post.">
+    <meta name="description" content="A 15x cost spike led to an audit of every place the runtime talks to an LLM — and five callers that could send unbounded prompts with no cap, no truncation, no defense. By Saturday afternoon every caller went through one shared guard, with per-call budgets, telemetry, and a CI check that blocks regressions. This is how a spatial runtime makes prompt-length discipline impossible to forget.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/prompt-length-guards-on-every-llm-caller/">
     <link rel="alternate" hreflang="en" href="https://rakuai.com/blog/prompt-length-guards-on-every-llm-caller/">
@@ -14,7 +14,7 @@
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
     <meta property="og:title" content="Every LLM Caller Got Prompt-Length Guards Today">
-    <meta property="og:description" content="Spent this Saturday auditing every place in the runtime that talks to an LLM. Found that many of them could send unbounded prompts, with no length check, no truncation, no defense against an upstream caller that decided to attach the entire scene state to a request. Added guards to all of them. The audit and the guards are the post.">
+    <meta property="og:description" content="A 15x cost spike led to an audit of every place the runtime talks to an LLM — and five callers that could send unbounded prompts with no cap, no truncation, no defense. By Saturday afternoon every caller went through one shared guard, with per-call budgets, telemetry, and a CI check that blocks regressions. This is how a spatial runtime makes prompt-length discipline impossible to forget.">
     <meta property="og:url" content="https://rakuai.com/blog/prompt-length-guards-on-every-llm-caller/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Every LLM Caller Got Prompt-Length Guards Today">
-    <meta name="twitter:description" content="Spent this Saturday auditing every place in the runtime that talks to an LLM. Found that many of them could send unbounded prompts, with no length check, no truncation, no defense against an upstream caller that decided to attach the entire scene state to a request. Added guards to all of them. The audit and the guards are the post.">
+    <meta name="twitter:description" content="A 15x cost spike led to an audit of every place the runtime talks to an LLM — and five callers that could send unbounded prompts with no cap, no truncation, no defense. By Saturday afternoon every caller went through one shared guard, with per-call budgets, telemetry, and a CI check that blocks regressions. This is how a spatial runtime makes prompt-length discipline impossible to forget.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -108,6 +108,45 @@
             </p>
         </header>
         <div class="post-body">
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Unbounded LLM prompts capped by a shared call guard with per-caller token budgets" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="plg-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="plg-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#plg-bg)"/>
+  <text x="600" y="64" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Every LLM Caller, One Guard</text>
+  <text x="600" y="100" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Per-caller token budgets, truncation hierarchy, telemetry, CI enforcement</text>
+  <g font-family="system-ui,sans-serif">
+    <rect x="110" y="160" width="300" height="130" rx="16" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
+    <text x="260" y="212" text-anchor="middle" fill="#ff7aa8" font-size="40" font-weight="800">UNBOUNDED</text>
+    <text x="260" y="250" text-anchor="middle" fill="#9090b0" font-size="16">5 callers, no length cap</text>
+    <rect x="790" y="160" width="300" height="130" rx="16" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="940" y="212" text-anchor="middle" fill="#00cec9" font-size="40" font-weight="800">CAPPED</text>
+    <text x="940" y="250" text-anchor="middle" fill="#9090b0" font-size="16">budgeted, logged, bounded</text>
+    <rect x="500" y="195" width="200" height="60" rx="12" fill="#1a1a33" stroke="url(#plg-accent)" stroke-width="3"/>
+    <text x="600" y="232" text-anchor="middle" fill="#a388ff" font-size="18" font-weight="700">LLMCallGuard</text>
+    <polygon points="500,225 478,214 478,236" fill="#a388ff"/>
+    <polygon points="700,225 722,214 722,236" fill="#00cec9"/>
+    <line x1="410" y1="225" x2="500" y2="225" stroke="#a388ff" stroke-width="3"/>
+    <line x1="700" y1="225" x2="790" y2="225" stroke="#00cec9" stroke-width="3"/>
+  </g>
+  <g font-family="system-ui,sans-serif" font-size="13" fill="#c8c8e0">
+    <rect x="150" y="360" width="180" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="240" y="385" text-anchor="middle">Truncate &amp; log</text>
+    <rect x="350" y="360" width="200" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="450" y="385" text-anchor="middle">Coarse fallback</text>
+    <rect x="570" y="360" width="180" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="660" y="385" text-anchor="middle">Fail loud</text>
+    <rect x="770" y="360" width="200" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="870" y="385" text-anchor="middle">CI regression gate</text>
+  </g>
+</svg>
+<figcaption>One shared guard turns silent cost-amplification into a loud, bounded failure.</figcaption>
+</figure>
+
+<p class="post-hook">An unbounded prompt is a cost-amplification attack waiting to happen. RakuAI treats prompt-length discipline as security infrastructure — enforced at the build, not left to memory.</p>
+
 <p>The runtime calls LLMs in more places than I had been tracking. There is the obvious one (the XRAssistantService that drives voice-based AR experiences). There is the less obvious one (the NPC behavior layer, where the brain of an agent in the world is partially an LLM call). There is the least obvious one (development-time tools that have started to creep into the runtime build: schema validators, debug analyzers, an automatic playtest summarizer).</p>
 <p>Each of those places has been written independently over the last six months. Each was reviewed at PR time. None of them, until this weekend, had a uniform discipline about prompt length.</p>
 <p>This is the post about why that became a problem, what the audit found, and what the new guardrails look like.</p>
@@ -144,6 +183,14 @@
 <p>If you are evaluating an engine for partnership and the engine integrates with cloud LLMs, ask about prompt-length discipline. The right answer is &ldquo;every caller goes through a shared utility, with per-caller budgets, with telemetry, with a CI guard.&rdquo; The wrong answer is &ldquo;we have not seen that problem yet.&rdquo;</p>
 <p>Saturday afternoon. Every LLM caller in the runtime now goes through the same guard. The next audit cadence is on the calendar.</p>
 <p>Back to building.</p>
+<div class="post-cta">
+<h3>Build on a runtime that guards every LLM call</h3>
+<p>RakuAI is the AI-native spatial runtime your model drives in production — with prompt-length budgets, telemetry, and CI enforcement baked into the boundary. See what disciplined infrastructure unlocks for your stack.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/llm-makers.html">For AI Labs</a>
+<a class="cta-btn cta-secondary" href="/developers/">For Developers</a>
+</div>
+</div>
         </div>
         <ul class="post-tags"><li>llm</li><li>security</li><li>audit</li><li>guardrails</li><li>weekend-build</li></ul>
         <nav class="post-series-nav"><a class="nav-prev" href="/blog/all-eighteen-dlls-green-on-linux/" rel="prev">&larr; All Eighteen DLLs Green on Linux</a><a class="nav-next" href="/blog/meshy-pipeline-and-the-robe-that-broke-pose-estimation/" rel="next">The Meshy Pipeline and the Robe That Broke Pose Estimation &rarr;</a></nav>

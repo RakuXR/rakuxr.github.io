@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <title>The Find-Replace That Corrupted 300 Files &mdash; RakuAI Blog</title>
-    <meta name="description" content="Spent this Saturday doing a deep audit pass. Found two things I did not enjoy. A find-replace from earlier in the project had garbled the words &#x27;process,&#x27; &#x27;success,&#x27; and &#x27;access&#x27; into &#x27;Raku Game Engine Milestone&#x27; text across three hundred files. And a hardcoded HMAC licensing secret was sitting in a source file, committed to the public repo. Both got fixed today. Both are the kind of finding I want to be public about.">
+    <meta name="description" content="A deep audit pass turned up two things I did not enjoy: an over-broad find-replace that had quietly garbled identifiers across three hundred files, and a hardcoded licensing secret in a public source file. Both fixed in a day. This is the honest field guide to the failure modes an agent-driven codebase is most exposed to — and the guardrails that catch them.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/the-find-replace-that-corrupted-300-files/">
     <link rel="alternate" hreflang="en" href="https://rakuai.com/blog/the-find-replace-that-corrupted-300-files/">
@@ -14,7 +14,7 @@
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
     <meta property="og:title" content="The Find-Replace That Corrupted 300 Files">
-    <meta property="og:description" content="Spent this Saturday doing a deep audit pass. Found two things I did not enjoy. A find-replace from earlier in the project had garbled the words &#x27;process,&#x27; &#x27;success,&#x27; and &#x27;access&#x27; into &#x27;Raku Game Engine Milestone&#x27; text across three hundred files. And a hardcoded HMAC licensing secret was sitting in a source file, committed to the public repo. Both got fixed today. Both are the kind of finding I want to be public about.">
+    <meta property="og:description" content="A deep audit pass turned up two things I did not enjoy: an over-broad find-replace that had quietly garbled identifiers across three hundred files, and a hardcoded licensing secret in a public source file. Both fixed in a day. This is the honest field guide to the failure modes an agent-driven codebase is most exposed to — and the guardrails that catch them.">
     <meta property="og:url" content="https://rakuai.com/blog/the-find-replace-that-corrupted-300-files/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="The Find-Replace That Corrupted 300 Files">
-    <meta name="twitter:description" content="Spent this Saturday doing a deep audit pass. Found two things I did not enjoy. A find-replace from earlier in the project had garbled the words &#x27;process,&#x27; &#x27;success,&#x27; and &#x27;access&#x27; into &#x27;Raku Game Engine Milestone&#x27; text across three hundred files. And a hardcoded HMAC licensing secret was sitting in a source file, committed to the public repo. Both got fixed today. Both are the kind of finding I want to be public about.">
+    <meta name="twitter:description" content="A deep audit pass turned up two things I did not enjoy: an over-broad find-replace that had quietly garbled identifiers across three hundred files, and a hardcoded licensing secret in a public source file. Both fixed in a day. This is the honest field guide to the failure modes an agent-driven codebase is most exposed to — and the guardrails that catch them.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -108,6 +108,39 @@
             </p>
         </header>
         <div class="post-body">
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="A find-replace corrupting three hundred files and a hardcoded secret discovered in audit" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="fr300-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#fr300-bg)"/>
+  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Two Findings, One Audit</text>
+  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">When a sweep matches more than it should</text>
+  <g font-family="ui-monospace,monospace" font-size="15">
+    <rect x="120" y="150" width="440" height="260" rx="14" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
+    <text x="340" y="182" text-anchor="middle" fill="#ff7aa8" font-family="system-ui,sans-serif" font-size="16" font-weight="700">300 files corrupted</text>
+    <text x="150" y="222" fill="#9090b0">process_event</text><text x="430" y="222" fill="#e84393">&#8594; garbled</text>
+    <text x="150" y="256" fill="#9090b0">on_success()</text><text x="430" y="256" fill="#e84393">&#8594; garbled</text>
+    <text x="150" y="290" fill="#9090b0">has_access</text><text x="430" y="290" fill="#e84393">&#8594; garbled</text>
+    <text x="150" y="338" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="14">no word-boundary scoping</text>
+    <text x="150" y="364" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="14">compiled green, parsed fine</text>
+    <text x="150" y="390" fill="#00cec9" font-family="system-ui,sans-serif" font-size="14">fix: restore from git history</text>
+    <rect x="640" y="150" width="440" height="260" rx="14" fill="#16213a" stroke="#6c5ce7" stroke-width="2"/>
+    <text x="860" y="182" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="16" font-weight="700">hardcoded secret</text>
+    <text x="660" y="226" fill="#9090b0">secret = "&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;"</text>
+    <text x="660" y="270" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="14">looked like a placeholder</text>
+    <text x="660" y="296" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="14">became a real value</text>
+    <text x="660" y="346" fill="#00cec9" font-family="system-ui,sans-serif" font-size="14">fix: rotate &#43; env var</text>
+    <text x="660" y="372" fill="#00cec9" font-family="system-ui,sans-serif" font-size="14">fix: secret-scan in CI</text>
+  </g>
+</svg>
+<figcaption>The damage was at the human layer of the code, where the compiler never looks.</figcaption>
+</figure>
+
+<p class="post-hook">Agent-driven codebases move fast — and fail in ways a human reviewer would have caught at a glance. Here are two failures, in public, and the guardrails that now stop them cold.</p>
+
 <p>The day you go looking for trouble is usually the day you find some. This Saturday I scheduled a deep audit pass on the codebase. The plan was to catch up on technical debt: bare <code>except</code> blocks, hardcoded constants, drift in conventions, the kind of pile that accumulates in any project running at speed.</p>
 <p>I found two things I did not enjoy. Both are now fixed. Both are the kind of finding I want to be public about, because they explain something real about how an agent-driven codebase fails and how the discipline of doing an audit catches the failures.</p>
 <h2 id="finding-one-the-find-replace-that-ate-the-codebase">Finding one: the find-replace that ate the codebase</h2>
@@ -148,6 +181,14 @@
 <p>If you are a security professional reading this and you have suggestions, I am genuinely interested. The class of failure I am working to defend against is &ldquo;agent does something a human reviewer would have caught at a glance but did not catch in the bulk-review pattern an agent-driven workflow encourages.&rdquo; Suggestions welcome.</p>
 <p>Saturday afternoon. The codebase has had a hard look. Two findings, both fixed. The next audit is on the calendar.</p>
 <p>Back to building.</p>
+<div class="post-cta">
+<h3>A runtime built to be audited</h3>
+<p>RakuAI is the spatial runtime LLM makers and smart-glasses manufacturers build with — disciplined by audits, hardened by public lessons. See how we engineer for partner-grade trust.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/enterprise.html">For Enterprise</a>
+<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
+</div>
+</div>
         </div>
         <ul class="post-tags"><li>audit</li><li>security</li><li>find-replace</li><li>hmac</li><li>ai-failure-mode</li><li>weekend-build</li></ul>
         <nav class="post-series-nav"><a class="nav-prev" href="/blog/from-54-to-100-tests-passing/" rel="prev">&larr; From 54% to 100% Tests Passing</a><a class="nav-next" href="/blog/replacing-seven-brute-force-algorithms/" rel="next">Replacing Seven O(N²) Algorithms on a Saturday &rarr;</a></nav>

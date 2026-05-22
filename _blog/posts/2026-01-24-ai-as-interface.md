@@ -3,10 +3,44 @@ title: "How the Engine Talks to Any Model You Bring"
 date: 2026-01-24
 author: Kevin Griffin
 tags: [architecture, ai-native, interfaces, runtime, weekend-build]
-description: "Someone asked me a sharp question this weekend: if AI is a runtime primitive inside your engine, is the engine locked to whichever model you wired in? Short answer, no. The AI layer is exposed through interfaces, not imports. Here is how that boundary is drawn and why it keeps getting more valuable as the model market churns."
+description: "If AI is a runtime primitive inside your engine, are you locked to whichever model you wired in? No — the AI layer is exposed through interfaces, not imports. Six subsystems, a model-management API, a file format that names capabilities instead of models. Here is the boundary that lets RakuAI swap any model, any vendor, any inference path without touching a line of caller code — and why it keeps mattering more as the model market churns."
 series: learning-to-code-with-ai
 slug: ai-as-interface-not-ai-as-dependency
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Callers talk to AI subsystems through interfaces; models live behind a model-management boundary" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="iface-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#iface-bg)"/>
+  <text x="600" y="58" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">AI as Interface, Not Dependency</text>
+  <text x="600" y="94" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Callers in front. Models behind. A small, stable, stupid contract.</text>
+  <g font-family="system-ui,sans-serif" font-size="13" fill="#c8c8e0">
+    <rect x="80"  y="130" width="150" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="155" y="155" text-anchor="middle">Behavior trees</text>
+    <rect x="245" y="130" width="150" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="320" y="155" text-anchor="middle">Navigation</text>
+    <rect x="410" y="130" width="150" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="485" y="155" text-anchor="middle">Crowd sim</text>
+    <rect x="575" y="130" width="150" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="650" y="155" text-anchor="middle">Sensory</text>
+    <rect x="740" y="130" width="150" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="815" y="155" text-anchor="middle">Decision trees</text>
+  </g>
+  <g font-family="system-ui,sans-serif">
+    <rect x="160" y="220" width="880" height="56" rx="12" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="600" y="255" text-anchor="middle" fill="#00cec9" font-size="18" font-weight="700">model-management interface &#8212; handles &amp; tensors</text>
+  </g>
+  <g font-family="system-ui,sans-serif" font-size="13" fill="#c8c8e0">
+    <rect x="220" y="330" width="170" height="44" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="305" y="357" text-anchor="middle">on-device SLM</text>
+    <rect x="420" y="330" width="170" height="44" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="505" y="357" text-anchor="middle">cloud LLM</text>
+    <rect x="620" y="330" width="170" height="44" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="705" y="357" text-anchor="middle">learned policy</text>
+    <rect x="820" y="330" width="170" height="44" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="905" y="357" text-anchor="middle">heuristic</text>
+  </g>
+  <text x="600" y="420" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="15" font-weight="600">Swap a model. Swap a vendor. Nothing above the line changes.</text>
+</svg>
+<figcaption>Every interface boundary is a place future change can happen without breaking callers.</figcaption>
+</figure>
+
+<p class="post-hook">Bring any model you want. RakuAI's AI layer is interfaces, not imports — so the model market can have its quarterly tantrum about who's best and your engine never has to care.</p>
 
 Someone asked me a sharp question this weekend. "If AI is a runtime primitive inside your engine, then the engine is locked to whichever model you wired in. The next time the model vendor moves, you have to rewrite the engine."
 
@@ -92,3 +126,12 @@ The architectural argument is straightforward. AI is a runtime primitive. The fi
 That is the whole post.
 
 Back to building.
+
+<div class="post-cta">
+<h3>Bring your model. The interface is waiting.</h3>
+<p>RakuAI talks to any model through handles and tensors — server-side in dev, on-device in production, no caller ever knows the difference. See how your weights plug into a spatial runtime built to outlast the model market.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/llm-makers.html">For AI Labs</a>
+<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
+</div>
+</div>

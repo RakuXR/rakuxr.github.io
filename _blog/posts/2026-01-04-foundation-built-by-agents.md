@@ -3,10 +3,47 @@ title: "The Weekend an Autonomous Agent Shipped Ten Subsystems"
 date: 2026-01-04
 author: Kevin Griffin
 tags: [foundation, dev-workflow, ai-native, history, weekend-build]
-description: "Opened the laptop Saturday morning and the runtime repo had taken 139 commits overnight. By Sunday evening an autonomous coding agent had shipped ten foundational subsystems. The engine's foundation is being built BY agents, in a workflow that treats agent-authored diffs as a first-class part of the dev loop."
+description: "139 commits overnight. Ten foundational subsystems shipped across one weekend, mostly by an autonomous agent running against a queue I keep filled. This is what it actually looks like when an engine's foundation is built BY agents, not bolted on FOR them — and why that choice shapes every architectural decision in the runtime your AI will inhabit."
 series: learning-to-code-with-ai
 slug: foundation-built-by-agents-not-for-agents
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="An autonomous agent ships ten foundational subsystems in 139 commits over one weekend" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="fnd-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="fnd-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#fnd-bg)"/>
+  <text x="600" y="64" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">A Foundation Built BY Agents</text>
+  <text x="600" y="100" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">139 commits, ten subsystems, one weekend</text>
+  <g font-family="system-ui,sans-serif" font-size="13" fill="#c8c8e0">
+    <rect x="80"  y="150" width="200" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="180" y="177" text-anchor="middle">Skeletal animation</text>
+    <rect x="300" y="150" width="200" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="400" y="177" text-anchor="middle">Scene editing API</text>
+    <rect x="520" y="150" width="200" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="620" y="177" text-anchor="middle">Scene serialization</text>
+    <rect x="740" y="150" width="200" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="840" y="177" text-anchor="middle">Occlusion culling</text>
+    <rect x="80"  y="206" width="200" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="180" y="233" text-anchor="middle">Level streaming</text>
+    <rect x="300" y="206" width="200" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="400" y="233" text-anchor="middle">Prefab system</text>
+    <rect x="520" y="206" width="200" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="620" y="233" text-anchor="middle">GPU particles</text>
+    <rect x="740" y="206" width="200" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="840" y="233" text-anchor="middle">Advanced rendering</text>
+    <rect x="300" y="262" width="200" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="400" y="289" text-anchor="middle">Terrain + environment</text>
+    <rect x="520" y="262" width="200" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="620" y="289" text-anchor="middle">Post-processing</text>
+  </g>
+  <g font-family="system-ui,sans-serif">
+    <rect x="960" y="206" width="160" height="100" rx="14" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="1040" y="252" text-anchor="middle" fill="#00cec9" font-size="40" font-weight="800">139</text>
+    <text x="1040" y="284" text-anchor="middle" fill="#9090b0" font-size="14">commits</text>
+  </g>
+  <text x="600" y="370" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Every diff through review. Every subsystem testable. Every boundary hard.</text>
+</svg>
+<figcaption>Ten load-bearing subsystems, agent-authored, human-reviewed, merged as a weekend.</figcaption>
+</figure>
+
+<p class="post-hook">An engine built BY agents from day one comes out a different shape than one with AI bolted on. That shape is exactly the one a runtime needs when AI is a primitive — not a feature next to it.</p>
 
 Opened the laptop Saturday morning. The runtime repo had taken 139 commits overnight. Most of them landed by an autonomous coding agent that had been working against a queue of issues I filed last weekend. Ten subsystem-sized pull requests, all ready for review.
 
@@ -83,3 +120,12 @@ That is a different job. It uses different muscles. I think the muscles it uses 
 That is more than enough thinking for one weekend.
 
 Closing the laptop on Sunday night. Back to it next Saturday.
+
+<div class="post-cta">
+<h3>An AI-native runtime, agent-built from day one</h3>
+<p>RakuAI's foundation was built BY agents through clean interfaces and hard boundaries — the same discipline that lets AI live as a runtime primitive. See why that architecture matters for what you ship.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/why-rakuai.html">Why RakuAI</a>
+<a class="cta-btn cta-secondary" href="/developers/">Developer Docs</a>
+</div>
+</div>
