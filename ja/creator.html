@@ -105,7 +105,7 @@
         <!-- Empty state -->
         <div id="creator-empty" class="mygames-empty" hidden>
             <h3>新しいワールドが制作中</h3>
-            <p style="color:var(--text-secondary);">このクリエイターはまだ公開していません &mdash; 新しい空間ゲームは続々と登場するので、ぜひまたチェックしてください。自分でも作ってみませんか？ <a href="/" style="color:var(--accent-bright);">RakuAIで制作を始める</a>。</p>
+            <p style="color:var(--text-secondary);">このクリエイターはまだ公開していません &mdash; 新しい空間ゲームは続々と登場するので、ぜひまたチェックしてください。自分でも作ってみませんか？ <a href="index.html#create" style="color:var(--accent-bright);">RakuAIで制作を始める</a>。</p>
         </div>
 
         <!-- Loading -->
@@ -214,6 +214,7 @@
     fetch(API_BASE + '/api/v1/creators/' + encodeURIComponent(userId))
         .then(function(r) { if (!r.ok) throw new Error('Not found'); return r.json(); })
         .then(function(profile) {
+            profile.display_name = profile.display_name || ('クリエイター ' + (userId ? userId.substring(0, 8) : ''));
             nameEl.textContent = profile.display_name;
             avatar.textContent = profile.display_name.charAt(0).toUpperCase();
             gameCountEl.textContent = profile.game_count;
@@ -241,13 +242,13 @@
                     '<div style="padding:20px;">' +
                         '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">' +
                             '<h3 style="margin:0;font-size:1.1rem;">' + esc(game.title) + '</h3>' +
-                            '<span style="display:inline-block;background:var(--accent-bright);color:#000;padding:2px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;">' + esc(game.genre) + '</span>' +
+                            '<span style="display:inline-block;background:var(--accent-bright);color:#000;padding:2px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;">' + esc(game.genre || '') + '</span>' +
                         '</div>' +
                         '<p style="color:var(--text-secondary);font-size:0.9rem;margin:0 0 8px;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;">' +
-                            esc(game.description || 'AI が生成した ' + game.genre + ' ゲーム') +
+                            esc(game.description || 'AI が生成した ' + (game.genre || '') + ' ゲーム') +
                         '</p>' +
                         '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                            '<span style="color:var(--text-secondary);font-size:0.8rem;">' + esc(game.play_count) + ' 回プレイ</span>' +
+                            '<span style="color:var(--text-secondary);font-size:0.8rem;">' + esc(String(game.play_count || 0)) + ' 回プレイ</span>' +
                             '<span class="btn btn-primary" style="padding:6px 16px;font-size:0.85rem;">プレイ</span>' +
                         '</div>' +
                     '</div>';
