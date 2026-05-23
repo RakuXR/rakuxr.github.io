@@ -41,6 +41,19 @@
     return text;
   }
 
+  // Localized accessible name for the rail, keyed off <html lang>.
+  function onThisPageLabel() {
+    var lang = (document.documentElement.getAttribute("lang") || "en").toLowerCase();
+    var map = {
+      de: "Auf dieser Seite", es: "En esta página", fr: "Sur cette page",
+      ja: "このページ内", ko: "이 페이지에서", pt: "Nesta página"
+    };
+    if (lang.indexOf("zh-tw") === 0 || lang.indexOf("zh-hant") === 0) return "本頁內容";
+    if (lang.indexOf("zh") === 0) return "本页内容";
+    var key = lang.split("-")[0];
+    return map[key] || "On this page";
+  }
+
   ready(function () {
     var sections = Array.prototype.slice.call(document.querySelectorAll("section"));
     var used = {};
@@ -71,7 +84,7 @@
 
     var nav = document.createElement("nav");
     nav.className = "section-rail";
-    nav.setAttribute("aria-label", "On this page");
+    nav.setAttribute("aria-label", onThisPageLabel());
 
     var list = document.createElement("ul");
     entries.forEach(function (e) {
@@ -93,7 +106,10 @@
     nav.appendChild(list);
     document.body.appendChild(nav);
 
+    var activeId = null;
     function setActive(id) {
+      if (id === activeId) return;
+      activeId = id;
       entries.forEach(function (e) {
         var on = e.id === id;
         e.link.classList.toggle("active", on);
@@ -120,6 +136,7 @@
       entries.forEach(function (e) { io.observe(e.el); });
     }
 
-    setActive(entries[0].id);
+    var initialId = (window.location.hash || "").slice(1);
+    setActive(initialId && document.getElementById(initialId) ? initialId : entries[0].id);
   });
 })();
