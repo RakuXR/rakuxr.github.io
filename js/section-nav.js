@@ -78,8 +78,12 @@
       var li = document.createElement("li");
       var a = document.createElement("a");
       a.href = "#" + e.id;
-      a.textContent = e.label;
       a.setAttribute("data-target", e.id);
+      a.setAttribute("title", e.label);
+      var span = document.createElement("span");
+      span.className = "rail-label";
+      span.textContent = e.label;
+      a.appendChild(span);
       li.appendChild(a);
       list.appendChild(li);
       e.link = a;
