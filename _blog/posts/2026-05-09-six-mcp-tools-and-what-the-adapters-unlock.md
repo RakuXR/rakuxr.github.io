@@ -3,7 +3,7 @@ title: "Six MCP Tools, and What the Adapters Unlock Next"
 date: 2026-05-09
 author: Kevin Griffin
 tags: [mcp, model-context-protocol, partners, adapters, ai-native, weekend-build]
-description: "The runtime has been speaking Model Context Protocol since late March. Six tools, stdio transport, deny-by-default permissions, full audit log. The server is the boundary any external agent uses to drive the engine. This Saturday is about what the next layer looks like: real adapters, real partner integrations, and an MCP-first developer story instead of an MCP-bolted-on one."
+description: "The runtime has been speaking Model Context Protocol since late March. Six tools, stdio transport, deny-by-default permissions, full audit log. The server is the boundary any external agent uses to drive the engine. This Saturday is about what the next layer looks like: real adapters, real partner integrations, and an MCP-first developer story instead of an MCP-bolted-on one. This is the MCP runtime LLM makers build against."
 series: learning-to-code-with-ai
 slug: six-mcp-tools-and-what-the-adapters-unlock
 ---
