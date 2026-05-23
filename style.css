@@ -2957,3 +2957,77 @@ nav .nav-mobile-toggle span {
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================================================
+   Section navigator rail (scrollspy) — built by js/section-nav.js
+   Auto-hidden on narrow viewports; labels come from page headings.
+   ============================================================ */
+.section-rail {
+    position: fixed;
+    top: 50%;
+    right: 18px;
+    transform: translateY(-50%);
+    z-index: 900;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 6px 4px;
+    display: none;
+}
+.section-rail ul { list-style: none; margin: 0; padding: 0; }
+.section-rail li { margin: 0; }
+.section-rail a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 8px;
+    color: var(--text-secondary, #9090b0);
+    text-decoration: none;
+    font-size: 0.78rem;
+    line-height: 1.2;
+    border-radius: 6px;
+    max-width: 200px;
+    transition: color 0.18s ease, background 0.18s ease;
+}
+.section-rail a::before {
+    content: "";
+    flex: 0 0 auto;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    background: transparent;
+    transition: background 0.18s ease, transform 0.18s ease;
+}
+/* Label hidden by default (dots only); revealed on hover/focus or when active. */
+.section-rail a span,
+.section-rail .rail-label { display: inline; }
+.section-rail a {
+    /* truncate long labels */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.section-rail a:hover,
+.section-rail a:focus-visible {
+    color: var(--accent-bright, #a388ff);
+    background: rgba(108, 92, 231, 0.10);
+    outline: none;
+}
+.section-rail a.active {
+    color: var(--accent-bright, #a388ff);
+    font-weight: 600;
+}
+.section-rail a.active::before {
+    background: var(--accent-bright, #a388ff);
+    transform: scale(1.15);
+}
+@media (min-width: 1280px) {
+    .section-rail { display: block; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .section-rail a, .section-rail a::before { transition: none; }
+}
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+}
