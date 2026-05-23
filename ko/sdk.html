@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raku SDK | 현실 세계에서 AI를 강화하세요 &mdash; 스튜디오 &amp; XR을 위한 공간 런타임</title>
+    <meta name="description" content="현실 세계에서 AI를 강화하세요. Raku SDK: 네이티브 DLL 18개, 라우터 모듈 17개, 9,500+ REST 엔드포인트, 6개 도구 MCP 표면. OpenXR 적합. 노트북이 아닌 안경을 위해 만들어졌습니다.">
+    <meta property="og:title" content="Raku SDK | 현실 세계에서 AI를 강화하세요">
+    <meta property="og:description" content="현실 세계에서 AI를 강화하세요. 6개 도구 MCP 표면을 갖춘 모듈형 AI 네이티브 공간 엔진. 설계상 멀티 벤더 &mdash; Claude, ChatGPT, Gemini, Copilot.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ko/sdk.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="현실 세계에서 AI를 강화하세요. DLL 18개, 라우터 17개, 9,500+ REST 엔드포인트, 6개 도구 MCP. Quest 3, Xreal, Samsung XR, MiRZA에서 OpenXR.">
+    <link rel="canonical" href="https://rakuai.com/ko/sdk.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        /* SDK-specific styles */
+        .arch-diagram {
+            background: #0d0d1f;
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 32px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--text-primary);
+            margin: 32px 0;
+        }
+        .arch-diagram .hl { color: var(--accent-bright); font-weight: 700; }
+        .arch-diagram .hl-cyan { color: var(--success); font-weight: 700; }
+        .arch-diagram .hl-green { color: #50fa7b; }
+        .arch-diagram .dim { color: #555577; }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            margin: 32px 0;
+        }
+        .module-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .module-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .module-card h4 {
+            color: var(--accent-bright);
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        .module-card .module-size {
+            color: var(--success);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .module-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+        .platform-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .platform-card h4 { color: var(--accent-bright); margin-bottom: 8px; }
+        .platform-card .platform-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .platform-card .platform-status.ready { background: var(--success); color: var(--bg-primary); }
+        .platform-card .platform-status.beta { background: var(--accent); color: white; }
+        .platform-card .platform-status.preview { background: #ff79c6; color: var(--bg-primary); }
+
+        .ai-flow {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            gap: 0;
+            align-items: center;
+            margin: 40px 0;
+        }
+        .ai-flow-box {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .ai-flow-box h4 { color: var(--accent-bright); margin-bottom: 8px; }
+        .ai-flow-arrow {
+            text-align: center;
+            color: var(--success);
+            font-size: 2rem;
+            font-weight: 800;
+            padding: 0 8px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+        }
+        .comparison-table th {
+            background: var(--accent);
+            color: white;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .comparison-table td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #222244;
+            color: var(--text-secondary);
+        }
+        .comparison-table tr:nth-child(even) { background: var(--bg-secondary); }
+        .comparison-table .check { color: var(--success); font-weight: 700; }
+        .comparison-table .cross { color: #555577; }
+
+        .target-badge {
+            display: inline-block;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            color: var(--accent-bright);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 4px;
+        }
+
+        .sdk-hero-brand {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 8px;
+        }
+        .sdk-hero-brand .kanji-logo {
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sdk-hero-brand .xr-badge {
+            font-size: 1.8rem;
+            color: var(--success);
+            font-weight: 700;
+            -webkit-text-fill-color: var(--success);
+            background: none;
+            letter-spacing: 0.1em;
+        }
+
+        .patent-bar {
+            background: linear-gradient(135deg, #1a1a3a, #111128);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            margin: 24px auto;
+            max-width: 800px;
+            flex-wrap: wrap;
+        }
+        .patent-bar span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .patent-bar strong {
+            color: var(--accent-bright);
+        }
+
+        @media (max-width: 768px) {
+            .ai-flow { grid-template-columns: 1fr; gap: 16px; }
+            .ai-flow-arrow { transform: rotate(90deg); font-size: 1.5rem; }
+            .sdk-hero-brand { font-size: 2.5rem; }
+            .arch-diagram { font-size: 0.65rem; padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: sdk.html
+  Date: 2026-05-23
+-->
+
+<div class="beta-announcement-bar">
+    특허 5건 | 9,500+ API 엔드포인트 | 네이티브 DLL 18개 | AI 네이티브 공간 게임 엔진 — 얼리 액세스 진행 중
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" aria-label="솔루션 메뉴 열기" role="menuitem">솔루션 &#x25BC;</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="솔루션" hidden>
+                        <div class="col-heading">대상별</div>
+                        <div class="col-heading">플랫폼</div>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">스마트 글래스 제조사용<span class="item-desc">하드웨어 OEM 파트너 프로그램</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI 연구소용<span class="item-desc">파운데이션 모델용 MCP 런타임</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">엔터프라이즈용<span class="item-desc">공간 AI를 대규모로 배포</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">크리에이터용<span class="item-desc">공간 월드 구축 &amp; 게시</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Unity / Unreal 비교<span class="item-desc">솔직한 비교</span></a></li>
+                        </ul>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">공간 엔진<span class="item-desc">런타임의 핵심 축</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI 시스템<span class="item-desc">오케스트레이션 &amp; 권한</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR 기능<span class="item-desc">디스플레이·트래킹·앵커</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" aria-label="개발자 메뉴 열기" role="menuitem">개발자 &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="개발자" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">문서</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP 서버</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API 레퍼런스</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">템플릿</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">개발자 포털</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop 가이드</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">개발자 가이드</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM 통합 가이드</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" aria-label="리소스 메뉴 열기" role="menuitem">리소스 &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="리소스" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">블로그</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">RakuAI를 선택하는 이유</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">보도 자료</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">디스커버</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">콘텐츠 팩</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">문서 개요</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">문의하기</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">요금제</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">로그인</a>
+            <a href="../sdk.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <div class="beta-badge">SDK 개발자 프리뷰</div>
+        <div class="sdk-hero-brand">
+            <span class="kanji-logo">&#x697D;</span><span class="xr-badge">XR</span><sup class="tm">™</sup>
+        </div>
+        <h1>공간 엔진 SDK</h1>
+        <p class="subtitle">현실 세계에서 AI를 강화하세요.</p>
+        <p style="color: var(--text-secondary); max-width: 760px; margin: 16px auto 0; text-align: center;">
+            AI 네이티브 공간 엔진. 모듈형 아키텍처, MCP 기반 런타임. 18ms 모션-투-포톤. 서브 밀리미터 공간 정밀도. 어떤 AI 어시스턴트로든 동일한 6개 도구 계약으로 구동할 수 있는 경험을 구축하세요.
+        </p>
+        <div class="cta-group">
+            <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary">MCP 문서 읽기</a>
+            <a href="#execution" class="btn btn-secondary">작동 방식</a>
+        </div>
+        <div class="patent-bar">
+            <span><strong>미국 등록 특허 5건</strong> &middot; 우선일 2012년 7월</span>
+            <span><strong>18ms</strong> 모션-투-포톤</span>
+            <span><strong>OpenXR</strong> 적합</span>
+            <span>설계상 멀티 벤더</span>
+        </div>
+        <div style="margin-top: 16px;">
+            <span class="target-badge">게임 스튜디오</span>
+            <span class="target-badge">콘솔 제조사</span>
+            <span class="target-badge">XR 플랫폼</span>
+            <span class="target-badge">AI 기업</span>
+            <span class="target-badge">인디 개발자</span>
+        </div>
+    </div>
+</section>
+
+<!-- How RakuAI Execution Works -->
+<section class="section" id="execution" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>RakuAI&trade; 작동 방식</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            RakuAI는 결정론적 권한 런타임입니다. 외부 에이전트는 고정된 6개 도구 MCP 경계를 통해 엔진에 도달합니다 &mdash; 엔진은 물리, 충돌, 점수 산정, 멀티플레이어 상태를 계속 관장합니다.
+        </p>
+
+        <div class="ai-flow">
+            <div class="ai-flow-box">
+                <h4>연결</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Claude, Cursor, 커스텀 GPT</p>
+            </div>
+            <div class="ai-flow-arrow">&rarr;</div>
+            <div class="ai-flow-box" style="border-color: var(--success);">
+                <h4 style="color: var(--success);">6개 도구 MCP 표면</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">표준 계약, 모든 에이전트</p>
+            </div>
+            <div class="ai-flow-arrow">&rarr;</div>
+            <div class="ai-flow-box">
+                <h4>런타임</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">결정론적 권한</p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- Architecture -->
+<section class="section" id="architecture">
+    <div class="container">
+        <h2>모듈형 AI 네이티브 아키텍처</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            렌더링, 물리, 오디오, AI, XR, 네트워킹 등을 아우르는 목적 지향 모듈형 엔진.
+            클라우드 의존성이 없는 경량 런타임. 필요한 것만 로드하세요.
+        </p>
+        <div style="max-width:820px; margin:36px auto 0;">
+        <svg viewBox="0 0 820 320" width="100%" style="max-width:820px; height:auto; display:block;" role="img" aria-labelledby="sdk-arch-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="sdk-arch-title">모듈형 아키텍처: 구성 가능한 서브시스템 모듈 — 렌더링, 물리, 오디오, AI, XR, 네트워킹, 애니메이션, 스크립팅 — 으로 둘러싸인 런타임 코어로, 각 모듈은 필요할 때 로드할 수 있습니다.</title>
+            <defs>
+                <linearGradient id="sdk-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+            </defs>
+            <!-- core bar -->
+            <rect x="270" y="138" width="280" height="44" rx="11" fill="#15152e" stroke="url(#sdk-grad)" stroke-width="2"/>
+            <text x="410" y="165" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="700">RakuAI 런타임 코어</text>
+            <!-- module chips -->
+            <g font-family="system-ui,sans-serif" font-size="13">
+                <!-- top row -->
+                <g>
+                    <rect x="40" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                    <text x="125" y="68" text-anchor="middle" fill="#e8e8f0">렌더링</text>
+                    <line x1="125" y1="86" x2="290" y2="140" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="230" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+                    <text x="315" y="68" text-anchor="middle" fill="#e8e8f0">물리</text>
+                    <line x1="315" y1="86" x2="360" y2="138" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="420" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+                    <text x="505" y="68" text-anchor="middle" fill="#e8e8f0">오디오</text>
+                    <line x1="505" y1="86" x2="460" y2="138" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="610" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+                    <text x="695" y="68" text-anchor="middle" fill="#e8e8f0">AI / SLM</text>
+                    <line x1="695" y1="86" x2="530" y2="140" stroke="#2c2c4e" stroke-width="1.4"/>
+                </g>
+                <!-- bottom row -->
+                <g>
+                    <rect x="40" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+                    <text x="125" y="262" text-anchor="middle" fill="#e8e8f0">XR</text>
+                    <line x1="125" y1="234" x2="290" y2="180" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="230" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                    <text x="315" y="262" text-anchor="middle" fill="#e8e8f0">네트워킹</text>
+                    <line x1="315" y1="234" x2="360" y2="182" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="420" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                    <text x="505" y="262" text-anchor="middle" fill="#e8e8f0">애니메이션</text>
+                    <line x1="505" y1="234" x2="460" y2="182" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="610" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+                    <text x="695" y="262" text-anchor="middle" fill="#e8e8f0">스크립팅</text>
+                    <line x1="695" y1="234" x2="530" y2="180" stroke="#2c2c4e" stroke-width="1.4"/>
+                </g>
+            </g>
+        </svg>
+        </div>
+        <div style="text-align: center; margin-top: 32px;">
+            <a href="../developers/claude-desktop.html" class="btn btn-primary">Claude Desktop 연결하기</a>
+        </div>
+    </div>
+</section>
+
+<!-- Why RakuAI -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>왜 RakuAI인가?</h2>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 820px; margin: 0 auto 32px;">
+            미국 등록 특허 5건. 우선일 2012년 7월. 오늘날의 AR 안경 카테고리를 뒷받침하는 10년 묵은 IP. 네이티브 DLL 18개. 라우터 모듈 17개. 9,500+ REST 엔드포인트. 바인딩된 엔진 함수 10,328개. Claude, ChatGPT, Gemini, Copilot이 모두 구동하는 런타임 &mdash; 설계상 멀티 벤더.
+        </p>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 820px; margin: 0 auto 32px;">
+            Unity의 MCP는 디자인 타임에 장면 조작을 대상으로 합니다. RakuAI의 MCP는 런타임에 월드 모델 오케스트레이션을 위한 것입니다 &mdash; 매 프레임, 모든 NPC, 모든 상호작용. Unreal은 RTX 4090이 필요합니다. RakuAI는 Wi-Fi 7과 휴대폰이면 됩니다.
+        </p>
+        <div class="platform-grid">
+            <div class="platform-card">
+                <h4>크로스 플랫폼</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">한 번 빌드하고 단일 코드베이스에서 PC, 콘솔, XR로 배포</p>
+            </div>
+            <div class="platform-card">
+                <h4>AI 네이티브 설계</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">AI 기반 게임 제작과 적응형 게임플레이를 위해 처음부터 구축</p>
+            </div>
+            <div class="platform-card">
+                <h4>모듈형 엔진</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">초경량 풋프린트를 위해 프로젝트에 필요한 모듈만 사용</p>
+            </div>
+            <div class="platform-card">
+                <h4>XR 준비 완료</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">자연스러운 입력과 공간 상호작용을 갖춘 완전한 XR 지원</p>
+            </div>
+            <div class="platform-card">
+                <h4>주요 엔진 지원</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">업계 선도 게임 엔진 및 네이티브 툴체인과 통합</p>
+            </div>
+            <div class="platform-card">
+                <h4>온디바이스 AI</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">모든 AI 처리가 로컬에서 실행됩니다. 클라우드 불필요. 설계상 프라이버시.</p>
+            </div>
+            <div class="platform-card">
+                <h4>네트워킹</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">연결된 경험을 위한 내장 멀티플레이어 및 세션 관리</p>
+            </div>
+            <div class="platform-card">
+                <h4>적응형 오디오</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">게임플레이에 실시간으로 반응하는 공간 오디오와 적응형 음악</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- Partnership Tiers -->
+<section class="section" id="partnerships" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2 style="text-align: center;">파트너십 &amp; 라이선싱</h2>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.05rem;">
+            Raku SDK는 스튜디오, 콘솔 제조사, XR 플랫폼 파트너를 위해 NDA 하에 이용할 수 있습니다. 전체 기술 문서, 소스 수준 통합 지원, 커스텀 빌드를 제공합니다.
+        </p>
+        <div class="platform-grid" style="max-width: 900px; margin: 0 auto;">
+            <div class="platform-card">
+                <h4>게임 스튜디오</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">AI 네이티브 게임을 더 빠르게 출시하세요. 모듈형 엔진, 장르별 템플릿, 전담 엔지니어링 지원.</p>
+                <span class="platform-status ready">파트너 모집 중</span>
+            </div>
+            <div class="platform-card">
+                <h4>콘솔 &amp; XR 플랫폼</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Raku 런타임을 사전 설치, 번들 또는 심층 통합하세요. 하드웨어를 위한 커스텀 빌드. 공동 마케팅 가능.</p>
+                <span class="platform-status beta">문의하기</span>
+            </div>
+            <div class="platform-card">
+                <h4>AI 기업</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">모델을 Raku 런타임에 통합하세요. 온디바이스 추론, 게임 인식 컨텍스트, 실시간 적응.</p>
+                <span class="platform-status beta">문의하기</span>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 32px;">
+            <a href="contact.html" class="btn btn-primary">파트너십 문의</a>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">SDK 접근과 기술 심층 분석에는 NDA가 필요합니다. 특허 보호 기술.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Download CTA -->
+<section class="section" id="download">
+    <div class="container" style="text-align: center;">
+        <h2>시작하기</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">
+            AI 어시스턴트를 MCP 서버에 연결하거나, 스튜디오 및 엔터프라이즈 라이선싱에 대해 문의하세요.
+        </p>
+        <div class="cta-group" style="margin-bottom: 24px;">
+            <a href="../developers/claude-desktop.html" class="btn btn-primary">Claude Desktop 연결</a>
+            <a href="docs.html" class="btn btn-secondary">문서 읽기</a>
+        </div>
+        <div style="display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; margin-top: 24px;">
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">&#10003;</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">모듈형 엔진</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">&#10003;</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">샘플 프로젝트</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">&#10003;</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">전체 문서</div>
+            </div>
+        </div>
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #222244;">
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">SDK를 사용 중이신가요? 여러분의 피드백을 듣고 싶습니다.</p>
+            <div class="cta-group">
+                <a href="contact.html" class="btn btn-secondary" style="font-size: 0.95rem; padding: 10px 24px;">개발자 피드백</a>
+            </div>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 24px;">
+            엔터프라이즈 라이선싱 및 파트너십 문의:
+            <a href="contact.html" style="color: var(--accent-bright);">문의하기</a>
+        </p>
+    </div>
+</section>
+
+<footer>
+  <p>&copy; 2026 RakuAI, LLC &bull; 미국 등록 특허 5건 (우선일: 2012년 7월) &bull; Powered by the RakuAI Engine</p>
+  <p style="margin-top: 6px;">
+    <a href="../engine/">엔진</a> &bull;
+    <a href="../api/">API</a> &bull;
+    <a href="docs.html">문서</a> &bull;
+    <a href="../games/">아케이드</a> &bull;
+    <a href="press.html">언론</a> &bull;
+    <a href="developers/">개발자</a> &bull;
+    <a href="../privacy.html">개인정보</a> &bull;
+    <a href="../terms.html">이용약관</a> &bull;
+    <a href="contact.html">문의</a> &bull;
+    <a href="https://github.com/RakuXR">GitHub</a>
+  </p>
+  <p class="trademark-notice">
+    RakuAI&trade; 및 RakuXR&trade;은 RakuAI, LLC의 상표입니다.
+    <span class="kanji-logo">&#x697D;</span>AI와 <span class="kanji-logo">&#x697D;</span>XR은 RakuAI, LLC의 스타일화된 마크입니다.
+    미국 등록 특허 5건 (우선일: 2012년 7월).
+  </p>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+<script src="../js/nav-dropdown.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>
