@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RakuAI pour les laboratoires LLM — Donnez un corps à votre IA dans le monde réel</title>
+    <meta name="description" content="RakuAI pour les laboratoires LLM — six outils MCP, multi-fournisseurs par conception, branchement via MCP. Votre modèle pilote un véritable runtime spatial sans avoir à en écrire un.">
+    <meta name="keywords" content="LLM MCP, partenariats laboratoires d'IA, runtime spatial, serveur MCP, Anthropic, OpenAI, Google, Meta, xAI, Mistral, Cohere, Stability AI">
+    <meta property="og:title" content="RakuAI pour les laboratoires LLM — Donnez un corps à votre IA dans le monde réel">
+    <meta property="og:description" content="RakuAI pour les laboratoires LLM — six outils MCP, multi-fournisseurs par conception, branchement via MCP. Votre modèle pilote un véritable runtime spatial sans avoir à en écrire un.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/fr/llm-makers.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RakuAI pour les laboratoires LLM — Donnez un corps à votre IA dans le monde réel">
+    <meta name="twitter:description" content="RakuAI pour les laboratoires LLM — six outils MCP, multi-fournisseurs par conception, branchement via MCP. Votre modèle pilote un véritable runtime spatial sans avoir à en écrire un.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/fr/llm-makers.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .llm-hero {
+            padding: 96px 0 64px;
+            text-align: center;
+            background: linear-gradient(180deg, #0a0a1a, #0d0d20);
+        }
+        .llm-hero h1 {
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            line-height: 1.15;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #a388ff, #00cec9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .llm-hero p.subhead {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            line-height: 1.65;
+            max-width: 760px;
+            margin: 0 auto 32px;
+        }
+        .llm-cta-row {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .llm-section {
+            padding: 72px 0;
+            border-bottom: 1px solid #1c1c33;
+        }
+        .llm-section h2 {
+            font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+            margin-bottom: 32px;
+            text-align: center;
+            background: linear-gradient(135deg, #a388ff, #00cec9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .llm-pillars {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .llm-pillar {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 28px 24px;
+        }
+        .llm-pillar h3 {
+            color: var(--accent-bright);
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+        }
+        .llm-pillar p {
+            color: var(--text-secondary);
+            font-size: 0.98rem;
+            line-height: 1.65;
+            margin: 0;
+        }
+        .llm-arch {
+            background: #0d0d1f;
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 28px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            white-space: pre;
+            overflow-x: auto;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .llm-possible {
+            max-width: 880px;
+            margin: 0 auto;
+            list-style: none;
+            padding: 0;
+        }
+        .llm-possible li {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 18px 22px;
+            margin-bottom: 14px;
+            color: var(--text-secondary);
+            font-size: 1.02rem;
+            line-height: 1.6;
+        }
+        .llm-quote {
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.12), rgba(0, 206, 201, 0.08));
+            border: 1px solid var(--accent);
+            border-radius: 14px;
+            padding: 32px 36px;
+            max-width: 900px;
+            margin: 0 auto;
+            color: var(--text-primary);
+            font-size: 1.05rem;
+            line-height: 1.75;
+        }
+        .llm-quote p {
+            margin: 0;
+        }
+        .llm-adapter-list {
+            max-width: 700px;
+            margin: 0 auto 24px;
+            list-style: none;
+            padding: 0;
+        }
+        .llm-adapter-list li {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 8px;
+            padding: 14px 22px;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+        }
+        .llm-adapter-list li strong {
+            color: var(--accent-bright);
+            font-family: inherit;
+        }
+        .llm-receipts {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 14px;
+            padding: 32px 36px;
+            max-width: 820px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+            font-size: 1.02rem;
+            line-height: 1.7;
+        }
+        .llm-receipts ul {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0 0;
+        }
+        .llm-receipts li {
+            padding: 8px 0;
+        }
+        .llm-receipts li:before {
+            content: "\2192  ";
+            color: var(--accent-bright);
+            font-weight: 700;
+        }
+        .llm-partner {
+            text-align: center;
+            max-width: 760px;
+            margin: 0 auto;
+        }
+        .llm-partner p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+        .llm-labs-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .llm-lab-chip {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 20px;
+            padding: 8px 18px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: llm-makers.html
+  Date: 2026-05-23
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — Le runtime universel pour les World Models &nbsp;|&nbsp; <a href="index.html#for-studios">Pour les studios et développeurs →</a> &nbsp;&nbsp; Aussi : <a href="index.html#quickstart">Essayer la démo grand public →</a>
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" aria-label="Ouvrir le menu Solutions" role="menuitem">Solutions &#x25BC;</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading">Par public</div>
+                        <div class="col-heading">Plateforme</div>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Pour fabricants de lunettes connectées<span class="item-desc">Programme partenaire OEM matériel</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">Pour laboratoires d'IA<span class="item-desc">Runtime MCP pour modèles de fondation</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Pour les entreprises<span class="item-desc">Déployer l'IA spatiale à grande échelle</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Pour les créateurs<span class="item-desc">Créer &amp; publier des mondes spatiaux</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Comparaison avec Unity / Unreal<span class="item-desc">Une comparaison honnête</span></a></li>
+                        </ul>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">Moteur spatial<span class="item-desc">Le pilier du runtime</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">Systèmes d'IA<span class="item-desc">Orchestration &amp; permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">Fonctionnalités XR<span class="item-desc">Affichage, suivi et ancrage</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" aria-label="Ouvrir le menu Développeurs" role="menuitem">Développeurs &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Développeurs" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">Serveur MCP</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">Référence API</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">Modèles</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">Portail développeur</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Guide Claude Desktop</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">Guide développeur</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">Guide d'intégration LLM</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" aria-label="Ouvrir le menu Ressources" role="menuitem">Ressources &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Ressources" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">Pourquoi RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">Kit presse</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">Découvrir</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">Packs de contenu</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">Aperçu de la documentation</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">Tarifs</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">Se connecter</a>
+            <a href="../llm-makers.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="llm-hero">
+    <div class="container">
+        <h1>Donnez un corps à votre IA dans le monde réel.</h1>
+        <p class="subhead">
+            RakuAI est le runtime qu'habite votre modèle lorsqu'il a besoin de construire, simuler ou interagir avec un monde spatial.
+            Branchez-vous via MCP. Aucune intégration sur mesure. Multi-fournisseurs par conception — votre modèle se distingue par sa qualité, pas par la profondeur de son intégration.
+        </p>
+        <div class="llm-cta-row">
+            <a href="mcp.html" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">Se brancher via MCP &rarr;</a>
+            <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">Lire l'architecture &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<section class="llm-section">
+    <div class="container">
+        <h2>Pourquoi le MCP-natif compte pour les concepteurs de LLM</h2>
+        <div class="llm-pillars">
+            <div class="llm-pillar">
+                <h3>1. Votre modèle fonctionne, tout simplement.</h3>
+                <p>Si votre assistant parle MCP, il parle RakuAI. Six outils. Le même contrat pour chaque modèle. Aucune intégration sur mesure.</p>
+            </div>
+            <div class="llm-pillar">
+                <h3>2. Multi-fournisseurs par conception.</h3>
+                <p>Claude, ChatGPT, Gemini, Copilot — tous pilotent RakuAI de la même façon. Votre modèle se distingue par la qualité de l'intention.</p>
+            </div>
+            <div class="llm-pillar">
+                <h3>3. Refus par défaut en production.</h3>
+                <p>Journalisé pour audit. Validé par schéma. Les outils en lecture seule fonctionnent en production ; les outils de modification en sandbox/dev.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="llm-section">
+    <div class="container">
+        <h2>Architecture</h2>
+        <div style="max-width:1080px; margin:0 auto;">
+        <svg viewBox="0 0 1080 480" width="100%" style="max-width:1080px; height:auto; display:block;" role="img" aria-labelledby="llmflow-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="llmflow-title">Architecture RakuAI pour les concepteurs de LLM : votre LLM se connecte via MCP au runtime RakuAI, qui pilote les lunettes connect&#233;es, les casques et le navigateur, en exposant six outils &#224; chaque image.</title>
+            <defs>
+                <linearGradient id="llmflow-grad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <linearGradient id="llmflow-grad-v" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <marker id="llmflow-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto-start-reverse">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+
+            <line x1="232" y1="120" x2="318" y2="120" stroke="url(#llmflow-grad)" stroke-width="2" marker-start="url(#llmflow-arrow)" marker-end="url(#llmflow-arrow)"/>
+            <line x1="512" y1="120" x2="598" y2="120" stroke="url(#llmflow-grad)" stroke-width="2" marker-start="url(#llmflow-arrow)" marker-end="url(#llmflow-arrow)"/>
+            <line x1="792" y1="120" x2="878" y2="120" stroke="url(#llmflow-grad)" stroke-width="2" marker-start="url(#llmflow-arrow)" marker-end="url(#llmflow-arrow)"/>
+
+            <rect x="40" y="72" width="192" height="96" rx="12" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+            <text x="136" y="108" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">Votre LLM</text>
+            <text x="136" y="132" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">tout mod&#232;le de fondation</text>
+
+            <rect x="320" y="72" width="192" height="96" rx="12" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+            <text x="416" y="104" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="600">MCP</text>
+            <text x="416" y="126" text-anchor="middle" fill="#9090b0" font-family="ui-monospace,monospace" font-size="11">stdio &#183; JSON Schema</text>
+            <text x="416" y="144" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">un contrat, chaque fournisseur</text>
+
+            <rect x="600" y="72" width="192" height="96" rx="12" fill="#15152e" stroke="url(#llmflow-grad)" stroke-width="2"/>
+            <text x="696" y="104" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="700">Runtime RakuAI</text>
+            <text x="696" y="126" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="11">graphe de sc&#232;ne &#183; physique</text>
+            <text x="696" y="144" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">pas de simulation</text>
+
+            <rect x="880" y="72" width="160" height="96" rx="12" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="960" y="100" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Sortie</text>
+            <text x="960" y="122" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">Lunettes connect&#233;es</text>
+            <text x="960" y="138" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">Casque &#183; Navigateur</text>
+
+            <line x1="696" y1="168" x2="696" y2="210" stroke="url(#llmflow-grad-v)" stroke-width="2"/>
+            <line x1="160" y1="210" x2="700" y2="210" stroke="#222244" stroke-width="1.5"/>
+            <text x="696" y="200" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="11" font-weight="600">six outils, chaque image</text>
+
+            <g font-family="ui-monospace,monospace" font-size="12">
+                <line x1="160" y1="210" x2="160" y2="244" stroke="#222244" stroke-width="1.5"/>
+                <rect x="40" y="244" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="160" y="271" text-anchor="middle" fill="#a388ff">load_world_model</text>
+
+                <line x1="430" y1="210" x2="430" y2="244" stroke="#222244" stroke-width="1.5"/>
+                <rect x="310" y="244" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="430" y="271" text-anchor="middle" fill="#a388ff">ingest_frame</text>
+
+                <line x1="700" y1="210" x2="700" y2="244" stroke="#222244" stroke-width="1.5"/>
+                <rect x="580" y="244" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.5"/>
+                <text x="700" y="271" text-anchor="middle" fill="#00cec9">get_scene_state</text>
+
+                <rect x="40" y="312" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="160" y="339" text-anchor="middle" fill="#a388ff">set_render_target</text>
+
+                <rect x="310" y="312" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="430" y="339" text-anchor="middle" fill="#a388ff">start_simulation</text>
+
+                <rect x="580" y="312" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.5"/>
+                <text x="700" y="339" text-anchor="middle" fill="#00cec9">get_metrics</text>
+            </g>
+        </svg>
+        </div>
+    </div>
+</section>
+
+<section class="llm-section">
+    <div class="container">
+        <h2>Ce qui devient possible</h2>
+        <ul class="llm-possible">
+            <li>Des NPC qui observent avant de parler — votre modèle lit l'état de la scène à chaque image</li>
+            <li>Des expériences qui se reconfigurent autour de coordonnées GPS réelles</li>
+            <li>Des world models au pas de simulation — votre modèle est le cerveau, pas un fournisseur de contenu</li>
+            <li>Livraison multiplateforme — lunettes connectées, casques, web, mobile</li>
+        </ul>
+    </div>
+</section>
+
+<section class="llm-section">
+    <div class="container">
+        <h2>vs Unity</h2>
+        <div class="llm-quote">
+            <p>Unity vient de publier son MCP natif. C'est bien pour la manipulation de scène au moment de la conception : Claude Desktop construit une scène, Unity la rend. Le MCP de RakuAI s'exécute au moment de la simulation. Votre modèle ne génère pas un fichier de scène — il pilote le monde image par image. Catégorie différente, les deux sont valables.</p>
+        </div>
+    </div>
+</section>
+
+<section class="llm-section">
+    <div class="container">
+        <h2>Contrat d'adaptateur</h2>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 720px; margin: 0 auto 28px;">
+            Au-delà des six outils principaux, les partenaires livrent des adaptateurs :
+        </p>
+        <ul class="llm-adapter-list">
+            <li><strong>VeoEnvironmentAdapter</strong> — Veo de Google</li>
+            <li><strong>RunwayEnvironmentAdapter</strong> — Runway</li>
+            <li><strong>YourModelAdapter</strong> — votre modèle</li>
+        </ul>
+        <div class="llm-quote">
+            <p>Le contrat d'adaptateur est public. Tout modèle qui produit des images + des deltas de scène peut devenir un adaptateur.</p>
+        </div>
+    </div>
+</section>
+
+<section class="llm-section">
+    <div class="container">
+        <h2>Preuves multi-fournisseurs</h2>
+        <div class="llm-receipts">
+            <p>Notre boucle de développement utilise quatre fournisseurs d'IA en parallèle :</p>
+            <ul>
+                <li>Claude Code écrit l'essentiel de notre runtime</li>
+                <li>Gemini relit les PR</li>
+                <li>ChatGPT sert de partenaire pour réfléchir à l'architecture</li>
+                <li>GitHub Copilot repère ce que les autres manquent</li>
+            </ul>
+            <p style="margin-top: 16px;">Nous ne sommes fidèles à aucun modèle unique. Notre runtime non plus.</p>
+        </div>
+    </div>
+</section>
+
+<section class="llm-section">
+    <div class="container">
+        <h2>Demande de partenariat</h2>
+        <div class="llm-partner">
+            <div class="llm-labs-row">
+                <span class="llm-lab-chip">Anthropic</span>
+                <span class="llm-lab-chip">OpenAI</span>
+                <span class="llm-lab-chip">Google</span>
+                <span class="llm-lab-chip">Meta</span>
+                <span class="llm-lab-chip">xAI</span>
+                <span class="llm-lab-chip">Mistral</span>
+                <span class="llm-lab-chip">Cohere</span>
+                <span class="llm-lab-chip">Stability AI</span>
+            </div>
+            <p>
+                Si vous concevez Claude, GPT, Gemini, Grok, Mistral ou un autre grand modèle, et que vous voulez un runtime
+                qui expose les capacités de votre modèle dans l'informatique spatiale — parlons-en.
+            </p>
+            <a href="mailto:partners@rakuai.com" class="btn btn-primary" style="padding: 13px 32px; font-size: 1.05rem;">Nous contacter &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+  <p>&copy; 2026 RakuAI, LLC &bull; 5 brevets américains délivrés (Priorité : juillet 2012) &bull; Propulsé par le moteur RakuAI</p>
+  <p style="margin-top: 6px;">
+    <a href="../engine/">Moteur</a> &bull;
+    <a href="../api/">API</a> &bull;
+    <a href="docs.html">Docs</a> &bull;
+    <a href="../games/">Arcade</a> &bull;
+    <a href="press.html">Presse</a> &bull;
+    <a href="developers/">Développeurs</a> &bull;
+    <a href="../privacy.html">Confidentialité</a> &bull;
+    <a href="../terms.html">Conditions</a> &bull;
+    <a href="contact.html">Contact</a> &bull;
+    <a href="https://github.com/RakuXR">GitHub</a>
+  </p>
+  <p class="trademark-notice">
+    RakuAI&trade; et RakuXR&trade; sont des marques déposées de RakuAI, LLC.
+    <span class="kanji-logo">&#x697D;</span>AI et <span class="kanji-logo">&#x697D;</span>XR sont des marques stylisées de RakuAI, LLC.
+    5 brevets américains délivrés (Priorité : juillet 2012).
+  </p>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+<script src="../js/nav-dropdown.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>
