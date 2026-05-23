@@ -144,10 +144,9 @@
     // Backend base from shared /js/api-config.js: prod -> api.rakuai.com,
     // staging.rakuai.com -> raku-api-staging.fly.dev, localhost -> :8000.
     // ?api_base= still honored on localhost for dev.
-    var __qs = new URLSearchParams(window.location.search);
-    var __overrideAllowed = ['localhost', '127.0.0.1'].indexOf(window.location.hostname) !== -1;
-    var API_BASE = (__overrideAllowed && __qs.get('api_base')) ? __qs.get('api_base') : (window.RAKU_API_BASE || 'https://api.rakuai.com');
     var params = new URLSearchParams(window.location.search);
+    var __overrideAllowed = ['localhost', '127.0.0.1', ''].indexOf(window.location.hostname) !== -1;
+    var API_BASE = (__overrideAllowed && params.get('api_base')) ? params.get('api_base') : (window.RAKU_API_BASE || 'https://api.rakuai.com');
     var userId = params.get('id');
 
     var avatar = document.getElementById('profile-avatar');
