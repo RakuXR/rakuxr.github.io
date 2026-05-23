@@ -3,10 +3,46 @@ title: "Sub-Millimeter Anchors and the Calligraphy Question"
 date: 2025-10-11
 author: Kevin Griffin
 tags: [ar, anchoring, computer-vision, partnerships, calligraphy, weekend-build]
-description: "Saturday morning the partnership conversation with NTT QONOQ pointed at a brutal precision target: sub-millimeter overlay drift on a sheet of calligraphy paper. by Saturday evening the runtime had a sub-millimeter anchor-pose API, real-time pen-tip tracking, and marker-based paper detection. The bar is now clearable. The product behind the bar is suddenly real."
+description: "A brutal precision target from a partner conversation: sub-millimeter overlay drift on a sheet of calligraphy paper. By Saturday evening the runtime had a sub-millimeter anchor-pose API, real-time pen-tip tracking, and marker-based paper detection. This is the kind of precision that turns AR from a toy into a tutor."
 series: learning-to-code-with-ai
 slug: sub-millimeter-anchors-and-calligraphy
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Sub-millimeter anchor overlaying a calligraphy stroke guide on practice paper" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="smac-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="smac-stroke" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#smac-bg)"/>
+  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Sub-Millimeter Anchoring</text>
+  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">The overlay lands on the same spot, every frame, every blink</text>
+  <g>
+    <rect x="380" y="150" width="440" height="270" rx="10" fill="#1a1a33" stroke="#9090b0" stroke-width="1.5"/>
+    <rect x="404" y="174" width="36" height="36" rx="4" fill="#0a0a1a" stroke="#00cec9" stroke-width="2"/>
+    <rect x="412" y="182" width="8" height="8" fill="#00cec9"/><rect x="424" y="182" width="8" height="8" fill="#00cec9"/><rect x="412" y="194" width="8" height="8" fill="#00cec9"/>
+    <text x="600" y="200" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="13">registration marker → 6DoF paper pose</text>
+    <path d="M460 360 C520 250 560 250 600 300 C640 350 700 250 760 230" stroke="url(#smac-stroke)" stroke-width="14" fill="none" stroke-linecap="round" opacity="0.85"/>
+    <circle cx="760" cy="230" r="9" fill="#e84393"/>
+    <text x="772" y="226" fill="#e84393" font-family="system-ui,sans-serif" font-size="13">pen tip</text>
+  </g>
+  <g font-family="system-ui,sans-serif">
+    <rect x="120" y="240" width="200" height="64" rx="10" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="220" y="272" text-anchor="middle" fill="#00cec9" font-size="22" font-weight="800">&lt; 1 mm</text>
+    <text x="220" y="294" text-anchor="middle" fill="#9090b0" font-size="13">overlay drift</text>
+    <rect x="880" y="240" width="200" height="64" rx="10" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="980" y="272" text-anchor="middle" fill="#00cec9" font-size="22" font-weight="800">~2 ms</text>
+    <text x="980" y="294" text-anchor="middle" fill="#9090b0" font-size="13">marker detect / frame</text>
+  </g>
+</svg>
+<figcaption>Anchor to the paper, not the room — and the error chain collapses.</figcaption>
+</figure>
+
+<p class="post-hook">Most AR forgives a few centimeters of drift. A calligraphy tutor forgives nothing. RakuAI is built for the precision where AR stops being a demo and starts being a teacher.</p>
 
 A partnership conversation was fresh in my head this Saturday morning, and a precision target with it that scared me a little. NTT QONOQ has been doing serious cultural-AR work in Japan, and the calligraphy use case they want this engine to support has an unforgiving spec: the virtual ink-stroke guide that overlays a sheet of practice paper has to land on the same exact spot on the same exact paper, every frame, every blink.
 
@@ -68,3 +104,12 @@ If you are NTT QONOQ or any other partner thinking about precision AR overlays i
 If you are an AI lab with a small model that does well at hand or pen segmentation, this is the kind of model that lives inside the simulation step on this engine. Latency budget is tight. Quality bar is high. If your model fits, this engine has a slot for it.
 
 Seventy commits. One demo target. One partnership conversation accelerating. The kind of Saturday I would not trade for anything.
+
+<div class="post-cta">
+<h3>Precision is a partnership story</h3>
+<p>If your product needs AR overlays that hold their position to the sub-millimeter — cultural AR, training, precision guidance — RakuAI is the runtime built for that bar. Let's talk about what your use case needs.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/smart-glasses.html">For Glasses Makers</a>
+<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
+</div>
+</div>

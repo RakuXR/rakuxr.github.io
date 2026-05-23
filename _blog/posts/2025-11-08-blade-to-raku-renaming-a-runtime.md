@@ -3,10 +3,41 @@ title: "Blade to Raku: A Saturday Rename Across the Codebase"
 date: 2025-11-08
 author: Kevin Griffin
 tags: [rebrand, naming, ar-glasses, history, weekend-build]
-description: "The placeholder name was finally ready to come off this Saturday. By the end of the weekend every reference in every repo had been swept from Blade and ar1-runtime to Raku. The brand has been waiting in the wings for years; the engineering finally caught up."
+description: "The placeholder name finally came off. In a weekend, agents swept every reference across every repo from Blade and ar1-runtime to Raku — no build break, no compatibility break. The name means ease, comfort, and the human touch. The engineering finally caught up to the brand that was waiting for it."
 series: learning-to-code-with-ai
 slug: blade-to-raku-renaming-a-runtime
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Codebase renamed from Blade and ar1-runtime to Raku across every repo" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="b2r-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="b2r-arrow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#b2r-bg)"/>
+  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Blade → Raku</text>
+  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">~110 files, two PRs, no build break</text>
+  <g font-family="system-ui,sans-serif">
+    <rect x="140" y="200" width="300" height="120" rx="16" fill="#1a1a33" stroke="#9090b0" stroke-width="2"/>
+    <text x="290" y="252" text-anchor="middle" fill="#9090b0" font-size="30" font-weight="800">ar1-runtime</text>
+    <text x="290" y="288" text-anchor="middle" fill="#9090b0" font-size="18">"Blade" (placeholder)</text>
+    <path d="M460 260 L740 260" stroke="url(#b2r-arrow)" stroke-width="4"/>
+    <polygon points="740,260 722,251 722,269" fill="#00cec9"/>
+    <text x="600" y="244" text-anchor="middle" fill="#a388ff" font-size="15" font-weight="600">rename sweep</text>
+    <rect x="760" y="200" width="300" height="120" rx="16" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="910" y="256" text-anchor="middle" fill="#00cec9" font-size="40" font-weight="800">Raku 楽</text>
+    <text x="910" y="290" text-anchor="middle" fill="#9090b0" font-size="16">ease · comfort · human touch</text>
+  </g>
+  <text x="600" y="400" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="14">A label change, not a redirection — the C API never moved.</text>
+</svg>
+<figcaption>The last step of a rebrand, not the first.</figcaption>
+</figure>
+
+<p class="post-hook">A name is a promise. Raku — ease, comfort, the human touch — is the promise behind a runtime built so AI experiences feel human, not mechanical. This is the weekend it became real.</p>
 
 The runtime had a name when I started building it. The name was a placeholder, the kind of placeholder that lets you stop worrying about naming and start writing code. I knew it was a placeholder when I picked it. The real name was waiting on a few things to settle.
 
@@ -63,3 +94,12 @@ If you are looking to partner on a product that ships on this engine, the name i
 If you are inside an AR2 device team thinking about which runtime to target on your platform, the name change is also a statement about where the engine is positioned in the market. Raku is not "the AR1+ runtime grown up." It is its own thing, with its own thesis, willing to ship on whichever hardware partner is the best fit. The rename is part of that statement.
 
 Quiet weekend, in the sense that nothing functional changed. The right kind of quiet.
+
+<div class="post-cta">
+<h3>The name is stable. The conversation can start.</h3>
+<p>Raku is a cross-platform AR runtime willing to ship on whichever hardware fits best. If you're a glasses maker deciding which runtime to target, here's what Raku is and what it's built for.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/smart-glasses.html">For Glasses Makers</a>
+<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
+</div>
+</div>

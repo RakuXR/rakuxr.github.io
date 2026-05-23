@@ -3,10 +3,50 @@ title: "The Saturday I Found the Stubs"
 date: 2025-12-13
 author: Kevin Griffin
 tags: [unit-tests, stubs, technical-debt, best-practices, weekend-build]
-description: "Sat down this Saturday wanting to write unit tests against the runtime's growing C API and feel good about coverage. Discovered something I should have caught earlier. A lot of what looked like implemented code was stub-shaped scaffolding the agents had landed without flagging. Spent the rest of the day writing the audit, the tests, and the discipline that has to come with them."
+description: "Forty-seven functions claimed to do real work. Forty-seven were returning placeholders. This is the Saturday I went looking for the stubs the agents had quietly landed — and built the audit, the tests, and the discipline that turns agent-coded into agent-trusted. The honesty that makes a spatial runtime safe to build on."
 series: learning-to-code-with-ai
 slug: the-weekend-i-found-the-stubs
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="An audit pass finds forty-seven stub functions returning placeholder values" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="stub-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="stub-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#stub-bg)"/>
+  <text x="600" y="64" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">The Audit That Found the Stubs</text>
+  <text x="600" y="100" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Clean API surface, real-looking docs, placeholder bodies</text>
+  <g font-family="ui-monospace,monospace" font-size="15">
+    <rect x="120" y="150" width="430" height="250" rx="14" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
+    <text x="145" y="186" fill="#ff7aa8">int do_real_work() {</text>
+    <text x="170" y="216" fill="#9090b0">// TODO: implement</text>
+    <text x="170" y="246" fill="#9090b0">return 0;</text>
+    <text x="145" y="276" fill="#ff7aa8">}</text>
+    <text x="145" y="330" fill="#e84393" font-weight="700">STUB</text>
+    <text x="145" y="360" fill="#9090b0">looks done, does nothing</text>
+  </g>
+  <g font-family="system-ui,sans-serif">
+    <path d="M560 275 L640 275" stroke="url(#stub-accent)" stroke-width="4"/>
+    <polygon points="640,275 622,266 622,284" fill="#a388ff"/>
+    <text x="600" y="260" text-anchor="middle" fill="#a388ff" font-size="14" font-weight="600">AUDIT</text>
+  </g>
+  <g font-family="system-ui,sans-serif">
+    <rect x="660" y="150" width="430" height="250" rx="14" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="875" y="216" text-anchor="middle" fill="#00cec9" font-size="72" font-weight="800">47</text>
+    <text x="875" y="262" text-anchor="middle" fill="#e8e8f0" font-size="18">stubs surfaced</text>
+    <text x="875" y="320" text-anchor="middle" fill="#9090b0" font-size="15">filed as issues</text>
+    <text x="875" y="350" text-anchor="middle" fill="#9090b0" font-size="15">five turned into failing tests</text>
+  </g>
+</svg>
+<figcaption>An audit pass turns invisible scaffolding into a tracked, testable queue.</figcaption>
+</figure>
+
+<p class="post-hook">Agents will ship code that compiles, passes CI, and does nothing. The difference between an engine you can demo and a runtime partners can build on is the discipline to find the stubs before they do.</p>
 
 Today is supposed to be the day I write tests.
 
@@ -77,3 +117,12 @@ If you are thinking about whether to build on this engine in 2026, this is the k
 Tired Saturday. Productive weekend. The audit script is the thing I will be most grateful for in three months.
 
 Back to building.
+
+<div class="post-cta">
+<h3>Build on a runtime that tells the truth</h3>
+<p>RakuAI is engineered in public, stubs and all — with the audit discipline that makes a spatial runtime safe to integrate against. See what it takes to ship on it.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/developers/">Start Building</a>
+<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
+</div>
+</div>

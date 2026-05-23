@@ -3,10 +3,46 @@ title: "Starting the Weekly Cadence"
 date: 2025-09-06
 author: Kevin Griffin
 tags: [foundation, ar-glasses, patents, history, ai-native]
-description: "First entry in the weekly cadence. A few design-doc Saturdays predate this one, walking through how the agent roster, the demo suite, and the SDK structure got mapped before any code existed. From this Saturday on, the cadence is weekly, the repos are live, and the agents are working."
+description: "Day zero of the public log: repos live, agents working, and a smart-glasses spec on the desk as the forcing function for every decision downstream. The bet is simple - the most interesting AI experiences are spatial ones, anchored in the real places you stand in. This is the engine being built explicitly to take direction from your model, every frame."
 series: learning-to-code-with-ai
 slug: day-zero-readme-spec-and-bet-on-ar-glasses
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="The spec as a forcing function feeding the runtime and SDK repos, with AI direction on every simulation step" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dayZero-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="dayZero-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#dayZero-bg)"/>
+  <text x="600" y="58" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Day Zero: README and Spec</text>
+  <text x="600" y="92" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">The spec is the forcing function. The repos go live underneath it.</text>
+  <g font-family="system-ui,sans-serif">
+    <rect x="450" y="130" width="300" height="64" rx="14" fill="#1a1a33" stroke="#a388ff" stroke-width="2"/>
+    <text x="600" y="160" text-anchor="middle" fill="#a388ff" font-size="18" font-weight="700">AR1+ Smart-Glasses Spec</text>
+    <text x="600" y="182" text-anchor="middle" fill="#9090b0" font-size="13">latency budget - AI surface - sensors</text>
+    <path d="M600 194 L600 220 M350 220 L850 220 M350 220 L350 250 M850 220 L850 250" stroke="url(#dayZero-accent)" stroke-width="3" fill="none"/>
+    <rect x="220" y="250" width="260" height="60" rx="12" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="350" y="278" text-anchor="middle" fill="#00cec9" font-size="17" font-weight="700">Runtime repo</text>
+    <text x="350" y="298" text-anchor="middle" fill="#9090b0" font-size="12">main loop, latency tracker, CI</text>
+    <rect x="720" y="250" width="260" height="60" rx="12" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="850" y="278" text-anchor="middle" fill="#00cec9" font-size="17" font-weight="700">SDK repo</text>
+    <text x="850" y="298" text-anchor="middle" fill="#9090b0" font-size="12">Unity + Unreal HelloAR</text>
+  </g>
+  <g font-family="system-ui,sans-serif">
+    <rect x="370" y="360" width="460" height="56" rx="14" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
+    <text x="600" y="386" text-anchor="middle" fill="#e84393" font-size="16" font-weight="700">Your model directs the simulation step</text>
+    <text x="600" y="406" text-anchor="middle" fill="#9090b0" font-size="13">in the runtime, every frame - not bolted on in an editor panel</text>
+  </g>
+</svg>
+<figcaption>Not a marketing document - a forcing function that every architectural decision downstream points back at.</figcaption>
+</figure>
+
+<p class="post-hook">Generative content in a browser is fine. Generative content anchored to the wall of your actual kitchen is the product. This is the engine being built to take direction from your model on every simulation step - day zero, in public.</p>
 
 This Saturday starts the regular weekly cadence on this blog. The four entries below this one were the design-doc Saturdays from earlier in the summer: agent roster, demo suite, folder structure, the last reflection before the code began. The cadence from here forward is weekly. The thing the blog is about is not new.
 
@@ -69,3 +105,12 @@ If you are a developer thinking about building on top of this eventually, the SD
 If you are watching for the early signal as a consumer, the signal is this: the engine is being built around the assumption that the most interesting experiences are AR experiences in real places, and the AI is what makes those experiences react. Generative content in a browser is fine. Generative content stuck on a wall in your kitchen is the actual product.
 
 Today is a Saturday. The blog is live. Back to building tomorrow.
+
+<div class="post-cta">
+<h3>Put your model in the real world, every frame</h3>
+<p>RakuAI is the spatial runtime built to take direction from your model on the simulation step - not bolted on, but inhabited. See where the AI layer plugs in.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/llm-makers.html">For AI Labs</a>
+<a class="cta-btn cta-secondary" href="/smart-glasses.html">For Smart-Glasses Makers</a>
+</div>
+</div>

@@ -3,10 +3,47 @@ title: "The Weekend Visual Studio 2026 Hated Our Code"
 date: 2025-12-21
 author: Kevin Griffin
 tags: [build, msvc, vs2026, openxr, debugging, dev-workflow, weekend-build]
-description: "The runtime built clean on Linux. The runtime built clean on macOS. Then Saturday morning I tried to build it in Visual Studio 2026 Insiders, and Visual Studio 2026 had opinions. Two days and twelve PRs later, the build is green. Here is the inside of those twelve PRs and what I learned about how MSVC 2026 wants to be talked to."
+description: "Two hundred errors, six categories, twelve PRs, two days — and the first green x64 build in the runtime's history. This is the inside of bringing a cross-platform spatial engine onto MSVC 2026 Insiders, the six error classes that will hit any C++ codebase, and the agent-driven sweeps that fixed them. Three platforms, one runtime, ready to ship on Windows."
 series: learning-to-code-with-ai
 slug: the-day-visual-studio-2026-hated-our-code
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="A cross-platform runtime goes from two hundred MSVC errors to a green Windows build" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="vs26-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="vs26-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#vs26-bg)"/>
+  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">From 200 Errors to a Green Build</text>
+  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">First successful x64 build, twelve PRs, two days</text>
+  <g font-family="system-ui,sans-serif" font-size="14" fill="#c8c8e0">
+    <rect x="100" y="150" width="230" height="46" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="215" y="178" text-anchor="middle">Windows macro collisions</text>
+    <rect x="100" y="208" width="230" height="46" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="215" y="236" text-anchor="middle">UTF-8 BOM source files</text>
+    <rect x="100" y="266" width="230" height="46" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="215" y="294" text-anchor="middle">Deprecated CRT APIs</text>
+    <rect x="100" y="324" width="230" height="46" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="215" y="352" text-anchor="middle">DLL export macros</text>
+    <rect x="100" y="382" width="230" height="46" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="215" y="410" text-anchor="middle">C2491 / missing includes</text>
+  </g>
+  <g font-family="system-ui,sans-serif">
+    <path d="M340 290 L470 290" stroke="url(#vs26-accent)" stroke-width="4"/>
+    <polygon points="470,290 452,281 452,299" fill="#a388ff"/>
+    <text x="405" y="276" text-anchor="middle" fill="#a388ff" font-size="14" font-weight="600">12 PRs</text>
+  </g>
+  <g font-family="ui-monospace,monospace">
+    <rect x="490" y="200" width="610" height="170" rx="14" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="795" y="262" text-anchor="middle" fill="#00cec9" font-size="22" font-weight="700">build: first successful x64 build</text>
+    <text x="795" y="296" text-anchor="middle" fill="#9090b0" font-size="16">Linux + macOS + Windows MSVC 2026</text>
+    <text x="795" y="334" text-anchor="middle" fill="#a388ff" font-size="15">commit f35f78bd</text>
+  </g>
+</svg>
+<figcaption>Six error classes, twelve agent-driven sweeps, three platforms green.</figcaption>
+</figure>
+
+<p class="post-hook">Cross-platform is a promise you only get to make once the build is green on every platform. This is the weekend RakuAI made it true on Windows — and the playbook for the six errors that will hit your C++ codebase too.</p>
 
 There is an old joke that the difference between a senior engineer and a junior engineer is that the senior engineer knows it is going to be a fight with the compiler before they start. This weekend was a fight with the compiler. The compiler was Microsoft Visual C++ as it ships in Visual Studio 2026 Insiders. The codebase was Raku. The fight stretched across both days and a few late-night runs from the workweek. The codebase won, but barely.
 
@@ -69,3 +106,12 @@ If you are a developer working on your own cross-platform C++ codebase and you a
 If you are an MSVC-team person reading this, the team has done good work on 2026 Insiders. The warnings are genuinely useful and the new tooling is better than 2022. The compatibility breaks are mostly there for good reasons. I'd file a few bug reports if I had more time. They are coming.
 
 Sunday night, the engine builds clean on three platforms. That is the right thing to head into Monday with.
+
+<div class="post-cta">
+<h3>One runtime, every platform your glasses ship on</h3>
+<p>RakuAI builds clean on Linux, macOS, and Windows MSVC 2026 — the cross-platform foundation smart-glasses makers need to ship real spatial experiences. See how the engine targets your hardware.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/smart-glasses.html">For Glasses Makers</a>
+<a class="cta-btn cta-secondary" href="/developers/">Developer Docs</a>
+</div>
+</div>

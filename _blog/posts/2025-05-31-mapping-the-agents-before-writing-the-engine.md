@@ -3,10 +3,48 @@ title: "Mapping the Agents Before Writing the Engine"
 date: 2025-05-31
 author: Kevin Griffin
 tags: [design, agents, governance, pre-build, weekend-build]
-description: "Three months before the first line of runtime code, this Saturday went into mapping the agents that would build it. Product, SDK, Studio, Marketing, Operations, AI strategy, plus a governance layer over the whole thing. The agents come before the architecture because the agents shape the architecture."
+description: "Before a single line of the spatial runtime existed, this Saturday mapped the agent fleet that would build it. Product, SDK, Studio, Marketing, Operations, AI strategy, plus a governance layer watching the watchers. This is how you supercharge a one-human team into a shipping engine company - the agents come before the architecture because the agents shape the architecture."
 series: learning-to-code-with-ai
 slug: mapping-the-agents-before-writing-the-engine
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Org chart of ten AI agents in defined roles with a human at the top and a governance layer over everything" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mapAgents-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="mapAgents-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#mapAgents-bg)"/>
+  <text x="600" y="58" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Map the Team Before the Engine</text>
+  <text x="600" y="92" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">One human, a fleet of agents, and a governance layer over the whole thing</text>
+  <g font-family="system-ui,sans-serif">
+    <rect x="510" y="120" width="180" height="50" rx="12" fill="#1a1a33" stroke="#a388ff" stroke-width="2"/>
+    <text x="600" y="151" text-anchor="middle" fill="#a388ff" font-size="18" font-weight="700">Human (you)</text>
+    <line x1="600" y1="170" x2="600" y2="200" stroke="url(#mapAgents-accent)" stroke-width="3"/>
+    <rect x="460" y="200" width="280" height="46" rx="12" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="600" y="229" text-anchor="middle" fill="#00cec9" font-size="16" font-weight="700">Agent Governance</text>
+  </g>
+  <g font-family="system-ui,sans-serif" font-size="13" fill="#c8c8e0">
+    <rect x="70" y="300" width="150" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="145" y="327" text-anchor="middle">Product</text>
+    <rect x="240" y="300" width="150" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="315" y="327" text-anchor="middle">SDK</text>
+    <rect x="410" y="300" width="150" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="485" y="327" text-anchor="middle">Codex Dev</text>
+    <rect x="580" y="300" width="150" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="655" y="327" text-anchor="middle">Studio</text>
+    <rect x="750" y="300" width="170" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="835" y="327" text-anchor="middle">Dev Relations</text>
+    <rect x="940" y="300" width="190" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="1035" y="327" text-anchor="middle">Marketing</text>
+    <rect x="160" y="368" width="200" height="44" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="260" y="395" text-anchor="middle">Strategic Partnerships</text>
+    <rect x="500" y="368" width="180" height="44" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="590" y="395" text-anchor="middle" fill="#e84393">Operations</text>
+    <rect x="820" y="368" width="200" height="44" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="920" y="395" text-anchor="middle" fill="#e84393">AI &amp; Data Strategy</text>
+  </g>
+  <text x="600" y="452" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="14">Ten roles, explicit handoffs, drift caught before it compounds</text>
+</svg>
+<figcaption>The org chart of a workflow where most of the boxes are agents and the connections are automated handoffs.</figcaption>
+</figure>
+
+<p class="post-hook">The team that builds your spatial runtime should be designed as deliberately as the runtime itself. RakuAI started with the team shape - one human, a fleet of agents - because the architecture is downstream of who builds it.</p>
 
 This Saturday went into a whiteboard exercise that anyone watching would think was premature. The product is a long way from shipping. The engine is not a repo yet. There is no code. There is no demo. There is a hardware roadmap, a patent estate that goes back over a decade, and a clear thesis about what the next generation of AR glasses should be. And here I am, sitting at the kitchen table, mapping out the agents that will build this thing.
 
@@ -80,3 +118,12 @@ Three reasons.
 Next Saturday goes into the SDK design. Folder structure, module surface, what the developer interaction looks like with each piece. The Saturday after that goes into the demo suite: what the canonical sample apps are, what they prove, what they teach. By the end of summer the design phase should be done and the actual repo can open.
 
 This is a slow build by traditional venture-pace standards. It will not look slow once it is done.
+
+<div class="post-cta">
+<h3>Build the runtime your AI was meant to inhabit</h3>
+<p>RakuAI is the AI-native spatial runtime engineered from the team up - see how a deliberate agent fleet builds an engine that LLM makers and glasses makers can trust.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/why-rakuai.html">Why RakuAI</a>
+<a class="cta-btn cta-secondary" href="/llm-makers.html">For AI Labs</a>
+</div>
+</div>

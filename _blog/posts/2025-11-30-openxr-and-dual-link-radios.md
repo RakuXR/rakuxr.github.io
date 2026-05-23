@@ -3,10 +3,47 @@ title: "OpenXR Is the Skeleton, Dual-Link Radios Are the Nerve"
 date: 2025-11-30
 author: Kevin Griffin
 tags: [openxr, rf-optical, ar-glasses, openxr-extensions, oss-standards, weekend-build]
-description: "A real bet on standards this weekend. By Sunday night the runtime had its OpenXR backbone (graphics binding, frame lifecycle, action sync) plus a dual-mode RF / optical link manager that lets the tether switch radios on the fly. Both bets are working."
+description: "A real bet on standards this weekend. By Sunday night the runtime had its OpenXR backbone — graphics binding, frame lifecycle, action sync — plus a dual-mode RF / optical link manager that switches radios on the fly without the app ever noticing. Adopt the standard where it exists; build where it doesn't; be ready to adopt again when it catches up."
 series: learning-to-code-with-ai
 slug: openxr-and-dual-link-radios
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="OpenXR backbone and a dual-mode RF optical link manager between glasses and tether" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="oxr-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#oxr-bg)"/>
+  <text x="600" y="60" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="32" font-weight="700">OpenXR Skeleton, Dual-Link Nerve</text>
+  <text x="600" y="96" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Adopt the standard. Build where it falls short.</text>
+  <g font-family="system-ui,sans-serif" font-size="14">
+    <g transform="translate(150,200)">
+      <rect x="0" y="20" width="200" height="110" rx="36" fill="#16213a" stroke="#6c5ce7" stroke-width="3"/>
+      <circle cx="65" cy="78" r="26" fill="#0a0a1a" stroke="#00cec9" stroke-width="2"/>
+      <circle cx="135" cy="78" r="26" fill="#0a0a1a" stroke="#00cec9" stroke-width="2"/>
+      <text x="100" y="168" text-anchor="middle" fill="#9090b0">AR glasses</text>
+    </g>
+    <g>
+      <path d="M360 250 C500 200 700 200 840 250" stroke="#00cec9" stroke-width="3" fill="none"/>
+      <text x="600" y="208" text-anchor="middle" fill="#00cec9">RF link (Wi-Fi 7)</text>
+      <path d="M360 290 C500 340 700 340 840 290" stroke="#a388ff" stroke-width="3" fill="none" stroke-dasharray="8 6"/>
+      <text x="600" y="362" text-anchor="middle" fill="#a388ff">optical link (where supported)</text>
+      <rect x="510" y="255" width="180" height="36" rx="8" fill="#1a1a33" stroke="#e84393"/>
+      <text x="600" y="279" text-anchor="middle" fill="#ff7aa8" font-size="13">link manager · failover</text>
+    </g>
+    <g transform="translate(850,210)">
+      <rect x="0" y="20" width="200" height="100" rx="12" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/>
+      <text x="100" y="62" text-anchor="middle" fill="#a388ff" font-weight="700">tether compute</text>
+      <text x="100" y="86" text-anchor="middle" fill="#9090b0" font-size="12">phone · beltpack · desktop</text>
+    </g>
+  </g>
+</svg>
+<figcaption>The runtime above never learns which radio it is using.</figcaption>
+</figure>
+
+<p class="post-hook">Build everything yourself and you ship a year late speaking a language nothing else understands. RakuAI takes the other path: stand on OpenXR where it fits, and engineer the hard parts — like a self-switching dual-radio tether — where the standards haven't arrived.</p>
 
 The temptation when you are building an engine for AR glasses is to build everything yourself. Build your own pose API. Build your own graphics binding. Build your own input model. Build your own controller abstractions. Each of those decisions is forty hours of agent work and another forty hours of human review. It compounds into a year of effort and an engine that nothing else in the ecosystem speaks the language of.
 
@@ -59,3 +96,12 @@ If you are a hardware partner whose device is OpenXR-conformant, the engine is c
 If you are working on the next-generation link technology between glasses and tether (Wi-Fi 7+, free-space optical, mmWave, anything), the link-manager abstraction is the layer to plug into. The runtime above does not need to know which radio you are. The runtime below abstracts you.
 
 Ninety-eight commits across the weekend. Engine grew a backbone and a nerve. Closing the laptop Sunday night after a long two days feels good.
+
+<div class="post-cta">
+<h3>A runtime built to run on your hardware</h3>
+<p>OpenXR-conformant device? RakuAI is closer to running on it than you'd think — the rest is vendor glue we're happy to do together. Building the next-gen link between glasses and tether? The abstraction layer is waiting.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/smart-glasses.html">For Glasses Makers</a>
+<a class="cta-btn cta-secondary" href="/developers/">For Developers</a>
+</div>
+</div>

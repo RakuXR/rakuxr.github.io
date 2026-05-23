@@ -8,6 +8,39 @@ series: learning-to-code-with-ai
 slug: meshy-pipeline-and-the-robe-that-broke-pose-estimation
 ---
 
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Seven-stage generative 3D asset pipeline from text prompt to runtime-ready content pack" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="msh-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="msh-flow" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#msh-bg)"/>
+  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Text Prompt to Content Pack</text>
+  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Seven stages, eight genres shipped, survives a 404 and a robe</text>
+  <line x1="80" y1="220" x2="1120" y2="220" stroke="url(#msh-flow)" stroke-width="4"/>
+  <g font-family="system-ui,sans-serif" font-size="13" fill="#c8c8e0" text-anchor="middle">
+    <circle cx="130" cy="220" r="10" fill="#6c5ce7"/><text x="130" y="265">Text-to-3D</text>
+    <circle cx="271" cy="220" r="10" fill="#7d6ce8"/><text x="271" y="265">PBR maps</text>
+    <circle cx="412" cy="220" r="10" fill="#8e7ce9"/><text x="412" y="265">LOD0</text>
+    <circle cx="553" cy="220" r="10" fill="#9f8cea"/><text x="553" y="265">Remesh</text>
+    <circle cx="694" cy="220" r="10" fill="#7ec0cf"/><text x="694" y="265">LOD1</text>
+    <circle cx="835" cy="220" r="10" fill="#3fc4cc"/><text x="835" y="265">Organize</text>
+    <circle cx="1070" cy="220" r="14" fill="#00cec9"/><text x="1070" y="270" fill="#00cec9" font-weight="700">Pack</text>
+  </g>
+  <g font-family="system-ui,sans-serif" font-size="14" fill="#9090b0" text-anchor="middle">
+    <rect x="430" y="330" width="340" height="48" rx="10" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
+    <text x="600" y="360" fill="#ff7aa8">graceful degradation: LOD0-only on 404</text>
+  </g>
+</svg>
+<figcaption>One asset, seven stages, a pack the SDK loads no matter what the vendor API does.</figcaption>
+</figure>
+
+<p class="post-hook">Generative 3D is only as good as the pipeline that turns a prompt into a runtime-ready asset. RakuAI built one that survives vanishing vendor endpoints, Unicode crashes, and the friction the demos never show you.</p>
+
 The asset pipeline is one of the boring-and-load-bearing pieces of the engine. It is the thing that turns a designer's idea ("I want twenty enemies for the tower defense pack") into a folder of textured, rigged, LOD-ed 3D assets the runtime can load. For the last six weeks the pipeline that has been doing that work is Meshy.ai, wired through a seven-stage script that lives at `scripts/meshy_asset_pipeline.py` in the runtime repo.
 
 This Saturday morning the v1 bridge between the Meshy pipeline and the SDK pack format is settled enough that I can write down what we learned. Three things. None of them are in the API docs.
@@ -77,3 +110,12 @@ The first is that the three lessons above are the kind of friction that does not
 The second is that the pipeline is now stable enough that the next conversation is not "does Meshy work for us." It is "what do we want the asset library to be." That is a designer conversation, not an engineering one. The engineering side has done its job by getting out of the way.
 
 Eight genres down. Five to go. The pipeline survives a 404. The pipeline survives a Japanese character. The pipeline does not, yet, survive a robe. Saturday well spent.
+
+<div class="post-cta">
+<h3>Generate worlds your AI can actually run</h3>
+<p>RakuAI turns generative assets into runtime-ready content packs — one contract, any source, hardened against the friction vendor demos hide. Bring your creations into a spatial runtime built to ship.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/creator.html">For Creators</a>
+<a class="cta-btn cta-secondary" href="/developers/">For Developers</a>
+</div>
+</div>
