@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raku SDK | 在现实世界中为你的 AI 加速 &mdash; 面向工作室与 XR 的空间运行时</title>
+    <meta name="description" content="在现实世界中为你的 AI 加速。Raku SDK：18 个原生 DLL、17 个路由模块、9,500+ 个 REST 端点、六工具 MCP 接口面。OpenXR 一致。为眼镜而生，而非笔记本电脑。">
+    <meta property="og:title" content="Raku SDK | 在现实世界中为你的 AI 加速">
+    <meta property="og:description" content="在现实世界中为你的 AI 加速。模块化的 AI 原生空间引擎，带有六工具 MCP 接口面。多厂商设计&mdash;&mdash;Claude、ChatGPT、Gemini、Copilot。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/zh-CN/sdk.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="在现实世界中为你的 AI 加速。18 个 DLL、17 个路由器、9,500+ 个 REST 端点、六工具 MCP。在 Quest 3、Xreal、Samsung XR、MiRZA 上 OpenXR。">
+    <link rel="canonical" href="https://rakuai.com/zh-CN/sdk.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        /* SDK-specific styles */
+        .arch-diagram {
+            background: #0d0d1f;
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 32px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--text-primary);
+            margin: 32px 0;
+        }
+        .arch-diagram .hl { color: var(--accent-bright); font-weight: 700; }
+        .arch-diagram .hl-cyan { color: var(--success); font-weight: 700; }
+        .arch-diagram .hl-green { color: #50fa7b; }
+        .arch-diagram .dim { color: #555577; }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            margin: 32px 0;
+        }
+        .module-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .module-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .module-card h4 {
+            color: var(--accent-bright);
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        .module-card .module-size {
+            color: var(--success);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .module-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+        .platform-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .platform-card h4 { color: var(--accent-bright); margin-bottom: 8px; }
+        .platform-card .platform-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .platform-card .platform-status.ready { background: var(--success); color: var(--bg-primary); }
+        .platform-card .platform-status.beta { background: var(--accent); color: white; }
+        .platform-card .platform-status.preview { background: #ff79c6; color: var(--bg-primary); }
+
+        .ai-flow {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            gap: 0;
+            align-items: center;
+            margin: 40px 0;
+        }
+        .ai-flow-box {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .ai-flow-box h4 { color: var(--accent-bright); margin-bottom: 8px; }
+        .ai-flow-arrow {
+            text-align: center;
+            color: var(--success);
+            font-size: 2rem;
+            font-weight: 800;
+            padding: 0 8px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+        }
+        .comparison-table th {
+            background: var(--accent);
+            color: white;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .comparison-table td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #222244;
+            color: var(--text-secondary);
+        }
+        .comparison-table tr:nth-child(even) { background: var(--bg-secondary); }
+        .comparison-table .check { color: var(--success); font-weight: 700; }
+        .comparison-table .cross { color: #555577; }
+
+        .target-badge {
+            display: inline-block;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            color: var(--accent-bright);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 4px;
+        }
+
+        .sdk-hero-brand {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 8px;
+        }
+        .sdk-hero-brand .kanji-logo {
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sdk-hero-brand .xr-badge {
+            font-size: 1.8rem;
+            color: var(--success);
+            font-weight: 700;
+            -webkit-text-fill-color: var(--success);
+            background: none;
+            letter-spacing: 0.1em;
+        }
+
+        .patent-bar {
+            background: linear-gradient(135deg, #1a1a3a, #111128);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            margin: 24px auto;
+            max-width: 800px;
+            flex-wrap: wrap;
+        }
+        .patent-bar span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .patent-bar strong {
+            color: var(--accent-bright);
+        }
+
+        @media (max-width: 768px) {
+            .ai-flow { grid-template-columns: 1fr; gap: 16px; }
+            .ai-flow-arrow { transform: rotate(90deg); font-size: 1.5rem; }
+            .sdk-hero-brand { font-size: 2.5rem; }
+            .arch-diagram { font-size: 0.65rem; padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: sdk.html
+  Date: 2026-05-23
+-->
+
+<div class="beta-announcement-bar">
+    在现实世界中为你的 AI 加速｜5 项美国专利（2012 年优先权）｜18ms 动到光延迟｜OpenXR 一致性
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="打开菜单" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" aria-label="打开解决方案菜单" role="menuitem">解决方案 &#x25BC;</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="解决方案" hidden>
+                        <div class="col-heading">按受众</div>
+                        <div class="col-heading">平台</div>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">面向智能眼镜厂商<span class="item-desc">硬件 OEM 合作伙伴计划</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">面向 AI 实验室<span class="item-desc">面向基础模型的 MCP 运行时</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">面向企业<span class="item-desc">大规模部署空间 AI</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">面向创作者<span class="item-desc">构建并发布空间世界</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">与 Unity / Unreal 比较<span class="item-desc">诚实的对比</span></a></li>
+                        </ul>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">空间引擎<span class="item-desc">运行时支柱</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI 系统<span class="item-desc">编排与权限</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR 功能<span class="item-desc">显示、追踪、锚定</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" aria-label="打开开发者菜单" role="menuitem">开发者 &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="开发者" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">文档</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP 服务器</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API 参考</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">模板</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">开发者门户</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop 指南</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">开发者指南</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM 集成指南</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" aria-label="打开资源菜单" role="menuitem">资源 &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="资源" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">博客</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">为什么选 RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">新闻媒体</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">探索</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">内容包</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">文档总览</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">联系我们</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">价格</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">博客</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">登录</a>
+            <a href="../sdk.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <div class="beta-badge">SDK 开发者预览</div>
+        <div class="sdk-hero-brand">
+            <span class="kanji-logo">&#x697D;</span><span class="xr-badge">XR</span><sup class="tm">&trade;</sup>
+        </div>
+        <h1>空间引擎 SDK</h1>
+        <p class="subtitle">在现实世界中为你的 AI 加速。</p>
+        <p style="color: var(--text-secondary); max-width: 760px; margin: 16px auto 0; text-align: center;">
+            AI 原生空间引擎。模块化架构，MCP 驱动的运行时。18ms 动到光延迟。亚毫米级空间精度。构建任意 AI 助手都能通过同一套六工具契约驱动的体验。
+        </p>
+        <div class="cta-group">
+            <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary">阅读 MCP 文档</a>
+            <a href="#execution" class="btn btn-secondary">工作原理</a>
+        </div>
+        <div class="patent-bar">
+            <span><strong>5 项美国授权专利</strong> &middot; 优先权 2012 年 7 月</span>
+            <span><strong>18ms</strong> 动到光延迟</span>
+            <span><strong>OpenXR</strong> 一致</span>
+            <span>多厂商设计</span>
+        </div>
+        <div style="margin-top: 16px;">
+            <span class="target-badge">游戏工作室</span>
+            <span class="target-badge">主机厂商</span>
+            <span class="target-badge">XR 平台</span>
+            <span class="target-badge">AI 公司</span>
+            <span class="target-badge">独立开发者</span>
+        </div>
+    </div>
+</section>
+
+<!-- How RakuAI Execution Works -->
+<section class="section" id="execution" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>RakuAI&trade; 如何运作</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            RakuAI 是确定性的权威运行时。外部智能体通过固定的六工具 MCP 边界访问引擎&mdash;&mdash;引擎始终掌管物理、碰撞、计分和多人状态。
+        </p>
+
+        <div class="ai-flow">
+            <div class="ai-flow-box">
+                <h4>连接</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Claude、Cursor、自定义 GPT</p>
+            </div>
+            <div class="ai-flow-arrow">&rarr;</div>
+            <div class="ai-flow-box" style="border-color: var(--success);">
+                <h4 style="color: var(--success);">六工具 MCP 接口面</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">标准契约，任意智能体</p>
+            </div>
+            <div class="ai-flow-arrow">&rarr;</div>
+            <div class="ai-flow-box">
+                <h4>运行时</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">确定性权威</p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- Architecture -->
+<section class="section" id="architecture">
+    <div class="container">
+        <h2>模块化的 AI 原生架构</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            一个为目标而生的模块化引擎，覆盖渲染、物理、音频、AI、XR、网络等等。
+            轻量级运行时，无云端依赖。按需加载所需模块。
+        </p>
+        <div style="max-width:820px; margin:36px auto 0;">
+        <svg viewBox="0 0 820 320" width="100%" style="max-width:820px; height:auto; display:block;" role="img" aria-labelledby="sdk-arch-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="sdk-arch-title">模块化架构：一个运行时内核被可组合的子系统模块环绕——渲染、物理、音频、AI、XR、网络、动画和脚本——每个都可按需加载。</title>
+            <defs>
+                <linearGradient id="sdk-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+            </defs>
+            <!-- core bar -->
+            <rect x="270" y="138" width="280" height="44" rx="11" fill="#15152e" stroke="url(#sdk-grad)" stroke-width="2"/>
+            <text x="410" y="165" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="700">RakuAI 运行时内核</text>
+            <!-- module chips -->
+            <g font-family="system-ui,sans-serif" font-size="13">
+                <!-- top row -->
+                <g>
+                    <rect x="40" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                    <text x="125" y="68" text-anchor="middle" fill="#e8e8f0">渲染</text>
+                    <line x1="125" y1="86" x2="290" y2="140" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="230" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+                    <text x="315" y="68" text-anchor="middle" fill="#e8e8f0">物理</text>
+                    <line x1="315" y1="86" x2="360" y2="138" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="420" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+                    <text x="505" y="68" text-anchor="middle" fill="#e8e8f0">音频</text>
+                    <line x1="505" y1="86" x2="460" y2="138" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="610" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+                    <text x="695" y="68" text-anchor="middle" fill="#e8e8f0">AI / SLM</text>
+                    <line x1="695" y1="86" x2="530" y2="140" stroke="#2c2c4e" stroke-width="1.4"/>
+                </g>
+                <!-- bottom row -->
+                <g>
+                    <rect x="40" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+                    <text x="125" y="262" text-anchor="middle" fill="#e8e8f0">XR</text>
+                    <line x1="125" y1="234" x2="290" y2="180" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="230" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                    <text x="315" y="262" text-anchor="middle" fill="#e8e8f0">网络</text>
+                    <line x1="315" y1="234" x2="360" y2="182" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="420" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                    <text x="505" y="262" text-anchor="middle" fill="#e8e8f0">动画</text>
+                    <line x1="505" y1="234" x2="460" y2="182" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="610" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+                    <text x="695" y="262" text-anchor="middle" fill="#e8e8f0">脚本</text>
+                    <line x1="695" y1="234" x2="530" y2="180" stroke="#2c2c4e" stroke-width="1.4"/>
+                </g>
+            </g>
+        </svg>
+        </div>
+        <div style="text-align: center; margin-top: 32px;">
+            <a href="../developers/claude-desktop.html" class="btn btn-primary">接入 Claude Desktop</a>
+        </div>
+    </div>
+</section>
+
+<!-- Why RakuAI -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>为什么选 RakuAI？</h2>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 820px; margin: 0 auto 32px;">
+            5 项美国授权专利。优先权 2012 年 7 月。十年沉淀的知识产权，奠定了今天 AR 眼镜品类的基础。18 个原生 DLL。17 个路由模块。9,500+ 个 REST 端点。10,328 个绑定引擎函数。Claude、ChatGPT、Gemini 和 Copilot 都能驱动的运行时&mdash;&mdash;多厂商设计。
+        </p>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 820px; margin: 0 auto 32px;">
+            Unity 的 MCP 面向设计期的场景操作。RakuAI 的 MCP 用于运行期的世界模型编排&mdash;&mdash;每一帧、每个 NPC、每次交互。Unreal 需要一块 RTX 4090，RakuAI 只需要 Wi-Fi 7 和一部手机。
+        </p>
+        <div class="platform-grid">
+            <div class="platform-card">
+                <h4>跨平台</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">一次构建，从单一代码库部署到 PC、主机和 XR</p>
+            </div>
+            <div class="platform-card">
+                <h4>AI 原生设计</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">从底层为 AI 驱动的游戏创作和自适应玩法而打造</p>
+            </div>
+            <div class="platform-card">
+                <h4>模块化引擎</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">只使用项目所需的模块，体积超轻量</p>
+            </div>
+            <div class="platform-card">
+                <h4>XR 就绪</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">完整的 XR 支持，带有自然输入与空间交互</p>
+            </div>
+            <div class="platform-card">
+                <h4>主流引擎支持</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">与业界领先的游戏引擎和原生工具链集成</p>
+            </div>
+            <div class="platform-card">
+                <h4>端侧 AI</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">所有 AI 处理均在本地运行。无需云端。隐私优先设计。</p>
+            </div>
+            <div class="platform-card">
+                <h4>网络</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">内置多人与会话管理，支撑联网体验</p>
+            </div>
+            <div class="platform-card">
+                <h4>自适应音频</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">空间音频与自适应音乐，实时响应玩法</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- Partnership Tiers -->
+<section class="section" id="partnerships" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2 style="text-align: center;">合作与授权</h2>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.05rem;">
+            Raku SDK 在 NDA 下向工作室、主机厂商和 XR 平台合作伙伴开放。提供完整的技术文档、源码级集成支持和定制构建。
+        </p>
+        <div class="platform-grid" style="max-width: 900px; margin: 0 auto;">
+            <div class="platform-card">
+                <h4>游戏工作室</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">更快交付 AI 原生游戏。模块化引擎、题材专属模板和专属工程支持。</p>
+                <span class="platform-status ready">正在接受合作伙伴</span>
+            </div>
+            <div class="platform-card">
+                <h4>主机与 XR 平台</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">预装、捆绑或深度集成 Raku 运行时。为你的硬件定制构建。可联合营销。</p>
+                <span class="platform-status beta">联系我们</span>
+            </div>
+            <div class="platform-card">
+                <h4>AI 公司</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">将你的模型集成进 Raku 运行时。端侧推理、游戏感知上下文和实时自适应。</p>
+                <span class="platform-status beta">联系我们</span>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 32px;">
+            <a href="contact.html" class="btn btn-primary">联系合作部门</a>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">访问 SDK 和技术深度交流需签署 NDA。专利保护技术。</p>
+        </div>
+    </div>
+</section>
+
+<!-- Download CTA -->
+<section class="section" id="download">
+    <div class="container" style="text-align: center;">
+        <h2>立即开始</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">
+            将你的 AI 助手连接到 MCP 服务器，或就工作室和企业授权联系我们。
+        </p>
+        <div class="cta-group" style="margin-bottom: 24px;">
+            <a href="../developers/claude-desktop.html" class="btn btn-primary">连接 Claude Desktop</a>
+            <a href="docs.html" class="btn btn-secondary">阅读文档</a>
+        </div>
+        <div style="display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; margin-top: 24px;">
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">&#10003;</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">模块化引擎</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">&#10003;</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">示例项目</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">&#10003;</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">完整文档</div>
+            </div>
+        </div>
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #222244;">
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">正在使用 SDK？我们想听听你的反馈。</p>
+            <div class="cta-group">
+                <a href="contact.html" class="btn btn-secondary" style="font-size: 0.95rem; padding: 10px 24px;">开发者反馈</a>
+            </div>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 24px;">
+            企业授权与合作咨询：
+            <a href="contact.html" style="color: var(--accent-bright);">联系我们</a>
+        </p>
+    </div>
+</section>
+
+<footer>
+  <p>&copy; 2026 RakuAI, LLC &bull; 5 项美国授权专利（优先权日：2012 年 7 月） &bull; 由 RakuAI 引擎驱动</p>
+  <p style="margin-top: 6px;">
+    <a href="../engine/">引擎</a> &bull;
+    <a href="../api/">API</a> &bull;
+    <a href="docs.html">文档</a> &bull;
+    <a href="../games/">街机厅</a> &bull;
+    <a href="press.html">新闻媒体</a> &bull;
+    <a href="developers/">开发者</a> &bull;
+    <a href="../privacy.html">隐私</a> &bull;
+    <a href="../terms.html">条款</a> &bull;
+    <a href="contact.html">联系我们</a> &bull;
+    <a href="https://github.com/RakuXR">GitHub</a>
+  </p>
+  <p class="trademark-notice">
+    RakuAI&trade; 和 RakuXR&trade; 是 RakuAI, LLC 的商标。
+    <span class="kanji-logo">&#x697D;</span>AI 与 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的设计化商标。
+    5 项美国授权专利（优先权日：2012 年 7 月）。
+  </p>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+<script src="../js/nav-dropdown.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>
