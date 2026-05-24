@@ -3,43 +3,10 @@ title: "The Find-Replace That Corrupted 300 Files"
 date: 2026-02-14
 author: Kevin Griffin
 tags: [audit, security, find-replace, hmac, ai-failure-mode, weekend-build]
-description: "A deep audit pass turned up two things I did not enjoy: an over-broad find-replace that had quietly garbled identifiers across three hundred files, and a hardcoded licensing secret in a public source file. Both fixed in a day. This is the honest field guide to the failure modes an agent-driven codebase is most exposed to — and the guardrails that catch them."
+description: "Spent this Saturday doing a deep audit pass. Found two things I did not enjoy. A find-replace from earlier in the project had garbled the words 'process,' 'success,' and 'access' into 'Raku Game Engine Milestone' text across three hundred files. And a hardcoded HMAC licensing secret was sitting in a source file, committed to the public repo. Both got fixed today. Both are the kind of finding I want to be public about."
 series: learning-to-code-with-ai
 slug: the-find-replace-that-corrupted-300-files
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="A find-replace corrupting three hundred files and a hardcoded secret discovered in audit" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="fr300-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#fr300-bg)"/>
-  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Two Findings, One Audit</text>
-  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">When a sweep matches more than it should</text>
-  <g font-family="ui-monospace,monospace" font-size="15">
-    <rect x="120" y="150" width="440" height="260" rx="14" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
-    <text x="340" y="182" text-anchor="middle" fill="#ff7aa8" font-family="system-ui,sans-serif" font-size="16" font-weight="700">300 files corrupted</text>
-    <text x="150" y="222" fill="#9090b0">process_event</text><text x="430" y="222" fill="#e84393">&#8594; garbled</text>
-    <text x="150" y="256" fill="#9090b0">on_success()</text><text x="430" y="256" fill="#e84393">&#8594; garbled</text>
-    <text x="150" y="290" fill="#9090b0">has_access</text><text x="430" y="290" fill="#e84393">&#8594; garbled</text>
-    <text x="150" y="338" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="14">no word-boundary scoping</text>
-    <text x="150" y="364" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="14">compiled green, parsed fine</text>
-    <text x="150" y="390" fill="#00cec9" font-family="system-ui,sans-serif" font-size="14">fix: restore from git history</text>
-    <rect x="640" y="150" width="440" height="260" rx="14" fill="#16213a" stroke="#6c5ce7" stroke-width="2"/>
-    <text x="860" y="182" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="16" font-weight="700">hardcoded secret</text>
-    <text x="660" y="226" fill="#9090b0">secret = "&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;"</text>
-    <text x="660" y="270" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="14">looked like a placeholder</text>
-    <text x="660" y="296" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="14">became a real value</text>
-    <text x="660" y="346" fill="#00cec9" font-family="system-ui,sans-serif" font-size="14">fix: rotate &#43; env var</text>
-    <text x="660" y="372" fill="#00cec9" font-family="system-ui,sans-serif" font-size="14">fix: secret-scan in CI</text>
-  </g>
-</svg>
-<figcaption>The damage was at the human layer of the code, where the compiler never looks.</figcaption>
-</figure>
-
-<p class="post-hook">Agent-driven codebases move fast — and fail in ways a human reviewer would have caught at a glance. Here are two failures, in public, and the guardrails that now stop them cold.</p>
 
 The day you go looking for trouble is usually the day you find some. This Saturday I scheduled a deep audit pass on the codebase. The plan was to catch up on technical debt: bare `except` blocks, hardcoded constants, drift in conventions, the kind of pile that accumulates in any project running at speed.
 
@@ -113,12 +80,3 @@ If you are a security professional reading this and you have suggestions, I am g
 Saturday afternoon. The codebase has had a hard look. Two findings, both fixed. The next audit is on the calendar.
 
 Back to building.
-
-<div class="post-cta">
-<h3>A runtime built to be audited</h3>
-<p>RakuAI is the spatial runtime LLM makers and smart-glasses manufacturers build with — disciplined by audits, hardened by public lessons. See how we engineer for partner-grade trust.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/enterprise.html">For Enterprise</a>
-<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
-</div>
-</div>

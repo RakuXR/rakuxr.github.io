@@ -3,48 +3,10 @@ title: "Built to Take Direction from ChatGPT, Claude, and Gemini"
 date: 2025-11-23
 author: Kevin Griffin
 tags: [llm, partnerships, voice-pipeline, openxr, xr-assistant, ai-native, weekend-build]
-description: "The weekend the engine learned to take direction from any cloud LLM — as a runtime concern, not a chat panel. By Sunday the XRAssistantService streamed model intent through the voice pipeline, eye-tracked foveation shipped, and Wi-Fi 7 offloaded rendering had a real host. ChatGPT can drive it. Claude can drive it. Gemini can drive it. That is the whole point."
+description: "Clear ambition for the weekend: ship the layer that lets a cloud LLM stream intent into the simulation loop every frame. By Sunday evening the XRAssistantService was wired through the voice pipeline, OpenXR foveation was working, Wi-Fi 7 offloaded rendering had a real host, and the engine was demonstrably model-agnostic. 118 commits over two days."
 series: learning-to-code-with-ai
 slug: built-to-take-direction-from-chatgpt-claude-gemini
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Any cloud LLM streaming intent tokens into the Raku simulation loop every frame" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bttd-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-    <linearGradient id="bttd-flow" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#bttd-bg)"/>
-  <text x="600" y="60" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="32" font-weight="700">Built to Take Direction from Any Model</text>
-  <text x="600" y="96" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Intent tokens as a control input — on the simulation step, every frame</text>
-  <g font-family="system-ui,sans-serif" font-size="15">
-    <rect x="100" y="180" width="150" height="48" rx="10" fill="#1a1a33" stroke="#a388ff" stroke-width="2"/>
-    <text x="175" y="210" text-anchor="middle" fill="#a388ff" font-weight="700">ChatGPT</text>
-    <rect x="100" y="240" width="150" height="48" rx="10" fill="#1a1a33" stroke="#a388ff" stroke-width="2"/>
-    <text x="175" y="270" text-anchor="middle" fill="#a388ff" font-weight="700">Claude</text>
-    <rect x="100" y="300" width="150" height="48" rx="10" fill="#1a1a33" stroke="#a388ff" stroke-width="2"/>
-    <text x="175" y="330" text-anchor="middle" fill="#a388ff" font-weight="700">Gemini</text>
-    <path d="M250 264 C360 264 360 264 430 264" stroke="url(#bttd-flow)" stroke-width="4" fill="none"/>
-    <polygon points="430,264 412,255 412,273" fill="#00cec9"/>
-    <rect x="440" y="220" width="280" height="90" rx="12" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
-    <text x="580" y="255" text-anchor="middle" fill="#00cec9" font-weight="700">XRAssistantService</text>
-    <text x="580" y="282" text-anchor="middle" fill="#9090b0" font-size="13">model-agnostic intent protocol</text>
-    <path d="M720 264 L800 264" stroke="url(#bttd-flow)" stroke-width="4"/>
-    <polygon points="800,264 782,255 782,273" fill="#00cec9"/>
-    <rect x="810" y="210" width="290" height="110" rx="12" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
-    <text x="955" y="248" text-anchor="middle" fill="#ff7aa8" font-weight="700">Runtime simulation step</text>
-    <text x="955" y="276" text-anchor="middle" fill="#9090b0" font-size="13">voice pipeline · gaze · actions</text>
-    <text x="955" y="298" text-anchor="middle" fill="#9090b0" font-size="13">acted on continuously, in flight</text>
-  </g>
-</svg>
-<figcaption>Not a chatbot pasted into AR — the model's stream of intent as a first-class control input.</figcaption>
-</figure>
-
-<p class="post-hook">The era of "this product runs on that one vendor's model" is short. RakuAI is built so any model — ChatGPT, Claude, Gemini, or yours — can drive an AR experience in real time. Bring the best model. The runtime is ready.</p>
 
 Most game engines that integrate with a cloud LLM today do it the way you would expect. A model gets bolted into the editor as a chat panel. You type at the chat panel. The panel writes some content or some code. The runtime, which has no idea any of this happened, runs the resulting artifact later.
 
@@ -109,12 +71,3 @@ If you are a hardware partner building AR glasses with Wi-Fi 7 onboard and an ex
 If you are a developer thinking about what kinds of experiences this engine will let you build, the answer is starting to be visible in the commit log. Voice-driven AR experiences that respond to the user mid-sentence are achievable. Real-time multiplayer AR with sub-millimeter anchoring is achievable. The compute you need for either lives on the glasses or on the tether, depending on what your experience needs.
 
 Hundred and eighteen commits, big weekend. The engine looks different on Sunday night than it did when the laptop opened on Saturday.
-
-<div class="post-cta">
-<h3>Your model belongs on the simulation step</h3>
-<p>RakuAI's XRAssistantService is a model-agnostic interface for streaming intent into a live AR experience. If you build frontier models, this is the integration we want to talk to you about.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/llm-makers.html">For AI Labs</a>
-<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
-</div>
-</div>

@@ -3,45 +3,10 @@ title: "Claude Writes, Gemini Reviews, ChatGPT Rubber-Ducks"
 date: 2025-12-06
 author: Kevin Griffin
 tags: [dev-workflow, multi-vendor, ai-tools, code-review, weekend-build]
-description: "Three months in, the dev workflow has settled into a multi-vendor rhythm: Claude writes the runtime, Gemini reviews the diffs, ChatGPT rubber-ducks the architecture, Copilot autocompletes. The single most important rule — the model that writes a PR cannot be the model that reviews it. This is the workflow building an AI-native runtime, and the posture the runtime itself takes toward models."
+description: "Three months into the public log, the dev workflow has settled into a multi-vendor rhythm. Different models do different parts of the loop. Spent this Saturday morning writing down how I divide the work and why the multi-vendor pattern is the one I keep coming back to."
 series: learning-to-code-with-ai
 slug: claude-writes-gemini-reviews-chatgpt-rubber-ducks
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Multi-vendor dev loop with Claude writing, Gemini reviewing, ChatGPT rubber-ducking, Copilot autocompleting" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="cwgr-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#cwgr-bg)"/>
-  <text x="600" y="60" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="32" font-weight="700">Four Models, Four Roles</text>
-  <text x="600" y="96" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">The writer of a PR can never be its reviewer</text>
-  <g font-family="system-ui,sans-serif" font-size="14">
-    <rect x="120" y="180" width="220" height="110" rx="12" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/>
-    <text x="230" y="222" text-anchor="middle" fill="#a388ff" font-size="17" font-weight="700">Claude</text>
-    <text x="230" y="250" text-anchor="middle" fill="#9090b0">writes runtime code</text>
-    <path d="M340 235 L400 235" stroke="#00cec9" stroke-width="3"/><polygon points="400,235 384,227 384,243" fill="#00cec9"/>
-    <rect x="405" y="180" width="220" height="110" rx="12" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
-    <text x="515" y="222" text-anchor="middle" fill="#00cec9" font-size="17" font-weight="700">Gemini</text>
-    <text x="515" y="250" text-anchor="middle" fill="#9090b0">reviews the diff</text>
-    <rect x="120" y="320" width="220" height="100" rx="12" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
-    <text x="230" y="360" text-anchor="middle" fill="#ff7aa8" font-size="17" font-weight="700">ChatGPT</text>
-    <text x="230" y="388" text-anchor="middle" fill="#9090b0">rubber-ducks architecture</text>
-    <rect x="405" y="320" width="220" height="100" rx="12" fill="#1a1a33" stroke="#9090b0" stroke-width="2"/>
-    <text x="515" y="360" text-anchor="middle" fill="#e8e8f0" font-size="17" font-weight="700">Copilot</text>
-    <text x="515" y="388" text-anchor="middle" fill="#9090b0">autocompletes in editor</text>
-    <rect x="700" y="240" width="380" height="120" rx="14" fill="#0a0a1a" stroke="#6c5ce7" stroke-width="2"/>
-    <text x="890" y="290" text-anchor="middle" fill="#a388ff" font-size="18" font-weight="700">Cross-vendor review</text>
-    <text x="890" y="320" text-anchor="middle" fill="#9090b0">independence of training,</text>
-    <text x="890" y="340" text-anchor="middle" fill="#9090b0">blind spots, failure modes</text>
-  </g>
-</svg>
-<figcaption>Self-review is not review. Independence is structural.</figcaption>
-</figure>
-
-<p class="post-hook">Single-vendor AI looks easier on paper and ships brittleness in practice. RakuAI is built by a multi-vendor agent loop — and built so any vendor's model can drive it. The dev process mirrors the product thesis.</p>
 
 Saturday morning, coffee, and the workflow before it changes again. When I tell people I am building an engine alongside autonomous coding agents, the first question is "which agent." The honest answer is "several, in different roles, and the divisions of labor matter." This post is the longer answer.
 
@@ -98,12 +63,3 @@ If you are a developer thinking about adopting an AI-assisted workflow for a ser
 If you are an enterprise leader thinking about AI in your dev org, the multi-vendor pattern is the one that will scale. Single-vendor adoption looks easier on paper. In practice it produces brittleness, both technical and strategic.
 
 Quiet Saturday. The engine got a thirty-five-commit weekend. Most of those commits will be invisible six months from now. The workflow that produced them will not be.
-
-<div class="post-cta">
-<h3>The multi-vendor pattern is the one that scales</h3>
-<p>RakuAI is built by a multi-vendor agent workflow and built to take direction from any model. If you lead a dev org weighing AI in your stack, this is the posture that holds up.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/enterprise.html">For Enterprise</a>
-<a class="cta-btn cta-secondary" href="/developers/">For Developers</a>
-</div>
-</div>

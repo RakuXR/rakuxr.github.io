@@ -3,40 +3,10 @@ title: "Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday."
 date: 2026-01-17
 author: Kevin Griffin
 tags: [debugging, demo, shooter, shader-cache, weekend-build]
-description: "Four unrelated bugs, zero overlapping subsystems, one Saturday. Pink missing-shader graphics. A score that double-counted. A hard XR-boot crash. A camera that refused to lock. This is the kind of integration failure that escapes every unit test — and the init-order, event-ownership, and boot-guardian discipline that turns a broken demo into a runtime partners can trust."
+description: "A Shooter demo that had picked up four unrelated bugs over the holiday. Pink missing-shader graphics. A score that double-counted itself. A hard crash on XR boot. A camera that refused to lock onto the ship. Walked into the kitchen with coffee this Saturday. Walked out of it ten hours later with a clean build."
 series: learning-to-code-with-ai
 slug: pink-graphics-score-runaway-xr-crash
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Four unrelated demo bugs fixed in one Saturday: pink shaders, score runaway, XR crash, camera lock" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="pink-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#pink-bg)"/>
-  <text x="600" y="60" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Four Bugs, One Saturday</text>
-  <text x="600" y="96" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Zero overlapping subsystems, one integration failure</text>
-  <g font-family="system-ui,sans-serif" font-size="16">
-    <rect x="100" y="150" width="460" height="120" rx="14" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
-    <text x="330" y="200" text-anchor="middle" fill="#e84393" font-size="22" font-weight="800">PINK OF DOOM</text>
-    <text x="330" y="234" text-anchor="middle" fill="#9090b0">missing-shader fallback color</text>
-    <rect x="640" y="150" width="460" height="120" rx="14" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
-    <text x="870" y="200" text-anchor="middle" fill="#ff7aa8" font-size="22" font-weight="800">SCORE x2</text>
-    <text x="870" y="234" text-anchor="middle" fill="#9090b0">two subscribers, one event</text>
-    <rect x="100" y="290" width="460" height="120" rx="14" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/>
-    <text x="330" y="340" text-anchor="middle" fill="#a388ff" font-size="22" font-weight="800">XR CRASH</text>
-    <text x="330" y="374" text-anchor="middle" fill="#9090b0">init before device ready</text>
-    <rect x="640" y="290" width="460" height="120" rx="14" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
-    <text x="870" y="340" text-anchor="middle" fill="#00cec9" font-size="22" font-weight="800">CAMERA LOST</text>
-    <text x="870" y="374" text-anchor="middle" fill="#9090b0">race on async ship spawn</text>
-  </g>
-</svg>
-<figcaption>Each subsystem worked alone. The integration is where demos live or die.</figcaption>
-</figure>
-
-<p class="post-hook">Four bugs in four subsystems that all pass their unit tests — that is the failure mode that ships broken demos. Catching it is the discipline that makes a sample you can actually run on RakuAI.</p>
 
 There is a specific kind of Saturday that anyone who has shipped a demo knows. The demo worked at the end of last weekend. You picked it up this Saturday morning. It is now broken in four different ways and none of the ways are related to each other.
 
@@ -113,12 +83,3 @@ If you are an AI lab thinking about plugging your model into an AR experience, t
 Four bugs. One Saturday. The demo builds clean now. The party guests have been escorted out.
 
 Back to building.
-
-<div class="post-cta">
-<h3>Ship on a runtime that runs its own samples</h3>
-<p>RakuAI tests its demos against every release with integration CI and graceful XR boot guardians. That is the public-discipline signal that matters more than a feature list. Start building on it.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/developers/">Start Building</a>
-<a class="cta-btn cta-secondary" href="/creator.html">For Creators</a>
-</div>
-</div>

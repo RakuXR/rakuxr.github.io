@@ -104,8 +104,8 @@
 
         <!-- Empty state -->
         <div id="creator-empty" class="mygames-empty" hidden>
-            <h3>新しいワールドが制作中</h3>
-            <p style="color:var(--text-secondary);">このクリエイターはまだ公開していません &mdash; 新しい空間ゲームは続々と登場するので、ぜひまたチェックしてください。自分でも作ってみませんか？ <a href="index.html#create" style="color:var(--accent-bright);">RakuAIで制作を始める</a>。</p>
+            <h3>公開中のゲームはまだありません</h3>
+            <p style="color:var(--text-secondary);">このクリエイターはまだゲームを公開していません。</p>
         </div>
 
         <!-- Loading -->
@@ -180,15 +180,20 @@
     </div>
 </footer>
 
-<script src="/js/api-config.js"></script>
 <script>
 (function() {
-    // Backend base from shared /js/api-config.js: prod -> api.rakuai.com,
-    // staging.rakuai.com -> raku-api-staging.fly.dev, localhost -> :8000.
-    // ?api_base= still honored on localhost for dev.
+    // ?api_base= override accepted on localhost only — see index.html for rationale.
+    var __qs = new URLSearchParams(window.location.search);
+    var __overrideAllowed = ['localhost', '127.0.0.1'].indexOf(window.location.hostname) !== -1;
+    var __qsApiBase = __qs.get('api_base');
+    var __defaultApiBase = window.RAKU_API_BASE || (function() {
+        var h = window.location.hostname;
+        if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
+        if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
+        return 'https://api.rakuai.com';
+    })();
+    var API_BASE = (__overrideAllowed && __qsApiBase) ? __qsApiBase : __defaultApiBase;
     var params = new URLSearchParams(window.location.search);
-    var __overrideAllowed = ['localhost', '127.0.0.1', ''].indexOf(window.location.hostname) !== -1;
-    var API_BASE = (__overrideAllowed && params.get('api_base')) ? params.get('api_base') : (window.RAKU_API_BASE || 'https://api.rakuai.com');
     var userId = params.get('id');
 
     var avatar = document.getElementById('profile-avatar');
@@ -209,7 +214,6 @@
     fetch(API_BASE + '/api/v1/creators/' + encodeURIComponent(userId))
         .then(function(r) { if (!r.ok) throw new Error('Not found'); return r.json(); })
         .then(function(profile) {
-            profile.display_name = profile.display_name || ('クリエイター ' + (userId ? userId.substring(0, 8) : ''));
             nameEl.textContent = profile.display_name;
             avatar.textContent = profile.display_name.charAt(0).toUpperCase();
             gameCountEl.textContent = profile.game_count;
@@ -237,13 +241,13 @@
                     '<div style="padding:20px;">' +
                         '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">' +
                             '<h3 style="margin:0;font-size:1.1rem;">' + esc(game.title) + '</h3>' +
-                            '<span style="display:inline-block;background:var(--accent-bright);color:#000;padding:2px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;">' + esc(game.genre || '') + '</span>' +
+                            '<span style="display:inline-block;background:var(--accent-bright);color:#000;padding:2px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;">' + esc(game.genre) + '</span>' +
                         '</div>' +
                         '<p style="color:var(--text-secondary);font-size:0.9rem;margin:0 0 8px;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;">' +
-                            esc(game.description || 'AI が生成した ' + (game.genre || '') + ' ゲーム') +
+                            esc(game.description || 'AI が生成した ' + game.genre + ' ゲーム') +
                         '</p>' +
                         '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                            '<span style="color:var(--text-secondary);font-size:0.8rem;">' + esc(String(game.play_count || 0)) + ' 回プレイ</span>' +
+                            '<span style="color:var(--text-secondary);font-size:0.8rem;">' + esc(game.play_count) + ' 回プレイ</span>' +
                             '<span class="btn btn-primary" style="padding:6px 16px;font-size:0.85rem;">プレイ</span>' +
                         '</div>' +
                     '</div>';

@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <title>AI as Nervous System, Not AI as Factory &mdash; RakuAI Blog</title>
-    <meta name="description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently — AI is a runtime primitive in the loop on every frame, closer to a nervous system than a factory. If you read one piece on what &#x27;AI-native&#x27; actually means at the architecture layer, make it this one.">
+    <meta name="description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently. AI is a runtime primitive, not a feature next to the engine.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/ai-as-nervous-system-not-ai-as-factory/">
     <link rel="alternate" hreflang="en" href="https://rakuai.com/blog/ai-as-nervous-system-not-ai-as-factory/">
@@ -14,7 +14,7 @@
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
     <meta property="og:title" content="AI as Nervous System, Not AI as Factory">
-    <meta property="og:description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently — AI is a runtime primitive in the loop on every frame, closer to a nervous system than a factory. If you read one piece on what &#x27;AI-native&#x27; actually means at the architecture layer, make it this one.">
+    <meta property="og:description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently. AI is a runtime primitive, not a feature next to the engine.">
     <meta property="og:url" content="https://rakuai.com/blog/ai-as-nervous-system-not-ai-as-factory/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="AI as Nervous System, Not AI as Factory">
-    <meta name="twitter:description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently — AI is a runtime primitive in the loop on every frame, closer to a nervous system than a factory. If you read one piece on what &#x27;AI-native&#x27; actually means at the architecture layer, make it this one.">
+    <meta name="twitter:description" content="Most engines that say &#x27;AI-native&#x27; in 2026 mean they bolted on a chat panel. RakuAI is built differently. AI is a runtime primitive, not a feature next to the engine.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -108,41 +108,6 @@
             </p>
         </header>
         <div class="post-body">
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="The factory pattern produces artifacts; the nervous-system pattern wires AI into every simulation frame" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="nerv-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#nerv-bg)"/>
-  <text x="600" y="60" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Nervous System, Not Factory</text>
-  <text x="600" y="96" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Where the model lives decides what the world can do</text>
-  <g font-family="system-ui,sans-serif" font-size="14" fill="#c8c8e0">
-    <text x="300" y="150" text-anchor="middle" fill="#9090b0" font-size="16" font-weight="600">FACTORY</text>
-    <rect x="200" y="170" width="200" height="44" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="300" y="197" text-anchor="middle">model</text>
-    <path d="M300 214 L300 250" stroke="#e84393" stroke-width="3"/><polygon points="300,250 291,232 309,232" fill="#e84393"/>
-    <rect x="200" y="250" width="200" height="44" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="300" y="277" text-anchor="middle">artifact on disk</text>
-    <path d="M300 294 L300 330" stroke="#e84393" stroke-width="3"/><polygon points="300,330 291,312 309,312" fill="#e84393"/>
-    <rect x="200" y="330" width="200" height="44" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="300" y="357" text-anchor="middle">runtime consumes</text>
-    <text x="300" y="408" text-anchor="middle" fill="#9090b0" font-size="13">one-way, bounded, pre-authored</text>
-  </g>
-  <line x1="600" y1="140" x2="600" y2="420" stroke="#1a1a33" stroke-width="2"/>
-  <g font-family="system-ui,sans-serif" font-size="14" fill="#c8c8e0">
-    <text x="900" y="150" text-anchor="middle" fill="#00cec9" font-size="16" font-weight="600">NERVOUS SYSTEM</text>
-    <circle cx="900" cy="280" r="100" fill="none" stroke="#00cec9" stroke-width="3" stroke-dasharray="6 6"/>
-    <rect x="820" y="166" width="160" height="40" rx="8" fill="#16213a" stroke="#6c5ce7"/><text x="900" y="192" text-anchor="middle">sense</text>
-    <rect x="978" y="270" width="120" height="40" rx="8" fill="#16213a" stroke="#a388ff"/><text x="1038" y="296" text-anchor="middle">observe</text>
-    <rect x="820" y="354" width="160" height="40" rx="8" fill="#16213a" stroke="#6c5ce7"/><text x="900" y="380" text-anchor="middle">act</text>
-    <rect x="702" y="270" width="120" height="40" rx="8" fill="#16213a" stroke="#a388ff"/><text x="762" y="296" text-anchor="middle">apply</text>
-    <text x="900" y="284" text-anchor="middle" fill="#a388ff" font-size="14" font-weight="600">every frame</text>
-  </g>
-</svg>
-<figcaption>Two architectures. The choice at this layer constrains everything above it.</figcaption>
-</figure>
-
-<p class="post-hook">"AI-native" is the most diluted word in the 2026 engine market. Here is the architectural line that separates a chat panel from a runtime where the model is in the loop on every frame — the line RakuAI is built on.</p>
-
 <p>Most game engines and spatial-computing runtimes that call themselves &ldquo;AI-native&rdquo; in 2026 mean roughly the same thing. There is a chat panel somewhere in the editor. There is a button that asks a remote model to generate an asset. The model produces a thing. The thing gets dropped into a project. The runtime, which existed before AI showed up, runs the thing.</p>
 <p>That is the factory pattern. A request goes out. An artifact comes back. The engine is the consumer.</p>
 <p>RakuAI is not built that way. AI is not a station on the assembly line. It is a primitive in the runtime. Closer in spirit to a nervous system than to a factory. Continuously present, in the loop on every frame, observing, deciding, reacting. Removing it does not remove a feature. It removes the thing that makes the rest of the engine make sense.</p>
@@ -196,14 +161,6 @@
 <p>These costs are why most engines pick the factory pattern. The factory pattern is genuinely cheaper to build. It is also genuinely less interesting, in a way that becomes visible only after you have spent time inside an engine that made the other choice.</p>
 <p>If you are building a game, an XR experience, or any other interactive system and you are wondering whether the AI question is &ldquo;which model do I integrate&rdquo; or something deeper, the answer is that it is something deeper. You can feel it the first time you try to make the factory pattern do something it was not built to do.</p>
 <p>Sunday afternoon, the kind of post that wanted writing down. Back to the engine tomorrow.</p>
-<div class="post-cta">
-<h3>The runtime where your AI is a primitive</h3>
-<p>RakuAI wires the model into the simulation step itself — observing, deciding, reacting on every frame. That is what "AI-native" should have meant all along. See the architecture up close.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/why-rakuai.html">Why RakuAI</a>
-<a class="cta-btn cta-secondary" href="/llm-makers.html">For AI Labs</a>
-</div>
-</div>
         </div>
         <ul class="post-tags"><li>architecture</li><li>positioning</li><li>ai-native</li><li>spatial-computing</li></ul>
         <nav class="post-series-nav"><a class="nav-prev" href="/blog/foundation-built-by-agents-not-for-agents/" rel="prev">&larr; The Weekend an Autonomous Agent Shipped Ten Subsystems</a><a class="nav-next" href="/blog/pink-graphics-score-runaway-xr-crash/" rel="next">Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday. &rarr;</a></nav>

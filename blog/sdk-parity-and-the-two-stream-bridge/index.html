@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <title>Catching the SDK Up Before It Could Drift &mdash; RakuAI Blog</title>
-    <meta name="description" content="Every multi-repo project dies the same way - one repo races ahead, the other quietly rots. This Saturday wired Unity and Unreal HelloAR to behave identically and built the parity-testing gate that makes the gap impossible. This is the discipline that keeps a spatial runtime and its bindings coherent for years, so your binding choice never locks you out of a feature.">
+    <meta name="description" content="Determined this Saturday to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the day wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/sdk-parity-and-the-two-stream-bridge/">
     <link rel="alternate" hreflang="en" href="https://rakuai.com/blog/sdk-parity-and-the-two-stream-bridge/">
@@ -14,7 +14,7 @@
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
     <meta property="og:title" content="Catching the SDK Up Before It Could Drift">
-    <meta property="og:description" content="Every multi-repo project dies the same way - one repo races ahead, the other quietly rots. This Saturday wired Unity and Unreal HelloAR to behave identically and built the parity-testing gate that makes the gap impossible. This is the discipline that keeps a spatial runtime and its bindings coherent for years, so your binding choice never locks you out of a feature.">
+    <meta property="og:description" content="Determined this Saturday to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the day wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year.">
     <meta property="og:url" content="https://rakuai.com/blog/sdk-parity-and-the-two-stream-bridge/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Catching the SDK Up Before It Could Drift">
-    <meta name="twitter:description" content="Every multi-repo project dies the same way - one repo races ahead, the other quietly rots. This Saturday wired Unity and Unreal HelloAR to behave identically and built the parity-testing gate that makes the gap impossible. This is the discipline that keeps a spatial runtime and its bindings coherent for years, so your binding choice never locks you out of a feature.">
+    <meta name="twitter:description" content="Determined this Saturday to keep the SDK from doing the thing every multi-repo project does where one repo races ahead and the other one quietly rots. Spent the day wiring Unity and Unreal HelloAR samples to actually behave the same. The parity-testing infrastructure that fell out is the thing that will let this engine stay coherent for the next year.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -108,42 +108,6 @@
             </p>
         </header>
         <div class="post-body">
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Runtime C API feeding Unity and Unreal bindings, gated by a parity test that confirms identical behavior" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="sdkParity-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-    <linearGradient id="sdkParity-accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#sdkParity-bg)"/>
-  <text x="600" y="56" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Two Streams, One Behavior</text>
-  <text x="600" y="90" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Parity testing as a CI gate - the bindings never drift apart</text>
-  <g font-family="system-ui,sans-serif">
-    <rect x="470" y="120" width="260" height="56" rx="14" fill="#1a1a33" stroke="#a388ff" stroke-width="2"/>
-    <text x="600" y="154" text-anchor="middle" fill="#a388ff" font-size="18" font-weight="700">Runtime C API</text>
-    <path d="M540 176 L360 240 M660 176 L840 240" stroke="url(#sdkParity-accent)" stroke-width="3" fill="none"/>
-    <rect x="200" y="240" width="320" height="64" rx="14" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
-    <text x="360" y="270" text-anchor="middle" fill="#00cec9" font-size="17" font-weight="700">Unity HelloAR</text>
-    <text x="360" y="291" text-anchor="middle" fill="#9090b0" font-size="12">load - anchor - render - telemetry</text>
-    <rect x="680" y="240" width="320" height="64" rx="14" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
-    <text x="840" y="270" text-anchor="middle" fill="#00cec9" font-size="17" font-weight="700">Unreal HelloAR</text>
-    <text x="840" y="291" text-anchor="middle" fill="#9090b0" font-size="12">load - anchor - render - telemetry</text>
-    <path d="M360 304 L360 360 M840 304 L840 360 M360 360 L840 360" stroke="url(#sdkParity-accent)" stroke-width="2" fill="none"/>
-  </g>
-  <g font-family="system-ui,sans-serif">
-    <rect x="430" y="360" width="340" height="60" rx="14" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
-    <text x="600" y="388" text-anchor="middle" fill="#e84393" font-size="16" font-weight="700">Parity test (Epic #42)</text>
-    <text x="600" y="408" text-anchor="middle" fill="#9090b0" font-size="13">telemetry within tolerance - or the PR is blocked</text>
-  </g>
-</svg>
-<figcaption>When a feature is easy in Unity and hard in Unreal, the asymmetry is a signal - and the fix lands in the C API.</figcaption>
-</figure>
-
-<p class="post-hook">Parity built at the start of a project costs a thousand times less than parity retrofitted after it ships. RakuAI's bindings are co-developed with the runtime, gated on every PR - so your binding choice never locks you out of a feature later.</p>
-
 <p>Already nervous about a specific failure mode I have watched kill multi-repo projects before, and that was the Saturday-morning starting state. The runtime adds a feature one weekend and the SDK does not catch up until next month. The samples in one binding work and the samples in the other binding silently regress. The version numbers stop matching. The CI on each repo is green and the integration between them is broken.</p>
 <p>That movie ends with a re-platform two years in. I am not building Raku that way. The plan for this weekend was to catch the SDK up to the runtime before the gap could form, and to leave behind enough infrastructure that the gap can never form again.</p>
 <h2 id="what-landed-on-the-sdk-side">What landed on the SDK side</h2>
@@ -183,14 +147,6 @@
 <p><strong>Multi-repo parity is a discipline, not a feature.</strong> The weekend the SDK caught up to the runtime is a weekend with no shiny new feature in the runtime. Nothing demo-able happened. The thing that happened was that the SDK no longer lags. That is the kind of work that, neglected, kills a multi-repo project. I want to write that down so I do not forget when the next big runtime feature lands.</p>
 <p><strong>The agent queue scales by repo.</strong> Running one queue across both repos in the same workflow produced an early version of the merge-conflict slop I described last weekend at the runtime level. Separating the queues by repo eliminated almost all of it. The agents stop tripping over each other when their problem spaces are properly carved.</p>
 <p>Saturday evening, the SDK and the runtime are at parity. Big weekend. Right kind of weekend.</p>
-<div class="post-cta">
-<h3>Pick the binding that fits your team</h3>
-<p>Unity, Unreal, and more on the roadmap - parity testing means your binding choice never costs you features. Start where your team is strongest.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/developers/">For Developers</a>
-<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
-</div>
-</div>
         </div>
         <ul class="post-tags"><li>sdk</li><li>unity</li><li>unreal</li><li>parity</li><li>multi-repo</li><li>dev-workflow</li><li>weekend-build</li></ul>
         <nav class="post-series-nav"><a class="nav-prev" href="/blog/week-one-282-commits/" rel="prev">&larr; 282 Commits, First Weekend on the Public Log</a><a class="nav-next" href="/blog/ar2-gen1-validating-hardware-we-dont-have/" rel="next">Validating Hardware Before the Silicon Shows Up &rarr;</a></nav>

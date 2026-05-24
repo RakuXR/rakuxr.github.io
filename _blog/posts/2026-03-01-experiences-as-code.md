@@ -3,51 +3,10 @@ title: "Hot-Reloading Game Design Like Code"
 date: 2026-03-01
 author: Kevin Griffin
 tags: [architecture, ai-native, raku-files, dev-workflow, weekend-build]
-description: "Your experience is a file, not a binary. The .raku format is JSON — schema-versioned, diffable, hot-reloadable, with explicit hooks where the runtime AI plugs in every frame. Here is what a real one looks like, why JSON beats a custom DSL, and how 'game design reviewed in a pull request' became our actual workflow."
+description: "Spent the weekend on the .raku file format. JSON, schema-versioned, validatable, diffable, hot-reloadable, with explicit hooks where the runtime AI plugs in. The format is load-bearing. Here is what a real one looks like, why JSON beats a custom DSL, and how 'design files reviewed in pull requests' became the actual game-design workflow."
 series: learning-to-code-with-ai
 slug: experiences-as-code-not-experiences-as-assets
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="A .raku JSON experience file flowing into git review, CI, hot reload, and the runtime AI" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="rk-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-    <linearGradient id="rk-flow" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#rk-bg)"/>
-  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Experiences as Code</text>
-  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">One .raku file, every tool you already own</text>
-  <g font-family="ui-monospace,monospace" font-size="15">
-    <rect x="110" y="160" width="320" height="220" rx="14" fill="#1a1a33" stroke="#a388ff" stroke-width="2"/>
-    <text x="135" y="195" fill="#a388ff">{</text>
-    <text x="155" y="225" fill="#9090b0">"schema_version": "1.0",</text>
-    <text x="155" y="255" fill="#9090b0">"ai": {</text>
-    <text x="175" y="285" fill="#00cec9">"dda_enabled": true,</text>
-    <text x="175" y="315" fill="#00cec9">"target_flow_state": 0.7</text>
-    <text x="155" y="345" fill="#9090b0">}</text>
-    <text x="135" y="372" fill="#a388ff">}</text>
-  </g>
-  <g font-family="system-ui,sans-serif" font-size="15" fill="#c8c8e0">
-    <path d="M430 270 L520 270" stroke="url(#rk-flow)" stroke-width="4"/>
-    <polygon points="520,270 504,262 504,278" fill="#00cec9"/>
-    <rect x="540" y="172" width="200" height="46" rx="10" fill="#16213a" stroke="#6c5ce7"/><text x="640" y="201" text-anchor="middle">PR review</text>
-    <rect x="540" y="232" width="200" height="46" rx="10" fill="#16213a" stroke="#6c5ce7"/><text x="640" y="261" text-anchor="middle">CI validation</text>
-    <rect x="540" y="292" width="200" height="46" rx="10" fill="#16213a" stroke="#6c5ce7"/><text x="640" y="321" text-anchor="middle">Hot reload</text>
-    <path d="M740 250 L840 250" stroke="url(#rk-flow)" stroke-width="4"/>
-    <polygon points="840,250 824,242 824,258" fill="#00cec9"/>
-    <rect x="860" y="210" width="230" height="90" rx="14" fill="#1a1a33" stroke="#00cec9" stroke-width="2"/>
-    <text x="975" y="248" text-anchor="middle" fill="#00cec9" font-weight="700">Runtime AI</text>
-    <text x="975" y="276" text-anchor="middle" fill="#9090b0" font-size="13">nervous system, every frame</text>
-  </g>
-</svg>
-<figcaption>The file is the score. The runtime is the orchestra.</figcaption>
-</figure>
-
-<p class="post-hook">Most engines ship opaque binaries. RakuAI ships text you can diff, review, and hot-reload — with the AI nervous system addressable right there in the file. That choice is what lets a whole team of agents build alongside you.</p>
 
 File format weekend. AI is a runtime primitive in this engine, not a feature bolted on next to it. That is the architectural argument I have made before. This post is about the file format that makes it concrete.
 
@@ -191,12 +150,3 @@ And finally: text-based experience definitions only matter if the runtime actual
 If you want to read the format end to end, the schema lives in the public docs and the sample files ship in the repo. Pull one open. Read it as code, because that is what it is.
 
 Two days of file-format work in the bank. Back to the engine next weekend.
-
-<div class="post-cta">
-<h3>Author experiences your AI can read and write</h3>
-<p>RakuAI treats AI as a runtime primitive and experiences as code. Open the .raku format, diff it, hot-reload it — and let your assistant build in the real world with you.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/developers/">For Developers</a>
-<a class="cta-btn cta-secondary" href="/creator.html">For Creators</a>
-</div>
-</div>

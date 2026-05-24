@@ -3,41 +3,10 @@ title: "Meta Quest Is Now a Target"
 date: 2025-11-15
 author: Kevin Griffin
 tags: [meta-quest, horizon-os, openxr, passthrough, partnerships, ar-glasses, weekend-build]
-description: "Meta Quest is now a Raku target. OpenXR on Horizon OS, passthrough AR with composition layers, stereo rendering and 6DoF tracking — the engine now reaches one of the largest installed bases in spatial computing. Meet your users on the hardware they already own, then carry the same experience to glasses for free."
+description: "Spent this Saturday lighting up Meta Quest as a target platform. OpenXR with Horizon OS, passthrough AR mode with composition layers, stereo rendering with 6DoF tracking. The engine now reaches one of the largest installed bases in spatial computing. The partner-meeting context this weekend made it worth going hard."
 series: learning-to-code-with-ai
 slug: meta-quest-is-now-a-target
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Raku runtime targeting Meta Quest passthrough AR through OpenXR composition layers" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="quest-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#quest-bg)"/>
-  <text x="600" y="60" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Meta Quest Is Now a Target</text>
-  <text x="600" y="96" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Passthrough AR through OpenXR composition layers</text>
-  <g font-family="system-ui,sans-serif" font-size="14">
-    <rect x="120" y="170" width="280" height="46" rx="8" fill="#1a1a33" stroke="#9090b0" stroke-width="1.5"/>
-    <text x="260" y="199" text-anchor="middle" fill="#9090b0">Layer 0 — camera passthrough</text>
-    <rect x="160" y="232" width="280" height="46" rx="8" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/>
-    <text x="300" y="261" text-anchor="middle" fill="#a388ff">Layer 1 — virtual content (alpha)</text>
-    <rect x="200" y="294" width="280" height="46" rx="8" fill="#1a1a33" stroke="#00cec9" stroke-width="1.5"/>
-    <text x="340" y="323" text-anchor="middle" fill="#00cec9">Layer 2 — system overlays</text>
-    <g transform="translate(720,170)">
-      <rect x="0" y="40" width="320" height="170" rx="40" fill="#16213a" stroke="#6c5ce7" stroke-width="3"/>
-      <circle cx="100" cy="125" r="42" fill="#0a0a1a" stroke="#00cec9" stroke-width="3"/>
-      <circle cx="220" cy="125" r="42" fill="#0a0a1a" stroke="#00cec9" stroke-width="3"/>
-      <text x="160" y="250" text-anchor="middle" fill="#9090b0">Quest · Horizon OS · 6DoF</text>
-    </g>
-  </g>
-  <text x="600" y="430" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="14">XR_FB_passthrough · XR_FB_foveation · XR_EXT_hand_tracking</text>
-</svg>
-<figcaption>The device people own today, on the standard that carries to glasses tomorrow.</figcaption>
-</figure>
-
-<p class="post-hook">AR glasses you can buy don't exist yet — but millions of people already own a headset. RakuAI now meets your users where they are, with one experience definition that carries straight to glasses when they ship.</p>
 
 A partner meeting late last week made the next move obvious. The eventual product target for Raku is AR glasses. The product target today is also AR glasses, but the AR glasses we want to ship on do not yet exist in a form anyone can buy. That gap is real. It is also frustrating, because the experiences we want people to have on this engine should not have to wait for hardware.
 
@@ -100,12 +69,3 @@ If you are an experienced Quest developer thinking about what Raku adds on top o
 If you are an indie AR developer thinking about which engine to build with: the Quest is the device your users own today. Raku's Quest support is real as of this Saturday. The Unity binding and the Unreal binding both work against it. The SDK quickstart includes Quest setup.
 
 A hundred and eighteen commits across the weekend. Saturday evening, the engine has a new target platform. Back to building tomorrow morning.
-
-<div class="post-cta">
-<h3>Ship to the headset they own. Reach the glasses they'll wear.</h3>
-<p>Raku's Quest support is real today — Unity and Unreal bindings, OpenXR foundation, AI runtime layer. One experience definition, every target. Start building for the spatial future now.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/developers/">For Developers</a>
-<a class="cta-btn cta-secondary" href="/smart-glasses.html">For Glasses Makers</a>
-</div>
-</div>

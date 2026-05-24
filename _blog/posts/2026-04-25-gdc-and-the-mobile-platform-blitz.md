@@ -3,45 +3,10 @@ title: "Looking Back at GDC and the Mobile Platform Blitz"
 date: 2026-04-25
 author: Kevin Griffin
 tags: [gdc, ios, android, demos, spatial-audio, weekend-build]
-description: "Late March 2026 was the GDC eve release and a two-platform mobile push that landed in the same week. Here is what shipped, what broke forty-eight hours before I flew out, and which fixes look small on the diff but kept the laptop demo from going sideways in front of strangers. This is what shipping a spatial runtime at conference speed actually looks like."
+description: "Late March 2026 was the GDC eve release and a two-platform mobile push that landed in the same week. Here is what shipped, what broke forty-eight hours before I flew out, and which fixes look small on the diff but kept the laptop demo from going sideways in front of strangers."
 series: learning-to-code-with-ai
 slug: gdc-and-the-mobile-platform-blitz
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="GDC demo build plus iOS and Android mobile platform launch sharing one C API" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="gdc-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-    <linearGradient id="gdc-accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#gdc-bg)"/>
-  <text x="600" y="64" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">One C API, Every Surface</text>
-  <text x="600" y="100" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">GDC demo build, iOS and Android shipped the same week</text>
-  <g font-family="system-ui,sans-serif" text-anchor="middle">
-    <ellipse cx="600" cy="240" rx="120" ry="56" fill="#1a1a33" stroke="url(#gdc-accent)" stroke-width="3"/>
-    <text x="600" y="235" fill="#a388ff" font-size="20" font-weight="700">RakuAI C API</text>
-    <text x="600" y="260" fill="#9090b0" font-size="14">touch / audio / GPU / assets</text>
-    <g font-size="15" fill="#c8c8e0">
-      <rect x="120" y="180" width="180" height="60" rx="12" fill="#16213a" stroke="#00cec9" stroke-width="2"/><text x="210" y="216">iOS · Metal</text>
-      <rect x="120" y="270" width="180" height="60" rx="12" fill="#16213a" stroke="#00cec9" stroke-width="2"/><text x="210" y="306">Android · Oboe</text>
-      <rect x="900" y="180" width="180" height="60" rx="12" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/><text x="990" y="216">Desktop demo</text>
-      <rect x="900" y="270" width="180" height="60" rx="12" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/><text x="990" y="306">Browser fallback</text>
-    </g>
-    <line x1="300" y1="210" x2="480" y2="235" stroke="#00cec9" stroke-width="2"/>
-    <line x1="300" y1="300" x2="480" y2="250" stroke="#00cec9" stroke-width="2"/>
-    <line x1="720" y1="235" x2="900" y2="210" stroke="#6c5ce7" stroke-width="2"/>
-    <line x1="720" y1="250" x2="900" y2="300" stroke="#6c5ce7" stroke-width="2"/>
-  </g>
-  <text x="600" y="410" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="16" font-weight="600">Spatial audio: HRTF localization on every platform</text>
-</svg>
-<figcaption>Adding a platform is a known shape, not an open-ended architecture problem.</figcaption>
-</figure>
-
-<p class="post-hook">A real engine running real code beats any deck. RakuAI carried one to GDC, shipped two mobile platforms the same week, and proved that adding a new surface is a known shape — not a rewrite.</p>
 
 GDC was a month ago. The flight back was full of notes. The conversations that started in the hallways and side meetings are still echoing through the inbox. Today is the right Saturday to write down what shipped in the run-up to the trip, what almost did not, and what came out of it.
 
@@ -110,12 +75,3 @@ Three things worth writing down.
 **Permission to keep going.** GDC was a forcing function. The demo I carried around was not perfect. It was specific, it was a real engine running real code, and it answered a different category of question than a deck. The number of "send me a follow-up email" responses was high enough to confirm the direction is the right one. That is the metric.
 
 The mobile platforms shipped. The demos I showed worked. The browser fallback turned into a feature. Saturday well used.
-
-<div class="post-cta">
-<h3>The runtime built for the device on your face</h3>
-<p>One C API, spatial audio everywhere, and a thermal-aware runtime engineered for smart glasses — not a PC engine squeezed down to fit. See where your AI lives in the real world.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/smart-glasses.html">For Smart Glasses</a>
-<a class="cta-btn cta-secondary" href="/developers/">For Developers</a>
-</div>
-</div>

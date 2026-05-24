@@ -3,41 +3,10 @@ title: "Eight Security Findings on a Saturday Morning"
 date: 2026-03-21
 author: Kevin Griffin
 tags: [security, audit, due-diligence, enterprise, weekend-build]
-description: "An enterprise partner's security team ran due diligence on our API surface and came back with eight critical and high findings. Every one had a fix landing by Saturday night. Here are the categories, the new permanent guardrails, and the failure modes an agent-driven runtime has to defend against on purpose."
+description: "A security audit report landed in the inbox late this past week. Enterprise due-diligence pass on the API surface had surfaced eight critical and high findings. Spent Saturday triaging and fixing each one. Here is what the categories were, what got fixed, and what an agent-driven codebase has to be especially careful about."
 series: learning-to-code-with-ai
 slug: eight-security-findings
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Eight categories of security finding triaged and fixed across a Saturday" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="sec8-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#sec8-bg)"/>
-  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Eight Findings, One Saturday</text>
-  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Enterprise due diligence, every one closed</text>
-  <g font-family="system-ui,sans-serif" font-size="14" fill="#c8c8e0">
-    <rect x="120" y="150" width="240" height="60" rx="10" fill="#1a1a33" stroke="#e84393"/><text x="240" y="186" text-anchor="middle">Input validation</text>
-    <rect x="380" y="150" width="240" height="60" rx="10" fill="#1a1a33" stroke="#e84393"/><text x="500" y="186" text-anchor="middle">Hardcoded credential</text>
-    <rect x="640" y="150" width="240" height="60" rx="10" fill="#1a1a33" stroke="#6c5ce7"/><text x="760" y="186" text-anchor="middle">Cipher-suite policy</text>
-    <rect x="900" y="150" width="180" height="60" rx="10" fill="#1a1a33" stroke="#6c5ce7"/><text x="990" y="186" text-anchor="middle">Use-after-free</text>
-    <rect x="120" y="230" width="240" height="60" rx="10" fill="#1a1a33" stroke="#6c5ce7"/><text x="240" y="266" text-anchor="middle">Thread-safety</text>
-    <rect x="380" y="230" width="240" height="60" rx="10" fill="#1a1a33" stroke="#e84393"/><text x="500" y="266" text-anchor="middle">Authz bypass</text>
-    <rect x="640" y="230" width="240" height="60" rx="10" fill="#1a1a33" stroke="#6c5ce7"/><text x="760" y="266" text-anchor="middle">Auth-failure logging</text>
-    <rect x="900" y="230" width="180" height="60" rx="10" fill="#1a1a33" stroke="#6c5ce7"/><text x="990" y="266" text-anchor="middle">Dependency lag</text>
-  </g>
-  <g font-family="system-ui,sans-serif">
-    <rect x="380" y="340" width="440" height="70" rx="14" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
-    <text x="600" y="372" text-anchor="middle" fill="#00cec9" font-size="20" font-weight="800">8 / 8 closed</text>
-    <text x="600" y="396" text-anchor="middle" fill="#9090b0" font-size="13">+ 6 new permanent guardrails</text>
-  </g>
-</svg>
-<figcaption>The team that welcomes the audit is the team whose codebase gets better.</figcaption>
-</figure>
-
-<p class="post-hook">Audits surface things. The honest move is to welcome them, fix everything, and ship permanent guardrails — which is exactly how a runtime earns enterprise trust.</p>
 
 The audit landed in the inbox late last week. By Saturday morning I had the report open on one screen and the codebase open on the other. Eight critical or high findings. The kind of inbox content that defines a weekend.
 
@@ -98,12 +67,3 @@ If you are running an agent-driven workflow and you have not done a security aud
 End-of-weekend check. Eight findings closed. Six new defenses landed. The next audit is on the calendar. The partner relationship moves forward.
 
 Back to building.
-
-<div class="post-cta">
-<h3>A spatial runtime that passes due diligence</h3>
-<p>RakuAI is built for enterprise partners and smart-glasses manufacturers — audited, hardened, and honest about it. See how we engineer for the security bar your team has to clear.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/enterprise.html">For Enterprise</a>
-<a class="cta-btn cta-secondary" href="/smart-glasses.html">For Smart Glasses</a>
-</div>
-</div>
