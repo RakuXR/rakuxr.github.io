@@ -64,6 +64,7 @@ After deploy completes, verify the change at `https://rakuai.com/<path>`.
 3. **NEVER use `staging`** — branch is deprecated. PR base is always `main`.
 4. **One logical change per feature branch.**
 5. **Hotfixes still require owner approval** (which can be granted in the same chat turn).
+6. **After opening a PR, wait ~3 minutes** for the automated reviewers — **GitHub Copilot** (`copilot-pull-request-reviewer`) and **Gemini** (`gemini-code-assist`) — to post review feedback before addressing comments or asking for merge approval. Both run automatically on every PR and after each push; their inline comments land within a couple of minutes. Subscribe to the PR and let review events wake the session rather than polling.
 
 ## File Structure
 
