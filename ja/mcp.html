@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RakuAI MCP — AI アシスタントから空間ランタイムを駆動</title>
+    <meta name="description" content="RakuAI MCP — Claude、ChatGPT、Gemini、Copilot が本物の空間ランタイムを駆動できる 6 ツールのインターフェース。2026 年 3 月から本番稼働中。">
+    <meta property="og:title" content="RakuAI MCP — AI アシスタントから空間ランタイムを駆動">
+    <meta property="og:description" content="RakuAI MCP — Claude、ChatGPT、Gemini、Copilot が本物の空間ランタイムを駆動できる 6 ツールのインターフェース。2026 年 3 月から本番稼働中。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ja/mcp.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RakuAI MCP — AI アシスタントから空間ランタイムを駆動">
+    <meta name="twitter:description" content="RakuAI MCP — Claude、ChatGPT、Gemini、Copilot が本物の空間ランタイムを駆動できる 6 ツールのインターフェース。2026 年 3 月から本番稼働中。">
+    <link rel="canonical" href="https://rakuai.com/ja/mcp.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .mcp-hero {
+            padding: 80px 0 56px;
+            background: linear-gradient(180deg, #0a0a1a 0%, #0d0d20 100%);
+            text-align: center;
+            border-bottom: 1px solid rgba(108, 92, 231, 0.25);
+        }
+        .mcp-hero h1 {
+            font-size: 2.8rem;
+            line-height: 1.15;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #a388ff, #00cec9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .mcp-hero p.subhead {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            line-height: 1.6;
+            max-width: 760px;
+            margin: 0 auto 32px;
+        }
+        .mcp-cta-row {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .mcp-section {
+            padding: 64px 0;
+            border-bottom: 1px solid #1f1f3a;
+        }
+        .mcp-section:last-of-type { border-bottom: none; }
+        .mcp-section h2 {
+            text-align: center;
+            font-size: 1.9rem;
+            margin-bottom: 12px;
+        }
+        .mcp-section p.section-lead {
+            text-align: center;
+            color: var(--text-secondary);
+            max-width: 720px;
+            margin: 0 auto 32px;
+            line-height: 1.65;
+        }
+        .mcp-tools-table-wrap {
+            overflow-x: auto;
+            margin: 0 auto;
+            max-width: 1100px;
+        }
+        table.mcp-tools {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 0.95rem;
+        }
+        table.mcp-tools th,
+        table.mcp-tools td {
+            text-align: left;
+            padding: 14px 18px;
+            border-bottom: 1px solid #1f1f3a;
+            vertical-align: top;
+            color: var(--text-secondary);
+        }
+        table.mcp-tools th {
+            background: #0d0d1f;
+            color: var(--accent-bright);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        table.mcp-tools tr:last-child td { border-bottom: none; }
+        table.mcp-tools code {
+            color: #a388ff;
+            background: #0d0d1f;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .mcp-perm {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .mcp-perm--sandbox {
+            background: rgba(253, 203, 110, 0.15);
+            color: #fdcb6e;
+            border: 1px solid rgba(253, 203, 110, 0.4);
+        }
+        .mcp-perm--all {
+            background: rgba(0, 206, 201, 0.15);
+            color: #00cec9;
+            border: 1px solid rgba(0, 206, 201, 0.4);
+        }
+        .mcp-vs-card {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 16px;
+            padding: 32px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 1.02rem;
+        }
+        .mcp-vs-card strong { color: var(--accent-bright); }
+        .mcp-adapters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            max-width: 900px;
+            margin: 0 auto 24px;
+        }
+        .mcp-adapter-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 20px 22px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        .mcp-adapter-card span {
+            display: block;
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+        .mcp-adapter-footnote {
+            text-align: center;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 0.95rem;
+        }
+        .mcp-why-list {
+            max-width: 820px;
+            margin: 0 auto;
+            list-style: none;
+            padding: 0;
+            counter-reset: mcp-why;
+        }
+        .mcp-why-list li {
+            counter-increment: mcp-why;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 18px 24px 18px 64px;
+            margin-bottom: 14px;
+            position: relative;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .mcp-why-list li::before {
+            content: counter(mcp-why);
+            position: absolute;
+            left: 20px;
+            top: 18px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: white;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+        }
+        .mcp-bottom-ctas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .mcp-bottom-cta {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 22px;
+            text-decoration: none;
+            color: var(--accent-bright);
+            font-weight: 600;
+            transition: border-color 0.25s, transform 0.15s;
+            display: block;
+        }
+        .mcp-bottom-cta:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        @media (max-width: 700px) {
+            .mcp-hero h1 { font-size: 2.1rem; }
+            .mcp-section h2 { font-size: 1.55rem; }
+            table.mcp-tools th,
+            table.mcp-tools td { padding: 10px 12px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: mcp.html
+  Date: 2026-05-23
+-->
+
+<div class="beta-announcement-bar">
+    特許 5 件 | 9,500 以上の API エンドポイント | 18 のネイティブ DLL | AI ネイティブな空間ゲームエンジン — アーリーアクセス公開中
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="メニューを開く" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" aria-label="ソリューションメニューを開く" role="menuitem">ソリューション &#x25BC;</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="ソリューション" hidden>
+                        <div class="col-heading">対象別</div>
+                        <div class="col-heading">プラットフォーム</div>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">スマートグラスメーカー向け<span class="item-desc">ハードウェア OEM パートナープログラム</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI 研究所向け<span class="item-desc">基盤モデル向け MCP ランタイム</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">エンタープライズ向け<span class="item-desc">空間 AI を大規模に展開</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">クリエイター向け<span class="item-desc">空間ワールドの構築 &amp; 公開</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Unity / Unreal との比較<span class="item-desc">正直な比較</span></a></li>
+                        </ul>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">空間エンジン<span class="item-desc">ランタイムの柱</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI システム<span class="item-desc">オーケストレーション &amp; 権限</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR 機能<span class="item-desc">表示・トラッキング・アンカー</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" aria-label="開発者メニューを開く" role="menuitem">開発者 &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="開発者" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">ドキュメント</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP サーバー</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API リファレンス</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">テンプレート</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">開発者ポータル</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop ガイド</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">開発者ガイド</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM 統合ガイド</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" aria-label="リソースメニューを開く" role="menuitem">リソース &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="リソース" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">ブログ</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">RakuAI を選ぶ理由</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">プレス資料</a></li>
+                        <li role="none"><a role="menuitem" href="discover.html">ディスカバー</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">コンテンツパック</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">ドキュメント概要</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">お問い合わせ</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">料金</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">サインイン</a>
+            <a href="../mcp.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="mcp-hero">
+    <div class="container">
+        <h1>AI アシスタントから RakuAI を駆動する。</h1>
+        <p class="subhead">
+            6 つの MCP ツール。2026 年 3 月から本番稼働中。デフォルト拒否の権限管理。
+            完全な監査ログ。あなたの AI が空間ワールドを構築・クエリ・シミュレートする必要があるときに
+            会話するランタイムです。
+        </p>
+        <div class="mcp-cta-row">
+            <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">ビルドログを読む &rarr;</a>
+            <a href="https://github.com/RakuXR/raku-runtime" target="_blank" rel="noopener" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">GitHub で見る &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<section class="mcp-section">
+    <div class="container">
+        <h2>仕組み</h2>
+        <p class="section-lead">
+            あなたの AI アシスタントは MCP を話します。RakuAI はその接続の反対側にあるランタイムで、
+            グラス・ヘッドセット・ブラウザへ本物の空間出力を駆動します。
+        </p>
+        <div style="max-width: 1080px; margin: 0 auto;">
+        <svg viewBox="0 0 1080 480" width="100%" style="max-width:1080px; height:auto; display:block;" role="img" aria-labelledby="mcpflow-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="mcpflow-title">RakuAI MCP アーキテクチャ：あなたの AI アシスタントが MCP 経由で RakuAI ランタイムに接続し、ランタイムがスマートグラス・ヘッドセット・ブラウザを駆動し、6 つのツールを公開する。</title>
+            <defs>
+                <linearGradient id="mcpflow-grad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <linearGradient id="mcpflow-grad-v" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <marker id="mcpflow-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto-start-reverse">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+
+            <!-- connectors -->
+            <line x1="232" y1="120" x2="318" y2="120" stroke="url(#mcpflow-grad)" stroke-width="2" marker-start="url(#mcpflow-arrow)" marker-end="url(#mcpflow-arrow)"/>
+            <line x1="512" y1="120" x2="598" y2="120" stroke="url(#mcpflow-grad)" stroke-width="2" marker-start="url(#mcpflow-arrow)" marker-end="url(#mcpflow-arrow)"/>
+            <line x1="792" y1="120" x2="878" y2="120" stroke="url(#mcpflow-grad)" stroke-width="2" marker-start="url(#mcpflow-arrow)" marker-end="url(#mcpflow-arrow)"/>
+
+            <!-- Node 1: AI assistant -->
+            <rect x="40" y="72" width="192" height="96" rx="12" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+            <text x="136" y="100" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="600">あなたの AI アシスタント</text>
+            <text x="136" y="124" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">Claude &#183; ChatGPT</text>
+            <text x="136" y="142" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">Gemini &#183; Copilot</text>
+
+            <!-- Node 2: MCP -->
+            <rect x="320" y="72" width="192" height="96" rx="12" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+            <text x="416" y="104" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="600">MCP</text>
+            <text x="416" y="126" text-anchor="middle" fill="#9090b0" font-family="ui-monospace,monospace" font-size="11">stdio &#183; JSON-Schema</text>
+            <text x="416" y="144" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">権限ゲート付き</text>
+
+            <!-- Node 3: Runtime -->
+            <rect x="600" y="72" width="192" height="96" rx="12" fill="#15152e" stroke="url(#mcpflow-grad)" stroke-width="2"/>
+            <text x="696" y="104" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="700">RakuAI ランタイム</text>
+            <text x="696" y="126" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="11">シーングラフ &#183; 物理演算</text>
+            <text x="696" y="144" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">シミュレーションステップ</text>
+
+            <!-- Node 4: Devices -->
+            <rect x="880" y="72" width="160" height="96" rx="12" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="960" y="100" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="13" font-weight="600">出力</text>
+            <text x="960" y="122" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">スマートグラス</text>
+            <text x="960" y="138" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">ヘッドセット &#183; ブラウザ</text>
+
+            <!-- branch: six tools from runtime -->
+            <line x1="696" y1="168" x2="696" y2="210" stroke="url(#mcpflow-grad-v)" stroke-width="2"/>
+            <line x1="160" y1="210" x2="1040" y2="210" stroke="#222244" stroke-width="1.5"/>
+            <text x="696" y="200" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="11" font-weight="600">6 つの MCP ツール</text>
+
+            <!-- tool chips -->
+            <g font-family="ui-monospace,monospace" font-size="12">
+                <line x1="160" y1="210" x2="160" y2="244" stroke="#222244" stroke-width="1.5"/>
+                <rect x="40" y="244" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="160" y="271" text-anchor="middle" fill="#a388ff">load_world_model</text>
+
+                <line x1="430" y1="210" x2="430" y2="244" stroke="#222244" stroke-width="1.5"/>
+                <rect x="310" y="244" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="430" y="271" text-anchor="middle" fill="#a388ff">ingest_frame</text>
+
+                <line x1="700" y1="210" x2="700" y2="244" stroke="#222244" stroke-width="1.5"/>
+                <rect x="580" y="244" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.5"/>
+                <text x="700" y="271" text-anchor="middle" fill="#00cec9">get_scene_state</text>
+
+                <rect x="40" y="312" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="160" y="339" text-anchor="middle" fill="#a388ff">set_render_target</text>
+
+                <rect x="310" y="312" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="430" y="339" text-anchor="middle" fill="#a388ff">start_simulation</text>
+
+                <rect x="580" y="312" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.5"/>
+                <text x="700" y="339" text-anchor="middle" fill="#00cec9">get_metrics</text>
+            </g>
+
+            <!-- legend -->
+            <g font-family="system-ui,sans-serif" font-size="11">
+                <rect x="860" y="248" width="14" height="14" rx="3" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="882" y="259" fill="#9090b0">サンドボックス／開発</text>
+                <rect x="860" y="276" width="14" height="14" rx="3" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.5"/>
+                <text x="882" y="287" fill="#9090b0">全モード</text>
+            </g>
+        </svg>
+        </div>
+    </div>
+</section>
+
+<section class="mcp-section">
+    <div class="container">
+        <h2>6 つのツール</h2>
+        <p class="section-lead">
+            MCP インターフェースの全体。スキーマ検証済み、監査ログ記録、権限ゲート付き。
+        </p>
+        <div class="mcp-tools-table-wrap">
+            <table class="mcp-tools">
+                <thead>
+                    <tr>
+                        <th>ツール</th>
+                        <th>機能</th>
+                        <th>権限</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>load_world_model(adapter_name, config)</code></td>
+                        <td>ワールドモデルアダプターを登録</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">サンドボックス／開発のみ</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>ingest_frame(adapter_name, frame_data, frame_index, timestamp)</code></td>
+                        <td>シーングラフにフレームをプッシュ</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">サンドボックス／開発のみ</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>get_scene_state(include_physics, include_transforms)</code></td>
+                        <td>読み取り専用スナップショット</td>
+                        <td><span class="mcp-perm mcp-perm--all">全モード</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>set_render_target(target_type, config)</code></td>
+                        <td>出力を設定（WebGL/VR/ネイティブ/オフスクリーン）</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">サンドボックス／開発のみ</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>start_simulation(tick_rate, max_duration, realtime)</code></td>
+                        <td>シミュレーションループを開始</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">サンドボックス／開発のみ</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>get_metrics()</code></td>
+                        <td>パフォーマンステレメトリ</td>
+                        <td><span class="mcp-perm mcp-perm--all">全モード</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="mcp-section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Unity MCP との比較</h2>
+        <div class="mcp-vs-card">
+            <p>
+                <strong>Unity MCP（リリースされたばかり）：</strong>シーン操作、アセット配置、
+                ビルド自動化 — Claude Desktop が設計段階で静的シーンを生成します。
+            </p>
+            <p>
+                <strong>RakuAI MCP（2026 年 3 月から本番稼働）：</strong>ワールドモデルのオーケストレーション —
+                任意の LLM が毎フレーム、シミュレーションステップにインテントをストリームします。
+            </p>
+            <p style="margin-bottom: 0;">
+                Unity はあなたの AI が手に取るツールです。<strong>RakuAI はあなたの AI が宿る身体です。</strong>
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="mcp-section">
+    <div class="container">
+        <h2>アダプター</h2>
+        <p class="section-lead">
+            契約は 6 つのツールです。アダプターはパートナーが接続するための手段です。
+        </p>
+        <div class="mcp-adapters-grid">
+            <div class="mcp-adapter-card">
+                VeoEnvironmentAdapter
+                <span>Google の Veo</span>
+            </div>
+            <div class="mcp-adapter-card">
+                RunwayEnvironmentAdapter
+                <span>Runway</span>
+            </div>
+            <div class="mcp-adapter-card">
+                カスタムアダプター
+                <span>あなたのモデル</span>
+            </div>
+        </div>
+        <p class="mcp-adapter-footnote">
+            アダプター契約は公開されています。1 つ作れば、エコシステムの一員になれます。
+        </p>
+    </div>
+</section>
+
+<section class="mcp-section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>MCP ネイティブが重要な理由</h2>
+        <ol class="mcp-why-list">
+            <li><strong>カスタム統合不要</strong> — あなたのモデルが MCP を話せば、RakuAI も話せます。</li>
+            <li><strong>設計段階からマルチベンダー</strong> — Claude、ChatGPT、Gemini、Copilot がすべて同じ 6 つのツールを駆動します。</li>
+            <li><strong>本番対応</strong> — デフォルト拒否、監査ログ記録、スキーマ検証済み。</li>
+        </ol>
+    </div>
+</section>
+
+<section class="mcp-section">
+    <div class="container">
+        <h2>さらに深く</h2>
+        <p class="section-lead">道を選んでください。</p>
+        <div class="mcp-bottom-ctas">
+            <a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/" class="mcp-bottom-cta">MCP の解説を読む &rarr;</a>
+            <a href="smart-glasses.html" class="mcp-bottom-cta">スマートグラスパートナー向け &rarr;</a>
+            <a href="llm-makers.html" class="mcp-bottom-cta">LLM 研究所向け &rarr;</a>
+            <a href="compare.html" class="mcp-bottom-cta">Unity との比較 &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>ソリューション</h4>
+                <ul>
+                    <li><a href="smart-glasses.html">スマートグラスメーカー</a></li>
+                    <li><a href="llm-makers.html">AI 研究所</a></li>
+                    <li><a href="enterprise.html">エンタープライズ</a></li>
+                    <li><a href="creator.html">クリエイター</a></li>
+                    <li><a href="compare.html">Unity / Unreal との比較</a></li>
+                    <li><a href="spatial-engine.html">空間エンジン</a></li>
+                    <li><a href="ai-systems.html">AI システム</a></li>
+                    <li><a href="xr-features.html">XR 機能</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>開発者</h4>
+                <ul>
+                    <li><a href="docs.html">ドキュメント</a></li>
+                    <li><a href="mcp.html">MCP サーバー</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="../api/">API リファレンス</a></li>
+                    <li><a href="templates.html">テンプレート</a></li>
+                    <li><a href="developers/">開発者ポータル</a></li>
+                    <li><a href="../developers/claude-desktop.html">Claude Desktop ガイド</a></li>
+                    <li><a href="developer-guide.html">開発者ガイド</a></li>
+                    <li><a href="llm-guide.html">LLM 統合ガイド</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>リソース</h4>
+                <ul>
+                    <li><a href="../blog/">ブログ</a></li>
+                    <li><a href="why-rakuai.html">RakuAI を選ぶ理由</a></li>
+                    <li><a href="press.html">プレス資料</a></li>
+                    <li><a href="discover.html">ディスカバー</a></li>
+                    <li><a href="content-packs.html">コンテンツパック</a></li>
+                    <li><a href="docs.html">ドキュメント</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>会社情報</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">RakuAI について</a></li>
+                    <li><a href="pricing.html">料金</a></li>
+                    <li><a href="contact.html">お問い合わせ</a></li>
+                    <li><a href="mailto:partners@rakuai.com">パートナー連絡先</a></li>
+                    <li><a href="privacy.html">プライバシー</a></li>
+                    <li><a href="terms.html">利用規約</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 米国特許 5 件取得済み（優先日：2012 年 7 月） &bull; RakuAI エンジン搭載</p>
+        <p class="trademark-notice">
+            RakuAI&trade; および RakuXR&trade; は RakuAI, LLC の商標です。
+            <span class="kanji-logo">&#x697D;</span>AI および <span class="kanji-logo">&#x697D;</span>XR は RakuAI, LLC のスタイライズド・マークです。
+            米国特許 5 件取得済み（優先日：2012 年 7 月）。
+        </p>
+    </div>
+</footer>
+
+
+<script src="../js/nav-dropdown.js" defer></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>

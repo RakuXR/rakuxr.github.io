@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <title>Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday. &mdash; RakuAI Blog</title>
-    <meta name="description" content="A Shooter demo that had picked up four unrelated bugs over the holiday. Pink missing-shader graphics. A score that double-counted itself. A hard crash on XR boot. A camera that refused to lock onto the ship. Walked into the kitchen with coffee this Saturday. Walked out of it ten hours later with a clean build.">
+    <meta name="description" content="Four unrelated bugs, zero overlapping subsystems, one Saturday. Pink missing-shader graphics. A score that double-counted. A hard XR-boot crash. A camera that refused to lock. This is the kind of integration failure that escapes every unit test — and the init-order, event-ownership, and boot-guardian discipline that turns a broken demo into a runtime partners can trust.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/pink-graphics-score-runaway-xr-crash/">
     <link rel="alternate" hreflang="en" href="https://rakuai.com/blog/pink-graphics-score-runaway-xr-crash/">
@@ -14,7 +14,7 @@
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
     <meta property="og:title" content="Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday.">
-    <meta property="og:description" content="A Shooter demo that had picked up four unrelated bugs over the holiday. Pink missing-shader graphics. A score that double-counted itself. A hard crash on XR boot. A camera that refused to lock onto the ship. Walked into the kitchen with coffee this Saturday. Walked out of it ten hours later with a clean build.">
+    <meta property="og:description" content="Four unrelated bugs, zero overlapping subsystems, one Saturday. Pink missing-shader graphics. A score that double-counted. A hard XR-boot crash. A camera that refused to lock. This is the kind of integration failure that escapes every unit test — and the init-order, event-ownership, and boot-guardian discipline that turns a broken demo into a runtime partners can trust.">
     <meta property="og:url" content="https://rakuai.com/blog/pink-graphics-score-runaway-xr-crash/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday.">
-    <meta name="twitter:description" content="A Shooter demo that had picked up four unrelated bugs over the holiday. Pink missing-shader graphics. A score that double-counted itself. A hard crash on XR boot. A camera that refused to lock onto the ship. Walked into the kitchen with coffee this Saturday. Walked out of it ten hours later with a clean build.">
+    <meta name="twitter:description" content="Four unrelated bugs, zero overlapping subsystems, one Saturday. Pink missing-shader graphics. A score that double-counted. A hard XR-boot crash. A camera that refused to lock. This is the kind of integration failure that escapes every unit test — and the init-order, event-ownership, and boot-guardian discipline that turns a broken demo into a runtime partners can trust.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -108,6 +108,36 @@
             </p>
         </header>
         <div class="post-body">
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Four unrelated demo bugs fixed in one Saturday: pink shaders, score runaway, XR crash, camera lock" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pink-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#pink-bg)"/>
+  <text x="600" y="60" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Four Bugs, One Saturday</text>
+  <text x="600" y="96" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Zero overlapping subsystems, one integration failure</text>
+  <g font-family="system-ui,sans-serif" font-size="16">
+    <rect x="100" y="150" width="460" height="120" rx="14" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
+    <text x="330" y="200" text-anchor="middle" fill="#e84393" font-size="22" font-weight="800">PINK OF DOOM</text>
+    <text x="330" y="234" text-anchor="middle" fill="#9090b0">missing-shader fallback color</text>
+    <rect x="640" y="150" width="460" height="120" rx="14" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
+    <text x="870" y="200" text-anchor="middle" fill="#ff7aa8" font-size="22" font-weight="800">SCORE x2</text>
+    <text x="870" y="234" text-anchor="middle" fill="#9090b0">two subscribers, one event</text>
+    <rect x="100" y="290" width="460" height="120" rx="14" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/>
+    <text x="330" y="340" text-anchor="middle" fill="#a388ff" font-size="22" font-weight="800">XR CRASH</text>
+    <text x="330" y="374" text-anchor="middle" fill="#9090b0">init before device ready</text>
+    <rect x="640" y="290" width="460" height="120" rx="14" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="870" y="340" text-anchor="middle" fill="#00cec9" font-size="22" font-weight="800">CAMERA LOST</text>
+    <text x="870" y="374" text-anchor="middle" fill="#9090b0">race on async ship spawn</text>
+  </g>
+</svg>
+<figcaption>Each subsystem worked alone. The integration is where demos live or die.</figcaption>
+</figure>
+
+<p class="post-hook">Four bugs in four subsystems that all pass their unit tests — that is the failure mode that ships broken demos. Catching it is the discipline that makes a sample you can actually run on RakuAI.</p>
+
 <p>There is a specific kind of Saturday that anyone who has shipped a demo knows. The demo worked at the end of last weekend. You picked it up this Saturday morning. It is now broken in four different ways and none of the ways are related to each other.</p>
 <p>That was today. The demo was the Shooter game we ship as one of the canonical samples. The bugs were waiting like party guests nobody invited.</p>
 <h2 id="what-was-broken">What was broken</h2>
@@ -146,6 +176,14 @@
 <p>If you are an AI lab thinking about plugging your model into an AR experience, the XR boot path now has a defensible guardian. Your model will not see a hard crash on the way in. You will get clean error reporting if anything in the chain fails. The infrastructure is in place.</p>
 <p>Four bugs. One Saturday. The demo builds clean now. The party guests have been escorted out.</p>
 <p>Back to building.</p>
+<div class="post-cta">
+<h3>Ship on a runtime that runs its own samples</h3>
+<p>RakuAI tests its demos against every release with integration CI and graceful XR boot guardians. That is the public-discipline signal that matters more than a feature list. Start building on it.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/developers/">Start Building</a>
+<a class="cta-btn cta-secondary" href="/creator.html">For Creators</a>
+</div>
+</div>
         </div>
         <ul class="post-tags"><li>debugging</li><li>demo</li><li>shooter</li><li>shader-cache</li><li>weekend-build</li></ul>
         <nav class="post-series-nav"><a class="nav-prev" href="/blog/ai-as-nervous-system-not-ai-as-factory/" rel="prev">&larr; AI as Nervous System, Not AI as Factory</a><a class="nav-next" href="/blog/ai-as-interface-not-ai-as-dependency/" rel="next">How the Engine Talks to Any Model You Bring &rarr;</a></nav>

@@ -3,10 +3,42 @@ title: "The Test That Couldn't Find dxcompiler.dll"
 date: 2026-03-28
 author: Kevin Griffin
 tags: [debugging, windows, msvc, dll-loading, abi, weekend-build]
-description: "Eight tests crashing with the same Windows error code. The shader compiler DLL was missing on the CI machine. The runtime had a hard load-time dependency on it. Spent the weekend rewriting the loading path so the engine survives without it, with three other tests coming along for the ride."
+description: "Eight tests, one Windows error code, one missing shader-compiler DLL the runtime could not boot without. The fix turned a hard load-time dependency into a graceful, observable fallback — so the engine runs anywhere, not just on a fully-equipped developer workstation. Portability is a feature partners pay for."
 series: learning-to-code-with-ai
 slug: the-test-that-couldnt-find-dxcompiler
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="A missing dxcompiler DLL turned from a hard crash into a graceful fallback path" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dxc-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#dxc-bg)"/>
+  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Boot Without the DLL</text>
+  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Load-time dependency &#8594; observable fallback</text>
+  <g font-family="ui-monospace,monospace">
+    <rect x="120" y="160" width="360" height="120" rx="14" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
+    <text x="300" y="210" text-anchor="middle" fill="#ff7aa8" font-size="30" font-weight="800">0xC0000135</text>
+    <text x="300" y="246" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="15">STATUS_DLL_NOT_FOUND</text>
+  </g>
+  <g font-family="system-ui,sans-serif">
+    <path d="M480 220 L600 220" stroke="#6c5ce7" stroke-width="4"/>
+    <polygon points="600,220 584,212 584,228" fill="#6c5ce7"/>
+    <text x="540" y="205" text-anchor="middle" fill="#a388ff" font-size="13">LoadLibrary</text>
+  </g>
+  <g font-family="system-ui,sans-serif" font-size="14" fill="#c8c8e0">
+    <rect x="620" y="150" width="460" height="50" rx="10" fill="#16213a" stroke="#00cec9"/><text x="850" y="181" text-anchor="middle">DXC present &#8594; full SPIR-V / DXIL</text>
+    <rect x="620" y="212" width="460" height="50" rx="10" fill="#16213a" stroke="#6c5ce7"/><text x="850" y="243" text-anchor="middle">D3DCompiler &#8594; reduced (DXIL only)</text>
+    <rect x="620" y="274" width="460" height="50" rx="10" fill="#1a1a33" stroke="#e84393"/><text x="850" y="305" text-anchor="middle">none &#8594; magenta placeholder + WARN</text>
+  </g>
+  <text x="600" y="400" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="16" font-weight="700">71% &#8594; 89% tests passing</text>
+</svg>
+<figcaption>The runtime boots. The capability is opt-in. The failure mode is loud and visible.</figcaption>
+</figure>
+
+<p class="post-hook">A runtime that crashes when one optional DLL is missing has quietly confined itself to one kind of machine. Real portability means booting everywhere and degrading loudly — and that is what partners deploy on.</p>
 
 Saturday morning, CI dashboard, eight tests in red. All eight failed with the same Windows error code: `0xc0000135`. Anyone who has spent time on Windows native development knows that one immediately. `STATUS_DLL_NOT_FOUND`. The process tried to load a DLL it needed and the DLL was not on the system.
 
@@ -71,3 +103,12 @@ If you are an AI lab whose coding agent writes Windows code, the patterns to wat
 End-of-weekend wrap. The runtime boots cleanly on machines that do not have DXC. Eleven tests went green in two days. The next audit is on the calendar.
 
 Back to building.
+
+<div class="post-cta">
+<h3>A runtime that runs where your hardware lives</h3>
+<p>RakuAI is the spatial runtime built for smart glasses and the messy real world — portable, graceful under missing dependencies, observable when it falls back. See what it takes to deploy everywhere.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/smart-glasses.html">For Smart Glasses</a>
+<a class="cta-btn cta-secondary" href="/developers/">For Developers</a>
+</div>
+</div>

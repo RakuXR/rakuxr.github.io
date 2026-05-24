@@ -3,10 +3,41 @@ title: "Two Months Public, Years Under the Hood"
 date: 2025-11-01
 author: Kevin Griffin
 tags: [reflection, architecture, ar-glasses, multi-repo, agent-workflow, weekend-build]
-description: "Two months since I started the public engineering log on this engine. The work itself goes back further than that. A quiet Saturday to take stock of where the architecture has settled, which calls I am still revisiting, and what the road to a December production-readiness milestone looks like."
+description: "Two months of a public engineering log, years of work under the hood. A quiet Saturday to take stock: a cross-platform C++ AR runtime with AI baked into the simulation step, an architecture that has settled, and a December production-readiness milestone in sight. This is what an AI-native spatial runtime looks like when it stops being a mission statement and becomes a repo."
 series: learning-to-code-with-ai
 slug: two-months-in-what-the-engine-has-become
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="The settled architecture of the Raku runtime two months into the public log" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="2mo-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#2mo-bg)"/>
+  <text x="600" y="60" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Two Months Public, Years Under the Hood</text>
+  <text x="600" y="96" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">C++ core, stable C API, AI on the simulation step</text>
+  <g font-family="system-ui,sans-serif" font-size="14">
+    <rect x="380" y="140" width="440" height="52" rx="8" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/>
+    <text x="600" y="172" text-anchor="middle" fill="#a388ff" font-weight="700">Unity / Unreal / Web SDK bindings</text>
+    <rect x="380" y="210" width="440" height="52" rx="8" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="600" y="242" text-anchor="middle" fill="#00cec9" font-weight="700">Stable C API</text>
+    <rect x="240" y="290" width="220" height="120" rx="8" fill="#1a1a33" stroke="#6c5ce7"/>
+    <text x="350" y="330" text-anchor="middle" fill="#e8e8f0">C++ Runtime Core</text>
+    <text x="350" y="356" text-anchor="middle" fill="#9090b0" font-size="12">subsystem DLLs</text>
+    <text x="350" y="378" text-anchor="middle" fill="#9090b0" font-size="12">OpenXR conformance</text>
+    <rect x="740" y="290" width="220" height="120" rx="8" fill="#1a1a33" stroke="#e84393"/>
+    <text x="850" y="330" text-anchor="middle" fill="#ff7aa8">AI as Runtime</text>
+    <text x="850" y="356" text-anchor="middle" fill="#9090b0" font-size="12">every simulation step</text>
+    <text x="850" y="378" text-anchor="middle" fill="#9090b0" font-size="12">cloud LLM intent + on-device</text>
+    <line x1="600" y1="262" x2="600" y2="290" stroke="#9090b0" stroke-width="1.5"/>
+  </g>
+</svg>
+<figcaption>The aspirational paragraph from day one is now a description of the repo.</figcaption>
+</figure>
+
+<p class="post-hook">Most "AI-native" engines bolt a chat panel into an editor. RakuAI treats the model as a control input on every frame — and two months in, that thesis is shipping code, not slideware.</p>
 
 Plan for this Saturday was to slow down and think. Three commits the whole weekend, which is the lowest count since I started the public log. The agents are running cooler on purpose; my attention is on architecture rather than shipping new code. The codebase ends the weekend roughly where it started it, which is the right state for the kind of work I was doing.
 
@@ -70,3 +101,12 @@ If you are a partner thinking about whether to start a serious conversation: the
 If you are a developer waiting for stability: stability is December's deliverable. The engine is in active enough evolution today that I would not recommend building serious dependent code on it yet. Two months from today the recommendation will be different.
 
 Quiet Saturday. Two months in. Back to building next weekend.
+
+<div class="post-cta">
+<h3>The window to shape what we ship is open</h3>
+<p>RakuAI is an AI-native spatial runtime heading for a December production-readiness milestone. If you're a partner, the conversation that shapes what gets built next is happening now.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/why-rakuai.html">Why RakuAI</a>
+<a class="cta-btn cta-secondary" href="/enterprise.html">For Partners</a>
+</div>
+</div>

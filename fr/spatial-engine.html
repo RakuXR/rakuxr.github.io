@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moteur spatial - Physique, particules, animation &amp; audio - RakuAI</title>
+    <meta name="description" content="Moteur spatial RakuAI : physique, animation, effets visuels et audio spatial immersif.">
+    <meta property="og:title" content="Moteur spatial - Physique, particules, animation &amp; audio - RakuAI">
+    <meta property="og:description" content="Physique, animation, effets visuels et audio immersif. Le moteur spatial complet pour les jeux XR et desktop.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/fr/spatial-engine.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/fr/spatial-engine.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .engine-section {
+            padding: 64px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .engine-section:last-of-type {
+            border-bottom: none;
+        }
+        .engine-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 48px;
+            align-items: start;
+        }
+        .engine-content h3 {
+            font-size: 1.8rem;
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+        }
+        .engine-content p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+        .engine-content ul {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+        .engine-content li {
+            padding: 6px 0;
+            color: var(--text-secondary);
+        }
+        .engine-content li:before {
+            content: "\2713 ";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .engine-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+        .engine-code {
+            background: #0d0d1f;
+            border: 1px solid #222244;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            overflow-x: auto;
+            color: var(--text-primary);
+        }
+        .engine-code .kw { color: #ff79c6; font-weight: 600; }
+        .engine-code .fn { color: var(--accent-bright); }
+        .engine-code .str { color: #50fa7b; }
+        .engine-code .cmt { color: #6272a4; font-style: italic; }
+        .engine-code .num { color: #bd93f9; }
+        .engine-benefit {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-top: 16px;
+        }
+        .engine-benefit strong {
+            color: var(--success);
+        }
+        .perf-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            text-align: center;
+            margin: 32px 0;
+        }
+        .perf-stat {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 32px 16px;
+        }
+        .perf-stat .number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-bright);
+            margin-bottom: 4px;
+        }
+        .perf-stat .label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        @media (max-width: 768px) {
+            .engine-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .engine-content h3 {
+                font-size: 1.4rem;
+            }
+            .perf-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: spatial-engine.html
+  Date: 2026-05-23
+-->
+
+<div class="beta-announcement-bar">
+    &#x697D;AI<sup class="tm">™</sup> — Le runtime universel pour les World Models &nbsp;|&nbsp; <a href="index.html#for-studios">Pour les studios et développeurs →</a> &nbsp;&nbsp; Aussi : <a href="index.html#quickstart">Essayer la démo grand public →</a>
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" aria-label="Ouvrir le menu Solutions" role="menuitem">Solutions &#x25BC;</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading">Par public</div>
+                        <div class="col-heading">Plateforme</div>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Pour fabricants de lunettes connectées<span class="item-desc">Programme partenaire OEM matériel</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">Pour laboratoires d'IA<span class="item-desc">Runtime MCP pour modèles de fondation</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Pour les entreprises<span class="item-desc">Déployer l'IA spatiale à grande échelle</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Pour les créateurs<span class="item-desc">Créer &amp; publier des mondes spatiaux</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Comparaison avec Unity / Unreal<span class="item-desc">Une comparaison honnête</span></a></li>
+                        </ul>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">Moteur spatial<span class="item-desc">Le pilier du runtime</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">Systèmes d'IA<span class="item-desc">Orchestration &amp; permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">Fonctionnalités XR<span class="item-desc">Affichage, suivi et ancrage</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" aria-label="Ouvrir le menu Développeurs" role="menuitem">Développeurs &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Développeurs" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">Serveur MCP</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">Référence API</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">Modèles</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">Portail développeur</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Guide Claude Desktop</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">Guide développeur</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">Guide d'intégration LLM</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" aria-label="Ouvrir le menu Ressources" role="menuitem">Ressources &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Ressources" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">Pourquoi RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">Kit presse</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">Découvrir</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">Packs de contenu</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">Aperçu de la documentation</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">Tarifs</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">Se connecter</a>
+            <a href="../spatial-engine.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <div class="engine-badge">MOTEUR SPATIAL</div>
+        <h1>Moteur spatial</h1>
+        <p class="subtitle">Physique, particules, animation et audio spatial. Tout ce qu'il vous faut pour des mondes 3D immersifs, optimisés pour la XR.</p>
+        <div class="perf-stats">
+            <div class="perf-stat">
+                <div class="number">120 Hz</div>
+                <div class="label">Rendu XR</div>
+            </div>
+            <div class="perf-stat">
+                <div class="number">GPU</div>
+                <div class="label">Calcul des particules</div>
+            </div>
+            <div class="perf-stat">
+                <div class="number">HRTF</div>
+                <div class="label">Audio spatial</div>
+            </div>
+            <div class="perf-stat">
+                <div class="number">Inf. à 1 ms</div>
+                <div class="label">Pas de physique</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="border-bottom: 1px solid #222244;">
+    <div class="container" style="text-align:center;">
+        <h2>Verrouillé sur le monde, au submillimètre près</h2>
+        <p style="color: var(--text-secondary); max-width: 720px; margin: -16px auto 32px; font-size: 1.05rem;">
+            La fusion de capteurs alimente la compréhension de la scène, qui fixe des ancres conservant leur place d'une session et d'un appareil à l'autre.
+        </p>
+        <div style="max-width:920px; margin:0 auto;">
+        <svg viewBox="0 0 920 420" width="100%" style="max-width:920px; height:auto; display:block;" role="img" aria-labelledby="se-anchor-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="se-anchor-title">Ancrage spatial : un pipeline fusion de capteurs vers compr&#233;hension de sc&#232;ne vers ancres alimente une grille de pi&#232;ce en perspective o&#249; les points d&#8217;ancrage verrouill&#233;s sur le monde conservent leur position avec une pr&#233;cision submillim&#233;trique.</title>
+            <defs>
+                <linearGradient id="se-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <linearGradient id="se-floor" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7" stop-opacity="0.18"/>
+                    <stop offset="1" stop-color="#00cec9" stop-opacity="0.04"/>
+                </linearGradient>
+                <marker id="se-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+
+            <!-- left stack: sensor fusion -> scene understanding -> anchors -->
+            <g font-family="system-ui,sans-serif">
+                <rect x="32" y="80" width="220" height="58" rx="11" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="142" y="106" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="600">Fusion de capteurs</text>
+                <text x="142" y="125" text-anchor="middle" fill="#9090b0" font-size="11">IMU &#183; cam&#233;ras &#183; profondeur</text>
+
+                <rect x="32" y="178" width="220" height="58" rx="11" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+                <text x="142" y="204" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="600">Compr&#233;hension de sc&#232;ne</text>
+                <text x="142" y="223" text-anchor="middle" fill="#9090b0" font-size="11">plans &#183; maillages &#183; s&#233;mantique</text>
+
+                <rect x="32" y="276" width="220" height="58" rx="11" fill="#15152e" stroke="url(#se-grad)" stroke-width="2"/>
+                <text x="142" y="302" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="700">Ancres spatiales</text>
+                <text x="142" y="321" text-anchor="middle" fill="#00cec9" font-size="11">verrouill&#233;es sur le monde &#183; persistantes</text>
+
+                <line x1="142" y1="138" x2="142" y2="176" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
+                <line x1="142" y1="236" x2="142" y2="274" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
+            </g>
+
+            <!-- connector to room -->
+            <line x1="252" y1="305" x2="330" y2="305" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
+
+            <!-- right: perspective room with anchors -->
+            <g transform="translate(340,40)">
+                <!-- floor -->
+                <polygon points="60,300 520,300 430,150 150,150" fill="url(#se-floor)"/>
+                <!-- floor grid -->
+                <g stroke="#3a3a66" stroke-width="1" fill="none">
+                    <path d="M150,150 L60,300 M196,150 L130,300 M242,150 L200,300 M290,150 L272,300 M338,150 L344,300 M384,150 L416,300 M430,150 L520,300"/>
+                    <path d="M126,206 L454,206 M96,253 L484,253"/>
+                </g>
+                <!-- back wall edge -->
+                <polyline points="150,150 150,40 430,40 430,150" fill="none" stroke="#2c2c4e" stroke-width="1.4"/>
+
+                <!-- anchors with crosshair pins -->
+                <g>
+                    <g transform="translate(210,232)">
+                        <line x1="-9" y1="0" x2="9" y2="0" stroke="#00cec9" stroke-width="1.6"/>
+                        <line x1="0" y1="-9" x2="0" y2="9" stroke="#00cec9" stroke-width="1.6"/>
+                        <circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/>
+                        <circle r="2" fill="#00cec9"/>
+                    </g>
+                    <g transform="translate(360,200)">
+                        <line x1="-9" y1="0" x2="9" y2="0" stroke="#a388ff" stroke-width="1.6"/>
+                        <line x1="0" y1="-9" x2="0" y2="9" stroke="#a388ff" stroke-width="1.6"/>
+                        <circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/>
+                        <circle r="2" fill="#a388ff"/>
+                    </g>
+                    <g transform="translate(300,272)">
+                        <line x1="-9" y1="0" x2="9" y2="0" stroke="#00cec9" stroke-width="1.6"/>
+                        <line x1="0" y1="-9" x2="0" y2="9" stroke="#00cec9" stroke-width="1.6"/>
+                        <circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/>
+                        <circle r="2" fill="#00cec9"/>
+                    </g>
+                </g>
+
+                <!-- precision callout -->
+                <line x1="210" y1="232" x2="210" y2="120" stroke="#9090b0" stroke-width="1" stroke-dasharray="3 4"/>
+                <rect x="150" y="92" width="160" height="30" rx="8" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.2"/>
+                <text x="230" y="112" text-anchor="middle" fill="#00cec9" font-family="ui-monospace,monospace" font-size="12">d&#233;rive &lt; 1 mm</text>
+            </g>
+        </svg>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+
+        <!-- Physics Engine -->
+        <div class="engine-section" id="physics">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">PHYSIQUE</div>
+                    <h3>Moteur physique</h3>
+                    <p>Physique 3D de qualité production avec corps rigides, contraintes, lancer de rayons et détection de collisions. Simulation déterministe avec des temps de pas submillimétriques en durée, même sur du matériel XR mobile.</p>
+                    <div class="engine-benefit">
+                        <strong>Avantage clé :</strong> Une physique cohérente et fiable sur VR, desktop et mobile &mdash; sans réglage par plateforme.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Particle System -->
+        <div class="engine-section" id="particles">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">VFX</div>
+                    <h3>Système de particules</h3>
+                    <p>Système de particules accéléré par GPU avec des préréglages VFX par genre. Prend en charge les émetteurs, les attracteurs, la collision et la mise à l'échelle LOD. La gestion automatique du budget maintient les cadences verrouillées entre 72 et 120 Hz sur le matériel XR.</p>
+                    <div class="engine-benefit">
+                        <strong>Avantage clé :</strong> Des VFX cinématiques qui s'adaptent au matériel &mdash; sans optimisation manuelle.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animation System -->
+        <div class="engine-section" id="animation">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">ANIMATION</div>
+                    <h3>Système d'animation</h3>
+                    <p>Animation squelettique avec arbres de mélange, machines à états, IK et reciblage. Prend en charge des personnages animés simultanés avec des transitions fluides et un mélange à l'exécution.</p>
+                    <div class="engine-benefit">
+                        <strong>Avantage clé :</strong> Une animation de personnages naturelle et réactive, sans configuration par personnage.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spatial Audio -->
+        <div class="engine-section" id="audio">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">AUDIO</div>
+                    <h3>Audio spatial</h3>
+                    <p>Audio spatial 3D basé sur HRTF avec rendu binaural, occlusion, zones de réverbération et couches musicales adaptatives. Réglé pour les haut-parleurs de casques XR et les écouteurs avec une charge CPU minimale.</p>
+                    <div class="engine-benefit">
+                        <strong>Avantage clé :</strong> Les joueurs localisent naturellement les sons dans l'espace 3D &mdash; essentiel pour une XR immersive.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+
+<!-- Performance Callout -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+        <h2>Optimisé pour la XR</h2>
+        <p style="color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.1rem;">
+            Chaque sous-système est optimisé pour les budgets d'image exigeants des casques VR et AR.
+        </p>
+        <div class="features">
+            <div class="feature">
+                <h3>VFX haute performance</h3>
+                <p>Des effets visuels saisissants sans nuire aux performances du gameplay.</p>
+            </div>
+            <div class="feature">
+                <h3>Physique fiable</h3>
+                <p>Un gameplay cohérent sur toutes les plateformes.</p>
+            </div>
+            <div class="feature">
+                <h3>Audio immersif</h3>
+                <p>Une qualité d'audio spatial irréprochable à tout moment.</p>
+            </div>
+        </div>
+        <p style="margin-top: 40px;">
+            <a href="sdk.html" class="btn btn-primary">Explorer le SDK</a>
+            <a href="xr-features.html" class="btn btn-secondary" style="margin-left: 16px;">Fonctionnalités XR</a>
+            <a href="ai-systems.html" class="btn btn-secondary" style="margin-left: 16px;">Systèmes d'IA</a>
+        </p>
+    </div>
+</section>
+
+<footer>
+  <p>&copy; 2026 RakuAI, LLC &bull; 5 brevets américains délivrés (Priorité : juillet 2012) &bull; Propulsé par le moteur RakuAI</p>
+  <p style="margin-top: 6px;">
+    <a href="../engine/">Moteur</a> &bull;
+    <a href="../api/">API</a> &bull;
+    <a href="docs.html">Docs</a> &bull;
+    <a href="../games/">Arcade</a> &bull;
+    <a href="press.html">Presse</a> &bull;
+    <a href="developers/">Développeurs</a> &bull;
+    <a href="../privacy.html">Confidentialité</a> &bull;
+    <a href="../terms.html">Conditions</a> &bull;
+    <a href="contact.html">Contact</a> &bull;
+    <a href="https://github.com/RakuXR">GitHub</a>
+  </p>
+  <p class="trademark-notice">
+    RakuAI&trade; et RakuXR&trade; sont des marques déposées de RakuAI, LLC.
+    <span class="kanji-logo">&#x697D;</span>AI et <span class="kanji-logo">&#x697D;</span>XR sont des marques stylisées de RakuAI, LLC.
+    5 brevets américains délivrés (Priorité : juillet 2012).
+  </p>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+<script src="../js/nav-dropdown.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>
