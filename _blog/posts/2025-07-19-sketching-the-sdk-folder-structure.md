@@ -3,52 +3,10 @@ title: "Sketching the SDK Folder Structure on Paper"
 date: 2025-07-19
 author: Kevin Griffin
 tags: [design, sdk, folder-structure, stubs, pre-build, weekend-build]
-description: "The folder structure is the org chart of the code - get it right early and every PR for two years lands in the right place. This Saturday drew the SDK's skeleton before any code existed: /apps, /modules, /assets, /docs, /config, plus module stubs that lock the contracts your agents build to. This is the discipline that keeps an AI-built spatial runtime coherent for years."
+description: "Started this Saturday on the SDK's folder structure before writing any code. /apps, /modules, /assets, /docs, /config. Each demo has a home. Each shared module has a clear contract. A handful of code stubs in pseudocode that show the agents what a real implementation should eventually look like. The folder structure is the spec the agents will build to."
 series: learning-to-code-with-ai
 slug: sketching-the-sdk-folder-structure
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="SDK folder tree showing apps, modules, assets, docs, and config branches" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="sdkFolders-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-    <linearGradient id="sdkFolders-accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#sdkFolders-bg)"/>
-  <text x="600" y="56" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">The Folder Structure Is the Spec</text>
-  <text x="600" y="90" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Draw the boxes the agents have to write into</text>
-  <g font-family="ui-monospace,monospace" font-size="16">
-    <rect x="500" y="120" width="200" height="48" rx="10" fill="#1a1a33" stroke="#a388ff" stroke-width="2"/>
-    <text x="600" y="150" text-anchor="middle" fill="#a388ff" font-weight="700">/sdk</text>
-    <path d="M600 168 L600 200 M200 200 L1000 200 M200 200 L200 240 M400 200 L400 240 M600 200 L600 240 M800 200 L800 240 M1000 200 L1000 240" stroke="url(#sdkFolders-accent)" stroke-width="2" fill="none"/>
-    <rect x="120" y="240" width="160" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="200" y="269" text-anchor="middle" fill="#00cec9">/apps</text>
-    <rect x="320" y="240" width="160" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="400" y="269" text-anchor="middle" fill="#00cec9">/modules</text>
-    <rect x="520" y="240" width="160" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="600" y="269" text-anchor="middle" fill="#00cec9">/assets</text>
-    <rect x="720" y="240" width="160" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="800" y="269" text-anchor="middle" fill="#00cec9">/docs</text>
-    <rect x="920" y="240" width="160" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="1000" y="269" text-anchor="middle" fill="#00cec9">/config</text>
-  </g>
-  <g font-family="ui-monospace,monospace" font-size="12" fill="#9090b0" text-anchor="middle">
-    <text x="200" y="320">arena_demo/  coach_demo/</text>
-    <text x="200" y="340">hud_designer/  ...8 demos</text>
-    <text x="400" y="320">hud  gesture  gaze</text>
-    <text x="400" y="340">sync  fx  voice</text>
-    <text x="600" y="320">widgets  audio</text>
-    <text x="600" y="340">gesture icons</text>
-    <text x="800" y="320">README  guides</text>
-    <text x="800" y="340">API refs</text>
-    <text x="1000" y="320">layouts  roles</text>
-  </g>
-  <rect x="300" y="400" width="600" height="46" rx="12" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
-  <text x="600" y="429" text-anchor="middle" fill="#e84393" font-family="system-ui,sans-serif" font-size="15" font-weight="600">Stubs lock the contract before the implementation exists</text>
-</svg>
-<figcaption>The structure is the discipline - the agents inherit it through the boxes they write into.</figcaption>
-</figure>
-
-<p class="post-hook">An agent-built codebase either turns to mush in three months or stays coherent for years - and the difference is decided before a single line is written. RakuAI drew the boxes first so the agents would always land in the right place.</p>
 
 There is a kind of design work that is invisible from the outside and load-bearing from the inside. The folder structure of a codebase is one of those things. It looks like file management. It is actually the org chart of the code. Get it right early and every PR for the next two years lands in the right place. Get it wrong early and every PR for the next two years has to argue about where it belongs.
 
@@ -136,12 +94,3 @@ After that comes the demo-by-demo specification of which modules each demo consu
 The patent estate has been waiting a decade. A few more weeks of design work to land it right will not be the thing that costs us the window.
 
 Folder structure done. The codebase has a shape now, even though there is no code in it yet.
-
-<div class="post-cta">
-<h3>An SDK that won't shift under your feet</h3>
-<p>A folder structure that won't change, an API surface locked before implementation - build on a spatial runtime designed for the long haul.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/developers/">For Developers</a>
-<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
-</div>
-</div>

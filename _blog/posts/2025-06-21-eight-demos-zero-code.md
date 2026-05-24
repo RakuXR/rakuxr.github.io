@@ -3,42 +3,10 @@ title: "Eight Demos, Zero Code: What the SDK Has to Be For"
 date: 2025-06-21
 author: Kevin Griffin
 tags: [design, sdk, demos, pre-build, ar-glasses, weekend-build]
-description: "Eight canonical demos that prove what a spatial runtime is for - arena multiplayer, AR coaching, HUD designer, streamer mode, point-of-service overlay, companion HUD, aim trainer, multiplayer HUD sync. Zero code written, every one specified. The demos are the spec, and they are how RakuAI shows what your AI can do once it inhabits the real world."
+description: "This Saturday went into specifying the eight canonical demos that will ship with the SDK. Arena multiplayer. AR coaching. HUD designer. Streamer mode. Point-of-service overlay. Companion HUD. AR aim trainer. Multiplayer HUD sync. Eight different proofs of what the product is. None of them coded yet. All of them specified."
 series: learning-to-code-with-ai
 slug: eight-demos-zero-code
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Eight canonical SDK demos arranged in a grid, each a different proof of the spatial runtime" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="eightDemos-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-    <linearGradient id="eightDemos-accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#eightDemos-bg)"/>
-  <text x="600" y="58" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Eight Demos, Zero Code</text>
-  <text x="600" y="92" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">The demos are the spec - eight proofs of what the engine is for</text>
-  <g font-family="system-ui,sans-serif" font-size="15" fill="#c8c8e0" text-anchor="middle">
-    <rect x="90" y="140" width="240" height="90" rx="14" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/><text x="210" y="178" fill="#a388ff" font-weight="700">1. Solo Arena</text><text x="210" y="204" font-size="13" fill="#9090b0">flagship AR match</text>
-    <rect x="350" y="140" width="240" height="90" rx="14" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/><text x="470" y="178" fill="#a388ff" font-weight="700">2. AR Coaching</text><text x="470" y="204" font-size="13" fill="#9090b0">real-time motion feedback</text>
-    <rect x="610" y="140" width="240" height="90" rx="14" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/><text x="730" y="178" fill="#a388ff" font-weight="700">3. HUD Designer</text><text x="730" y="204" font-size="13" fill="#9090b0">authoring tool</text>
-    <rect x="870" y="140" width="240" height="90" rx="14" fill="#1a1a33" stroke="#6c5ce7" stroke-width="2"/><text x="990" y="178" fill="#a388ff" font-weight="700">4. Streamer Mode</text><text x="990" y="204" font-size="13" fill="#9090b0">live overlays + replay</text>
-    <rect x="90" y="250" width="240" height="90" rx="14" fill="#1a1a33" stroke="#00cec9" stroke-width="2"/><text x="210" y="288" fill="#00cec9" font-weight="700">5. Point-of-Service</text><text x="210" y="314" font-size="13" fill="#9090b0">commercial overlay</text>
-    <rect x="350" y="250" width="240" height="90" rx="14" fill="#1a1a33" stroke="#00cec9" stroke-width="2"/><text x="470" y="288" fill="#00cec9" font-weight="700">6. Companion HUD</text><text x="470" y="314" font-size="13" fill="#9090b0">second-screen AR</text>
-    <rect x="610" y="250" width="240" height="90" rx="14" fill="#1a1a33" stroke="#00cec9" stroke-width="2"/><text x="730" y="288" fill="#00cec9" font-weight="700">7. Aim Trainer</text><text x="730" y="314" font-size="13" fill="#9090b0">precision + latency</text>
-    <rect x="870" y="250" width="240" height="90" rx="14" fill="#1a1a33" stroke="#00cec9" stroke-width="2"/><text x="990" y="288" fill="#00cec9" font-weight="700">8. Multiplayer Sync</text><text x="990" y="314" font-size="13" fill="#9090b0">LAN, no cloud</text>
-  </g>
-  <text x="600" y="400" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="16">One SDK. One runtime. Eight categories of capability.</text>
-  <rect x="430" y="424" width="340" height="34" rx="17" fill="none" stroke="url(#eightDemos-accent)" stroke-width="2"/>
-  <text x="600" y="446" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="14" font-weight="600">HUD-driven interaction = the shared primitive</text>
-</svg>
-<figcaption>Eight specific demos that exercise specific hardware - the proof surface for the whole engine.</figcaption>
-</figure>
-
-<p class="post-hook">If you cannot describe the demos, you will build the wrong engine. RakuAI's eight canonical demos are the spec - eight ways to prove what your AI does once it can see and act in a real room.</p>
 
 A pattern I have learned the hard way over three previous companies: if you cannot describe the demos before you build the engine, you will build the wrong engine. The demos are the spec. The engine has to deliver each of them. Everything else (architecture, APIs, language bindings, hardware abstractions) is downstream of what the demos need to do.
 
@@ -119,12 +87,3 @@ The patent estate that anchors this product has been waiting more than a decade 
 The demos are the spec. The engine has to deliver each of them. Tomorrow does not start the code. The Saturday after that does not start the code. The right Saturday for the code to start is the one when the demos are fully specified, the SDK is fully designed, and the agents that will build it are fully assembled.
 
 I am taking the time. The version that ships will be the one that knew what it was for before the first line of it was written.
-
-<div class="post-cta">
-<h3>See what your studio can build on the runtime</h3>
-<p>Eight demos, eight categories of product - read the working examples and start shipping spatial experiences your AI assistant can drive in the real world.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/developers/">For Developers</a>
-<a class="cta-btn cta-secondary" href="/creator.html">For Creators</a>
-</div>
-</div>

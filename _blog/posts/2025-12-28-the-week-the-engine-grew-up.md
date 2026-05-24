@@ -3,43 +3,10 @@ title: "The Weekend the Engine Grew Up"
 date: 2025-12-28
 author: Kevin Griffin
 tags: [tflite, federated-sync, spatial-anchors, openxr, multi-repo, year-end, weekend-build]
-description: "A 276-commit weekend that landed TensorFlow Lite for on-device SLM inference, AES-256-GCM federated sync, OpenXR composition layers, Kalman-filtered anchor stabilization, and a hardware-abstraction layer for the optical channel. This is the weekend RakuAI stopped being a research project and grew the surface area of a real platform — the bones smart glasses and AI labs build on."
+description: "A 276-commit weekend that landed TensorFlow Lite for on-device SLM inference, AES-256-GCM federated sync, OpenXR composition layers, Kalman-filtered anchor stabilization, and a hardware-abstraction layer for the optical channel. The engine ends 2025 with the surface area of a real platform."
 series: learning-to-code-with-ai
 slug: the-week-the-engine-grew-up
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="A 276-commit weekend lands the subsystems that turn a runtime into a platform" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="grew-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-    <linearGradient id="grew-accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#grew-bg)"/>
-  <text x="600" y="64" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">The Weekend the Engine Grew Up</text>
-  <text x="600" y="100" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">A research project gains the surface area of a platform</text>
-  <g font-family="system-ui,sans-serif">
-    <circle cx="600" cy="270" r="92" fill="#1a1a33" stroke="url(#grew-accent)" stroke-width="3"/>
-    <text x="600" y="262" text-anchor="middle" fill="#a388ff" font-size="52" font-weight="800">276</text>
-    <text x="600" y="296" text-anchor="middle" fill="#9090b0" font-size="16">commits / one weekend</text>
-  </g>
-  <g font-family="system-ui,sans-serif" font-size="13" fill="#c8c8e0">
-    <rect x="120" y="160" width="180" height="40" rx="8" fill="#16213a" stroke="#00cec9"/><text x="210" y="185" text-anchor="middle">TFLite on-device SLM</text>
-    <rect x="120" y="240" width="180" height="40" rx="8" fill="#16213a" stroke="#00cec9"/><text x="210" y="265" text-anchor="middle">Spatial Anchors</text>
-    <rect x="120" y="320" width="180" height="40" rx="8" fill="#16213a" stroke="#00cec9"/><text x="210" y="345" text-anchor="middle">AES-256-GCM sync</text>
-    <rect x="900" y="160" width="180" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="990" y="185" text-anchor="middle">OpenXR composition</text>
-    <rect x="900" y="240" width="180" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="990" y="265" text-anchor="middle">Kalman anchor filter</text>
-    <rect x="900" y="320" width="180" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="990" y="345" text-anchor="middle">Optical-channel HAL</text>
-  </g>
-  <text x="600" y="410" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="15">~150 of 342 tracked TODOs closed</text>
-</svg>
-<figcaption>276 commits, ten platform-grade subsystems, one engine that changed category.</figcaption>
-</figure>
-
-<p class="post-hook">There is a moment when a codebase stops being something you're building and becomes something others can build on. For RakuAI, that moment was a 276-commit weekend between Christmas and New Year's.</p>
 
 There are weekends where a codebase moves forward, and there are weekends where a codebase changes category. The weekend between Christmas and New Year's was the second kind.
 
@@ -113,12 +80,3 @@ If you are an AI lab looking at where your model's inference budget could be bes
 If you are a developer thinking about building on top of this engine in 2026, the surface area is real. The C API is stable. The SDK bindings (Unity and Unreal) are real. The OpenXR backbone means the engine targets multiple devices. The blog at this URL has been a public log of how the engine got here. Read it back if you want to know what the engineering culture is going to be when you bring an experience to this platform.
 
 276 commits, a year ending, an engine grown up. Different weekend, same workflow. Back to building next Saturday.
-
-<div class="post-cta">
-<h3>Put your model on the simulation step</h3>
-<p>RakuAI ships both on-device SLM inference through TFLite and a cloud LLM path — model-agnostic, production-quality, ready for your weights. See where your inference budget goes furthest in a spatial runtime.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/llm-makers.html">For AI Labs</a>
-<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
-</div>
-</div>

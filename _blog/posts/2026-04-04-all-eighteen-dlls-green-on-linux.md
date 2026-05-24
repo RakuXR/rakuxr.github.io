@@ -3,53 +3,10 @@ title: "All Eighteen DLLs Green on Linux"
 date: 2026-04-04
 author: Kevin Griffin
 tags: [build, linux, symbol-visibility, cross-platform, ci, weekend-build]
-description: "347 untagged functions across eighteen native libraries, hidden by a symbol-visibility default, breaking the Linux build one undefined-reference at a time. Traced to root, swept clean, and locked behind a CI guard that fails any PR that drops a public symbol. Linux is now a first-class target — and the codebase is more honest on every platform."
+description: "The runtime has been building on Windows since December. Linux had been mostly working, but a small number of the eighteen native DLLs would not build cleanly because of symbol-visibility issues that nobody enjoys. Spent this Saturday tracing the symbol-visibility problem to its root and clearing the last few DLLs. Linux is now a first-class target."
 series: learning-to-code-with-ai
 slug: all-eighteen-dlls-green-on-linux
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Eighteen native libraries all building green on Linux after a symbol-visibility fix" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="dll18-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#dll18-bg)"/>
-  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">All Eighteen Green on Linux</text>
-  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">347 functions tagged, one CI guard, three platforms</text>
-  <g font-family="ui-monospace,monospace" font-size="13">
-    <!-- 18 library tiles, 6 x 3 -->
-    <g fill="#c8c8e0">
-      <rect x="160" y="150" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="230" y="178" text-anchor="middle">libraku_01</text>
-      <rect x="320" y="150" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="390" y="178" text-anchor="middle">libraku_02</text>
-      <rect x="480" y="150" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="550" y="178" text-anchor="middle">libraku_03</text>
-      <rect x="640" y="150" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="710" y="178" text-anchor="middle">libraku_04</text>
-      <rect x="800" y="150" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="870" y="178" text-anchor="middle">libraku_05</text>
-      <rect x="960" y="150" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="1030" y="178" text-anchor="middle">libraku_06</text>
-      <rect x="160" y="208" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="230" y="236" text-anchor="middle">libraku_07</text>
-      <rect x="320" y="208" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="390" y="236" text-anchor="middle">libraku_08</text>
-      <rect x="480" y="208" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="550" y="236" text-anchor="middle">libraku_09</text>
-      <rect x="640" y="208" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="710" y="236" text-anchor="middle">libraku_10</text>
-      <rect x="800" y="208" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="870" y="236" text-anchor="middle">libraku_11</text>
-      <rect x="960" y="208" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="1030" y="236" text-anchor="middle">libraku_12</text>
-      <rect x="160" y="266" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="230" y="294" text-anchor="middle">libraku_13</text>
-      <rect x="320" y="266" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="390" y="294" text-anchor="middle">libraku_14</text>
-      <rect x="480" y="266" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="550" y="294" text-anchor="middle">libraku_15</text>
-      <rect x="640" y="266" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="710" y="294" text-anchor="middle">libraku_16</text>
-      <rect x="800" y="266" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="870" y="294" text-anchor="middle">libraku_17</text>
-      <rect x="960" y="266" width="140" height="46" rx="8" fill="#16213a" stroke="#00cec9"/><text x="1030" y="294" text-anchor="middle">libraku_18</text>
-    </g>
-  </g>
-  <g font-family="ui-monospace,monospace" font-size="14">
-    <text x="600" y="370" text-anchor="middle" fill="#a388ff">RAKU_API __attribute__((visibility("default")))</text>
-    <text x="600" y="402" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-weight="700">nm -D guard: fails any PR that drops a symbol</text>
-  </g>
-</svg>
-<figcaption>Eighteen libraries, one consistent visibility contract, a guard that keeps it honest.</figcaption>
-</figure>
-
-<p class="post-hook">Cross-platform builds do not just widen your reach — they force your codebase to stop relying on one compiler's quiet favors. Every platform you add makes the runtime more honest on the ones you already had.</p>
 
 The Linux build had been a known partial-pass for weeks. Most of the eighteen native runtime DLLs (the engine is structured as a fleet of focused shared libraries) had been building clean. A few had not. The failures had the same shape every time: undefined-symbol errors at link time on functions that obviously did exist in the codebase. Anyone who has worked on Linux shared libraries in C++ knows where this is going.
 
@@ -120,12 +77,3 @@ If you are an AI lab whose coding agent writes cross-platform native code, the v
 Saturday wrap. Eighteen DLLs green on Linux. The CI is faster now. The codebase is more honest. The build matrix is three platforms wide.
 
 Back to building.
-
-<div class="post-cta">
-<h3>A runtime disciplined by every platform it touches</h3>
-<p>RakuAI is the cross-platform spatial runtime for AR glasses, cloud inference, and everything between — Linux, macOS, and Windows, all green. See why partners build on a portable foundation.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/developers/">For Developers</a>
-<a class="cta-btn cta-secondary" href="/smart-glasses.html">For Smart Glasses</a>
-</div>
-</div>

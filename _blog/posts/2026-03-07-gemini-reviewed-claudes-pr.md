@@ -3,44 +3,10 @@ title: "Gemini Reviewed Claude's PR. Thirty-Six Comments Later, It Was Better."
 date: 2026-03-07
 author: Kevin Griffin
 tags: [multi-vendor, code-review, gemini, claude, partnerships, weekend-build]
-description: "Claude wrote eight subsystem PRs. Gemini reviewed them and left thirty-six comments — two of which were real thread-safety bugs that would have shipped. This is the multi-vendor review pattern earning its keep: different model, different blind spots, harder-to-fool code. The discipline signal serious partners should ask every engine team about."
+description: "Spent this Saturday working through thirty-six review comments Gemini left on a batch of Claude-authored endpoint expansions. The multi-vendor review pattern earning its keep across eight separate subsystem PRs. Different model, different blind spots, real bugs caught. The pattern that I am most curious about other people's opinions on."
 series: learning-to-code-with-ai
 slug: gemini-reviewed-claudes-pr
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Claude authored code reviewed by Gemini across eight subsystems producing thirty-six comments" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="gem-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-    <linearGradient id="gem-arc" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#gem-bg)"/>
-  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Different Model, Different Blind Spots</text>
-  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Cross-vendor review across eight subsystems</text>
-  <g font-family="system-ui,sans-serif">
-    <circle cx="280" cy="250" r="80" fill="#1a1a33" stroke="#a388ff" stroke-width="3"/>
-    <text x="280" y="245" text-anchor="middle" fill="#a388ff" font-size="22" font-weight="800">Claude</text>
-    <text x="280" y="272" text-anchor="middle" fill="#9090b0" font-size="14">writes</text>
-    <circle cx="920" cy="250" r="80" fill="#16213a" stroke="#00cec9" stroke-width="3"/>
-    <text x="920" y="245" text-anchor="middle" fill="#00cec9" font-size="22" font-weight="800">Gemini</text>
-    <text x="920" y="272" text-anchor="middle" fill="#9090b0" font-size="14">reviews</text>
-    <path d="M360 230 C540 170, 660 170, 840 230" fill="none" stroke="url(#gem-arc)" stroke-width="4"/>
-    <polygon points="840,230 822,222 824,240" fill="#00cec9"/>
-    <text x="600" y="178" text-anchor="middle" fill="#a388ff" font-size="16" font-weight="700">36 comments</text>
-    <rect x="500" y="320" width="200" height="56" rx="12" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
-    <text x="600" y="345" text-anchor="middle" fill="#ff7aa8" font-size="15" font-weight="700">2 real bugs caught</text>
-    <text x="600" y="367" text-anchor="middle" fill="#9090b0" font-size="13">thread-safety, would have shipped</text>
-    <text x="600" y="418" text-anchor="middle" fill="#c8c8e0" font-size="14">Human decides &#8212; not Gemini, not Claude</text>
-  </g>
-</svg>
-<figcaption>Claude writes. Gemini reviews. The human merges. The bugs lose.</figcaption>
-</figure>
-
-<p class="post-hook">A reviewer that always agrees with the writer is not a reviewer. Run your AI's code past a rival AI and the blind spots light up — including the thread-safety bugs that would have shipped to production.</p>
 
 The pattern I keep coming back to is the one where Claude writes the code and Gemini reviews it. Different training. Different blind spots. Different opinions about what is a defensible pattern and what is a smell. This Saturday was the most concrete demonstration of why I think this pattern is the right one.
 
@@ -101,12 +67,3 @@ If you are evaluating an engine for partnership, the multi-vendor review pattern
 Thirty-six comments, eight subsystems, one Saturday. The batch is better than it was this morning. The pattern earns its keep, again.
 
 Back to building.
-
-<div class="post-cta">
-<h3>The runtime AI labs review with — and build on</h3>
-<p>RakuAI is the spatial runtime LLM makers ship against. Cross-vendor review, honest metrics, partner-grade discipline. See where your models fit in the real world.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/llm-makers.html">For AI Labs</a>
-<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
-</div>
-</div>

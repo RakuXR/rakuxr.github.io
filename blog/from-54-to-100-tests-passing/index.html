@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <title>From 54% to 100% Tests Passing &mdash; RakuAI Blog</title>
-    <meta name="description" content="54% to 100% in three weekends. The test runner does not care about your feelings, your star count, or your roadmap — it tells you exactly how much of your spatial runtime actually works. Here is how we walked the gap, root-cause by root-cause, and why pass rate is the most honest signal a partner can ask for.">
+    <meta name="description" content="Started the weekend with the test suite at 54% passing. By Saturday night, 63%. By the following Sunday, 100%. The path between those numbers was specific, mechanical, and full of the kind of small lessons that explain why test-pass-rate is one of the most honest signals a codebase produces.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/from-54-to-100-tests-passing/">
     <link rel="alternate" hreflang="en" href="https://rakuai.com/blog/from-54-to-100-tests-passing/">
@@ -14,7 +14,7 @@
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
     <meta property="og:title" content="From 54% to 100% Tests Passing">
-    <meta property="og:description" content="54% to 100% in three weekends. The test runner does not care about your feelings, your star count, or your roadmap — it tells you exactly how much of your spatial runtime actually works. Here is how we walked the gap, root-cause by root-cause, and why pass rate is the most honest signal a partner can ask for.">
+    <meta property="og:description" content="Started the weekend with the test suite at 54% passing. By Saturday night, 63%. By the following Sunday, 100%. The path between those numbers was specific, mechanical, and full of the kind of small lessons that explain why test-pass-rate is one of the most honest signals a codebase produces.">
     <meta property="og:url" content="https://rakuai.com/blog/from-54-to-100-tests-passing/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="From 54% to 100% Tests Passing">
-    <meta name="twitter:description" content="54% to 100% in three weekends. The test runner does not care about your feelings, your star count, or your roadmap — it tells you exactly how much of your spatial runtime actually works. Here is how we walked the gap, root-cause by root-cause, and why pass rate is the most honest signal a partner can ask for.">
+    <meta name="twitter:description" content="Started the weekend with the test suite at 54% passing. By Saturday night, 63%. By the following Sunday, 100%. The path between those numbers was specific, mechanical, and full of the kind of small lessons that explain why test-pass-rate is one of the most honest signals a codebase produces.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -108,38 +108,6 @@
             </p>
         </header>
         <div class="post-body">
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Test pass rate climbing from 54 percent to 100 percent over three weekends" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="t100-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-    <linearGradient id="t100-line" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#e84393"/><stop offset="0.5" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#t100-bg)"/>
-  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">54% to 100% Green</text>
-  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Three weekends, four root-cause fixes, one honest number</text>
-  <g font-family="system-ui,sans-serif">
-    <line x1="150" y1="400" x2="1080" y2="400" stroke="#2a2a4a" stroke-width="2"/>
-    <line x1="150" y1="140" x2="150" y2="400" stroke="#2a2a4a" stroke-width="2"/>
-    <polyline points="150,380 430,360 710,348 990,160" fill="none" stroke="url(#t100-line)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="150" cy="380" r="9" fill="#e84393"/><text x="150" y="365" text-anchor="middle" fill="#ff7aa8" font-size="16" font-weight="700">54%</text>
-    <circle cx="430" cy="360" r="9" fill="#a388ff"/><text x="430" y="345" text-anchor="middle" fill="#a388ff" font-size="16" font-weight="700">63%</text>
-    <circle cx="710" cy="348" r="9" fill="#6c5ce7"/><text x="710" y="333" text-anchor="middle" fill="#a388ff" font-size="15">63%</text>
-    <circle cx="990" cy="160" r="11" fill="#00cec9"/><text x="990" y="143" text-anchor="middle" fill="#00cec9" font-size="18" font-weight="800">100%</text>
-    <text x="150" y="430" text-anchor="middle" fill="#9090b0" font-size="14">Sat AM</text>
-    <text x="430" y="430" text-anchor="middle" fill="#9090b0" font-size="14">Sat PM</text>
-    <text x="710" y="430" text-anchor="middle" fill="#9090b0" font-size="14">Wk 2</text>
-    <text x="990" y="430" text-anchor="middle" fill="#9090b0" font-size="14">Wk 3</text>
-  </g>
-</svg>
-<figcaption>The only number that cannot be massaged: 56 of 56 tests passing.</figcaption>
-</figure>
-
-<p class="post-hook">When a partner evaluates a spatial runtime, the first number they should ask for is the integrated test pass rate. Here is how we took ours from barely-working to bulletproof — and why the trajectory matters more than the snapshot.</p>
-
 <p>The number that does not lie about a codebase is the test pass rate. Sales numbers can be massaged. Star counts can be inflated. Lines of code can be padded. The test pass rate is what the test runner says it is, and the test runner does not care about your feelings.</p>
 <p>When I opened the laptop a week ago Saturday the number was 54%. Twenty-eight tests out of fifty-two. Not catastrophic. Not green. The kind of number that means the codebase mostly works and you cannot tell exactly where it does not. By that Saturday night the number was 63% (33/52). By the Sunday that just closed, it was 100% (56/56). The path between those numbers is what this post is about.</p>
 <h2 id="why-the-number-was-low-to-start-with">Why the number was low to start with</h2>
@@ -169,14 +137,6 @@
 <p>If you are an AI lab building a coding agent for autonomous PRs, the metric I find most predictive is &ldquo;after the agent&rsquo;s PR lands, does the test pass rate go up.&rdquo; A lot of agents land PRs that ship code and ship tests that pass against that code, with no actual improvement in coverage of the real product. Agents that move the integrated test pass rate are different agents. Worth optimizing for.</p>
 <p>A week ago Saturday the number was 54. Tonight it is 100. The test runner does not care about my feelings. The test runner is correct about that.</p>
 <p>Closing the laptop on Sunday with a green suite. Back to building next weekend.</p>
-<div class="post-cta">
-<h3>Build on a runtime that proves its own quality</h3>
-<p>RakuAI is the AI-native spatial runtime your assistant inhabits in the real world. Green tests, honest signals, engine-grade discipline — see what your team can ship on it.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/developers/">For Developers</a>
-<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
-</div>
-</div>
         </div>
         <ul class="post-tags"><li>tests</li><li>ctest</li><li>ecs</li><li>eye-tracking</li><li>telemetry</li><li>weekend-build</li></ul>
         <nav class="post-series-nav"><a class="nav-prev" href="/blog/when-the-demo-crashed-silently/" rel="prev">&larr; When the Demo Crashed Silently</a><a class="nav-next" href="/blog/the-find-replace-that-corrupted-300-files/" rel="next">The Find-Replace That Corrupted 300 Files &rarr;</a></nav>

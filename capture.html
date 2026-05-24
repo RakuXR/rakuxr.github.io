@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>Raku Capture — Scan it. Then talk to it.</title>
+    <meta name="description" content="Raku Capture turns anything your camera sees into a world your AI assistant can walk through, measure, and change. Scan reality, then talk to it over MCP — see, measure, simulate, and act inside your actual space.">
+    <meta name="keywords" content="3D capture, gaussian splat, scan to 3D, spatial AI, MCP, AI assistant, room scan, smart glasses, digital twin, talk to your room">
+    <meta property="og:title" content="Raku Capture — Scan it. Then talk to it.">
+    <meta property="og:description" content="Turn anything your camera sees into a world your AI assistant can walk through, measure, and change. Capture reality, then let your AI see, measure, simulate, and act inside it over MCP.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/capture.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Raku Capture — Scan it. Then talk to it.">
+    <meta name="twitter:description" content="Turn anything your camera sees into a world your AI assistant can walk through, measure, and change. Capture reality, then talk to it over MCP.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/capture.html">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .cap-section {
+            padding: 72px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .cap-section:last-of-type {
+            border-bottom: none;
+        }
+        .cap-hero {
+            padding: 88px 0 56px;
+            text-align: center;
+        }
+        .cap-hero h1 {
+            font-size: clamp(2.4rem, 6vw, 4rem);
+            line-height: 1.08;
+            margin-bottom: 18px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .cap-hero .subhead {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            line-height: 1.65;
+            max-width: 760px;
+            margin: 0 auto 32px;
+        }
+        .cap-cta-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+        .cap-btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .cap-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
+        }
+        .cap-btn-secondary {
+            display: inline-block;
+            background: transparent;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.15s ease;
+        }
+        .cap-btn-secondary:hover {
+            background: rgba(163, 136, 255, 0.1);
+        }
+        /* ---- Live splat viewer seam ---- */
+        .cap-viewer-wrap {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        #splat-viewer {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: 14px;
+            border: 1px solid #2a2a4a;
+            background:
+                radial-gradient(120% 120% at 50% 0%, rgba(108, 92, 231, 0.18), transparent 60%),
+                linear-gradient(135deg, #14142b, #0a0a1a);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            overflow: hidden;
+            cursor: grab;
+        }
+        #splat-viewer:active { cursor: grabbing; }
+        #splat-viewer .viewer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            border-radius: 999px;
+            padding: 6px 14px;
+            background: rgba(163, 136, 255, 0.08);
+        }
+        #splat-viewer .viewer-headline {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            max-width: 460px;
+            text-align: center;
+            line-height: 1.3;
+        }
+        #splat-viewer .viewer-note {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            max-width: 480px;
+            text-align: center;
+            line-height: 1.55;
+        }
+        .cap-viewer-caption {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 14px;
+        }
+        /* ---- Jobs (Capture / Reconstruct / Inhabit) ---- */
+        .cap-jobs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        .cap-job {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-top: 4px solid var(--accent-bright);
+            border-radius: 12px;
+            padding: 28px 24px;
+        }
+        .cap-job .step {
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+        .cap-job h3 {
+            color: var(--accent-bright);
+            font-size: 1.4rem;
+            margin: 6px 0 12px;
+        }
+        .cap-job p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.98rem;
+        }
+        /* ---- Use cases ---- */
+        .cap-cases {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        .cap-case {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 24px;
+        }
+        .cap-case .phase-tag {
+            display: inline-block;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--success);
+            border: 1px solid var(--success);
+            border-radius: 999px;
+            padding: 3px 10px;
+            margin-bottom: 12px;
+        }
+        .cap-case .phase-tag.later {
+            color: #ff7aa8;
+            border-color: #ff7aa8;
+        }
+        .cap-case h3 {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .cap-case p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.96rem;
+        }
+        /* ---- Demo / media placeholders ---- */
+        .cap-demos {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        .cap-demo .media-placeholder {
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            border-radius: 12px;
+            border: 1px dashed #3a3a5e;
+            background: linear-gradient(135deg, #12122a, #0a0a1a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .cap-demo h3 {
+            color: var(--accent-bright);
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+        }
+        .cap-demo p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.96rem;
+        }
+        /* ---- Developer CTA ---- */
+        .cap-dev-cta {
+            max-width: 820px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 16px;
+            padding: 40px 36px;
+            text-align: center;
+        }
+        .cap-dev-cta h2 {
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+        }
+        .cap-dev-cta p {
+            color: var(--text-secondary);
+            line-height: 1.65;
+            max-width: 620px;
+            margin: 0 auto 24px;
+        }
+        .cap-section h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .cap-section .cap-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 720px;
+            margin: 0 auto 40px;
+        }
+        @media (max-width: 820px) {
+            .cap-jobs, .cap-cases, .cap-demos {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    Raku Capture — Scan reality. Talk to it. Capture is in early access — the MCP runtime is live today.
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading" role="presentation">By audience</div>
+                        <div class="col-heading" role="presentation">Platform</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP Server</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="api/">API Reference</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">Templates</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">Developer Portal</a></li>
+                        <li role="none"><a role="menuitem" href="developers/claude-desktop.html">Claude Desktop guide</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">Developer Guide</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM Integration Guide</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
+                        <li role="none"><a role="menuitem" href="blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">Why RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">Press Kit</a></li>
+                        <li role="none"><a role="menuitem" href="discover.html">Discover</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">Content Packs</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">Pricing</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="blog/">Blog</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">Sign In</a>
+            <a href="ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<!-- ======================= HERO ======================= -->
+<section class="cap-hero">
+    <div class="container">
+        <h1>Scan it. Then talk to it.</h1>
+        <p class="subhead">RakuAI turns anything your camera sees into a world your AI assistant can walk through, measure, and change.</p>
+
+        <!--
+            LIVE DRAGGABLE SPLAT VIEWER — INTEGRATION SEAM (NOT YET WIRED)
+
+            This site does not currently load a WebGL / Gaussian-splat renderer
+            (no Spark, three.js, or .spz pipeline ships today — only hCaptcha and
+            the internal js/ helpers). So this is an honest placeholder, not a
+            faked viewer.
+
+            TODO (drop-in, when 3D shipping is approved):
+              1. Add the Spark renderer script to this page (and to the page CSP
+                 connect-src / script-src so the .spz can be fetched and the
+                 worker can run). Spark: https://github.com/sparkjsdev/spark
+              2. Load a captured scene from the CDN, e.g.:
+                   const splat = new SplatMesh({ url: "https://cdn.raku.games/captures/demo-room.spz" });
+                 mounted into #splat-viewer with orbit/drag controls.
+              3. Remove the .viewer-* placeholder children below once the
+                 canvas mounts; keep the #splat-viewer element id as the mount point.
+        -->
+        <div class="cap-viewer-wrap">
+            <div id="splat-viewer" role="figure" aria-label="Placeholder for a live, draggable 3D capture (Gaussian splat) of a scanned space">
+                <span class="viewer-badge">Live splat viewer &middot; coming to this page</span>
+                <span class="viewer-headline">Drag to look around your scanned world.</span>
+                <span class="viewer-note">A real, draggable Gaussian-splat capture mounts here. We are not faking a viewer — when the renderer ships, the placeholder is replaced by an interactive .spz you can orbit with your mouse.</span>
+            </div>
+            <p class="cap-viewer-caption">Capture today is a phone scan in, a draggable splat out. The MCP runtime your AI drives is already live.</p>
+        </div>
+
+        <div class="cap-cta-row">
+            <a class="cap-btn-primary" href="developers/claude-desktop.html">Connect RakuAI to Claude in 2 minutes</a>
+            <a class="cap-btn-secondary" href="mcp.html">See the MCP surface</a>
+        </div>
+    </div>
+</section>
+
+<!-- ======================= THE THREE JOBS ======================= -->
+<section class="cap-section">
+    <div class="container">
+        <h2>Capture. Reconstruct. Inhabit.</h2>
+        <p class="cap-subtitle">Three jobs, one pipeline. Reality goes in as video. A spatial world comes out. Then your AI assistant lives in it over MCP — it reads the scene, never silently rewrites your room.</p>
+        <div class="cap-jobs">
+            <div class="cap-job">
+                <span class="step">Step 01</span>
+                <h3>Capture</h3>
+                <p>Point a camera at a space and move around it. A phone is enough. No rig, no markers, no booth. This is where we lead, because this is the part that has to be honest before anything else is interesting.</p>
+            </div>
+            <div class="cap-job">
+                <span class="step">Step 02</span>
+                <h3>Reconstruct</h3>
+                <p>The frames become a Gaussian splat with real geometry and scale — a scene you can orbit, measure, and anchor to. The runtime keeps authority over physics, collision, and transforms.</p>
+            </div>
+            <div class="cap-job">
+                <span class="step">Step 03</span>
+                <h3>Inhabit</h3>
+                <p>Your AI assistant connects over the same six-tool MCP contract the engine already exposes. It can see the scene, measure distances, simulate changes, and act — within permissions you set, every call audited.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======================= USE CASES ======================= -->
+<section class="cap-section">
+    <div class="container">
+        <h2>What you do with a world you can talk to</h2>
+        <p class="cap-subtitle">Honest framing: the hero use case is shipping toward early access now. The others are where this goes — labeled so you know what is real today versus what is on the roadmap.</p>
+        <div class="cap-cases">
+            <div class="cap-case">
+                <span class="phase-tag">Hero &middot; in early access</span>
+                <h3>A scan-your-space assistant</h3>
+                <p>Scan a room. Then ask your assistant questions about the actual space in front of you — "will this couch fit along that wall," "how far is the window from the desk." It answers against the measured scene, not a guess.</p>
+            </div>
+            <div class="cap-case">
+                <span class="phase-tag">Near-term</span>
+                <h3>A game part, honestly</h3>
+                <p>A captured space can become a level, a backdrop, or a playable set piece inside the RakuAI runtime. We are not promising prompt-to-game. We are saying a real scan is a real, reusable part of one.</p>
+            </div>
+            <div class="cap-case">
+                <span class="phase-tag later">Later phase</span>
+                <h3>A smart-glasses twin</h3>
+                <p>On glasses, the capture becomes a persistent spatial twin your assistant shares with you — anchored, sub-millimeter precise, built for the thermal envelope the runtime was designed around.</p>
+            </div>
+            <div class="cap-case">
+                <span class="phase-tag later">Later phase</span>
+                <h3>Real-time vision</h3>
+                <p>The longer arc is continuous capture: the world updates as you move, and the assistant reasons about it live through <code>ingest_frame</code>. Today that path is proven with stubs. We will say so until it ships end-to-end.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======================= PHASE HOOKS / DEMOS ======================= -->
+<section class="cap-section">
+    <div class="container">
+        <h2>The two demos we are building toward</h2>
+        <p class="cap-subtitle">Concept media below. These are the demos on the queue, described plainly — placeholders, not staged footage dressed up as a product.</p>
+        <div class="cap-demos">
+            <div class="cap-demo">
+                <div class="media-placeholder">[ media placeholder &mdash; 20-second phone &rarr; splat clip ]</div>
+                <h3>20 seconds, phone to splat</h3>
+                <p>A single uncut clip: someone walks a phone around a room for about twenty seconds, and a draggable Gaussian splat of that room appears. No edit cuts hiding the work. Capture is the claim, so capture is what we show.</p>
+            </div>
+            <div class="cap-demo">
+                <div class="media-placeholder">[ media placeholder &mdash; "talk to your actual room" assistant demo ]</div>
+                <h3>Talk to your actual room</h3>
+                <p>The same scan, now connected to an assistant over MCP. We ask it to measure a gap, check a fit, and describe what is on a shelf — and it answers from the captured scene. The point is the assistant reasoning over <em>your</em> space, not a stock one.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======================= DEVELOPER CTA ======================= -->
+<section class="cap-section">
+    <div class="container">
+        <div class="cap-dev-cta">
+            <h2>Connect RakuAI to Claude in 2 minutes</h2>
+            <p>Capture is new. The runtime your AI drives is not. The six-tool MCP server is live, deny-by-default, every call audited — and any model that speaks Model Context Protocol can read a scene through it. Wire it into Claude Desktop and start asking questions about a real space.</p>
+            <div class="cap-cta-row">
+                <a class="cap-btn-primary" href="developers/claude-desktop.html">Connect to Claude &rarr;</a>
+                <a class="cap-btn-secondary" href="developers/">Developer Portal</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Solutions</h4>
+                <ul>
+                    <li><a href="smart-glasses.html">Smart-Glasses Manufacturers</a></li>
+                    <li><a href="llm-makers.html">AI Labs</a></li>
+                    <li><a href="enterprise.html">Enterprise</a></li>
+                    <li><a href="creator.html">Creators</a></li>
+                    <li><a href="compare.html">Compare vs Unity / Unreal</a></li>
+                    <li><a href="spatial-engine.html">Spatial Engine</a></li>
+                    <li><a href="ai-systems.html">AI Systems</a></li>
+                    <li><a href="xr-features.html">XR Features</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="mcp.html">MCP Server</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="api/">API Reference</a></li>
+                    <li><a href="templates.html">Templates</a></li>
+                    <li><a href="developers/">Developer Portal</a></li>
+                    <li><a href="developers/claude-desktop.html">Claude Desktop guide</a></li>
+                    <li><a href="developer-guide.html">Developer Guide</a></li>
+                    <li><a href="llm-guide.html">LLM Integration Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="blog/">Blog</a></li>
+                    <li><a href="why-rakuai.html">Why RakuAI</a></li>
+                    <li><a href="press.html">Press Kit</a></li>
+                    <li><a href="discover.html">Discover</a></li>
+                    <li><a href="content-packs.html">Content Packs</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">About</a></li>
+                    <li><a href="pricing.html">Pricing</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="mailto:partners@rakuai.com">Partners</a></li>
+                    <li><a href="privacy.html">Privacy</a></li>
+                    <li><a href="terms.html">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+</footer>
+
+<script src="/js/public-config.js"></script>
+<script src="/js/api-client.js"></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+<script src="/js/nav-dropdown.js" defer></script>
+<script src="/js/section-nav.js" defer></script>
+</body>
+</html>

@@ -3,49 +3,10 @@ title: "Replacing Seven O(N²) Algorithms on a Saturday"
 date: 2026-02-21
 author: Kevin Griffin
 tags: [algorithms, physics, vision, model-loading, agent-failure-mode, weekend-build]
-description: "Seven O(N²) placeholders, one Saturday, and the production algorithms that turned a wobbling demo into a runtime that screams. This is how RakuAI turns AI-written code into engine-grade performance — and why an algorithmic audit is the fastest upgrade your spatial stack will ever get."
+description: "Spent this Saturday on something I had been avoiding. Going through seven places in the engine where an agent had landed an O(N²) brute-force algorithm and replacing each with the real production version. Sweep-and-prune collision detection. Spatial-hash grids. Vertex-cache optimization. Lowe's ratio test. The papers are old. The agents had not read them."
 series: learning-to-code-with-ai
 slug: replacing-seven-brute-force-algorithms
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Seven brute-force O(N squared) algorithms replaced with production-grade versions" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bf7-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-    <linearGradient id="bf7-accent" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#bf7-bg)"/>
-  <text x="600" y="64" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">From Brute Force to Production-Grade</text>
-  <text x="600" y="100" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Seven hot paths, audited and rewritten in a single Saturday</text>
-  <g font-family="system-ui,sans-serif">
-    <rect x="120" y="170" width="300" height="120" rx="16" fill="#1a1a33" stroke="#e84393" stroke-width="2"/>
-    <text x="270" y="220" text-anchor="middle" fill="#ff7aa8" font-size="44" font-weight="800">O(N²)</text>
-    <text x="270" y="258" text-anchor="middle" fill="#9090b0" font-size="17">double-nested loops</text>
-    <rect x="780" y="170" width="300" height="120" rx="16" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
-    <text x="930" y="216" text-anchor="middle" fill="#00cec9" font-size="34" font-weight="800">O(N log N)</text>
-    <text x="930" y="258" text-anchor="middle" fill="#9090b0" font-size="17">sweep-and-prune, spatial hash, A*</text>
-    <path d="M440 230 L770 230" stroke="url(#bf7-accent)" stroke-width="4" marker-end="url(#bf7-arrow)"/>
-    <polygon points="770,230 752,221 752,239" fill="#a388ff"/>
-    <text x="605" y="214" text-anchor="middle" fill="#a388ff" font-size="15" font-weight="600">AUDIT PASS</text>
-  </g>
-  <g font-family="system-ui,sans-serif" font-size="13" fill="#c8c8e0">
-    <rect x="150" y="350" width="160" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="230" y="375" text-anchor="middle">Sweep &amp; Prune</text>
-    <rect x="330" y="350" width="150" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="405" y="375" text-anchor="middle">Spatial Hash</text>
-    <rect x="500" y="350" width="160" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="580" y="375" text-anchor="middle">Vertex Cache</text>
-    <rect x="680" y="350" width="150" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="755" y="375" text-anchor="middle">Ratio Test</text>
-    <rect x="850" y="350" width="120" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="910" y="375" text-anchor="middle">PBD Cloth</text>
-    <rect x="280" y="404" width="120" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="340" y="429" text-anchor="middle">A* Paths</text>
-    <rect x="420" y="404" width="160" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="500" y="429" text-anchor="middle">Blend Trees</text>
-  </g>
-</svg>
-<figcaption>One audit pass, seven production algorithms, a runtime that scales.</figcaption>
-</figure>
-
-<p class="post-hook">Your AI can write code that works. Making it code that <em>scales</em> is where a spatial runtime is won or lost — and it is exactly the discipline RakuAI is built around.</p>
 
 The agents are good at writing code that works. They are sometimes bad at writing code that scales. This is a pattern I have come to recognize and to budget for: when the issue framing asks for a function that does X, the agent writes a function that does X correctly on a small input and breaks down on a real-sized one.
 
@@ -102,12 +63,3 @@ If you are an AI lab building a coding agent for performance-sensitive work, the
 Saturday afternoon. Seven brute-force algorithms replaced with their real production versions. The engine got faster. The codebase got more honest.
 
 Back to building.
-
-<div class="post-cta">
-<h3>Supercharge your AI in the real world</h3>
-<p>RakuAI is the spatial runtime your AI assistant inhabits — engineered to scale from a weekend demo to production on smart glasses. See what your models can build.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/llm-makers.html">For AI Labs</a>
-<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
-</div>
-</div>

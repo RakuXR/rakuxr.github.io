@@ -8,51 +8,6 @@ series: learning-to-code-with-ai
 slug: the-week-the-build-stopped-arguing
 ---
 
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="A week of cleanup turning red builds green across eighteen DLLs on Linux" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bld-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#bld-bg)"/>
-  <text x="600" y="64" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">The Build Stopped Arguing</text>
-  <text x="600" y="100" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Eighteen DLLs green on Linux, namespace stable, null-safety swept</text>
-  <g font-family="system-ui,sans-serif" font-size="13" fill="#0a0a1a" text-anchor="middle">
-    <g>
-      <rect x="160" y="160" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="216" y="160" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="272" y="160" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="328" y="160" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="384" y="160" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="440" y="160" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="160" y="216" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="216" y="216" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="272" y="216" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="328" y="216" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="384" y="216" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="440" y="216" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="160" y="272" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="216" y="272" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="272" y="272" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="328" y="272" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="384" y="272" width="46" height="46" rx="8" fill="#00cec9"/>
-      <rect x="440" y="272" width="46" height="46" rx="8" fill="#00cec9"/>
-    </g>
-    <text x="333" y="350" fill="#00cec9" font-size="18" font-weight="700">18 / 18 DLLs green</text>
-  </g>
-  <g font-family="system-ui,sans-serif" font-size="14" fill="#c8c8e0" text-anchor="middle">
-    <rect x="640" y="170" width="430" height="40" rx="8" fill="#1a1a33" stroke="#6c5ce7"/><text x="855" y="195">-fvisibility=hidden across the GCC build</text>
-    <rect x="640" y="222" width="430" height="40" rx="8" fill="#1a1a33" stroke="#a388ff"/><text x="855" y="247">/api/v2/ to /api/raku/ everywhere</text>
-    <rect x="640" y="274" width="430" height="40" rx="8" fill="#1a1a33" stroke="#00cec9"/><text x="855" y="299">null-pointer checks at the boundary</text>
-    <rect x="640" y="326" width="430" height="40" rx="8" fill="#1a1a33" stroke="#e84393"/><text x="855" y="351" fill="#ff7aa8">silent crashes to loud, bounded errors</text>
-  </g>
-</svg>
-<figcaption>No screenshot. Just permission to ship for the next eight months.</figcaption>
-</figure>
-
-<p class="post-hook">The fixes that don't make a screenshot are the ones that decide whether your runtime ships. RakuAI spent a week killing the soft spots so the next eight months of building never argue with the build.</p>
-
 There is a category of work that does not produce a screenshot. It produces a build that goes green on machines that used to make it red. It produces a CI run that stops timing out. It produces a stack trace that no longer materializes because the null pointer that caused it is now caught at the boundary. The week that ended this Saturday was that kind of week.
 
 ## Eighteen DLLs green on Linux
@@ -106,12 +61,3 @@ A week of stopping forward motion to fix the soft spots is not lost time. It is 
 The agents are back at the queue this weekend. The next round of issues is the one I am filing this Saturday morning. They are not cleanup issues anymore. They are feature issues. The build will not argue with them.
 
 That is what a clean build buys you. Not a screenshot. Permission to ship.
-
-<div class="post-cta">
-<h3>A runtime that earns its trust on the boring stuff</h3>
-<p>Green on every target, stable APIs, loud failures instead of silent crashes. RakuAI is the spatial runtime built with the discipline production demands. See why partners build on it.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/why-rakuai.html">Why RakuAI</a>
-<a class="cta-btn cta-secondary" href="/developers/">For Developers</a>
-</div>
-</div>

@@ -3,35 +3,10 @@ title: "Slowing the Agents Down on Purpose"
 date: 2025-10-18
 author: Kevin Griffin
 tags: [reflection, dev-workflow, multi-repo, documentation, weekend-build]
-description: "Thirty-seven commits instead of eighty — on purpose. I cut the agent queue and slowed the pace so I could actually read what was landing, and the codebase came out cleaner for it. Here is the discipline that keeps an agent-built runtime coherent instead of a pile of clean-in-isolation PRs."
+description: "Thirty-seven commits this Saturday instead of the eighty I had been used to. I deliberately cut the agent queue and slowed the pace down so I could actually read what was landing. The codebase is in better shape because of it. Here is why throttling the agents was the right move."
 series: learning-to-code-with-ai
 slug: the-slow-week-was-the-right-week
 ---
-
-<figure class="post-hero">
-<svg viewBox="0 0 1200 480" role="img" aria-label="Commit throughput throttled down on purpose while codebase coherence rises" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="slow-bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="480" fill="url(#slow-bg)"/>
-  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Slowing the Agents Down on Purpose</text>
-  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Fewer commits, more coherence — the bottleneck is human review</text>
-  <g font-family="system-ui,sans-serif">
-    <line x1="160" y1="400" x2="1040" y2="400" stroke="#9090b0" stroke-width="1.5"/>
-    <polyline points="200,180 320,210 440,200 560,300 680,290 800,360 920,355" fill="none" stroke="#e84393" stroke-width="3" opacity="0.85"/>
-    <text x="200" y="168" fill="#e84393" font-size="13">commit volume ↓ on purpose</text>
-    <polyline points="200,360 320,350 440,330 560,300 680,250 800,210 920,180" fill="none" stroke="#00cec9" stroke-width="3"/>
-    <text x="760" y="172" fill="#00cec9" font-size="13">codebase coherence ↑</text>
-    <rect x="430" y="420" width="340" height="34" rx="8" fill="#1a1a33" stroke="#6c5ce7"/>
-    <text x="600" y="443" text-anchor="middle" fill="#a388ff" font-size="15" font-weight="600">queue depth 15 → 6, review moved earlier</text>
-  </g>
-</svg>
-<figcaption>Thirty-seven well-reviewed PRs beat eighty that drift apart.</figcaption>
-</figure>
-
-<p class="post-hook">Faster agents do not build better software — disciplined ones do. The throttle that keeps RakuAI coherent is the same discipline we think every serious agent-driven team needs.</p>
 
 Different plan this Saturday than the last few weekends. The last few have been throughput weekends. Eighty commits, seventy commits, two hundred eighty-two before that. The trend was up. I was riding the agent queue wide open and watching the lines of code pile up.
 
@@ -82,12 +57,3 @@ If you are building anything with autonomous coding agents and you are running i
 If you are an AI lab tuning a coding agent for autonomous-PR workflows like this one, the metric I find most useful in practice is not lines-of-code-shipped per day. It is how often a PR landed early in a week has to be rewritten later the same weekend because the codebase moved underneath it. The lower that number, the better the agent is at the actual job.
 
 Thirty-seven commits. A better codebase than I had last Saturday. Saturday afternoon and I am going to go for a walk.
-
-<div class="post-cta">
-<h3>Build with agents without building a mess</h3>
-<p>RakuAI is built by autonomous coding agents under hard architectural discipline. If you're running agent-driven workflows on a serious codebase, see how we keep the runtime coherent.</p>
-<div class="cta-buttons">
-<a class="cta-btn cta-primary" href="/developers/">For Developers</a>
-<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
-</div>
-</div>
