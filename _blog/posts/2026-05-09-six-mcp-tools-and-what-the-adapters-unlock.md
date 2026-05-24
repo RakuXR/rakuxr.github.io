@@ -3,10 +3,49 @@ title: "Six MCP Tools, and What the Adapters Unlock Next"
 date: 2026-05-09
 author: Kevin Griffin
 tags: [mcp, model-context-protocol, partners, adapters, ai-native, weekend-build]
-description: "The runtime has been speaking Model Context Protocol since late March. Six tools, stdio transport, deny-by-default permissions, full audit log. The server is the boundary any external agent uses to drive the engine. This Saturday is about what the next layer looks like: real adapters, real partner integrations, and an MCP-first developer story instead of an MCP-bolted-on one."
+description: "The runtime has been speaking Model Context Protocol since late March. Six tools, stdio transport, deny-by-default permissions, full audit log. The server is the boundary any external agent uses to drive the engine. This Saturday is about what the next layer looks like: real adapters, real partner integrations, and an MCP-first developer story instead of an MCP-bolted-on one. This is the MCP runtime LLM makers build against."
 series: learning-to-code-with-ai
 slug: six-mcp-tools-and-what-the-adapters-unlock
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Six MCP tools forming the contract any external agent uses to drive the runtime" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mcp-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="mcp-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#mcp-bg)"/>
+  <text x="600" y="60" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Six Tools Are the Contract</text>
+  <text x="600" y="96" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">stdio transport, deny-by-default, full audit log</text>
+  <g font-family="system-ui,sans-serif" text-anchor="middle">
+    <circle cx="600" cy="250" r="60" fill="#1a1a33" stroke="url(#mcp-accent)" stroke-width="3"/>
+    <text x="600" y="245" fill="#a388ff" font-size="18" font-weight="700">raku.*</text>
+    <text x="600" y="268" fill="#9090b0" font-size="13">MCP server</text>
+    <g font-size="14" fill="#c8c8e0">
+      <rect x="120" y="150" width="220" height="44" rx="10" fill="#16213a" stroke="#00cec9"/><text x="230" y="178">load_world_model</text>
+      <rect x="120" y="228" width="220" height="44" rx="10" fill="#16213a" stroke="#00cec9"/><text x="230" y="256">ingest_frame</text>
+      <rect x="120" y="306" width="220" height="44" rx="10" fill="#16213a" stroke="#00cec9"/><text x="230" y="334">set_render_target</text>
+      <rect x="860" y="150" width="220" height="44" rx="10" fill="#16213a" stroke="#6c5ce7"/><text x="970" y="178">get_scene_state</text>
+      <rect x="860" y="228" width="220" height="44" rx="10" fill="#16213a" stroke="#6c5ce7"/><text x="970" y="256">start_simulation</text>
+      <rect x="860" y="306" width="220" height="44" rx="10" fill="#16213a" stroke="#6c5ce7"/><text x="970" y="334">get_metrics</text>
+    </g>
+    <line x1="340" y1="172" x2="545" y2="235" stroke="#00cec9" stroke-width="2"/>
+    <line x1="340" y1="250" x2="540" y2="250" stroke="#00cec9" stroke-width="2"/>
+    <line x1="340" y1="328" x2="545" y2="265" stroke="#00cec9" stroke-width="2"/>
+    <line x1="660" y1="235" x2="860" y2="172" stroke="#6c5ce7" stroke-width="2"/>
+    <line x1="660" y1="250" x2="860" y2="250" stroke="#6c5ce7" stroke-width="2"/>
+    <line x1="660" y1="265" x2="860" y2="328" stroke="#6c5ce7" stroke-width="2"/>
+  </g>
+  <text x="600" y="430" text-anchor="middle" fill="#e84393" font-family="system-ui,sans-serif" font-size="16" font-weight="600">The engine keeps authority. The model contributes intent.</text>
+</svg>
+<figcaption>Any model that speaks MCP can drive the runtime through one provider-agnostic boundary.</figcaption>
+</figure>
+
+<p class="post-hook">Any model that speaks MCP can drive the runtime — no custom integration per vendor. RakuAI's six-tool contract is the boundary that makes a deterministic-authority runtime real, and the inflection point where it becomes infrastructure others build on.</p>
 
 The runtime has been talking Model Context Protocol since late March. The shipping commit is `138b538b`, "feat(mcp): reframe MCP server from game-agent control to world model runtime orchestration." The change of framing in that commit message is the substance of this post, and the next move on it is what I want to write down.
 
@@ -74,3 +113,12 @@ If you are at a model lab and you have an opinion about how MCP-style boundaries
 Six tools, deployed, audited, schema-typed, deny-by-default. Adapters next. The boundary is real. The work that runs on top of it is what comes after.
 
 Saturday in motion.
+
+<div class="post-cta">
+<h3>Drive a real engine through one MCP contract</h3>
+<p>If your model speaks Model Context Protocol, it can orchestrate a production spatial runtime — provider-agnostic, deny-by-default, every call audited. The contract is open for comment while it is still cheap to shape.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/llm-makers.html">For AI Labs</a>
+<a class="cta-btn cta-secondary" href="/developers/">For Developers</a>
+</div>
+</div>

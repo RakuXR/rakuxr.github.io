@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>空间引擎 - 物理、粒子、动画与音频 - RakuAI</title>
+    <meta name="description" content="RakuAI 空间引擎：物理、动画、视觉特效与沉浸式空间音频。">
+    <meta property="og:title" content="空间引擎 - 物理、粒子、动画与音频 - RakuAI">
+    <meta property="og:description" content="物理、动画、视觉特效与沉浸式音频。面向 XR 与桌面游戏的完整空间引擎。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/zh-CN/spatial-engine.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="https://rakuai.com/zh-CN/spatial-engine.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .engine-section {
+            padding: 64px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .engine-section:last-of-type {
+            border-bottom: none;
+        }
+        .engine-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 48px;
+            align-items: start;
+        }
+        .engine-content h3 {
+            font-size: 1.8rem;
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+        }
+        .engine-content p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+        .engine-content ul {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+        .engine-content li {
+            padding: 6px 0;
+            color: var(--text-secondary);
+        }
+        .engine-content li:before {
+            content: "\2713 ";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .engine-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+        .engine-code {
+            background: #0d0d1f;
+            border: 1px solid #222244;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            overflow-x: auto;
+            color: var(--text-primary);
+        }
+        .engine-code .kw { color: #ff79c6; font-weight: 600; }
+        .engine-code .fn { color: var(--accent-bright); }
+        .engine-code .str { color: #50fa7b; }
+        .engine-code .cmt { color: #6272a4; font-style: italic; }
+        .engine-code .num { color: #bd93f9; }
+        .engine-benefit {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-top: 16px;
+        }
+        .engine-benefit strong {
+            color: var(--success);
+        }
+        .perf-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            text-align: center;
+            margin: 32px 0;
+        }
+        .perf-stat {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 32px 16px;
+        }
+        .perf-stat .number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-bright);
+            margin-bottom: 4px;
+        }
+        .perf-stat .label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+        @media (max-width: 768px) {
+            .engine-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            .engine-content h3 {
+                font-size: 1.4rem;
+            }
+            .perf-stats {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: spatial-engine.html
+  Date: 2026-05-23
+-->
+
+<div class="beta-announcement-bar">
+    在现实世界中为你的 AI 加速｜5 项美国专利（2012 年优先权）｜18ms 动到光延迟｜OpenXR 一致性
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="打开菜单" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" aria-label="打开解决方案菜单" role="menuitem">解决方案 &#x25BC;</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="解决方案" hidden>
+                        <div class="col-heading">按受众</div>
+                        <div class="col-heading">平台</div>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">面向智能眼镜厂商<span class="item-desc">硬件 OEM 合作伙伴计划</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">面向 AI 实验室<span class="item-desc">面向基础模型的 MCP 运行时</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">面向企业<span class="item-desc">大规模部署空间 AI</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">面向创作者<span class="item-desc">构建并发布空间世界</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">与 Unity / Unreal 比较<span class="item-desc">诚实的对比</span></a></li>
+                        </ul>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">空间引擎<span class="item-desc">运行时支柱</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI 系统<span class="item-desc">编排与权限</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR 功能<span class="item-desc">显示、追踪、锚定</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" aria-label="打开开发者菜单" role="menuitem">开发者 &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="开发者" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">文档</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP 服务器</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API 参考</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">模板</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">开发者门户</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop 指南</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">开发者指南</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM 集成指南</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" aria-label="打开资源菜单" role="menuitem">资源 &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="资源" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">博客</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">为什么选 RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">新闻媒体</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">探索</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">内容包</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">文档总览</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">联系我们</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">价格</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">博客</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">登录</a>
+            <a href="../spatial-engine.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <div class="engine-badge">空间引擎</div>
+        <h1>空间引擎</h1>
+        <p class="subtitle">物理、粒子、动画与空间音频。打造沉浸式 3D 世界所需的一切，针对 XR 优化。</p>
+        <div class="perf-stats">
+            <div class="perf-stat">
+                <div class="number">120 Hz</div>
+                <div class="label">XR 渲染</div>
+            </div>
+            <div class="perf-stat">
+                <div class="number">GPU</div>
+                <div class="label">粒子计算</div>
+            </div>
+            <div class="perf-stat">
+                <div class="number">HRTF</div>
+                <div class="label">空间音频</div>
+            </div>
+            <div class="perf-stat">
+                <div class="number">亚毫秒</div>
+                <div class="label">物理步进</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="border-bottom: 1px solid #222244;">
+    <div class="container" style="text-align:center;">
+        <h2>世界锁定，精确到亚毫米</h2>
+        <p style="color: var(--text-secondary); max-width: 720px; margin: -16px auto 32px; font-size: 1.05rem;">
+            传感器融合输入场景理解，后者钉定锚点，使其在多个会话与设备间保持位置不变。
+        </p>
+        <div style="max-width:920px; margin:0 auto;">
+        <svg viewBox="0 0 920 420" width="100%" style="max-width:920px; height:auto; display:block;" role="img" aria-labelledby="se-anchor-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="se-anchor-title">空间锚定：传感器融合到场景理解再到锚点的流水线，输入一张透视房间网格，其中世界锁定的锚点以亚毫米精度保持位置。</title>
+            <defs>
+                <linearGradient id="se-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <linearGradient id="se-floor" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7" stop-opacity="0.18"/>
+                    <stop offset="1" stop-color="#00cec9" stop-opacity="0.04"/>
+                </linearGradient>
+                <marker id="se-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+
+            <!-- left stack: sensor fusion -> scene understanding -> anchors -->
+            <g font-family="system-ui,sans-serif">
+                <rect x="32" y="80" width="220" height="58" rx="11" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="142" y="106" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="600">传感器融合</text>
+                <text x="142" y="125" text-anchor="middle" fill="#9090b0" font-size="11">IMU &#183; 摄像头 &#183; 深度</text>
+
+                <rect x="32" y="178" width="220" height="58" rx="11" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+                <text x="142" y="204" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="600">场景理解</text>
+                <text x="142" y="223" text-anchor="middle" fill="#9090b0" font-size="11">平面 &#183; 网格 &#183; 语义</text>
+
+                <rect x="32" y="276" width="220" height="58" rx="11" fill="#15152e" stroke="url(#se-grad)" stroke-width="2"/>
+                <text x="142" y="302" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="700">空间锚点</text>
+                <text x="142" y="321" text-anchor="middle" fill="#00cec9" font-size="11">世界锁定 &#183; 持久</text>
+
+                <line x1="142" y1="138" x2="142" y2="176" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
+                <line x1="142" y1="236" x2="142" y2="274" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
+            </g>
+
+            <!-- connector to room -->
+            <line x1="252" y1="305" x2="330" y2="305" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
+
+            <!-- right: perspective room with anchors -->
+            <g transform="translate(340,40)">
+                <!-- floor -->
+                <polygon points="60,300 520,300 430,150 150,150" fill="url(#se-floor)"/>
+                <!-- floor grid -->
+                <g stroke="#3a3a66" stroke-width="1" fill="none">
+                    <path d="M150,150 L60,300 M196,150 L130,300 M242,150 L200,300 M290,150 L272,300 M338,150 L344,300 M384,150 L416,300 M430,150 L520,300"/>
+                    <path d="M126,206 L454,206 M96,253 L484,253"/>
+                </g>
+                <!-- back wall edge -->
+                <polyline points="150,150 150,40 430,40 430,150" fill="none" stroke="#2c2c4e" stroke-width="1.4"/>
+
+                <!-- anchors with crosshair pins -->
+                <g>
+                    <g transform="translate(210,232)">
+                        <line x1="-9" y1="0" x2="9" y2="0" stroke="#00cec9" stroke-width="1.6"/>
+                        <line x1="0" y1="-9" x2="0" y2="9" stroke="#00cec9" stroke-width="1.6"/>
+                        <circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/>
+                        <circle r="2" fill="#00cec9"/>
+                    </g>
+                    <g transform="translate(360,200)">
+                        <line x1="-9" y1="0" x2="9" y2="0" stroke="#a388ff" stroke-width="1.6"/>
+                        <line x1="0" y1="-9" x2="0" y2="9" stroke="#a388ff" stroke-width="1.6"/>
+                        <circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/>
+                        <circle r="2" fill="#a388ff"/>
+                    </g>
+                    <g transform="translate(300,272)">
+                        <line x1="-9" y1="0" x2="9" y2="0" stroke="#00cec9" stroke-width="1.6"/>
+                        <line x1="0" y1="-9" x2="0" y2="9" stroke="#00cec9" stroke-width="1.6"/>
+                        <circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/>
+                        <circle r="2" fill="#00cec9"/>
+                    </g>
+                </g>
+
+                <!-- precision callout -->
+                <line x1="210" y1="232" x2="210" y2="120" stroke="#9090b0" stroke-width="1" stroke-dasharray="3 4"/>
+                <rect x="150" y="92" width="160" height="30" rx="8" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.2"/>
+                <text x="230" y="112" text-anchor="middle" fill="#00cec9" font-family="ui-monospace,monospace" font-size="12">&lt; 1 mm 漂移</text>
+            </g>
+        </svg>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+
+        <!-- Physics Engine -->
+        <div class="engine-section" id="physics">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">物理</div>
+                    <h3>物理引擎</h3>
+                    <p>生产级 3D 物理，支持刚体、约束、射线投射与碰撞检测。确定性模拟，即使在移动 XR 硬件上也能实现亚毫秒级步进时间。</p>
+                    <div class="engine-benefit">
+                        <strong>核心优势：</strong>在 VR、桌面与移动端上保持一致、可靠的物理效果&mdash;&mdash;无需逐平台调优。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Particle System -->
+        <div class="engine-section" id="particles">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">VFX</div>
+                    <h3>粒子系统</h3>
+                    <p>GPU 加速的粒子系统，配有分品类的 VFX 预设。支持发射器、吸引子、碰撞与 LOD 缩放。自动预算管理使帧率在 XR 硬件上锁定于 72-120 Hz。</p>
+                    <div class="engine-benefit">
+                        <strong>核心优势：</strong>随硬件自动缩放的电影级 VFX&mdash;&mdash;无需手动优化。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animation System -->
+        <div class="engine-section" id="animation">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">动画</div>
+                    <h3>动画系统</h3>
+                    <p>骨骼动画，支持混合树、状态机、IK 与重定向。支持多个并发的动画角色，过渡平滑并具备运行时混合。</p>
+                    <div class="engine-benefit">
+                        <strong>核心优势：</strong>自然、灵敏的角色动画，无需逐角色设置。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Spatial Audio -->
+        <div class="engine-section" id="audio">
+            <div class="engine-grid">
+                <div class="engine-content">
+                    <div class="engine-badge">音频</div>
+                    <h3>空间音频</h3>
+                    <p>基于 HRTF 的 3D 空间音频，支持双耳渲染、遮挡、混响区与自适应音乐分层。针对 XR 头显扬声器与耳机调校，CPU 开销极低。</p>
+                    <div class="engine-benefit">
+                        <strong>核心优势：</strong>玩家能在 3D 空间中自然地定位声音&mdash;&mdash;这对沉浸式 XR 至关重要。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+
+
+<!-- Performance Callout -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container" style="text-align: center;">
+        <h2>为 XR 优化</h2>
+        <p style="color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.1rem;">
+            每个子系统都针对 VR 与 AR 头显严苛的帧预算进行了优化。
+        </p>
+        <div class="features">
+            <div class="feature">
+                <h3>高性能 VFX</h3>
+                <p>惊艳的视觉特效，不影响游戏性能。</p>
+            </div>
+            <div class="feature">
+                <h3>可靠的物理</h3>
+                <p>在所有平台上保持一致的游戏体验。</p>
+            </div>
+            <div class="feature">
+                <h3>沉浸式音频</h3>
+                <p>始终保持纯净的空间音频质量。</p>
+            </div>
+        </div>
+        <p style="margin-top: 40px;">
+            <a href="sdk.html" class="btn btn-primary">探索 SDK</a>
+            <a href="xr-features.html" class="btn btn-secondary" style="margin-left: 16px;">XR 功能</a>
+            <a href="ai-systems.html" class="btn btn-secondary" style="margin-left: 16px;">AI 系统</a>
+        </p>
+    </div>
+</section>
+
+<footer>
+  <p>&copy; 2026 RakuAI, LLC &bull; 5 项美国授权专利（优先权日：2012 年 7 月） &bull; 由 RakuAI 引擎驱动</p>
+  <p style="margin-top: 6px;">
+    <a href="../engine/">引擎</a> &bull;
+    <a href="../api/">API</a> &bull;
+    <a href="docs.html">文档</a> &bull;
+    <a href="../games/">街机厅</a> &bull;
+    <a href="press.html">新闻媒体</a> &bull;
+    <a href="developers/">开发者</a> &bull;
+    <a href="../privacy.html">隐私</a> &bull;
+    <a href="../terms.html">条款</a> &bull;
+    <a href="contact.html">联系我们</a> &bull;
+    <a href="https://github.com/RakuXR">GitHub</a>
+  </p>
+  <p class="trademark-notice">
+    RakuAI&trade; 和 RakuXR&trade; 是 RakuAI, LLC 的商标。
+    <span class="kanji-logo">&#x697D;</span>AI 与 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的设计化商标。
+    5 项美国授权专利（优先权日：2012 年 7 月）。
+  </p>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+<script src="../js/nav-dropdown.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>

@@ -23,9 +23,26 @@
         }
         .xr-grid {
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 280px;
             gap: 48px;
-            align-items: start;
+            align-items: center;
+        }
+        .xr-visual {
+            display: flex;
+            justify-content: center;
+        }
+        .xr-visual svg {
+            width: 100%;
+            max-width: 240px;
+            height: auto;
+        }
+        .xr-hero-visual {
+            max-width: 560px;
+            margin: 32px auto 0;
+        }
+        .xr-hero-visual svg {
+            width: 100%;
+            height: auto;
         }
         .xr-content h3 {
             font-size: 1.8rem;
@@ -113,6 +130,8 @@
             .xr-content h3 {
                 font-size: 1.4rem;
             }
+            .xr-visual { order: -1; }
+            .xr-visual svg { max-width: 180px; }
         }
     </style>
 </head>
@@ -200,6 +219,51 @@
             <span class="platform-tag">SteamVR</span>
             <span class="platform-tag">More Headsets</span>
         </div>
+        <div class="xr-hero-visual">
+        <svg viewBox="0 0 560 300" role="img" aria-labelledby="xrhero-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="xrhero-title">Abstract spatial-computing visual: a head wearing a headset emits gaze and hand-tracking rays toward world-locked anchor points in the surrounding space.</title>
+            <defs>
+                <linearGradient id="xrhero-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+            </defs>
+            <!-- spatial grid floor -->
+            <g stroke="#1f1f3a" stroke-width="1">
+                <path d="M40,250 L520,250"/>
+                <path d="M120,280 L440,280"/>
+                <path d="M180,220 L380,220"/>
+            </g>
+            <!-- head silhouette + headset -->
+            <g transform="translate(150,150)">
+                <path d="M0,-60 C34,-60 56,-36 56,-2 C56,28 38,52 8,58 L8,84 C8,90 2,94 -8,94 L-8,70 C-40,62 -58,34 -58,0 C-58,-36 -34,-60 0,-60 Z" fill="#15152e" stroke="url(#xrhero-grad)" stroke-width="2"/>
+                <!-- headset band -->
+                <rect x="-62" y="-26" width="118" height="34" rx="10" fill="#111128" stroke="#a388ff" stroke-width="2"/>
+                <circle cx="-30" cy="-9" r="7" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.5"/>
+                <circle cx="20" cy="-9" r="7" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.5"/>
+            </g>
+            <!-- gaze rays -->
+            <g stroke="url(#xrhero-grad)" stroke-width="1.8" stroke-dasharray="2 6" stroke-linecap="round">
+                <path d="M170,135 L430,80"/>
+                <path d="M172,150 L470,170"/>
+            </g>
+            <!-- hand-tracking rays -->
+            <g stroke="#00cec9" stroke-width="1.5" stroke-dasharray="1 5" stroke-linecap="round" opacity="0.85">
+                <path d="M165,210 L360,250"/>
+                <path d="M165,205 L300,160"/>
+            </g>
+            <!-- anchor points -->
+            <g>
+                <g transform="translate(430,80)"><circle r="6" fill="none" stroke="#6c5ce7" stroke-width="1.8"/><circle r="2" fill="#a388ff"/></g>
+                <g transform="translate(470,170)"><circle r="6" fill="none" stroke="#00cec9" stroke-width="1.8"/><circle r="2" fill="#00cec9"/></g>
+                <g transform="translate(360,250)"><circle r="6" fill="none" stroke="#00cec9" stroke-width="1.8"/><circle r="2" fill="#00cec9"/></g>
+                <g transform="translate(300,160)"><circle r="6" fill="none" stroke="#6c5ce7" stroke-width="1.8"/><circle r="2" fill="#a388ff"/></g>
+            </g>
+            <text x="430" y="64" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">gaze</text>
+            <text x="312" y="146" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">hand</text>
+            <text x="470" y="192" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">anchor</text>
+        </svg>
+        </div>
     </div>
 </section>
 
@@ -217,6 +281,22 @@
                         <strong>Key benefit:</strong> One input API. Every headset. No per-platform input code.
                     </div>
                 </div>
+                <div class="xr-visual">
+                <svg viewBox="0 0 160 160" role="img" aria-labelledby="xrg1-title" xmlns="http://www.w3.org/2000/svg">
+                    <title id="xrg1-title">Natural input glyph: a hand with a gaze ray and a tracked point.</title>
+                    <defs><linearGradient id="xrg1-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                    <!-- hand -->
+                    <g fill="none" stroke="url(#xrg1-grad)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M62,118 L62,72 M62,72 L62,52 M76,118 L76,60 M90,118 L90,64 M104,118 L104,72"/>
+                        <path d="M48,118 C48,128 56,134 72,134 L96,134 C110,134 118,124 118,112 L118,86 C118,80 110,80 110,86 L110,98"/>
+                        <path d="M48,118 L48,90 C48,84 56,84 56,90 L56,118"/>
+                    </g>
+                    <!-- gaze ray + point -->
+                    <line x1="20" y1="34" x2="92" y2="62" stroke="#00cec9" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>
+                    <circle cx="20" cy="34" r="6" fill="none" stroke="#a388ff" stroke-width="2"/>
+                    <circle cx="20" cy="34" r="2" fill="#a388ff"/>
+                </svg>
+                </div>
             </div>
         </div>
 
@@ -230,6 +310,25 @@
                     <div class="xr-benefit">
                         <strong>Key benefit:</strong> Deeper immersion. Players feel the game, not just see it.
                     </div>
+                </div>
+                <div class="xr-visual">
+                <svg viewBox="0 0 160 160" role="img" aria-labelledby="xrg2-title" xmlns="http://www.w3.org/2000/svg">
+                    <title id="xrg2-title">Haptic feedback glyph: a contact point radiating concentric waves.</title>
+                    <defs><linearGradient id="xrg2-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                    <circle cx="80" cy="80" r="10" fill="url(#xrg2-grad)"/>
+                    <g fill="none" stroke-linecap="round">
+                        <circle cx="80" cy="80" r="26" stroke="#a388ff" stroke-width="2.2" opacity="0.9"/>
+                        <circle cx="80" cy="80" r="44" stroke="#7d6bea" stroke-width="2" opacity="0.65"/>
+                        <circle cx="80" cy="80" r="62" stroke="#00cec9" stroke-width="1.8" opacity="0.4"/>
+                    </g>
+                    <!-- pulse ticks -->
+                    <g stroke="#00cec9" stroke-width="2" stroke-linecap="round">
+                        <line x1="80" y1="8" x2="80" y2="20"/>
+                        <line x1="80" y1="140" x2="80" y2="152"/>
+                        <line x1="8" y1="80" x2="20" y2="80"/>
+                        <line x1="140" y1="80" x2="152" y2="80"/>
+                    </g>
+                </svg>
                 </div>
             </div>
         </div>
@@ -245,6 +344,25 @@
                         <strong>Key benefit:</strong> Persistent, world-aware experiences that survive across sessions and users.
                     </div>
                 </div>
+                <div class="xr-visual">
+                <svg viewBox="0 0 160 160" role="img" aria-labelledby="xrg3-title" xmlns="http://www.w3.org/2000/svg">
+                    <title id="xrg3-title">Mixed reality and spatial anchors glyph: a ground plane grid with world-locked anchor pins.</title>
+                    <defs><linearGradient id="xrg3-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                    <!-- perspective plane -->
+                    <g stroke="#3a3a66" stroke-width="1.4" fill="none">
+                        <path d="M16,118 L144,118 L116,70 L44,70 Z"/>
+                        <path d="M37,94 L123,94"/>
+                        <path d="M62,70 L34,118 M98,70 L126,118 M80,70 L80,118"/>
+                    </g>
+                    <!-- anchor pins -->
+                    <g>
+                        <path d="M58,86 L58,72 C58,64 70,64 70,72 C70,80 58,86 58,86 Z" fill="url(#xrg3-grad)"/>
+                        <circle cx="64" cy="72" r="3" fill="#0a0a1a"/>
+                        <path d="M104,100 L104,84 C104,75 117,75 117,84 C117,93 104,100 104,100 Z" fill="url(#xrg3-grad)"/>
+                        <circle cx="110" cy="84" r="3" fill="#0a0a1a"/>
+                    </g>
+                </svg>
+                </div>
             </div>
         </div>
 
@@ -258,6 +376,18 @@
                     <div class="xr-benefit">
                         <strong>Key benefit:</strong> Smooth, comfortable VR with no dropped frames or motion sickness.
                     </div>
+                </div>
+                <div class="xr-visual">
+                <svg viewBox="0 0 160 160" role="img" aria-labelledby="xrg4-title" xmlns="http://www.w3.org/2000/svg">
+                    <title id="xrg4-title">XR-optimized rendering glyph: a foveated render target with a steady frame-rate waveform.</title>
+                    <defs><linearGradient id="xrg4-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                    <!-- foveated frame -->
+                    <rect x="22" y="30" width="116" height="74" rx="10" fill="none" stroke="#3a3a66" stroke-width="1.6"/>
+                    <rect x="44" y="46" width="72" height="42" rx="7" fill="none" stroke="#a388ff" stroke-width="1.8" opacity="0.8"/>
+                    <ellipse cx="80" cy="67" rx="20" ry="13" fill="url(#xrg4-grad)" opacity="0.85"/>
+                    <!-- frame-rate waveform -->
+                    <path d="M22,134 L46,134 L54,120 L62,134 L86,134 L94,120 L102,134 L138,134" fill="none" stroke="#00cec9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
                 </div>
             </div>
         </div>
@@ -367,5 +497,6 @@
 <script src="/js/lang-selector.js" defer></script>
 
 <script src="/js/nav-dropdown.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
 </body>
 </html>

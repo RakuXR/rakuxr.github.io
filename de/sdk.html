@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raku SDK | Verstärken Sie Ihre KI in der realen Welt &mdash; Spatial Runtime für Studios &amp; XR</title>
+    <meta name="description" content="Verstärken Sie Ihre KI in der realen Welt. Das Raku SDK: 18 native DLLs, 17 Router-Module, 9.500+ REST-Endpunkte, MCP-Oberfläche mit sechs Tools. OpenXR-konform. Für Brillen gebaut, nicht für Laptops.">
+    <meta property="og:title" content="Raku SDK | Verstärken Sie Ihre KI in der realen Welt">
+    <meta property="og:description" content="Verstärken Sie Ihre KI in der realen Welt. Modulare KI-native Spatial Engine mit einer MCP-Oberfläche aus sechs Tools. Multi-Vendor by Design &mdash; Claude, ChatGPT, Gemini, Copilot.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/de/sdk.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:description" content="Verstärken Sie Ihre KI in der realen Welt. 18 DLLs, 17 Router, 9.500+ REST-Endpunkte, MCP mit sechs Tools. OpenXR auf Quest 3, Xreal, Samsung XR, MiRZA.">
+    <link rel="canonical" href="https://rakuai.com/de/sdk.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        /* SDK-specific styles */
+        .arch-diagram {
+            background: #0d0d1f;
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 32px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--text-primary);
+            margin: 32px 0;
+        }
+        .arch-diagram .hl { color: var(--accent-bright); font-weight: 700; }
+        .arch-diagram .hl-cyan { color: var(--success); font-weight: 700; }
+        .arch-diagram .hl-green { color: #50fa7b; }
+        .arch-diagram .dim { color: #555577; }
+
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            margin: 32px 0;
+        }
+        .module-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .module-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .module-card h4 {
+            color: var(--accent-bright);
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        .module-card .module-size {
+            color: var(--success);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .module-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+        .platform-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .platform-card h4 { color: var(--accent-bright); margin-bottom: 8px; }
+        .platform-card .platform-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .platform-card .platform-status.ready { background: var(--success); color: var(--bg-primary); }
+        .platform-card .platform-status.beta { background: var(--accent); color: white; }
+        .platform-card .platform-status.preview { background: #ff79c6; color: var(--bg-primary); }
+
+        .ai-flow {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            gap: 0;
+            align-items: center;
+            margin: 40px 0;
+        }
+        .ai-flow-box {
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+        }
+        .ai-flow-box h4 { color: var(--accent-bright); margin-bottom: 8px; }
+        .ai-flow-arrow {
+            text-align: center;
+            color: var(--success);
+            font-size: 2rem;
+            font-weight: 800;
+            padding: 0 8px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+        }
+        .comparison-table th {
+            background: var(--accent);
+            color: white;
+            padding: 14px 20px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .comparison-table td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #222244;
+            color: var(--text-secondary);
+        }
+        .comparison-table tr:nth-child(even) { background: var(--bg-secondary); }
+        .comparison-table .check { color: var(--success); font-weight: 700; }
+        .comparison-table .cross { color: #555577; }
+
+        .target-badge {
+            display: inline-block;
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            color: var(--accent-bright);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 4px;
+        }
+
+        .sdk-hero-brand {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 8px;
+        }
+        .sdk-hero-brand .kanji-logo {
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sdk-hero-brand .xr-badge {
+            font-size: 1.8rem;
+            color: var(--success);
+            font-weight: 700;
+            -webkit-text-fill-color: var(--success);
+            background: none;
+            letter-spacing: 0.1em;
+        }
+
+        .patent-bar {
+            background: linear-gradient(135deg, #1a1a3a, #111128);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            margin: 24px auto;
+            max-width: 800px;
+            flex-wrap: wrap;
+        }
+        .patent-bar span {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        .patent-bar strong {
+            color: var(--accent-bright);
+        }
+
+        @media (max-width: 768px) {
+            .ai-flow { grid-template-columns: 1fr; gap: 16px; }
+            .ai-flow-arrow { transform: rotate(90deg); font-size: 1.5rem; }
+            .sdk-hero-brand { font-size: 2.5rem; }
+            .arch-diagram { font-size: 0.65rem; padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+<!--
+  Machine-translated by Claude. Pending human review.
+  Source: sdk.html
+  Date: 2026-05-23
+-->
+
+<div class="beta-announcement-bar">
+    5 Patente | 9.500+ API-Endpunkte | 18 native DLLs | Die KI-native Spatial Game Engine — jetzt im Early Access
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Menü öffnen" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" aria-label="Lösungen-Menü öffnen" role="menuitem">Lösungen &#x25BC;</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Lösungen" hidden>
+                        <div class="col-heading">Nach Zielgruppe</div>
+                        <div class="col-heading">Plattform</div>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Für Smart-Glasses-Hersteller<span class="item-desc">Hardware-OEM-Partnerprogramm</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">Für KI-Labore<span class="item-desc">MCP-Runtime für Foundation Models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Für Unternehmen<span class="item-desc">Spatial AI im großen Maßstab</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Für Creator<span class="item-desc">Räumliche Welten erstellen &amp; veröffentlichen</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Vergleich mit Unity / Unreal<span class="item-desc">Ein ehrlicher Vergleich</span></a></li>
+                        </ul>
+                        <ul class="col" role="none">
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">Spatial Engine<span class="item-desc">Die Säule der Runtime</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">KI-Systeme<span class="item-desc">Orchestrierung &amp; Berechtigungen</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR-Funktionen<span class="item-desc">Anzeige, Tracking, Anker</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" aria-label="Entwickler-Menü öffnen" role="menuitem">Entwickler &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Entwickler" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">Dokumentation</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP-Server</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API-Referenz</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">Vorlagen</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">Entwicklerportal</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude-Desktop-Anleitung</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">Entwicklerhandbuch</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM-Integrationsanleitung</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" aria-label="Ressourcen-Menü öffnen" role="menuitem">Ressourcen &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Ressourcen" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">Warum RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">Pressematerial</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">Entdecken</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">Content-Pakete</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">Dokumentationsübersicht</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">Kontakt</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">Preise</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">Anmelden</a>
+            <a href="../index.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <div class="beta-badge">SDK Developer Preview</div>
+        <div class="sdk-hero-brand">
+            <span class="kanji-logo">&#x697D;</span><span class="xr-badge">XR</span><sup class="tm">™</sup>
+        </div>
+        <h1>Spatial Engine SDK</h1>
+        <p class="subtitle">Verstärken Sie Ihre KI in der realen Welt.</p>
+        <p style="color: var(--text-secondary); max-width: 760px; margin: 16px auto 0; text-align: center;">
+            KI-native Spatial Engine. Modulare Architektur, MCP-gesteuerte Runtime. 18 ms Motion-to-Photon. Submillimeter-genaue räumliche Präzision. Bauen Sie Erlebnisse, die jeder KI-Assistent über denselben Vertrag aus sechs Tools steuern kann.
+        </p>
+        <div class="cta-group">
+            <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary">Die MCP-Dokumentation lesen</a>
+            <a href="#execution" class="btn btn-secondary">So funktioniert es</a>
+        </div>
+        <div class="patent-bar">
+            <span><strong>5 erteilte US-Patente</strong> &middot; Priorität Juli 2012</span>
+            <span><strong>18 ms</strong> Motion-to-Photon</span>
+            <span><strong>OpenXR</strong>-konform</span>
+            <span>Multi-Vendor by Design</span>
+        </div>
+        <div style="margin-top: 16px;">
+            <span class="target-badge">Game Studios</span>
+            <span class="target-badge">Konsolenhersteller</span>
+            <span class="target-badge">XR-Plattformen</span>
+            <span class="target-badge">KI-Unternehmen</span>
+            <span class="target-badge">Indie-Entwickler</span>
+        </div>
+    </div>
+</section>
+
+<!-- How RakuAI Execution Works -->
+<section class="section" id="execution" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>So funktioniert RakuAI&trade;</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            RakuAI ist die deterministische Authority-Runtime. Externe Agenten erreichen die Engine über eine feste MCP-Grenze aus sechs Tools &mdash; die Engine behält die Kontrolle über Physik, Kollision, Scoring und Multiplayer-Zustand.
+        </p>
+
+        <div class="ai-flow">
+            <div class="ai-flow-box">
+                <h4>Verbinden</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Claude, Cursor, eigene GPTs</p>
+            </div>
+            <div class="ai-flow-arrow">&rarr;</div>
+            <div class="ai-flow-box" style="border-color: var(--success);">
+                <h4 style="color: var(--success);">MCP-Oberfläche mit sechs Tools</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Standardvertrag, jeder Agent</p>
+            </div>
+            <div class="ai-flow-arrow">&rarr;</div>
+            <div class="ai-flow-box">
+                <h4>Runtime</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Deterministische Authority</p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<!-- Architecture -->
+<section class="section" id="architecture">
+    <div class="container">
+        <h2>Modulare, KI-native Architektur</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 16px; max-width: 700px; margin-left: auto; margin-right: auto;">
+            Eine zweckgebaute modulare Engine, die Rendering, Physik, Audio, KI, XR, Networking und mehr abdeckt.
+            Leichtgewichtige Runtime ohne Cloud-Abhängigkeiten. Laden Sie nur, was Sie brauchen.
+        </p>
+        <div style="max-width:820px; margin:36px auto 0;">
+        <svg viewBox="0 0 820 320" width="100%" style="max-width:820px; height:auto; display:block;" role="img" aria-labelledby="sdk-arch-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="sdk-arch-title">Modulare Architektur: ein Runtime-Kern, umgeben von kombinierbaren Subsystem-Modulen — Rendering, Physik, Audio, KI, XR, Networking, Animation und Scripting — jedes bei Bedarf ladbar.</title>
+            <defs>
+                <linearGradient id="sdk-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+            </defs>
+            <!-- core bar -->
+            <rect x="270" y="138" width="280" height="44" rx="11" fill="#15152e" stroke="url(#sdk-grad)" stroke-width="2"/>
+            <text x="410" y="165" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="700">RakuAI Runtime-Kern</text>
+            <!-- module chips -->
+            <g font-family="system-ui,sans-serif" font-size="13">
+                <!-- top row -->
+                <g>
+                    <rect x="40" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                    <text x="125" y="68" text-anchor="middle" fill="#e8e8f0">Rendering</text>
+                    <line x1="125" y1="86" x2="290" y2="140" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="230" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+                    <text x="315" y="68" text-anchor="middle" fill="#e8e8f0">Physik</text>
+                    <line x1="315" y1="86" x2="360" y2="138" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="420" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+                    <text x="505" y="68" text-anchor="middle" fill="#e8e8f0">Audio</text>
+                    <line x1="505" y1="86" x2="460" y2="138" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="610" y="40" width="170" height="46" rx="10" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+                    <text x="695" y="68" text-anchor="middle" fill="#e8e8f0">KI / SLM</text>
+                    <line x1="695" y1="86" x2="530" y2="140" stroke="#2c2c4e" stroke-width="1.4"/>
+                </g>
+                <!-- bottom row -->
+                <g>
+                    <rect x="40" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+                    <text x="125" y="262" text-anchor="middle" fill="#e8e8f0">XR</text>
+                    <line x1="125" y1="234" x2="290" y2="180" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="230" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                    <text x="315" y="262" text-anchor="middle" fill="#e8e8f0">Networking</text>
+                    <line x1="315" y1="234" x2="360" y2="182" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="420" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                    <text x="505" y="262" text-anchor="middle" fill="#e8e8f0">Animation</text>
+                    <line x1="505" y1="234" x2="460" y2="182" stroke="#2c2c4e" stroke-width="1.4"/>
+                    <rect x="610" y="234" width="170" height="46" rx="10" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+                    <text x="695" y="262" text-anchor="middle" fill="#e8e8f0">Scripting</text>
+                    <line x1="695" y1="234" x2="530" y2="180" stroke="#2c2c4e" stroke-width="1.4"/>
+                </g>
+            </g>
+        </svg>
+        </div>
+        <div style="text-align: center; margin-top: 32px;">
+            <a href="../developers/claude-desktop.html" class="btn btn-primary">Claude Desktop einrichten</a>
+        </div>
+    </div>
+</section>
+
+<!-- Why RakuAI -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Warum RakuAI?</h2>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 820px; margin: 0 auto 32px;">
+            5 erteilte US-Patente. Priorität Juli 2012. Ein Jahrzehnt altes geistiges Eigentum, das die heutige Kategorie der AR-Brillen verankert. 18 native DLLs. 17 Router-Module. 9.500+ REST-Endpunkte. 10.328 gebundene Engine-Funktionen. Die Runtime, die Claude, ChatGPT, Gemini und Copilot allesamt steuern &mdash; Multi-Vendor by Design.
+        </p>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 820px; margin: 0 auto 32px;">
+            Unitys MCP zielt auf Szenenmanipulation zur Entwurfszeit. RakuAIs MCP dient der World-Model-Orchestrierung zur Laufzeit &mdash; jeder Frame, jeder NPC, jede Interaktion. Unreal braucht eine RTX 4090. RakuAI braucht Wi-Fi 7 und ein Smartphone.
+        </p>
+        <div class="platform-grid">
+            <div class="platform-card">
+                <h4>Plattformübergreifend</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Einmal bauen, aus einer einzigen Codebasis auf PC, Konsole und XR ausliefern</p>
+            </div>
+            <div class="platform-card">
+                <h4>KI-natives Design</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Von Grund auf für KI-gesteuerte Spielerstellung und adaptives Gameplay gebaut</p>
+            </div>
+            <div class="platform-card">
+                <h4>Modulare Engine</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Nutzen Sie nur die Module, die Ihr Projekt benötigt, für einen ultraleichten Footprint</p>
+            </div>
+            <div class="platform-card">
+                <h4>XR-bereit</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Volle XR-Unterstützung mit natürlicher Eingabe und räumlicher Interaktion</p>
+            </div>
+            <div class="platform-card">
+                <h4>Unterstützung großer Engines</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Integriert sich mit den führenden Game Engines der Branche und nativen Toolchains</p>
+            </div>
+            <div class="platform-card">
+                <h4>On-Device-KI</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Die gesamte KI-Verarbeitung läuft lokal. Keine Cloud nötig. Privacy by Design.</p>
+            </div>
+            <div class="platform-card">
+                <h4>Networking</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Eingebauter Multiplayer und Sitzungsverwaltung für vernetzte Erlebnisse</p>
+            </div>
+            <div class="platform-card">
+                <h4>Adaptives Audio</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Räumliches Audio und adaptive Musik, die in Echtzeit auf das Gameplay reagiert</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- Partnership Tiers -->
+<section class="section" id="partnerships" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2 style="text-align: center;">Partnerschaft &amp; Lizenzierung</h2>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.05rem;">
+            Das Raku SDK ist unter NDA für Studios, Konsolenhersteller und XR-Plattformpartner verfügbar. Vollständige technische Dokumentation, Integrationsunterstützung auf Quellcode-Ebene und individuelle Builds.
+        </p>
+        <div class="platform-grid" style="max-width: 900px; margin: 0 auto;">
+            <div class="platform-card">
+                <h4>Game Studios</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Liefern Sie KI-native Spiele schneller aus. Modulare Engine, genrespezifische Vorlagen und dedizierter Engineering-Support.</p>
+                <span class="platform-status ready">Partner willkommen</span>
+            </div>
+            <div class="platform-card">
+                <h4>Konsolen- &amp; XR-Plattformen</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Vorinstallieren, bündeln oder die Raku-Runtime tief integrieren. Individuelle Builds für Ihre Hardware. Co-Marketing verfügbar.</p>
+                <span class="platform-status beta">Kontaktieren Sie uns</span>
+            </div>
+            <div class="platform-card">
+                <h4>KI-Unternehmen</h4>
+                <p style="color: var(--text-secondary); font-size: 0.85rem;">Integrieren Sie Ihre Modelle in die Raku-Runtime. On-Device-Inferenz, spielbewusster Kontext und Echtzeit-Anpassung.</p>
+                <span class="platform-status beta">Kontaktieren Sie uns</span>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 32px;">
+            <a href="contact.html" class="btn btn-primary">Partnerschaften kontaktieren</a>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">NDA erforderlich für SDK-Zugang und technische Deep-Dives. Patentgeschützte Technologie.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Download CTA -->
+<section class="section" id="download">
+    <div class="container" style="text-align: center;">
+        <h2>Loslegen</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 32px;">
+            Verbinden Sie Ihren KI-Assistenten mit dem MCP-Server oder kontaktieren Sie uns zur Lizenzierung für Studios und Unternehmen.
+        </p>
+        <div class="cta-group" style="margin-bottom: 24px;">
+            <a href="../developers/claude-desktop.html" class="btn btn-primary">Claude Desktop verbinden</a>
+            <a href="docs.html" class="btn btn-secondary">Die Dokumentation lesen</a>
+        </div>
+        <div style="display: flex; gap: 32px; justify-content: center; flex-wrap: wrap; margin-top: 24px;">
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">&#10003;</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">Modulare Engine</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">&#10003;</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">Beispielprojekte</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="color: var(--accent-bright); font-size: 2rem; font-weight: 800;">&#10003;</div>
+                <div style="color: var(--text-secondary); font-size: 0.85rem;">Vollständige Dokumentation</div>
+            </div>
+        </div>
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #222244;">
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Nutzen Sie das SDK? Wir freuen uns über Ihr Feedback.</p>
+            <div class="cta-group">
+                <a href="contact.html" class="btn btn-secondary" style="font-size: 0.95rem; padding: 10px 24px;">Entwickler-Feedback</a>
+            </div>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 24px;">
+            Anfragen zu Enterprise-Lizenzierung und Partnerschaften:
+            <a href="contact.html" style="color: var(--accent-bright);">Kontaktieren Sie uns</a>
+        </p>
+    </div>
+</section>
+
+<footer>
+  <p>&copy; 2026 RakuAI, LLC &bull; 5 erteilte US-Patente (Priorität: Juli 2012) &bull; Betrieben mit der RakuAI Engine</p>
+  <p style="margin-top: 6px;">
+    <a href="../engine/">Engine</a> &bull;
+    <a href="../api/">API</a> &bull;
+    <a href="docs.html">Dokumentation</a> &bull;
+    <a href="../games/">Arcade</a> &bull;
+    <a href="press.html">Presse</a> &bull;
+    <a href="developers/">Entwickler</a> &bull;
+    <a href="../privacy.html">Datenschutz</a> &bull;
+    <a href="../terms.html">AGB</a> &bull;
+    <a href="contact.html">Kontakt</a> &bull;
+    <a href="https://github.com/RakuXR">GitHub</a>
+  </p>
+  <p class="trademark-notice">
+    RakuAI&trade; und RakuXR&trade; sind Marken von RakuAI, LLC.
+    <span class="kanji-logo">&#x697D;</span>AI und <span class="kanji-logo">&#x697D;</span>XR sind stilisierte Marken von RakuAI, LLC.
+    5 erteilte US-Patente (Priorität: Juli 2012).
+  </p>
+</footer>
+
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+<script src="../js/nav-dropdown.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>

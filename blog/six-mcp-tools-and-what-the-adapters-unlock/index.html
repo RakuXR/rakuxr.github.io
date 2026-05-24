@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <title>Six MCP Tools, and What the Adapters Unlock Next &mdash; RakuAI Blog</title>
-    <meta name="description" content="The runtime has been speaking Model Context Protocol since late March. Six tools, stdio transport, deny-by-default permissions, full audit log. The server is the boundary any external agent uses to drive the engine. This Saturday is about what the next layer looks like: real adapters, real partner integrations, and an MCP-first developer story instead of an MCP-bolted-on one.">
+    <meta name="description" content="The runtime has been speaking Model Context Protocol since late March. Six tools, stdio transport, deny-by-default permissions, full audit log. The server is the boundary any external agent uses to drive the engine. This Saturday is about what the next layer looks like: real adapters, real partner integrations, and an MCP-first developer story instead of an MCP-bolted-on one. This is the MCP runtime LLM makers build against.">
     <meta name="author" content="Kevin Griffin">
     <link rel="canonical" href="https://rakuai.com/blog/six-mcp-tools-and-what-the-adapters-unlock/">
     <link rel="alternate" hreflang="en" href="https://rakuai.com/blog/six-mcp-tools-and-what-the-adapters-unlock/">
@@ -14,7 +14,7 @@
     <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
     <meta property="og:type" content="article">
     <meta property="og:title" content="Six MCP Tools, and What the Adapters Unlock Next">
-    <meta property="og:description" content="The runtime has been speaking Model Context Protocol since late March. Six tools, stdio transport, deny-by-default permissions, full audit log. The server is the boundary any external agent uses to drive the engine. This Saturday is about what the next layer looks like: real adapters, real partner integrations, and an MCP-first developer story instead of an MCP-bolted-on one.">
+    <meta property="og:description" content="The runtime has been speaking Model Context Protocol since late March. Six tools, stdio transport, deny-by-default permissions, full audit log. The server is the boundary any external agent uses to drive the engine. This Saturday is about what the next layer looks like: real adapters, real partner integrations, and an MCP-first developer story instead of an MCP-bolted-on one. This is the MCP runtime LLM makers build against.">
     <meta property="og:url" content="https://rakuai.com/blog/six-mcp-tools-and-what-the-adapters-unlock/">
     <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
     <meta property="og:image:width" content="1200">
@@ -24,7 +24,7 @@
     <meta property="article:author" content="Kevin Griffin">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Six MCP Tools, and What the Adapters Unlock Next">
-    <meta name="twitter:description" content="The runtime has been speaking Model Context Protocol since late March. Six tools, stdio transport, deny-by-default permissions, full audit log. The server is the boundary any external agent uses to drive the engine. This Saturday is about what the next layer looks like: real adapters, real partner integrations, and an MCP-first developer story instead of an MCP-bolted-on one.">
+    <meta name="twitter:description" content="The runtime has been speaking Model Context Protocol since late March. Six tools, stdio transport, deny-by-default permissions, full audit log. The server is the boundary any external agent uses to drive the engine. This Saturday is about what the next layer looks like: real adapters, real partner integrations, and an MCP-first developer story instead of an MCP-bolted-on one. This is the MCP runtime LLM makers build against.">
     <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
@@ -108,6 +108,45 @@
             </p>
         </header>
         <div class="post-body">
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Six MCP tools forming the contract any external agent uses to drive the runtime" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mcp-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="mcp-accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#a388ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#mcp-bg)"/>
+  <text x="600" y="60" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">Six Tools Are the Contract</text>
+  <text x="600" y="96" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">stdio transport, deny-by-default, full audit log</text>
+  <g font-family="system-ui,sans-serif" text-anchor="middle">
+    <circle cx="600" cy="250" r="60" fill="#1a1a33" stroke="url(#mcp-accent)" stroke-width="3"/>
+    <text x="600" y="245" fill="#a388ff" font-size="18" font-weight="700">raku.*</text>
+    <text x="600" y="268" fill="#9090b0" font-size="13">MCP server</text>
+    <g font-size="14" fill="#c8c8e0">
+      <rect x="120" y="150" width="220" height="44" rx="10" fill="#16213a" stroke="#00cec9"/><text x="230" y="178">load_world_model</text>
+      <rect x="120" y="228" width="220" height="44" rx="10" fill="#16213a" stroke="#00cec9"/><text x="230" y="256">ingest_frame</text>
+      <rect x="120" y="306" width="220" height="44" rx="10" fill="#16213a" stroke="#00cec9"/><text x="230" y="334">set_render_target</text>
+      <rect x="860" y="150" width="220" height="44" rx="10" fill="#16213a" stroke="#6c5ce7"/><text x="970" y="178">get_scene_state</text>
+      <rect x="860" y="228" width="220" height="44" rx="10" fill="#16213a" stroke="#6c5ce7"/><text x="970" y="256">start_simulation</text>
+      <rect x="860" y="306" width="220" height="44" rx="10" fill="#16213a" stroke="#6c5ce7"/><text x="970" y="334">get_metrics</text>
+    </g>
+    <line x1="340" y1="172" x2="545" y2="235" stroke="#00cec9" stroke-width="2"/>
+    <line x1="340" y1="250" x2="540" y2="250" stroke="#00cec9" stroke-width="2"/>
+    <line x1="340" y1="328" x2="545" y2="265" stroke="#00cec9" stroke-width="2"/>
+    <line x1="660" y1="235" x2="860" y2="172" stroke="#6c5ce7" stroke-width="2"/>
+    <line x1="660" y1="250" x2="860" y2="250" stroke="#6c5ce7" stroke-width="2"/>
+    <line x1="660" y1="265" x2="860" y2="328" stroke="#6c5ce7" stroke-width="2"/>
+  </g>
+  <text x="600" y="430" text-anchor="middle" fill="#e84393" font-family="system-ui,sans-serif" font-size="16" font-weight="600">The engine keeps authority. The model contributes intent.</text>
+</svg>
+<figcaption>Any model that speaks MCP can drive the runtime through one provider-agnostic boundary.</figcaption>
+</figure>
+
+<p class="post-hook">Any model that speaks MCP can drive the runtime — no custom integration per vendor. RakuAI's six-tool contract is the boundary that makes a deterministic-authority runtime real, and the inflection point where it becomes infrastructure others build on.</p>
+
 <p>The runtime has been talking Model Context Protocol since late March. The shipping commit is <code>138b538b</code>, &ldquo;feat(mcp): reframe MCP server from game-agent control to world model runtime orchestration.&rdquo; The change of framing in that commit message is the substance of this post, and the next move on it is what I want to write down.</p>
 <h2 id="what-mcp-looks-like-in-the-runtime-today">What MCP looks like in the runtime today</h2>
 <p>Six tools, in a Python server at <code>src/mcp/raku_mcp_server.py</code>, transport over stdio, namespace <code>raku.*</code>. Deny-by-default permissions enforced per tool per caller. Every call recorded in an audit log.</p>
@@ -146,6 +185,14 @@
 <p>If you are at a model lab and you have an opinion about how MCP-style boundaries should look for runtimes that talk to generative models, this is the right week to share it. The contract is not yet locked. Comments cost less now than they will in a quarter.</p>
 <p>Six tools, deployed, audited, schema-typed, deny-by-default. Adapters next. The boundary is real. The work that runs on top of it is what comes after.</p>
 <p>Saturday in motion.</p>
+<div class="post-cta">
+<h3>Drive a real engine through one MCP contract</h3>
+<p>If your model speaks Model Context Protocol, it can orchestrate a production spatial runtime — provider-agnostic, deny-by-default, every call audited. The contract is open for comment while it is still cheap to shape.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/llm-makers.html">For AI Labs</a>
+<a class="cta-btn cta-secondary" href="/developers/">For Developers</a>
+</div>
+</div>
         </div>
         <ul class="post-tags"><li>mcp</li><li>model-context-protocol</li><li>partners</li><li>adapters</li><li>ai-native</li><li>weekend-build</li></ul>
         <nav class="post-series-nav"><a class="nav-prev" href="/blog/the-week-the-build-stopped-arguing/" rel="prev">&larr; The Saturday the Build Stopped Arguing</a><a class="nav-next" href="/blog/supercharge-your-ai-in-the-real-world/" rel="next">Supercharge Your AI in the Real World &rarr;</a></nav>

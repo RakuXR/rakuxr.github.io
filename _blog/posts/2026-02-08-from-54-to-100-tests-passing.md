@@ -3,10 +3,42 @@ title: "From 54% to 100% Tests Passing"
 date: 2026-02-08
 author: Kevin Griffin
 tags: [tests, ctest, ecs, eye-tracking, telemetry, weekend-build]
-description: "Started the weekend with the test suite at 54% passing. By Saturday night, 63%. By the following Sunday, 100%. The path between those numbers was specific, mechanical, and full of the kind of small lessons that explain why test-pass-rate is one of the most honest signals a codebase produces."
+description: "54% to 100% in three weekends. The test runner does not care about your feelings, your star count, or your roadmap — it tells you exactly how much of your spatial runtime actually works. Here is how we walked the gap, root-cause by root-cause, and why pass rate is the most honest signal a partner can ask for."
 series: learning-to-code-with-ai
 slug: from-54-to-100-tests-passing
 ---
+
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Test pass rate climbing from 54 percent to 100 percent over three weekends" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="t100-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111128"/><stop offset="1" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="t100-line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e84393"/><stop offset="0.5" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="480" fill="url(#t100-bg)"/>
+  <text x="600" y="62" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="34" font-weight="700">54% to 100% Green</text>
+  <text x="600" y="98" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="18">Three weekends, four root-cause fixes, one honest number</text>
+  <g font-family="system-ui,sans-serif">
+    <line x1="150" y1="400" x2="1080" y2="400" stroke="#2a2a4a" stroke-width="2"/>
+    <line x1="150" y1="140" x2="150" y2="400" stroke="#2a2a4a" stroke-width="2"/>
+    <polyline points="150,380 430,360 710,348 990,160" fill="none" stroke="url(#t100-line)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="150" cy="380" r="9" fill="#e84393"/><text x="150" y="365" text-anchor="middle" fill="#ff7aa8" font-size="16" font-weight="700">54%</text>
+    <circle cx="430" cy="360" r="9" fill="#a388ff"/><text x="430" y="345" text-anchor="middle" fill="#a388ff" font-size="16" font-weight="700">63%</text>
+    <circle cx="710" cy="348" r="9" fill="#6c5ce7"/><text x="710" y="333" text-anchor="middle" fill="#a388ff" font-size="15">63%</text>
+    <circle cx="990" cy="160" r="11" fill="#00cec9"/><text x="990" y="143" text-anchor="middle" fill="#00cec9" font-size="18" font-weight="800">100%</text>
+    <text x="150" y="430" text-anchor="middle" fill="#9090b0" font-size="14">Sat AM</text>
+    <text x="430" y="430" text-anchor="middle" fill="#9090b0" font-size="14">Sat PM</text>
+    <text x="710" y="430" text-anchor="middle" fill="#9090b0" font-size="14">Wk 2</text>
+    <text x="990" y="430" text-anchor="middle" fill="#9090b0" font-size="14">Wk 3</text>
+  </g>
+</svg>
+<figcaption>The only number that cannot be massaged: 56 of 56 tests passing.</figcaption>
+</figure>
+
+<p class="post-hook">When a partner evaluates a spatial runtime, the first number they should ask for is the integrated test pass rate. Here is how we took ours from barely-working to bulletproof — and why the trajectory matters more than the snapshot.</p>
 
 The number that does not lie about a codebase is the test pass rate. Sales numbers can be massaged. Star counts can be inflated. Lines of code can be padded. The test pass rate is what the test runner says it is, and the test runner does not care about your feelings.
 
@@ -65,3 +97,12 @@ If you are an AI lab building a coding agent for autonomous PRs, the metric I fi
 A week ago Saturday the number was 54. Tonight it is 100. The test runner does not care about my feelings. The test runner is correct about that.
 
 Closing the laptop on Sunday with a green suite. Back to building next weekend.
+
+<div class="post-cta">
+<h3>Build on a runtime that proves its own quality</h3>
+<p>RakuAI is the AI-native spatial runtime your assistant inhabits in the real world. Green tests, honest signals, engine-grade discipline — see what your team can ship on it.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/developers/">For Developers</a>
+<a class="cta-btn cta-secondary" href="/why-rakuai.html">Why RakuAI</a>
+</div>
+</div>
