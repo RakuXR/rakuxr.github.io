@@ -1,202 +1,479 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
-    <title>Scan your space - Raku Capture</title>
-    <meta name="description" content="The Raku Capture web app - scan a real space with your phone camera and turn it into a 3D Gaussian splat. Currently in early access.">
-    <meta name="robots" content="noindex">
-    <link rel="canonical" href="https://rakuai.com/capture-app/">
-    <link rel="stylesheet" href="../style.css">
-    <style>
-        .ca-wrap { max-width: 680px; margin: 0 auto; padding: 96px 24px 80px; text-align: center; }
-        .ca-wrap h1 {
-            font-size: clamp(2rem, 5vw, 3rem); line-height: 1.12; margin-bottom: 18px;
-            background: linear-gradient(135deg, var(--accent-bright), var(--success));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        }
-        .ca-wrap p { color: var(--text-secondary); font-size: 1.08rem; line-height: 1.65; margin: 0 auto 18px; max-width: 560px; }
-        .ca-badge {
-            display: inline-block; font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase;
-            color: var(--accent-bright); border: 1px solid var(--accent-bright); border-radius: 999px;
-            padding: 6px 14px; margin-bottom: 22px; background: rgba(163, 136, 255, 0.08);
-        }
-        .ca-steps { text-align: left; max-width: 460px; margin: 28px auto 32px; color: var(--text-secondary); line-height: 1.7; }
-        .ca-cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
-        .ca-btn {
-            display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright));
-            color: #fff; padding: 13px 26px; border-radius: 10px; font-weight: 700; text-decoration: none;
-        }
-        .ca-btn.secondary { background: transparent; color: var(--accent-bright); border: 1px solid var(--accent-bright); font-weight: 600; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://raku-api.fly.dev http://localhost:8000 https://cdn.jsdelivr.net https://cdn.raku.games; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none';">
+  <title data-i18n="doc.title">Raku Capture</title>
+  <meta name="description" data-i18n-attr="content:doc.description" content="Capture a room with your phone and turn it into an explorable 3D Gaussian splat.">
+
+  <!-- PWA wiring -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <meta name="theme-color" content="#6c63ff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!--
+    PROTOTYPE NOTICE
+    ================
+    This is a development scaffold living in raku-runtime/web/capture/ per the
+    repo web workflow (prototype -> stage to rakuxr.github.io -> wire backend
+    via raku-api). UI states and structure are real. Capture upload and
+    reconstruction polling DO call the live raku-api service; the Spark splat
+    viewer is real too, but the reconstruction currently returns a placeholder
+    splat rather than a true scan of the captured room. See README.md for what
+    is real vs simulated.
+
+    LOCALIZATION
+    ============
+    All user-facing copy lives in locales/<code>.json and is applied at runtime
+    by i18n.js (loaded below, before the app module). Static text carries
+    data-i18n / data-i18n-html / data-i18n-attr attributes; the JS-driven
+    strings (hints, status, errors) go through RakuI18n.t(). Add a locale by
+    dropping a new locales/<code>.json and listing it in i18n.js SUPPORTED.
+  -->
+
+  <style>
+    :root {
+      --bg: #0e0e14;
+      --panel: #16161f;
+      --panel-2: #1d1d2a;
+      --border: #2a2a3a;
+      --accent: #6c63ff;
+      --accent2: #ff6b6b;
+      --ok: #3ec97a;
+      --warn: #f0b429;
+      --text: #e8e8f0;
+      --muted: #7a7a9a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      /* respect notches on phone / glasses web shell */
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tagline { color: var(--muted); font-size: 13px; }
+
+    .proto-badge {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--warn);
+      border: 1px solid var(--warn);
+      border-radius: 4px;
+      padding: 3px 8px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Language switcher — i18n.js renders a <select> into [data-i18n-switcher]. */
+    .lang-switcher { display: flex; align-items: center; }
+    .i18n-switcher {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .i18n-switcher-label {
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 600;
+    }
+    .i18n-switcher-select {
+      appearance: none;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .i18n-switcher-select:hover { border-color: var(--accent); }
+    .i18n-switcher-select:focus-visible { outline: 2px solid var(--accent); }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Each phase is a full-bleed screen; JS toggles [hidden]. */
+    .screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 28px 22px;
+      gap: 18px;
+    }
+    .screen[hidden] { display: none; }
+
+    h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+    h2 { font-size: 18px; font-weight: 600; }
+    p.lead { color: var(--muted); max-width: 460px; line-height: 1.5; font-size: 15px; }
+
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 22px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), #8a82ff);
+      color: #fff;
+      transition: transform .08s ease, opacity .15s ease;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.secondary {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .step-list {
+      list-style: none;
+      text-align: left;
+      max-width: 420px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .step-list li {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--muted);
+      transition: border-color .2s, color .2s;
+    }
+    .step-list li.active { border-color: var(--accent); color: var(--text); }
+    .step-list li.done { color: var(--ok); }
+    .step-num {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 13px; font-weight: 700;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+    }
+    .step-list li.active .step-num { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .step-list li.done .step-num { background: var(--ok); border-color: var(--ok); color: #08210f; }
+
+    /* Camera capture stage */
+    #camera-stage {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    #camera-stage[hidden] { display: none; }
+    #camera-video {
+      flex: 1;
+      width: 100%;
+      object-fit: cover;
+      background: #000;
+    }
+    .capture-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 18px;
+    }
+    .capture-hint {
+      align-self: center;
+      background: rgba(14,14,20,0.78);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      max-width: 90%;
+    }
+    .capture-controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      pointer-events: auto;
+    }
+    .coverage-bar {
+      pointer-events: auto;
+      width: 100%;
+      max-width: 420px;
+      align-self: center;
+    }
+
+    /* Generic progress bar (download/analyze/reconstruct) */
+    .progress {
+      width: 100%;
+      max-width: 420px;
+      height: 8px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width .3s ease;
+    }
+    .progress-label { font-size: 13px; color: var(--muted); }
+
+    .spinner {
+      width: 42px; height: 42px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Viewer panel — hosts the Spark splat canvas */
+    #viewer-stage { position: absolute; inset: 0; display: flex; flex-direction: column; }
+    #viewer-stage[hidden] { display: none; }
+    #viewer-canvas { flex: 1; width: 100%; display: block; background: #05050a; touch-action: none; }
+    .viewer-toolbar {
+      display: flex;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      align-items: center;
+    }
+    .viewer-toolbar .spacer { flex: 1; }
+    .viewer-note {
+      position: absolute;
+      top: 14px; left: 14px;
+      font-size: 11px;
+      color: var(--warn);
+      background: rgba(14,14,20,0.8);
+      border: 1px solid var(--warn);
+      border-radius: 6px;
+      padding: 4px 8px;
+    }
+
+    .error-box {
+      background: var(--panel);
+      border: 1px solid var(--accent2);
+      border-radius: 10px;
+      padding: 16px 18px;
+      max-width: 440px;
+      color: var(--accent2);
+      font-size: 14px;
+    }
+
+    /* Intro live sample-splat preview (W1.4 — plan §6.1 step 1) */
+    .intro-preview {
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .intro-preview[hidden] { display: none; }
+    #intro-preview-canvas {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      display: block;
+      background: #05050a;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      touch-action: none;
+      cursor: grab;
+    }
+    #intro-preview-canvas:active { cursor: grabbing; }
+    .intro-preview-caption { font-size: 12px; color: var(--muted); }
+  </style>
 </head>
+
 <body>
+  <header>
+    <span class="logo">Raku Capture</span>
+    <span class="tagline" data-i18n="header.tagline">Scan a room &rarr; explorable 3D</span>
+    <span class="proto-badge" data-i18n="header.protoBadge" data-i18n-attr="title:header.protoBadgeTitle" title="Development prototype — capture and reconstruction run against the live backend, but the returned splat is still a placeholder">PROTOTYPE</span>
+    <span class="lang-switcher" data-i18n-switcher></span>
+  </header>
 
-<div class="beta-announcement-bar">
-    Raku Capture web app - early access. The capture client is in active build.
-</div>
+  <main>
+    <!-- PHASE: intro / camera permission ------------------------------------ -->
+    <section class="screen" id="screen-intro">
+      <h1 data-i18n="intro.heading">Capture a space</h1>
+      <p class="lead" data-i18n="intro.lead">
+        Point your phone at a room and slowly walk around it. Raku turns the
+        footage into a Gaussian splat you can explore in 3D &mdash; on your phone,
+        on Meta Ray-Ban Display glasses, and (later) on Android XR.
+      </p>
+      <!-- Live, draggable sample splat (W1.4). Real public room-scale splat
+           from samples/manifest.json, rendered with the same Spark viewer the
+           finished scan uses. Hidden by JS until/unless it loads, so the intro
+           degrades cleanly when the manifest or splat CDN is unreachable. -->
+      <div class="intro-preview" id="intro-preview" hidden>
+        <canvas id="intro-preview-canvas"></canvas>
+        <!-- intro-preview-caption is owned by capture_app.js once a sample
+             loads (applyIntroCaption sets the named caption via t() and
+             relocalizeDynamic re-renders it on locale change). The static
+             text is a pre-JS placeholder. -->
+        <p class="intro-preview-caption" id="intro-preview-caption">Live sample &mdash; drag to look around</p>
+      </div>
+      <button class="btn" id="btn-grant-camera" data-i18n="intro.getStarted">Get started</button>
+      <p class="progress-label" data-i18n="intro.cameraNote">Camera access is requested later, when you open the camera.</p>
+    </section>
 
-<nav role="navigation" aria-label="Primary">
-    <div class="container">
-        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
-        <button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary">
-            <span></span><span></span><span></span>
-        </button>
-        <div class="nav-links" id="nav-primary">
-            <ul class="nav-primary" role="menubar">
-                <li class="nav-item has-dropdown" role="none">
-                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
-                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
-                        <div class="col-heading" role="presentation">By audience</div>
-                        <div class="col-heading" role="presentation">Platform</div>
-                        <ul class="col" role="group">
-                            <li role="none"><a role="menuitem" href="../smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
-                            <li role="none"><a role="menuitem" href="../llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
-                            <li role="none"><a role="menuitem" href="../enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
-                            <li role="none"><a role="menuitem" href="../creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
-                            <li role="none"><a role="menuitem" href="../compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
-                        </ul>
-                        <ul class="col" role="group">
-                            <li role="none"><a role="menuitem" href="../capture.html">Raku Capture<span class="item-desc">Scan a space, then talk to it</span></a></li>
-                            <li role="none"><a role="menuitem" href="../spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li>
-                            <li role="none"><a role="menuitem" href="../ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li>
-                            <li role="none"><a role="menuitem" href="../xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="nav-item has-dropdown" role="none">
-                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button>
-                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
-                        <li role="none"><a role="menuitem" href="../docs.html">Documentation</a></li>
-                        <li role="none"><a role="menuitem" href="../mcp.html">MCP Server</a></li>
-                        <li role="none"><a role="menuitem" href="../sdk.html">SDK</a></li>
-                        <li role="none"><a role="menuitem" href="../api/">API Reference</a></li>
-                        <li role="none"><a role="menuitem" href="../templates.html">Templates</a></li>
-                        <li role="none"><a role="menuitem" href="../developers/">Developer Portal</a></li>
-                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop guide</a></li>
-                        <li role="none"><a role="menuitem" href="../developer-guide.html">Developer Guide</a></li>
-                        <li role="none"><a role="menuitem" href="../llm-guide.html">LLM Integration Guide</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item has-dropdown" role="none">
-                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button>
-                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
-                        <li role="none"><a role="menuitem" href="../blog/">Blog</a></li>
-                        <li role="none"><a role="menuitem" href="../why-rakuai.html">Why RakuAI</a></li>
-                        <li role="none"><a role="menuitem" href="../press.html">Press Kit</a></li>
-                        <li role="none"><a role="menuitem" href="../discover.html">Discover</a></li>
-                        <li role="none"><a role="menuitem" href="../content-packs.html">Content Packs</a></li>
-                        <li role="none"><a role="menuitem" href="../docs.html">Documentation</a></li>
-                        <li role="none"><a role="menuitem" href="../contact.html">Contact</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item" role="none">
-                    <a role="menuitem" href="../pricing.html">Pricing</a>
-                </li>
-                <li class="nav-item" role="none">
-                    <a role="menuitem" href="../blog/">Blog</a>
-                </li>
-            </ul>
-            <a href="../developers/login.html" class="nav-signin">Sign In</a>
-            <a href="../ja/capture.html" class="lang-toggle">&#x697D;AI<sup class="tm">&trade;</sup></a>
+    <!-- PHASE: guided capture (live camera) ---------------------------------- -->
+    <div id="camera-stage" hidden>
+      <video id="camera-video" playsinline muted autoplay></video>
+      <div class="capture-overlay">
+        <!-- capture-hint text is owned by capture_app.js (updateCoverage); it
+           sets the value via t() and re-renders on locale change, so no
+           data-i18n here - declarative re-translation would clobber the
+           live hint. The static text below is just a pre-JS placeholder. -->
+      <div class="capture-hint" id="capture-hint">Hold steady to begin&hellip;</div>
+        <div>
+          <div class="coverage-bar">
+            <div class="progress"><div class="progress-fill" id="coverage-fill"></div></div>
+            <p class="progress-label" id="coverage-label">Coverage 0%</p>
+          </div>
+          <div class="capture-controls" style="margin-top:14px;">
+            <button class="btn secondary" id="btn-cancel-capture" data-i18n="capture.cancel">Cancel</button>
+            <button class="btn" id="btn-finish-capture" data-i18n="capture.finish" disabled>Finish capture</button>
+          </div>
         </div>
+      </div>
     </div>
-</nav>
 
-<main class="ca-wrap">
-    <span class="ca-badge">Early access</span>
-    <h1>Scan your space</h1>
-    <p>This is where the Raku Capture web app loads &mdash; point your phone camera at a room, walk it for about twenty seconds, and a 3D Gaussian splat of that space comes back.</p>
-    <p>The capture client is in active development. We are wiring the phone-capture flow into the live reconstruction pipeline, and we will not put it here until a scan reliably produces a splat you can actually use.</p>
-    <div class="ca-steps">
-        <strong>What happens when it ships:</strong>
-        <ol>
-            <li>Open this page on a phone and grant camera access.</li>
-            <li>Walk the camera slowly around the space you want to capture.</li>
-            <li>The frames upload, reconstruct into a splat, and open in a viewer your AI assistant can read over MCP.</li>
-        </ol>
-    </div>
-    <p>The MCP runtime your assistant drives is already live today. You can connect it to Claude and start reasoning over sample scenes right now.</p>
-    <div class="ca-cta-row">
-        <a class="ca-btn" href="../developers/claude-desktop.html">Connect RakuAI to Claude</a>
-        <a class="ca-btn secondary" href="../capture.html">Back to Raku Capture</a>
-    </div>
-</main>
+    <!-- PHASE: walk-the-room checklist (shown alongside / before camera) ----- -->
+    <section class="screen" id="screen-guide" hidden>
+      <h2 data-i18n="guide.heading">Walk the room</h2>
+      <p class="lead" data-i18n="guide.lead">Cover the space from multiple angles. Tap each step as you go, or let auto-coverage track it.</p>
+      <ol class="step-list" id="guide-steps">
+        <li data-step="0"><span class="step-num">1</span> <span data-i18n="guide.step1">Stand in a corner and pan slowly across the room</span></li>
+        <li data-step="1"><span class="step-num">2</span> <span data-i18n="guide.step2">Walk the perimeter, keeping walls in frame</span></li>
+        <li data-step="2"><span class="step-num">3</span> <span data-i18n="guide.step3">Capture furniture and objects up close</span></li>
+        <li data-step="3"><span class="step-num">4</span> <span data-i18n="guide.step4">Look up and down to catch ceiling and floor</span></li>
+      </ol>
+      <button class="btn" id="btn-begin-capture" data-i18n="guide.openCamera">Open camera</button>
+    </section>
 
-<footer>
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-col">
-                <h4>Solutions</h4>
-                <ul>
-                    <li><a href="../capture.html">Raku Capture</a></li>
-                    <li><a href="../smart-glasses.html">Smart-Glasses Manufacturers</a></li>
-                    <li><a href="../llm-makers.html">AI Labs</a></li>
-                    <li><a href="../enterprise.html">Enterprise</a></li>
-                    <li><a href="../creator.html">Creators</a></li>
-                    <li><a href="../compare.html">Compare vs Unity / Unreal</a></li>
-                    <li><a href="../spatial-engine.html">Spatial Engine</a></li>
-                    <li><a href="../ai-systems.html">AI Systems</a></li>
-                    <li><a href="../xr-features.html">XR Features</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Developers</h4>
-                <ul>
-                    <li><a href="../docs.html">Documentation</a></li>
-                    <li><a href="../mcp.html">MCP Server</a></li>
-                    <li><a href="../sdk.html">SDK</a></li>
-                    <li><a href="../api/">API Reference</a></li>
-                    <li><a href="../templates.html">Templates</a></li>
-                    <li><a href="../developers/">Developer Portal</a></li>
-                    <li><a href="../developers/claude-desktop.html">Claude Desktop guide</a></li>
-                    <li><a href="../developer-guide.html">Developer Guide</a></li>
-                    <li><a href="../llm-guide.html">LLM Integration Guide</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Resources</h4>
-                <ul>
-                    <li><a href="../blog/">Blog</a></li>
-                    <li><a href="../why-rakuai.html">Why RakuAI</a></li>
-                    <li><a href="../press.html">Press Kit</a></li>
-                    <li><a href="../discover.html">Discover</a></li>
-                    <li><a href="../content-packs.html">Content Packs</a></li>
-                    <li><a href="../docs.html">Documentation</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>Company</h4>
-                <ul>
-                    <li><a href="../why-rakuai.html">About</a></li>
-                    <li><a href="../pricing.html">Pricing</a></li>
-                    <li><a href="../contact.html">Contact</a></li>
-                    <li><a href="mailto:partners@rakuai.com">Partners</a></li>
-                    <li><a href="../privacy.html">Privacy</a></li>
-                    <li><a href="../terms.html">Terms</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="footer-social">
-            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
-            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
-        </div>
-        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
-        <p class="trademark-notice">
-            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
-            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
-            5 Granted US Patents (Priority: July 2012).
-        </p>
-    </div>
-</footer>
+    <!-- PHASE: uploading ----------------------------------------------------- -->
+    <section class="screen" id="screen-uploading" hidden>
+      <div class="spinner"></div>
+      <h2 data-i18n="uploading.heading">Uploading capture</h2>
+      <div class="progress"><div class="progress-fill" id="upload-fill"></div></div>
+      <!-- upload-label is owned by capture_app.js at runtime (preparing /
+           live upload %). No data-i18n: the app sets it via t() and
+           re-renders it on locale change. -->
+      <p class="progress-label" id="upload-label">Preparing&hellip;</p>
+    </section>
 
-<script src="/js/public-config.js"></script>
-<script src="/js/api-client.js"></script>
-<script src="/js/auth-nav.js" defer></script>
-<script src="/js/lang-selector.js" defer></script>
-<script src="/js/nav-dropdown.js" defer></script>
-<script src="/js/section-nav.js" defer></script>
+    <!-- PHASE: analyzing -> reconstructing ----------------------------------- -->
+    <section class="screen" id="screen-processing" hidden>
+      <div class="spinner"></div>
+      <!-- processing-title / processing-label are owned by capture_app.js at
+           runtime (per reconstruction stage + live %). No data-i18n: the app
+           sets them via t() and re-renders them on locale change. -->
+      <h2 id="processing-title">Analyzing footage</h2>
+      <div class="progress"><div class="progress-fill" id="processing-fill"></div></div>
+      <p class="progress-label" id="processing-label">This usually takes a minute or two&hellip;</p>
+      <button class="btn secondary" id="btn-cancel-processing" data-i18n="processing.cancel">Cancel</button>
+    </section>
+
+    <!-- PHASE: ready (viewer) ------------------------------------------------ -->
+    <div id="viewer-stage" hidden>
+      <!-- viewer-note / viewer-meta are owned by capture_app.js at runtime
+           (viewer loading / controls / offline-placeholder status). No
+           data-i18n: the app sets them via t() and re-renders them on locale
+           change to match the real viewer status. viewer-note starts hidden;
+           the app reveals it only for the offline placeholder. -->
+      <span class="viewer-note" id="viewer-note" hidden>Spark viewer seam &mdash; see loadSplatViewer()</span>
+      <canvas id="viewer-canvas"></canvas>
+      <div class="viewer-toolbar">
+        <span class="progress-label" id="viewer-meta">Splat ready</span>
+        <span class="spacer"></span>
+        <button class="btn secondary" id="btn-new-capture" data-i18n="viewer.newCapture">New capture</button>
+        <button class="btn secondary" id="btn-cleanup" data-i18n="viewer.cleanup" data-i18n-attr="title:viewer.cleanupTitle" title="Open this scan in the SuperSplat editor to trim floaters and crop">Clean up</button>
+        <button class="btn" id="btn-share" data-i18n="viewer.share">Share</button>
+      </div>
+    </div>
+
+    <!-- PHASE: error --------------------------------------------------------- -->
+    <section class="screen" id="screen-error" hidden>
+      <!-- error-message is owned by capture_app.js (showError) - it holds the
+           specific failure text for the current error. No data-i18n: the app
+           sets it via t() and re-renders the current error on locale change. -->
+      <div class="error-box" id="error-message">Something went wrong.</div>
+      <button class="btn secondary" id="btn-retry" data-i18n="error.title">Try again</button>
+    </section>
+  </main>
+
+  <!-- i18n runtime. Classic script, loaded BEFORE the app module so
+       window.RakuI18n exists when capture_app.js runs; the app awaits
+       RakuI18n.ready before its first paint. -->
+  <script src="./i18n.js"></script>
+
+  <!-- App logic: capture flow + Spark viewer seam + backend seams.
+       Loaded as a module so we can dynamic-import the Spark renderer from CDN. -->
+  <script type="module" src="./capture_app.js"></script>
+
+  <!-- Register service worker (PWA). Kept inline + tiny so the shell is
+       installable even before capture_app.js parses. -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js').catch(function (err) {
+          console.warn('[RakuCapture] SW registration failed:', err);
+        });
+      });
+    }
+  </script>
 </body>
 </html>
