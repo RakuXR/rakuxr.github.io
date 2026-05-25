@@ -57,7 +57,7 @@
     var EN_PAGES = [
         '', 'index.html',
         '404.html', 'ai-systems.html', 'contact.html', 'content-packs.html',
-        'creator.html', 'dashboard.html', 'developer-guide.html',
+        'capture.html', 'creator.html', 'dashboard.html', 'developer-guide.html',
         'discover.html', 'docs.html', 'enterprise.html', 'llm-guide.html',
         'my-games.html', 'press.html', 'pricing.html', 'privacy.html',
         'pro-features.html', 'profile.html', 'schema.html', 'sdk.html',
@@ -80,7 +80,7 @@
 
     var JA_PAGES = [
         '', 'index.html',
-        '404.html', 'ai-systems.html', 'contact.html', 'creator.html',
+        '404.html', 'ai-systems.html', 'capture.html', 'contact.html', 'creator.html',
         'developer-guide.html', 'discover.html', 'docs.html',
         'enterprise.html', 'llm-guide.html', 'pricing.html', 'privacy.html',
         'pro-features.html', 'schema.html', 'sdk.html', 'spatial-engine.html',

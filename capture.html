@@ -87,6 +87,29 @@
         .cap-btn-secondary:hover {
             background: rgba(163, 136, 255, 0.1);
         }
+        /* ---- Hero scan graphic (brand SVG) ---- */
+        .cap-hero-graphic {
+            max-width: 760px;
+            margin: 8px auto 30px;
+        }
+        .cap-hero-graphic svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: drop-shadow(0 18px 40px rgba(108, 92, 231, 0.28));
+        }
+        @media (prefers-reduced-motion: no-preference) {
+            .cap-scan-sweep { animation: capScan 4s ease-in-out infinite; }
+            .cap-splat-cloud { animation: capPop 4s ease-in-out infinite; }
+            @keyframes capScan {
+                0%, 100% { transform: translateX(0); opacity: 0.7; }
+                50%      { transform: translateX(132px); opacity: 1; }
+            }
+            @keyframes capPop {
+                0%, 35% { opacity: 0.15; }
+                70%, 100% { opacity: 1; }
+            }
+        }
         /* ---- Live splat viewer seam ---- */
         .cap-viewer-wrap {
             max-width: 960px;
@@ -355,7 +378,7 @@
                 </li>
             </ul>
             <a href="developers/login.html" class="nav-signin">Sign In</a>
-            <a href="ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+            <a href="ja/capture.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
         </div>
     </div>
 </nav>
@@ -365,6 +388,95 @@
     <div class="container">
         <h1>Scan it. Then talk to it.</h1>
         <p class="subhead">RakuAI turns anything your camera sees into a world your AI assistant can walk through, measure, and change.</p>
+
+        <!-- Brand hero graphic: a phone scans a room; the frames resolve
+             into a Gaussian-splat point cloud. Pure inline SVG, themed
+             with the site palette (#6c5ce7 accent, #00cec9 success). -->
+        <div class="cap-hero-graphic">
+            <svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg" role="img"
+                 aria-label="A phone scans a room on the left; the captured frames resolve into a 3D Gaussian-splat point cloud of that room on the right.">
+                <defs>
+                    <linearGradient id="capPhone" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#1a1a3a"/>
+                        <stop offset="1" stop-color="#0d0d22"/>
+                    </linearGradient>
+                    <linearGradient id="capScreen" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#6c5ce7"/>
+                        <stop offset="1" stop-color="#00cec9"/>
+                    </linearGradient>
+                    <radialGradient id="capGlow" cx="0.5" cy="0.4" r="0.7">
+                        <stop offset="0" stop-color="#6c5ce7" stop-opacity="0.35"/>
+                        <stop offset="1" stop-color="#6c5ce7" stop-opacity="0"/>
+                    </radialGradient>
+                    <linearGradient id="capBeam" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0" stop-color="#00cec9" stop-opacity="0"/>
+                        <stop offset="1" stop-color="#00cec9" stop-opacity="0.5"/>
+                    </linearGradient>
+                </defs>
+
+                <!-- ambient glow -->
+                <ellipse cx="500" cy="170" rx="260" ry="150" fill="url(#capGlow)"/>
+
+                <!-- ===== left: the phone, scanning ===== -->
+                <g transform="translate(70 78)">
+                    <rect x="0" y="0" width="118" height="172" rx="20" fill="url(#capPhone)"
+                          stroke="#6c5ce7" stroke-width="2"/>
+                    <rect x="12" y="14" width="94" height="144" rx="10" fill="#0a0a1a"/>
+                    <rect x="12" y="14" width="94" height="144" rx="10" fill="none"
+                          stroke="url(#capScreen)" stroke-width="2" opacity="0.9"/>
+                    <path d="M24 30 v-10 h12 M82 30 v-10 h-12 M24 142 v10 h12 M82 142 v10 h-12"
+                          fill="none" stroke="#00cec9" stroke-width="2.4" stroke-linecap="round"/>
+                    <path d="M34 118 l25 -16 l25 16 M34 118 v-30 l25 -16 l25 16 v30 M59 102 v16"
+                          fill="none" stroke="#a388ff" stroke-width="2" stroke-linejoin="round"/>
+                    <circle cx="59" cy="6" r="3" fill="#2a2a4a"/>
+                    <g class="cap-scan-sweep">
+                        <line x1="118" y1="60" x2="118" y2="190" stroke="#00cec9"
+                              stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+                        <rect x="92" y="60" width="26" height="130" fill="url(#capBeam)"/>
+                    </g>
+                </g>
+
+                <!-- ===== pipeline arrow ===== -->
+                <g transform="translate(232 164)">
+                    <line x1="0" y1="0" x2="78" y2="0" stroke="#6c5ce7" stroke-width="2.4"
+                          stroke-dasharray="6 6"/>
+                    <path d="M74 -6 l10 6 l-10 6 z" fill="#6c5ce7"/>
+                </g>
+
+                <!-- ===== right: the Gaussian-splat point cloud ===== -->
+                <g transform="translate(360 56)">
+                    <path d="M40 196 L160 244 L300 188 L180 150 Z" fill="none"
+                          stroke="#2a2a4a" stroke-width="1.6"/>
+                    <path d="M40 196 L40 70 L180 28 L180 150 M180 28 L300 66 L300 188 M40 70 L160 110 L160 244 M160 110 L300 66"
+                          fill="none" stroke="#2a2a4a" stroke-width="1.6"/>
+                    <g class="cap-splat-cloud">
+                        <ellipse cx="92" cy="120" rx="20" ry="14" fill="#6c5ce7" opacity="0.5"/>
+                        <ellipse cx="120" cy="98" rx="16" ry="12" fill="#a388ff" opacity="0.55"/>
+                        <ellipse cx="150" cy="132" rx="22" ry="15" fill="#00cec9" opacity="0.4"/>
+                        <ellipse cx="190" cy="104" rx="18" ry="13" fill="#6c5ce7" opacity="0.55"/>
+                        <ellipse cx="222" cy="138" rx="20" ry="14" fill="#a388ff" opacity="0.45"/>
+                        <ellipse cx="118" cy="158" rx="17" ry="12" fill="#00cec9" opacity="0.45"/>
+                        <ellipse cx="172" cy="166" rx="19" ry="13" fill="#6c5ce7" opacity="0.5"/>
+                        <ellipse cx="210" cy="92" rx="14" ry="11" fill="#a388ff" opacity="0.5"/>
+                        <ellipse cx="156" cy="86" rx="13" ry="10" fill="#00cec9" opacity="0.5"/>
+                        <ellipse cx="240" cy="116" rx="15" ry="11" fill="#6c5ce7" opacity="0.45"/>
+                        <circle cx="100" cy="108" r="2.6" fill="#e8e8f0"/>
+                        <circle cx="148" cy="120" r="2.6" fill="#e8e8f0"/>
+                        <circle cx="196" cy="128" r="2.6" fill="#e8e8f0"/>
+                        <circle cx="178" cy="96" r="2.2" fill="#00cec9"/>
+                        <circle cx="220" cy="150" r="2.2" fill="#a388ff"/>
+                        <circle cx="128" cy="142" r="2.2" fill="#6c5ce7"/>
+                    </g>
+                    <g transform="translate(54 222)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+                        <line x1="0" y1="0" x2="120" y2="0" stroke="#00cec9" stroke-width="1.4"/>
+                        <line x1="0" y1="-4" x2="0" y2="4" stroke="#00cec9" stroke-width="1.4"/>
+                        <line x1="120" y1="-4" x2="120" y2="4" stroke="#00cec9" stroke-width="1.4"/>
+                        <text x="60" y="-7" fill="#00cec9" font-size="11" text-anchor="middle">3.4 m</text>
+                    </g>
+                </g>
+            </svg>
+        </div>
+
 
         <!--
             LIVE DRAGGABLE SPLAT VIEWER — INTEGRATION SEAM (NOT YET WIRED)
@@ -394,8 +506,8 @@
         </div>
 
         <div class="cap-cta-row">
-            <a class="cap-btn-primary" href="developers/claude-desktop.html">Connect RakuAI to Claude in 2 minutes</a>
-            <a class="cap-btn-secondary" href="mcp.html">See the MCP surface</a>
+            <a class="cap-btn-primary" href="capture-app/">Scan my own space</a>
+            <a class="cap-btn-secondary" href="developers/claude-desktop.html">Connect RakuAI to Claude</a>
         </div>
     </div>
 </section>
@@ -482,8 +594,8 @@
             <h2>Connect RakuAI to Claude in 2 minutes</h2>
             <p>Capture is new. The runtime your AI drives is not. The six-tool MCP server is live, deny-by-default, every call audited — and any model that speaks Model Context Protocol can read a scene through it. Wire it into Claude Desktop and start asking questions about a real space.</p>
             <div class="cap-cta-row">
-                <a class="cap-btn-primary" href="developers/claude-desktop.html">Connect to Claude &rarr;</a>
-                <a class="cap-btn-secondary" href="developers/">Developer Portal</a>
+                <a class="cap-btn-primary" href="capture-app/">Scan my own space</a>
+                <a class="cap-btn-secondary" href="developers/claude-desktop.html">Connect to Claude &rarr;</a>
             </div>
         </div>
     </div>
