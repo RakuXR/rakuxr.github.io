@@ -194,54 +194,39 @@
     </div>
 </nav>
 
-    <section class="discover-hero">
-        <h1>Discover Games</h1>
-        <p>Browse games created by the RakuAI community. Click any game to play it instantly.</p>
-        <svg viewBox="0 0 1200 200" role="img" aria-label="From a text prompt, through AI, to a playable spatial world" style="width:100%;height:auto;display:block;margin:24px auto 0;max-width:900px;" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="disc-arrow" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/>
-                </linearGradient>
-            </defs>
-            <g font-family="system-ui,sans-serif" text-anchor="middle">
-                <rect x="60" y="64" width="260" height="72" rx="14" fill="#111128" stroke="#6c5ce7" stroke-width="2"/>
-                <text x="190" y="98" fill="#9090b0" font-size="13">&#8220;a neon space dogfight&#8221;</text>
-                <text x="190" y="120" fill="#e8e8f0" font-size="15" font-weight="600">Your prompt</text>
+    <!-- PAUSED: this page hosted the retired consumer "prompt -> playable
+         world" discovery surface (live /api/v1/community/discover grid +
+         prompt-to-game marketing). With the MCP-first pivot that flow is
+         paused, so the page now shows the honest "in flight" state used by
+         my-games.html rather than wiring to retired endpoints. The retired
+         grid markup, the /api/v1/community/discover script, and the
+         api-client.js include were removed. Restore or rebuild when the
+         consumer discovery surface returns. -->
 
-                <circle cx="600" cy="100" r="56" fill="#16213a" stroke="#a388ff" stroke-width="2"/>
-                <text x="600" y="94" fill="#a388ff" font-size="15" font-weight="700">RakuAI</text>
-                <text x="600" y="116" fill="#9090b0" font-size="12">spatial runtime</text>
-
-                <rect x="880" y="64" width="260" height="72" rx="14" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
-                <text x="1010" y="98" fill="#00cec9" font-size="15" font-weight="700">A playable world</text>
-                <text x="1010" y="120" fill="#9090b0" font-size="13">in under a second</text>
-
-                <path d="M324 100 L540 100" stroke="url(#disc-arrow)" stroke-width="3"/><polygon points="544,100 528,92 528,108" fill="#a388ff"/>
-                <path d="M660 100 L876 100" stroke="url(#disc-arrow)" stroke-width="3"/><polygon points="880,100 864,92 864,108" fill="#00cec9"/>
-            </g>
-        </svg>
+    <section class="section" style="padding-top: 120px; min-height: 70vh;">
+        <div class="container" style="max-width: 640px; text-align: center;">
+            <h1>Discovery in Flight</h1>
+            <p style="color: var(--accent-bright, #6c5ce7); font-weight: 600; font-size: 1.2rem; margin: 16px 0 8px;">Supercharge your AI in the real world.</p>
+            <p style="color: var(--text-secondary, #9090b0); font-size: 1.1rem; margin: 24px 0;">
+                The community game-discovery library is paused while we ship the
+                MCP-first runtime. The engine now exposes a six-tool MCP surface
+                that any AI assistant &mdash; Claude, ChatGPT, Gemini, Copilot &mdash;
+                can drive over a standard contract. That is where the active work lives.
+            </p>
+            <p style="color: var(--text-secondary, #9090b0); margin-bottom: 32px;">
+                Want to follow along, or build on the runtime today?
+            </p>
+            <div class="cta-group" style="justify-content: center; flex-wrap: wrap;">
+                <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary">Read the MCP Build Log</a>
+                <a href="developers/claude-desktop.html" class="btn btn-secondary">Wire Up Claude Desktop</a>
+            </div>
+            <p style="color: var(--text-secondary, #9090b0); font-size: 0.9rem; margin-top: 40px;">
+                <a href="/blog/" style="color: var(--accent-bright, #6c5ce7);">All blog posts &rarr;</a>
+                &nbsp;&middot;&nbsp;
+                <a href="developers/" style="color: var(--accent-bright, #6c5ce7);">Developer portal &rarr;</a>
+            </p>
+        </div>
     </section>
-
-    <div class="genre-filters" id="genre-filters">
-        <button class="genre-btn active" data-genre="">All</button>
-    </div>
-
-    <div class="sort-bar">
-        <span class="result-count" id="result-count"></span>
-        <select id="sort-select">
-            <option value="recent">Newest First</option>
-            <option value="popular">Most Popular</option>
-        </select>
-    </div>
-
-    <div class="game-grid" id="game-grid"></div>
-
-    <button class="load-more" id="load-more" style="display:none;">Load More</button>
-
-    <div class="empty-state" id="empty-state" style="display:none;">
-        <h3>New worlds are landing soon</h3>
-        <p>Fresh spatial games are in development right now — check back soon to play them. Or <a href="/" style="color:#6c5ce7;">be the first to create and publish your own</a> and supercharge your AI in the real world.</p>
-    </div>
 
     <footer>
     <div class="container">
@@ -310,171 +295,6 @@
     </div>
 </footer>
 
-    <script src="js/api-client.js"></script>
-    <script>
-    (function() {
-        var currentGenre = '';
-        var currentSort = 'recent';
-        var currentOffset = 0;
-        var PAGE_SIZE = 20;
-        var totalGames = 0;
-
-        var grid = document.getElementById('game-grid');
-        var loadMoreBtn = document.getElementById('load-more');
-        var emptyState = document.getElementById('empty-state');
-        var resultCount = document.getElementById('result-count');
-        var sortSelect = document.getElementById('sort-select');
-
-        // Load genres
-        loadGenres();
-
-        // Initial load
-        loadGames(true);
-
-        // Sort change
-        sortSelect.addEventListener('change', function() {
-            currentSort = this.value;
-            currentOffset = 0;
-            loadGames(true);
-        });
-
-        // Load more
-        loadMoreBtn.addEventListener('click', function() {
-            currentOffset += PAGE_SIZE;
-            loadGames(false);
-        });
-
-        async function loadGenres() {
-            try {
-                var data = await RakuAPI.apiFetch('/api/v1/community/discover/genres');
-                if (!data.ok) return;
-                var result = await data.json();
-                var container = document.getElementById('genre-filters');
-
-                var KNOWN_GENRES = [
-                    'puzzle', 'card_battle', 'space_shooter', 'runner', 'platformer',
-                    'tower_defense', 'racing', 'rpg', 'fighting', 'rhythm',
-                    'sports', 'simulation', 'sandbox'
-                ];
-
-                KNOWN_GENRES.forEach(function(genre) {
-                    var btn = document.createElement('button');
-                    btn.className = 'genre-btn';
-                    btn.dataset.genre = genre;
-                    btn.textContent = genre.replace(/_/g, ' ');
-
-                    // Add count if available
-                    var found = result.genres.find(function(g) { return g.genre === genre; });
-                    if (found) {
-                        btn.textContent += ' (' + found.count + ')';
-                    }
-
-                    btn.addEventListener('click', function() {
-                        document.querySelectorAll('.genre-btn').forEach(function(b) { b.classList.remove('active'); });
-                        btn.classList.add('active');
-                        currentGenre = genre;
-                        currentOffset = 0;
-                        loadGames(true);
-                    });
-                    container.appendChild(btn);
-                });
-            } catch (e) {
-                // Genres are optional UI enhancement
-            }
-        }
-
-        async function loadGames(replace) {
-            try {
-                var url = '/api/v1/community/discover?sort=' + currentSort
-                    + '&offset=' + currentOffset
-                    + '&limit=' + PAGE_SIZE;
-                if (currentGenre) {
-                    url += '&genre=' + encodeURIComponent(currentGenre);
-                }
-
-                var resp = await RakuAPI.apiFetch(url);
-                if (!resp.ok) throw new Error('Failed to load');
-                var data = await resp.json();
-
-                totalGames = data.total;
-                resultCount.textContent = totalGames + ' game' + (totalGames !== 1 ? 's' : '');
-
-                if (replace) {
-                    grid.innerHTML = '';
-                }
-
-                if (data.games.length === 0 && currentOffset === 0) {
-                    emptyState.style.display = 'block';
-                    loadMoreBtn.style.display = 'none';
-                    return;
-                }
-
-                emptyState.style.display = 'none';
-
-                data.games.forEach(function(game) {
-                    var card = document.createElement('div');
-                    card.className = 'game-card';
-                    card.innerHTML = '<h3>' + escapeHtml(game.title) + '</h3>'
-                        + '<span class="genre-tag">' + escapeHtml(game.genre.replace(/_/g, ' ')) + '</span>'
-                        + '<p class="description">' + escapeHtml(truncate(game.description, 120)) + '</p>'
-                        + '<div class="card-footer">'
-                        + '<span>' + timeAgo(game.created_at) + '</span>'
-                        + '<button class="play-btn">Play</button>'
-                        + '</div>';
-
-                    card.addEventListener('click', function() {
-                        window.location.href = '/share.html?id=' + encodeURIComponent(game.id);
-                    });
-                    grid.appendChild(card);
-                });
-
-                // Show/hide load more
-                if (currentOffset + PAGE_SIZE < totalGames) {
-                    loadMoreBtn.style.display = 'block';
-                } else {
-                    loadMoreBtn.style.display = 'none';
-                }
-            } catch (e) {
-                if (currentOffset === 0) {
-                    emptyState.style.display = 'block';
-                }
-            }
-        }
-
-        function escapeHtml(str) {
-            var div = document.createElement('div');
-            div.textContent = str || '';
-            return div.innerHTML;
-        }
-
-        function truncate(str, max) {
-            if (!str) return '';
-            return str.length > max ? str.substring(0, max) + '...' : str;
-        }
-
-        function timeAgo(dateStr) {
-            if (!dateStr) return '';
-            var diff = Date.now() - new Date(dateStr).getTime();
-            var mins = Math.floor(diff / 60000);
-            if (mins < 1) return 'just now';
-            if (mins < 60) return mins + 'm ago';
-            var hours = Math.floor(mins / 60);
-            if (hours < 24) return hours + 'h ago';
-            var days = Math.floor(hours / 24);
-            if (days < 30) return days + 'd ago';
-            return new Date(dateStr).toLocaleDateString();
-        }
-
-        // Wire "All" genre button
-        document.querySelector('.genre-btn[data-genre=""]').addEventListener('click', function() {
-            document.querySelectorAll('.genre-btn').forEach(function(b) { b.classList.remove('active'); });
-            this.classList.add('active');
-            currentGenre = '';
-            currentOffset = 0;
-            loadGames(true);
-        });
-    })();
-    </script>
 <script src="/js/auth-nav.js" defer></script>
 <script src="/js/lang-selector.js" defer></script>
 
