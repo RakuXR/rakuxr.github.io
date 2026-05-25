@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>Scan your space - Raku Capture</title>
+    <meta name="description" content="The Raku Capture web app - scan a real space with your phone camera and turn it into a 3D Gaussian splat. Currently in early access.">
+    <meta name="robots" content="noindex">
+    <link rel="canonical" href="https://rakuai.com/capture-app/">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .ca-wrap { max-width: 680px; margin: 0 auto; padding: 96px 24px 80px; text-align: center; }
+        .ca-wrap h1 {
+            font-size: clamp(2rem, 5vw, 3rem); line-height: 1.12; margin-bottom: 18px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .ca-wrap p { color: var(--text-secondary); font-size: 1.08rem; line-height: 1.65; margin: 0 auto 18px; max-width: 560px; }
+        .ca-badge {
+            display: inline-block; font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase;
+            color: var(--accent-bright); border: 1px solid var(--accent-bright); border-radius: 999px;
+            padding: 6px 14px; margin-bottom: 22px; background: rgba(163, 136, 255, 0.08);
+        }
+        .ca-steps { text-align: left; max-width: 460px; margin: 28px auto 32px; color: var(--text-secondary); line-height: 1.7; }
+        .ca-cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 26px; }
+        .ca-btn {
+            display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff; padding: 13px 26px; border-radius: 10px; font-weight: 700; text-decoration: none;
+        }
+        .ca-btn.secondary { background: transparent; color: var(--accent-bright); border: 1px solid var(--accent-bright); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    Raku Capture web app - early access. The capture client is in active build.
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading" role="presentation">By audience</div>
+                        <div class="col-heading" role="presentation">Platform</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="../smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="../llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="../enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="../creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="../compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="../capture.html">Raku Capture<span class="item-desc">Scan a space, then talk to it</span></a></li>
+                            <li role="none"><a role="menuitem" href="../spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li>
+                            <li role="none"><a role="menuitem" href="../ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="../xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
+                        <li role="none"><a role="menuitem" href="../docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="../mcp.html">MCP Server</a></li>
+                        <li role="none"><a role="menuitem" href="../sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API Reference</a></li>
+                        <li role="none"><a role="menuitem" href="../templates.html">Templates</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/">Developer Portal</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop guide</a></li>
+                        <li role="none"><a role="menuitem" href="../developer-guide.html">Developer Guide</a></li>
+                        <li role="none"><a role="menuitem" href="../llm-guide.html">LLM Integration Guide</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="../why-rakuai.html">Why RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="../press.html">Press Kit</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">Discover</a></li>
+                        <li role="none"><a role="menuitem" href="../content-packs.html">Content Packs</a></li>
+                        <li role="none"><a role="menuitem" href="../docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="../contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../pricing.html">Pricing</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">Blog</a>
+                </li>
+            </ul>
+            <a href="../developers/login.html" class="nav-signin">Sign In</a>
+            <a href="../ja/capture.html" class="lang-toggle">&#x697D;AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="ca-wrap">
+    <span class="ca-badge">Early access</span>
+    <h1>Scan your space</h1>
+    <p>This is where the Raku Capture web app loads &mdash; point your phone camera at a room, walk it for about twenty seconds, and a 3D Gaussian splat of that space comes back.</p>
+    <p>The capture client is in active development. We are wiring the phone-capture flow into the live reconstruction pipeline, and we will not put it here until a scan reliably produces a splat you can actually use.</p>
+    <div class="ca-steps">
+        <strong>What happens when it ships:</strong>
+        <ol>
+            <li>Open this page on a phone and grant camera access.</li>
+            <li>Walk the camera slowly around the space you want to capture.</li>
+            <li>The frames upload, reconstruct into a splat, and open in a viewer your AI assistant can read over MCP.</li>
+        </ol>
+    </div>
+    <p>The MCP runtime your assistant drives is already live today. You can connect it to Claude and start reasoning over sample scenes right now.</p>
+    <div class="ca-cta-row">
+        <a class="ca-btn" href="../developers/claude-desktop.html">Connect RakuAI to Claude</a>
+        <a class="ca-btn secondary" href="../capture.html">Back to Raku Capture</a>
+    </div>
+</main>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Solutions</h4>
+                <ul>
+                    <li><a href="../capture.html">Raku Capture</a></li>
+                    <li><a href="../smart-glasses.html">Smart-Glasses Manufacturers</a></li>
+                    <li><a href="../llm-makers.html">AI Labs</a></li>
+                    <li><a href="../enterprise.html">Enterprise</a></li>
+                    <li><a href="../creator.html">Creators</a></li>
+                    <li><a href="../compare.html">Compare vs Unity / Unreal</a></li>
+                    <li><a href="../spatial-engine.html">Spatial Engine</a></li>
+                    <li><a href="../ai-systems.html">AI Systems</a></li>
+                    <li><a href="../xr-features.html">XR Features</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="../docs.html">Documentation</a></li>
+                    <li><a href="../mcp.html">MCP Server</a></li>
+                    <li><a href="../sdk.html">SDK</a></li>
+                    <li><a href="../api/">API Reference</a></li>
+                    <li><a href="../templates.html">Templates</a></li>
+                    <li><a href="../developers/">Developer Portal</a></li>
+                    <li><a href="../developers/claude-desktop.html">Claude Desktop guide</a></li>
+                    <li><a href="../developer-guide.html">Developer Guide</a></li>
+                    <li><a href="../llm-guide.html">LLM Integration Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="../blog/">Blog</a></li>
+                    <li><a href="../why-rakuai.html">Why RakuAI</a></li>
+                    <li><a href="../press.html">Press Kit</a></li>
+                    <li><a href="../discover.html">Discover</a></li>
+                    <li><a href="../content-packs.html">Content Packs</a></li>
+                    <li><a href="../docs.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="../why-rakuai.html">About</a></li>
+                    <li><a href="../pricing.html">Pricing</a></li>
+                    <li><a href="../contact.html">Contact</a></li>
+                    <li><a href="mailto:partners@rakuai.com">Partners</a></li>
+                    <li><a href="../privacy.html">Privacy</a></li>
+                    <li><a href="../terms.html">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+</footer>
+
+<script src="/js/public-config.js"></script>
+<script src="/js/api-client.js"></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+<script src="/js/nav-dropdown.js" defer></script>
+<script src="/js/section-nav.js" defer></script>
+</body>
+</html>
