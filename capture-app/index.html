@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://raku-api.fly.dev http://localhost:8000 https://cdn.jsdelivr.net https://cdn.raku.games; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none';">
   <title data-i18n="doc.title">Raku Capture</title>
   <meta name="description" data-i18n-attr="content:doc.description" content="Capture a room with your phone and turn it into an explorable 3D Gaussian splat.">
 
@@ -19,9 +20,11 @@
     ================
     This is a development scaffold living in raku-runtime/web/capture/ per the
     repo web workflow (prototype -> stage to rakuxr.github.io -> wire backend
-    via raku-api). UI states and structure are real; capture upload,
-    reconstruction polling, and the Spark splat viewer are marked seams that are
-    NOT yet wired to a live backend. See README.md for what is real vs stubbed.
+    via raku-api). UI states and structure are real. Capture upload and
+    reconstruction polling DO call the live raku-api service; the Spark splat
+    viewer is real too, but the reconstruction currently returns a placeholder
+    splat rather than a true scan of the captured room. See README.md for what
+    is real vs simulated.
 
     LOCALIZATION
     ============
@@ -337,7 +340,7 @@
   <header>
     <span class="logo">Raku Capture</span>
     <span class="tagline" data-i18n="header.tagline">Scan a room &rarr; explorable 3D</span>
-    <span class="proto-badge" data-i18n="header.protoBadge" data-i18n-attr="title:header.protoBadgeTitle" title="Development prototype, not yet wired to a live backend">PROTOTYPE</span>
+    <span class="proto-badge" data-i18n="header.protoBadge" data-i18n-attr="title:header.protoBadgeTitle" title="Development prototype — capture and reconstruction run against the live backend, but the returned splat is still a placeholder">PROTOTYPE</span>
     <span class="lang-switcher" data-i18n-switcher></span>
   </header>
 
