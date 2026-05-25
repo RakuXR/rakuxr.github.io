@@ -93,8 +93,11 @@ const API_BASE = detectApiBase();
 
 // Spark renderer pinned CDN module URL. Spark is an MIT-licensed 3D Gaussian
 // splat renderer for three.js (https://github.com/sparkjsdev/spark).
-// Tracks Spark's @latest tag; pin to @sparkjsdev/spark@X.Y.Z before production.
-const SPARK_CDN_URL = 'https://cdn.jsdelivr.net/npm/@sparkjsdev/spark@latest/dist/spark.module.js';
+// Pinned to an explicit version for deterministic, supply-chain-safe loads -
+// bump intentionally after verifying against the pinned three below. Spark's
+// 0.1.x line carries no `three` peer constraint and works with three@0.169.0;
+// the 2.x line requires three >= 0.180.0, so the two pins move together.
+const SPARK_CDN_URL = 'https://cdn.jsdelivr.net/npm/@sparkjsdev/spark@0.1.10/dist/spark.module.js';
 const THREE_CDN_URL = 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
 
 // SuperSplat — MIT browser-based Gaussian-splat editor used for the viewer's
@@ -241,6 +244,17 @@ function resetRun() {
 // ============================================================================
 
 async function requestCamera() {
+  // Guard: navigator.mediaDevices is undefined in non-secure contexts (plain
+  // HTTP) and on older browsers; reaching .getUserMedia on it would throw a
+  // TypeError before our catch block could classify the failure.
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showError({
+      key: 'error.cameraUnsupported',
+      fallback: 'Camera capture is not supported in this browser, or the ' +
+        'page is not served over HTTPS.',
+    });
+    return false;
+  }
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
@@ -299,6 +313,7 @@ function getHints() {
 let coverageTimer = null;
 
 function startCaptureLoop() {
+  stopCaptureLoop();   // clear any prior interval before starting a fresh one
   state.coverage = 0;
   state.capturedFrames = [];
   updateCoverage(0);
@@ -509,12 +524,19 @@ function cancelReconstruction(captureId) {
  * @param {string} splatUrl .spz/.sog asset URL on cdn.raku.games
  * @returns {Promise<()=>void>} teardown — stops the render loop + listeners
  */
-async function loadSplatViewer(canvas, splatUrl, trackStatus) {
+async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
   // When trackStatus is true this is the REAL capture viewer: record the
   // viewer status in `state` so relocalizeDynamic() can re-render the toolbar
   // on a locale switch. The intro preview passes false — it must not touch the
-  // capture viewer's shared status state (it also shields the DOM, see
-  // loadSplatViewerInto).
+  // capture viewer's shared status state.
+  //
+  // `targets` selects where the status text lands: { meta, note } elements.
+  // The capture viewer omits it and gets the real toolbar nodes; the intro
+  // preview passes detached stand-ins so its status text never paints on the
+  // page (see loadSplatViewerInto). Passing the targets explicitly replaces
+  // the old, fragile id-swap trick that mutated the DOM's element ids.
+  const metaEl = (targets && targets.meta) || $('viewer-meta');
+  const noteEl = (targets && targets.note) || $('viewer-note');
   function viewerStatus(status, offlineFile) {
     if (trackStatus) {
       state.viewerStatus = status;
@@ -522,7 +544,7 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus) {
     }
   }
   viewerStatus('loading');
-  $('viewer-meta').textContent = t('viewer.metaLoading', null, 'Loading splat…');
+  metaEl.textContent = t('viewer.metaLoading', null, 'Loading splat…');
 
   // Spherical orbit camera state, shared with the input controller.
   const cam = { theta: 0.6, phi: 1.3, radius: 2.8, autoRotate: true };
@@ -567,8 +589,8 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus) {
     })();
 
     viewerStatus('controls');
-    $('viewer-note').hidden = true;
-    $('viewer-meta').textContent =
+    noteEl.hidden = true;
+    metaEl.textContent =
       t('viewer.metaControls', null, 'Drag to orbit · scroll or pinch to zoom');
 
     return () => {
@@ -583,11 +605,11 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus) {
     drawViewerPlaceholder(canvas, splatUrl);
     const offlineFile = splatUrl.split('/').pop();
     viewerStatus('placeholder', offlineFile);
-    $('viewer-note').hidden = false;
-    $('viewer-note').textContent =
+    noteEl.hidden = false;
+    noteEl.textContent =
       t('viewer.noteOffline', { file: offlineFile },
         'Spark viewer offline — placeholder for ' + offlineFile);
-    $('viewer-meta').textContent =
+    metaEl.textContent =
       t('viewer.metaReadyPlaceholder', null, 'Splat ready (placeholder)');
     return () => {}; // nothing to tear down for the static placeholder
   }
@@ -847,41 +869,23 @@ async function initIntroPreview() {
 
 /**
  * Thin wrapper around loadSplatViewer for the intro canvas. loadSplatViewer
- * writes status into #viewer-meta / #viewer-note (the *capture* viewer's DOM);
- * for the intro we don't want those touched, so we shield them with temporary
- * detached stand-ins and restore them after.
+ * writes status into a { meta, note } pair; for the intro preview we don't
+ * want the *capture* viewer's toolbar touched, so we hand it detached, never-
+ * mounted stand-in nodes. Their textContent updates land harmlessly off-DOM —
+ * no element ids are mutated, so the toolbar's #viewer-meta / #viewer-note
+ * keep their ids even if this runs concurrently with the capture viewer.
  *
  * @param {HTMLCanvasElement} canvas
  * @param {string} url
  * @returns {Promise<()=>void>} teardown
  */
 async function loadSplatViewerInto(canvas, url) {
-  const realMeta = $('viewer-meta');
-  const realNote = $('viewer-note');
-  // Stand-in nodes so loadSplatViewer's $('viewer-meta')/$('viewer-note')
-  // writes land somewhere harmless instead of mutating the capture toolbar.
-  const stub = (id) => {
-    const el = document.createElement('span');
-    el.id = id;
-    el.style.display = 'none'; // never let stub status text paint on the page
-    return el;
-  };
-  if (realMeta) realMeta.id = '__viewer-meta-real';
-  if (realNote) realNote.id = '__viewer-note-real';
-  const tmpMeta = stub('viewer-meta');
-  const tmpNote = stub('viewer-note');
-  document.body.appendChild(tmpMeta);
-  document.body.appendChild(tmpNote);
-  try {
-    // trackStatus = false: the intro preview must not touch the capture
-    // viewer's shared status state.
-    return await loadSplatViewer(canvas, url, false);
-  } finally {
-    tmpMeta.remove();
-    tmpNote.remove();
-    if (realMeta) realMeta.id = 'viewer-meta';
-    if (realNote) realNote.id = 'viewer-note';
-  }
+  // Detached stand-in nodes — never appended to the document, so their status
+  // text can never paint on the page.
+  const sink = { meta: document.createElement('span'), note: document.createElement('span') };
+  // trackStatus = false: the intro preview must not touch the capture
+  // viewer's shared status state either.
+  return loadSplatViewer(canvas, url, false, sink);
 }
 
 // ============================================================================
@@ -1104,8 +1108,17 @@ function bindEvents() {
     if (navigator.share) {
       navigator.share({ title: t('viewer.shareTitle', null, 'Raku Capture'), url })
         .catch(() => {});
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(url).catch(() => {});
+    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+      // No Web Share API — fall back to the clipboard, and tell the user it
+      // worked (or didn't) so the button is never a silent no-op.
+      navigator.clipboard.writeText(url)
+        .then(() => flashViewerHint(
+          t('viewer.shareCopied', null, 'Capture URL copied to clipboard')))
+        .catch(() => flashViewerHint(
+          t('viewer.shareCopyFailed', null, 'Could not copy the URL — copy it from the address bar')));
+    } else {
+      flashViewerHint(
+        t('viewer.shareCopyFailed', null, 'Could not copy the URL — copy it from the address bar'));
     }
   });
 
