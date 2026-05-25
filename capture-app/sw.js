@@ -84,7 +84,11 @@ self.addEventListener('fetch', (event) => {
   // Only handle our shell resources; let other same-origin requests pass.
   // SHELL_NAMES is derived from SHELL_URLS above — matching SHELL_URLS
   // directly fails because './' -> '' and endsWith('') is always true.
-  const isRoot = url.pathname.endsWith('/');
+  // isRoot must match ONLY the app root ('/capture-app/'), not every
+  // sub-directory (e.g. '/capture-app/locales/'): a bare endsWith('/') test
+  // would wrongly treat those as the shell and apply shell caching to them.
+  const rootPath = new URL('./', self.registration.scope).pathname;
+  const isRoot = url.pathname === rootPath;
   const isShell =
     isRoot ||
     SHELL_NAMES.some(
