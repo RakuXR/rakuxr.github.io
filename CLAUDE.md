@@ -27,6 +27,16 @@ The `staging` branch and `/staging/` subdirectory are **deprecated** — review 
 
 `deploy-staging.yml` and `promote-staging-to-production.yml` are obsolete and should be removed when convenient.
 
+## Engineering rules
+
+- **Fake success is forbidden.** Code/UI that is not yet implemented must say so
+  honestly — return an explicit error, show a documented "paused"/"unavailable"
+  state, or fail loudly. It must never report success (or pretend a feature
+  works) for something it did not actually do. The model is `my-games.html`'s
+  honest "paused" treatment and the `signup.html` graceful Google-not-configured
+  degradation. Silent fake-success is the one pattern that is never acceptable.
+  This rule is shared with `raku-api` and `raku-runtime` — keep the three in sync.
+
 ## AI Agent Deployment Workflow
 
 **CRITICAL**: Claude and GitHub Copilot MUST follow this workflow for ALL website changes.
