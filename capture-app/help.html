@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title data-i18n="doc.helpTitle">Raku Capture — Help</title>
+  <meta name="description" data-i18n-attr="content:doc.helpDescription" content="Help for Raku Capture: how scanning works, camera troubleshooting, tips for a good scan, and how to connect a capture to an AI assistant.">
+  <meta name="theme-color" content="#6c63ff">
+  <!--
+    Standalone, self-contained help page for the Raku Capture web app.
+    Styled to match index.html. All user-facing copy lives in
+    locales/<code>.json and is applied at runtime by i18n.js; static text
+    carries data-i18n / data-i18n-html / data-i18n-attr attributes.
+    Honest about what is real vs simulated, in every language.
+  -->
+  <style>
+    :root {
+      --bg: #0e0e14; --panel: #16161f; --panel-2: #1d1d2a; --border: #2a2a3a;
+      --accent: #6c63ff; --accent2: #ff6b6b; --ok: #3ec97a; --warn: #f0b429;
+      --text: #e8e8f0; --muted: #7a7a9a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column; line-height: 1.55;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    header {
+      background: var(--panel); border-bottom: 1px solid var(--border);
+      padding: 14px 20px; display: flex; align-items: center; gap: 14px;
+      flex-shrink: 0; position: sticky; top: 0; z-index: 10;
+    }
+    .logo {
+      font-size: 19px; font-weight: 700; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .tagline { color: var(--muted); font-size: 13px; }
+    .proto-badge {
+      margin-left: auto; font-size: 11px; font-weight: 600; color: var(--warn);
+      border: 1px solid var(--warn); border-radius: 4px; padding: 3px 8px;
+      letter-spacing: 0.5px;
+    }
+    .lang-switcher { display: flex; align-items: center; }
+    .i18n-switcher {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--muted);
+    }
+    .i18n-switcher-label {
+      text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600;
+    }
+    .i18n-switcher-select {
+      appearance: none; background: var(--panel-2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px;
+      font-size: 12px; font-family: inherit; cursor: pointer;
+    }
+    .i18n-switcher-select:hover { border-color: var(--accent); }
+    .i18n-switcher-select:focus-visible { outline: 2px solid var(--accent); }
+    main {
+      flex: 1; width: 100%; max-width: 720px; margin: 0 auto;
+      padding: 28px 22px 56px;
+    }
+    h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+    .lead { color: var(--muted); font-size: 15px; margin-bottom: 22px; }
+    h2 {
+      font-size: 18px; font-weight: 600;
+      margin: 30px 0 12px; padding-top: 8px; scroll-margin-top: 70px;
+    }
+    h3 { font-size: 15px; font-weight: 600; margin: 18px 0 8px; color: var(--text); }
+    p { margin: 10px 0; font-size: 14.5px; }
+    a { color: var(--accent); }
+    .card {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px; margin: 14px 0;
+    }
+    .card.accent { border-color: var(--accent); }
+    .card.warn { border-color: var(--warn); }
+    .card.ok { border-color: var(--ok); }
+    ul, ol { margin: 10px 0 10px 22px; }
+    li { margin: 6px 0; font-size: 14.5px; }
+    .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 8px; }
+    .toc a {
+      background: var(--panel-2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 12px; font-size: 13px;
+      text-decoration: none; color: var(--text);
+    }
+    .toc a:hover { border-color: var(--accent); }
+    code, pre { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; }
+    code {
+      background: var(--panel-2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 6px;
+    }
+    pre {
+      background: var(--panel-2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px; overflow-x: auto;
+      margin: 12px 0; line-height: 1.5;
+    }
+    pre code { background: none; border: none; padding: 0; }
+    .step-num {
+      display: inline-grid; place-items: center; width: 24px; height: 24px;
+      border-radius: 50%; font-size: 12px; font-weight: 700;
+      background: var(--accent); color: #fff; margin-right: 8px; flex-shrink: 0;
+    }
+    .step { display: flex; align-items: flex-start; gap: 4px; margin: 12px 0; }
+    .step .body { flex: 1; }
+    .step .body strong { display: block; margin-bottom: 2px; }
+    .step .body span { color: var(--muted); font-size: 13.5px; }
+    .faq summary {
+      cursor: pointer; font-weight: 600; font-size: 14.5px;
+      padding: 10px 0; list-style: none;
+    }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::before { content: "+  "; color: var(--accent); font-weight: 700; }
+    .faq details[open] summary::before { content: "−  "; }
+    .faq details { border-bottom: 1px solid var(--border); }
+    .faq details p { margin: 0 0 12px; color: var(--muted); }
+    footer {
+      border-top: 1px solid var(--border); padding: 18px 22px;
+      text-align: center; color: var(--muted); font-size: 13px;
+    }
+    footer a { color: var(--accent); }
+  </style>
+</head>
+
+<body>
+  <header>
+    <span class="logo">Raku Capture</span>
+    <span class="tagline" data-i18n="header.taglineHelp">Help &amp; troubleshooting</span>
+    <span class="proto-badge" data-i18n="header.protoBadge" data-i18n-attr="title:header.protoBadgeTitleHelp" title="Development prototype">PROTOTYPE</span>
+    <span class="lang-switcher" data-i18n-switcher></span>
+  </header>
+  <main>
+    <h1 data-i18n="help.pageHeading">Help &amp; troubleshooting</h1>
+    <p class="lead" data-i18n="help.pageLead">Everything you need to scan a space well.</p>
+    <div class="card warn">
+      <strong data-i18n="help.headsUpTitle">Honest heads-up.</strong>
+      <p style="margin-bottom:0" data-i18n-html="help.headsUpBody">Raku Capture is an early prototype.</p>
+    </div>
+    <nav class="toc">
+      <a href="#how" data-i18n="help.tocHow">How scanning works</a>
+      <a href="#camera" data-i18n="help.tocCamera">Camera permissions</a>
+      <a href="#tips" data-i18n="help.tocTips">Tips for a good scan</a>
+      <a href="#failed" data-i18n="help.tocFailed">If reconstruction fails</a>
+      <a href="#connect" data-i18n="help.tocConnect">Connect to an AI assistant</a>
+      <a href="#faq" data-i18n="help.tocFaq">FAQ</a>
+    </nav>
+    <h2 id="how" data-i18n="help.howHeading">How scanning works</h2>
+    <p data-i18n="help.howIntro">A scan moves through a few stages.</p>
+    <div class="step"><span class="step-num">1</span><div class="body"><strong data-i18n="help.howStep1Title">Walk the room</strong><span data-i18n="help.howStep1Body">A short checklist guides you.</span></div></div>
+    <div class="step"><span class="step-num">2</span><div class="body"><strong data-i18n="help.howStep2Title">Capture</strong><span data-i18n="help.howStep2Body">The live camera grabs keyframes.</span></div></div>
+    <div class="step"><span class="step-num">3</span><div class="body"><strong data-i18n="help.howStep3Title">Upload</strong><span data-i18n="help.howStep3Body">Keyframes are sent to the service.</span></div></div>
+    <div class="step"><span class="step-num">4</span><div class="body"><strong data-i18n="help.howStep4Title">Analyzing</strong><span data-i18n="help.howStep4Body">The service builds the 3D result.</span></div></div>
+    <div class="step"><span class="step-num">5</span><div class="body"><strong data-i18n="help.howStep5Title">Explore</strong><span data-i18n="help.howStep5Body">The result opens in a 3D viewer.</span></div></div>
+    <p style="color:var(--muted);font-size:13.5px" data-i18n="help.howPrivacy">Nothing is captured before you open the camera.</p>
+    <h2 id="camera" data-i18n="help.cameraHeading">Camera permission troubleshooting</h2>
+    <p data-i18n-html="help.cameraIntro">Raku Capture needs camera access to scan.</p>
+    <div class="card">
+      <h3 data-i18n="help.cameraNoPromptTitle">The permission prompt never appeared</h3>
+      <ul>
+        <li data-i18n-html="help.cameraNoPromptItem1">Use a secure connection.</li>
+        <li data-i18n-html="help.cameraNoPromptItem2">You may have dismissed it.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 data-i18n="help.cameraBlockedTitle">You tapped Block by mistake</h3>
+      <p style="margin-top:4px" data-i18n="help.cameraBlockedIntro">Once blocked, the browser remembers it.</p>
+      <ul>
+        <li data-i18n-html="help.cameraBlockedItem1">iOS Safari: Settings.</li>
+        <li data-i18n-html="help.cameraBlockedItem2">Android Chrome.</li>
+        <li data-i18n-html="help.cameraBlockedItem3">Desktop Chrome / Edge.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 data-i18n="help.cameraInUseTitle">Camera in use or a black preview</h3>
+      <ul>
+        <li data-i18n="help.cameraInUseItem1">Close other apps holding the camera.</li>
+        <li data-i18n="help.cameraInUseItem2">Fully close and reopen the browser.</li>
+        <li data-i18n="help.cameraInUseItem3">Check the PWA system settings entry.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 data-i18n="help.cameraFrontTitle">It opens the front camera</h3>
+      <p style="margin:4px 0 0" data-i18n="help.cameraFrontBody">Raku Capture asks for the rear camera.</p>
+    </div>
+    <h2 id="tips" data-i18n="help.tipsHeading">Tips for a good scan</h2>
+    <p data-i18n="help.tipsIntro">The reconstruction is only as good as the footage.</p>
+    <div class="card ok">
+      <h3 style="margin-top:0" data-i18n="help.tipsDoTitle">Do</h3>
+      <ul>
+        <li data-i18n-html="help.tipsDoItem1">Light the room evenly.</li>
+        <li data-i18n-html="help.tipsDoItem2">Move slowly and steadily.</li>
+        <li data-i18n-html="help.tipsDoItem3">Cover the space from many angles.</li>
+        <li data-i18n-html="help.tipsDoItem4">Keep overlap.</li>
+        <li data-i18n-html="help.tipsDoItem5">Get close to detail.</li>
+        <li data-i18n-html="help.tipsDoItem6">Look up and down.</li>
+      </ul>
+    </div>
+    <div class="card warn">
+      <h3 style="margin-top:0" data-i18n="help.tipsAvoidTitle">Avoid</h3>
+      <ul>
+        <li data-i18n-html="help.tipsAvoidItem1">Glass, mirrors, shiny surfaces.</li>
+        <li data-i18n-html="help.tipsAvoidItem2">Fast motion and quick turns.</li>
+        <li data-i18n-html="help.tipsAvoidItem3">Blank walls.</li>
+        <li data-i18n-html="help.tipsAvoidItem4">Dim or flickering light.</li>
+        <li data-i18n-html="help.tipsAvoidItem5">Moving things mid-scan.</li>
+      </ul>
+    </div>
+    <div class="card accent">
+      <h3 style="margin-top:0" data-i18n="help.tipsScaleTitle">Want real-world measurements?</h3>
+      <p style="margin-bottom:0" data-i18n="help.tipsScaleBody">A plain scan has no built-in sense of scale.</p>
+    </div>
+    <h2 id="failed" data-i18n="help.failedHeading">If reconstruction fails</h2>
+    <p data-i18n="help.failedIntro">Sometimes a scan ends on the error screen.</p>
+    <div class="card">
+      <h3 data-i18n="help.failedRetryTitle">First, just retry</h3>
+      <p style="margin:4px 0 0" data-i18n-html="help.failedRetryBody">Tap Try again on the error screen.</p>
+    </div>
+    <div class="card">
+      <h3 data-i18n="help.failedKeepsTitle">If it keeps failing</h3>
+      <ul>
+        <li data-i18n-html="help.failedKeepsItem1">Re-scan with more coverage.</li>
+        <li data-i18n-html="help.failedKeepsItem2">Re-scan more slowly.</li>
+        <li data-i18n-html="help.failedKeepsItem3">Remove the hard surfaces.</li>
+        <li data-i18n-html="help.failedKeepsItem4">Check your connection.</li>
+        <li data-i18n-html="help.failedKeepsItem5">Start a fresh capture.</li>
+      </ul>
+    </div>
+    <div class="card warn">
+      <h3 style="margin-top:0" data-i18n="help.failedHonestTitle">Honest note on failures</h3>
+      <p style="margin-bottom:0" data-i18n="help.failedHonestBody">The reconstruction backend is currently simulated.</p>
+    </div>
+    <h2 id="connect" data-i18n="help.connectHeading">Connect the result to an AI assistant</h2>
+    <p data-i18n="help.connectIntro1">Once a scan reaches the 3D viewer, hand it to an AI assistant.</p>
+    <p data-i18n="help.connectIntro2">The assistant does not eyeball the answer.</p>
+    <div class="card accent">
+      <h3 style="margin-top:0" data-i18n="help.connectShortTitle">The short version</h3>
+      <ol>
+        <li data-i18n-html="help.connectShortItem1">Install the Raku MCP server.</li>
+        <li data-i18n-html="help.connectShortItem2">Paste one config block.</li>
+        <li data-i18n-html="help.connectShortItem3">Ask the assistant to load your space.</li>
+      </ol>
+      <p style="margin-bottom:0" data-i18n-html="help.connectShortFootnote">Full instructions live in the docs.</p>
+    </div>
+    <h3 data-i18n="help.connectAskTitle">What you can ask</h3>
+    <ul>
+      <li data-i18n="help.connectAsk1">How big is this room?</li>
+      <li data-i18n="help.connectAsk2">What is the ceiling height?</li>
+      <li data-i18n="help.connectAsk3">Will a king bed fit along the longest wall?</li>
+      <li data-i18n="help.connectAsk4">Does a desk fit under the window?</li>
+      <li data-i18n="help.connectAsk5">How far apart are the two windows?</li>
+      <li data-i18n="help.connectAsk6">Show me the room without the partition.</li>
+    </ul>
+    <div class="card warn">
+      <h3 style="margin-top:0" data-i18n="help.connectCaveatsTitle">Two honest caveats</h3>
+      <ul style="margin-bottom:0">
+        <li data-i18n-html="help.connectCaveat1">The scene is currently simulated.</li>
+        <li data-i18n-html="help.connectCaveat2">No scale, no measurements.</li>
+      </ul>
+    </div>
+    <h2 id="faq" data-i18n="help.faqHeading">FAQ</h2>
+    <div class="faq">
+      <details>
+        <summary data-i18n="help.faqQ1">Is my scan uploaded anywhere?</summary>
+        <p data-i18n="help.faqA1">Nothing leaves your device until the upload step.</p>
+      </details>
+      <details>
+        <summary data-i18n="help.faqQ2">Why does the result look like a placeholder?</summary>
+        <p data-i18n="help.faqA2">Because it is one.</p>
+      </details>
+      <details>
+        <summary data-i18n="help.faqQ3">How long should reconstruction take?</summary>
+        <p data-i18n="help.faqA3">Usually a minute or two.</p>
+      </details>
+      <details>
+        <summary data-i18n="help.faqQ4">Can I scan outdoors or a very large space?</summary>
+        <p data-i18n="help.faqA4">Capture works best on a single enclosed room.</p>
+      </details>
+      <details>
+        <summary data-i18n="help.faqQ5">Does this work on AR glasses?</summary>
+        <p data-i18n="help.faqA5">Raku Capture is built as an installable web app.</p>
+      </details>
+      <details>
+        <summary data-i18n="help.faqQ6">Do I need a developer account to connect an AI assistant?</summary>
+        <p data-i18n="help.faqA6">No account, but you do need to run the Raku MCP server locally.</p>
+      </details>
+    </div>
+  </main>
+  <footer>
+    <span data-i18n="help.footer">Raku Capture is an early prototype.</span>
+    &nbsp;<a href="./index.html" data-i18n="help.footerBack">Back to Raku Capture</a>
+  </footer>
+  <script src="./i18n.js"></script>
+</body>
+</html>
