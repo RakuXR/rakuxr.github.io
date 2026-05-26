@@ -36,11 +36,30 @@ jobs:
       - name: Checkout rakuxr.github.io
         uses: actions/checkout@v4
 
+      # raku-runtime is PRIVATE, so the default GITHUB_TOKEN (scoped to this
+      # repo) cannot fetch it. A repo secret named RAKU_RUNTIME_READ_TOKEN must
+      # hold a fine-grained PAT (or GitHub App installation token) with
+      # 'Contents: Read' on RakuXR/raku-runtime. If the secret is absent or
+      # empty, the workflow exits with a CLEAR error rather than silently
+      # green-stamping. See docs/ci/verify-capture-app-sync-setup.md.
+      - name: Check that the cross-repo token secret is set
+        env:
+          TOKEN: ${{ secrets.RAKU_RUNTIME_READ_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::secrets.RAKU_RUNTIME_READ_TOKEN is not set."
+            echo "::error::This workflow needs cross-repo read on the private RakuXR/raku-runtime."
+            echo "::error::See docs/ci/verify-capture-app-sync-setup.md for the one-time setup."
+            exit 1
+          fi
+          echo "RAKU_RUNTIME_READ_TOKEN is configured (length=${#TOKEN})."
+
       - name: Checkout canonical raku-runtime (capture app only)
         uses: actions/checkout@v4
         with:
           repository: RakuXR/raku-runtime
           ref: main
+          token: ${{ secrets.RAKU_RUNTIME_READ_TOKEN }}
           path: _canonical-raku-runtime
           sparse-checkout: web/capture
           sparse-checkout-cone-mode: false

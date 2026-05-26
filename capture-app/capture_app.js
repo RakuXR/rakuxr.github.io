@@ -832,8 +832,14 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
   const cam = { theta: 0.6, phi: 1.3, radius: 2.8, autoRotate: true };
 
   try {
-    const THREE = await import(/* @vite-ignore */ THREE_CDN_URL);
-    const spark = await import(/* @vite-ignore */ SPARK_CDN_URL);
+    // Lane 3C: load the CDN modules through the resilience layer — a hard
+    // timeout + one retry, so a slow-but-not-failing CDN cannot hang the
+    // viewer. Falls back to a plain import() if cdn_fallback.js is absent.
+    const importCdn = (typeof window !== 'undefined' && window.RakuCdnFallback)
+      ? window.RakuCdnFallback.loadCdnModule
+      : (url) => import(/* @vite-ignore */ url);
+    const THREE = await importCdn(THREE_CDN_URL, 'three');
+    const spark = await importCdn(SPARK_CDN_URL, 'spark');
     const { SplatMesh } = spark;
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
@@ -882,17 +888,47 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
       try { renderer.dispose(); } catch (e) { /* best effort */ }
     };
   } catch (err) {
-    // Fallback: Spark/three CDN not reachable in this environment.
+    // Lane 3C: a Spark/three CDN miss (or any viewer-init failure) degrades
+    // here. The hardened fallback in cdn_fallback.js draws the labelled 2D
+    // placeholder and writes a clear, localized offline message — never a
+    // broken canvas, never a hang. If cdn_fallback.js is somehow absent we
+    // still draw the inline placeholder so READY stays observable.
     console.warn('[RakuCapture] Spark viewer unavailable, using placeholder:', err);
-    drawViewerPlaceholder(canvas, splatUrl);
-    const offlineFile = splatUrl.split('/').pop();
+    let offlineFile = splatUrl.split('/').pop() || splatUrl;
+    if (typeof window !== 'undefined' && window.RakuCdnFallback) {
+      const r = window.RakuCdnFallback.renderViewerFallback({
+        canvas: canvas,
+        splatUrl: splatUrl,
+        reason: err,
+        metaEl: $('viewer-meta'),
+        noteEl: $('viewer-note'),
+        strings: {
+          placeholder: t('viewer.placeholderCaption', null,
+            'splat preview placeholder'),
+          metaReady: t('viewer.metaReadyPlaceholder', null,
+            'Splat ready (placeholder)'),
+          noteOffline: (file) => t('viewer.noteOffline', { file: file },
+            'Spark viewer offline — placeholder for ' + file),
+        },
+      });
+      offlineFile = r.offlineFile;
+    } else {
+      // Defensive last resort — the resilience module did not load.
+      drawViewerPlaceholder(canvas, splatUrl);
+      const noteEl = $('viewer-note');
+      if (noteEl) {
+        noteEl.hidden = false;
+        noteEl.textContent =
+          t('viewer.noteOffline', { file: offlineFile },
+            'Spark viewer offline — placeholder for ' + offlineFile);
+      }
+      const metaEl = $('viewer-meta');
+      if (metaEl) {
+        metaEl.textContent =
+          t('viewer.metaReadyPlaceholder', null, 'Splat ready (placeholder)');
+      }
+    }
     viewerStatus('placeholder', offlineFile);
-    noteEl.hidden = false;
-    noteEl.textContent =
-      t('viewer.noteOffline', { file: offlineFile },
-        'Spark viewer offline — placeholder for ' + offlineFile);
-    metaEl.textContent =
-      t('viewer.metaReadyPlaceholder', null, 'Splat ready (placeholder)');
     return () => {}; // nothing to tear down for the static placeholder
   }
 }
@@ -1131,9 +1167,16 @@ async function initIntroPreview() {
   applyIntroCaption();
 
   try {
+    // Lane 3C: pick a reachable sample URL. The manifest primary url is on
+    // cdn.raku.games (the CDN we control); fallbackUrl is the original
+    // third-party URL kept until the human asset drop lands. resolveSampleUrl
+    // probes the primary and falls back so the above-the-fold demo cannot 404.
+    const sampleUrl = await resolveSampleUrl(sample);
+    if (!sampleUrl) { panel.hidden = true; return; }
+    if (state.phase !== Phase.INTRO) { panel.hidden = true; return; }
     // loadSplatViewer returns a teardown fn; it falls back to a labelled
     // placeholder if the Spark/three CDN modules are unreachable.
-    const teardown = await loadSplatViewerInto(canvas, sample.url);
+    const teardown = await loadSplatViewerInto(canvas, sampleUrl);
     if (state.phase !== Phase.INTRO) {
       // User navigated away while the splat was still loading — showPhase()'s
       // teardown already ran (previewTeardown was null then), so dispose now
@@ -1147,6 +1190,55 @@ async function initIntroPreview() {
     console.warn('[RakuCapture] intro preview failed:', err);
     panel.hidden = true; // never leave a broken canvas above the fold
   }
+}
+
+/**
+ * Resolve a reachable URL for a sample-splat manifest entry (Lane 3C).
+ *
+ * The manifest's primary `url` points at cdn.raku.games (the CDN we control);
+ * `fallbackUrl` is the original third-party URL, kept live until the human
+ * asset drop populates cdn.raku.games (see samples/manifest.json). This probes
+ * the primary with a lightweight ranged GET (HEAD is often blocked on object
+ * stores) and returns the first URL that answers, so the landing demo survives
+ * a missing or 404-ing CDN asset.
+ *
+ * @param {object} sample manifest entry: { url, fallbackUrl? }
+ * @returns {Promise<string|null>} a URL (null only when sample has no usable url; on probe failure the last candidate is returned UNPROBED so the viewer fallback handles the degrade)
+ */
+async function resolveSampleUrl(sample) {
+  if (!sample || !sample.url) return null;
+  const candidates = [sample.url];
+  if (sample.fallbackUrl && sample.fallbackUrl !== sample.url) {
+    candidates.push(sample.fallbackUrl);
+  }
+  for (let i = 0; i < candidates.length; i++) {
+    const url = candidates[i];
+    // The last candidate is returned unprobed: if everything we tried is
+    // unreachable, hand back the final URL anyway and let loadSplatViewer's
+    // own fallback draw the labelled placeholder rather than hiding the panel
+    // on a transient probe failure.
+    if (i === candidates.length - 1) return url;
+    let timer = null;
+    try {
+      const ctrl = new AbortController();
+      timer = setTimeout(() => ctrl.abort(), 6000);
+      const resp = await fetch(url, {
+        method: 'GET',
+        headers: { Range: 'bytes=0-0' },
+        signal: ctrl.signal,
+        cache: 'no-store',
+      });
+      if (resp.ok || resp.status === 206) return url;
+      console.warn('[RakuCapture] sample URL not reachable (' +
+        resp.status + '), trying fallback:', url);
+    } catch (err) {
+      console.warn('[RakuCapture] sample URL probe failed, trying fallback:',
+        url, err && err.message ? err.message : err);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+  return null;
 }
 
 /**
