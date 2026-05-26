@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Raku Capture - Connect an assistant</title>
+  <meta name="description" content="Connect a Raku capture to Claude, ChatGPT, or Gemini. The consumer flow: no JSON config, no local Python.">
+  <meta name="theme-color" content="#6c63ff">
+  <!--
+    Standalone connect page for the Raku Capture web app (Wave 3 Lane 3A).
+    Drives the /api/v1/connect/* endpoints in raku-api.
+
+    Self-contained on purpose: no third-party JS imports, no Spark / three,
+    no Service Worker registration -- this page must load fast even on a
+    flaky network. CSS palette deliberately matches index.html / help.html
+    so the page feels like part of the capture app.
+
+    Honesty -- the page surfaces three states from the API:
+    - hosted_relay_state="real" -> render the per-assistant install
+      instructions with the actual mcp_endpoint URL.
+    - hosted_relay_state="seam" -> render an honest "what a human must
+      supply" notice; offer the stdio path + the raw X-Raku-API-Key
+      header as the available paths (both REAL today).
+    - any HTTP error -> surface the server's detail unchanged.
+
+    The raw API key is shown EXACTLY ONCE (server contract). The page
+    never writes it to localStorage; the user must copy it now.
+  -->
+  <style>
+    :root {
+      --bg: #0e0e14; --panel: #16161f; --panel-2: #1d1d2a; --border: #2a2a3a;
+      --accent: #6c63ff; --accent2: #ff6b6b; --ok: #3ec97a; --warn: #f0b429;
+      --err: #ff6b6b; --seam: #f0b429;
+      --text: #e8e8f0; --muted: #7a7a9a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column; line-height: 1.55;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right)
+               env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+    header {
+      background: var(--panel); border-bottom: 1px solid var(--border);
+      padding: 14px 20px; display: flex; align-items: center; gap: 14px;
+      flex-shrink: 0; position: sticky; top: 0; z-index: 10;
+    }
+    .logo {
+      font-size: 19px; font-weight: 700; letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    main {
+      flex: 1; padding: 24px 20px 80px; max-width: 920px; margin: 0 auto; width: 100%;
+    }
+    h1 { font-size: 28px; margin-bottom: 8px; }
+    h2 { font-size: 18px; margin: 24px 0 12px; color: var(--text); }
+    p, li { color: var(--text); }
+    .muted { color: var(--muted); }
+    section {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; margin-top: 20px;
+    }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    input[type="text"], input[type="password"], textarea {
+      background: var(--panel-2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px; font-family: inherit; font-size: 14px;
+      width: 100%; max-width: 480px;
+    }
+    textarea { min-height: 64px; resize: vertical; }
+    button {
+      background: var(--accent); color: white; border: none;
+      border-radius: 8px; padding: 10px 16px; font-weight: 600;
+      cursor: pointer; font-size: 14px;
+    }
+    button:hover { filter: brightness(1.1); }
+    button.secondary {
+      background: var(--panel-2); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .assistant-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .assistant-grid button { font-size: 16px; padding: 14px; }
+    .assistant-grid button.highlight { outline: 2px solid var(--accent2); }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th { color: var(--muted); font-weight: 600; }
+    .banner {
+      padding: 12px 14px; border-radius: 8px; margin-top: 12px; font-weight: 500;
+      border: 1px solid var(--border);
+    }
+    .banner-info    { background: rgba(108,99,255,0.12); color: var(--text); }
+    .banner-success { background: rgba(62,201,122,0.14); color: var(--ok); border-color: var(--ok); }
+    .banner-error   { background: rgba(255,107,107,0.14); color: var(--err); border-color: var(--err); }
+    .banner-warn    { background: rgba(240,180,41,0.14); color: var(--warn); border-color: var(--warn); }
+    .banner-seam    { background: rgba(240,180,41,0.14); color: var(--seam); border-color: var(--seam); }
+    .pill {
+      display: inline-block; padding: 3px 10px; border-radius: 12px;
+      font-size: 12px; font-weight: 600;
+    }
+    .pill-real { background: rgba(62,201,122,0.18); color: var(--ok); }
+    .pill-seam { background: rgba(240,180,41,0.18); color: var(--seam); }
+    code, .code-block {
+      font-family: 'Consolas', 'Monaco', monospace; background: var(--panel-2);
+      border: 1px solid var(--border); padding: 2px 6px; border-radius: 4px;
+      word-break: break-all; font-size: 13px;
+    }
+    .code-block { display: block; padding: 10px 12px; margin-top: 8px; }
+    .reveal { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    a { color: var(--accent); }
+    .row-break { width: 100%; height: 0; }
+    .footer-note { color: var(--muted); font-size: 13px; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="logo">Raku Capture</span>
+    <span class="muted">Connect an assistant</span>
+  </header>
+
+  <main>
+    <h1>Connect a capture to your AI assistant</h1>
+    <p class="muted">
+      One-tap connect for Claude (Anthropic), ChatGPT (OpenAI), and
+      Gemini (Google). No JSON config, no local Python. Backed by
+      <code>/api/v1/connect/*</code> on
+      <code id="api-base">raku-api</code>.
+    </p>
+    <p class="footer-note">
+      Developers who want the local stdio MCP server can still find it
+      in <a href="https://github.com/RakuXR/raku-runtime/tree/main/mcp">raku-runtime/mcp</a>.
+      That path is unchanged and remains the dev option.
+    </p>
+
+    <div id="connect-banner" class="banner" hidden></div>
+
+    <!-- Step 1: sign in (collect a credential) -->
+    <section id="step-sign-in">
+      <h2>1. Sign in</h2>
+      <p class="muted">
+        To attach an assistant to a capture we need to know which account
+        it belongs to. Sign in with a Bearer JWT (from the website) <em>or</em>
+        a <code>raku_</code> API key (from <code>/api/v1/onboard</code>).
+        Credentials live in this tab only and are never written to disk.
+      </p>
+      <div style="margin-top: 14px;">
+        <label class="muted">Bearer JWT</label><br>
+        <input id="input-jwt" type="password" placeholder="eyJhbGciOi..." autocomplete="off">
+        <button id="btn-use-jwt" style="margin-top: 8px;">Use JWT</button>
+      </div>
+      <div style="margin-top: 14px;">
+        <label class="muted">Or a raku_ API key</label><br>
+        <input id="input-apikey" type="password" placeholder="raku_..." autocomplete="off">
+        <button id="btn-use-apikey" style="margin-top: 8px;">Use API key</button>
+      </div>
+    </section>
+
+    <!-- Step 2: confirmation that we're signed in -->
+    <section id="step-signed-in" hidden>
+      <h2>1. Signed in</h2>
+      <p>
+        <strong id="signed-in-name">-</strong>
+        <span class="muted">(account <code id="signed-in-account">-</code>,
+          tier <code id="signed-in-tier">-</code>)</span>
+      </p>
+      <p style="margin-top: 8px;">
+        <span id="relay-state" class="pill pill-seam">Hosted MCP relay: SEAM</span>
+      </p>
+      <button id="btn-sign-out" class="secondary" style="margin-top: 10px;">Sign out</button>
+    </section>
+
+    <!-- Step 3: begin -->
+    <section id="step-connect" hidden>
+      <h2>2. Pick an assistant</h2>
+      <p class="muted">
+        We mint a one-time-use connect token, then exchange it for a
+        durable, account-bound API key.
+      </p>
+      <div class="row" style="margin-top: 8px;">
+        <input id="input-label" type="text" placeholder="Optional label (e.g. 'my mac')">
+      </div>
+      <div class="assistant-grid" style="margin-top: 14px;">
+        <button data-assistant="claude">Claude (Anthropic)</button>
+        <button data-assistant="chatgpt">ChatGPT (OpenAI)</button>
+        <button data-assistant="gemini">Gemini (Google)</button>
+      </div>
+
+      <div id="step-token-issued" hidden style="margin-top: 16px;">
+        <p>
+          Token issued for
+          <strong id="pending-assistant">-</strong> (expires
+          <span id="pending-expires">-</span>).
+        </p>
+        <div class="reveal" style="margin-top: 8px;">
+          <input id="input-connect-token" type="text" readonly>
+          <button data-copy-target="input-connect-token" data-copy-label="Copy token">Copy</button>
+        </div>
+        <button id="btn-complete" style="margin-top: 10px;">3. Exchange for a durable key</button>
+      </div>
+    </section>
+
+    <!-- Step 4: completed -->
+    <section id="step-completed" hidden>
+      <h2>3. Connector created</h2>
+      <p>
+        Connector <code id="completed-connector-id">-</code> for
+        <strong id="completed-assistant">-</strong>.
+      </p>
+
+      <h3 style="margin-top: 16px; font-size: 16px;">Your raw API key (shown ONCE)</h3>
+      <p class="muted">
+        Store this now -- the server will never return it again.
+      </p>
+      <div class="reveal">
+        <code id="completed-raw-key" class="code-block" style="flex:1;">-</code>
+        <button data-copy-target="completed-raw-key" data-copy-label="Copy">Copy</button>
+      </div>
+      <p class="muted" style="margin-top: 6px;">
+        Key prefix (visible later in <code>/connect/status</code>):
+        <code id="completed-key-prefix">-</code>
+      </p>
+
+      <!-- Hosted MCP relay path -- only renders when the API reports REAL. -->
+      <div id="completed-hosted" hidden style="margin-top: 16px;">
+        <h3 style="font-size: 16px;">Hosted MCP relay (REAL)</h3>
+        <p id="completed-hosted-summary" class="muted"></p>
+        <div class="reveal">
+          <code id="completed-mcp-endpoint" class="code-block" style="flex:1;">-</code>
+          <button data-copy-target="completed-mcp-endpoint" data-copy-label="Copy">Copy</button>
+        </div>
+      </div>
+
+      <!-- Hosted MCP relay SEAM -- only renders when the API reports SEAM. -->
+      <div id="completed-seam" hidden style="margin-top: 16px;">
+        <h3 style="font-size: 16px;">
+          Hosted MCP relay <span class="pill pill-seam">SEAM</span>
+        </h3>
+        <p class="banner banner-seam" id="completed-seam-text">-</p>
+        <p class="muted" style="margin-top: 6px;">
+          The raw key above is REAL today: send it as the
+          <code>X-Raku-API-Key</code> header on any
+          <code>/api/raku/*</code> call. Or use the stdio path below.
+        </p>
+      </div>
+
+      <h3 style="margin-top: 16px; font-size: 16px;">Developer / stdio path (always available)</h3>
+      <p class="muted">
+        Power users can clone <a id="completed-stdio-link" href="https://github.com/RakuXR/raku-runtime/tree/main/mcp">raku-runtime/mcp</a>
+        and run the stdio MCP server locally with this key in the env
+        (<code>RAKU_API_KEY=...</code>).
+      </p>
+    </section>
+
+    <!-- Step 5: connectors list -->
+    <section id="step-connectors" hidden>
+      <h2>Your connectors</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Assistant</th><th>Key prefix</th><th>Created</th>
+            <th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="connectors-tbody"></tbody>
+      </table>
+    </section>
+
+    <p class="footer-note">
+      Honesty: this page surfaces what the API reports. If the hosted MCP
+      relay is not yet provisioned (a Wave-3 SEAM) the page says so and
+      shows you the paths that <em>are</em> REAL today. No fake success.
+    </p>
+  </main>
+
+  <script src="connect.js"></script>
+</body>
+</html>

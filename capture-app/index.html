@@ -564,6 +564,13 @@
        RakuI18n.ready before its first paint. -->
   <script src="./i18n.js"></script>
 
+  <!-- CDN resilience layer (Lane 3C). Classic script, loaded BEFORE the app
+       module so window.RakuCdnFallback exists when capture_app.js runs. Wraps
+       the Spark/three CDN import() with a timeout + retry and provides the
+       hardened 2D viewer fallback so a CDN miss never hangs or breaks the
+       canvas. Integrity-pinned versions: see cdn_integrity.json. -->
+  <script src="./cdn_fallback.js"></script>
+
   <!-- App logic: capture flow + Spark viewer seam + backend seams.
        Loaded as a module so we can dynamic-import the Spark renderer from CDN. -->
   <script type="module" src="./capture_app.js"></script>
