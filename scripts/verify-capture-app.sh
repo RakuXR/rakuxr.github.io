@@ -52,6 +52,12 @@ EXPECTED=$(mktemp -d)
 cleanup() {
   rm -rf "$EXPECTED"
   [ -n "$CLEANUP_CLONE" ] && rm -rf "$CLEANUP_CLONE"
+  # The `&&` above evaluates to false when CLEANUP_CLONE is empty (which is the
+  # case whenever $RT was passed in, including from the CI workflow). With
+  # `set -e` + dash, a trap-on-EXIT whose last command exits non-zero
+  # OVERRIDES the script's explicit exit 0, turning a clean verify into a
+  # spurious red CI. Force a clean trap exit.
+  return 0
 }
 trap cleanup EXIT INT TERM
 
