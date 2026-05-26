@@ -5,22 +5,39 @@ served by GitHub Pages at <https://rakuai.com/capture-app/> and is the public
 phone entry point for capture (it is what the QR code on `capture.html` points
 at).
 
-## Canonical source
+## Canonical source — single source of truth
 
 The canonical source of this app lives in **`raku-runtime/web/capture/`**.
-This directory is a deployment mirror — **do not edit it directly**. Any change
-to the app must be made in `raku-runtime/web/capture/` first, then re-synced
-here.
+This directory is GENERATED, not hand-edited:
 
-To re-sync, run from the repo root:
-
-```sh
-scripts/sync-capture-app.sh /path/to/raku-runtime
+```
+capture-app/  ==  raku-runtime/web/capture/   (verbatim)
+                  + the deterministic hosting adaptations in
+                    scripts/capture-app-adaptations.py
+                  + two preserved mirror-only files:
+                    README.md, qr-capture-app.svg
 ```
 
-The script copies every app file from `raku-runtime/web/capture/` into this
-directory, then restores this `README.md` (the canonical source has its own
-prototype-facing README that should not overwrite this one).
+`scripts/verify-capture-app.sh` regenerates that and `diff`s it against what
+is committed; the `Verify capture-app sync` GitHub Action runs it on every
+push and PR. **Drift fails the build** — silent divergence is impossible.
+
+### Pulling canonical changes into the mirror
+
+From the repo root:
+
+```sh
+scripts/sync-capture-app.sh /path/to/raku-runtime   # local checkout
+scripts/sync-capture-app.sh                         # auto-clones canonical
+```
+
+Review the diff, then commit.
+
+### Adding a new hosting-only adaptation
+
+If the public host genuinely needs to differ from canonical (e.g. a new CSP
+directive), add the change to `scripts/capture-app-adaptations.py` so it is
+deterministic and reproducible. Never hand-edit files in `capture-app/`.
 
 ## Subpath notes
 

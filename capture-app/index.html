@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://raku-api.fly.dev http://localhost:8000 https://cdn.jsdelivr.net https://cdn.raku.games; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://api.qrserver.com; font-src 'self'; connect-src 'self' https://raku-api.fly.dev http://localhost:8000 https://cdn.jsdelivr.net https://cdn.raku.games; worker-src 'self' blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none';">
   <title data-i18n="doc.title">Raku Capture</title>
   <meta name="description" data-i18n-attr="content:doc.description" content="Capture a room with your phone and turn it into an explorable 3D Gaussian splat.">
 
@@ -20,11 +20,9 @@
     ================
     This is a development scaffold living in raku-runtime/web/capture/ per the
     repo web workflow (prototype -> stage to rakuxr.github.io -> wire backend
-    via raku-api). UI states and structure are real. Capture upload and
-    reconstruction polling DO call the live raku-api service; the Spark splat
-    viewer is real too, but the reconstruction currently returns a placeholder
-    splat rather than a true scan of the captured room. See README.md for what
-    is real vs simulated.
+    via raku-api). UI states and structure are real; capture upload,
+    reconstruction polling, and the Spark splat viewer are marked seams that are
+    NOT yet wired to a live backend. See README.md for what is real vs stubbed.
 
     LOCALIZATION
     ============
@@ -251,6 +249,77 @@
       align-self: center;
     }
 
+    /* Scale-reference picker (metric-scale calibration step) */
+    .scale-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 420px;
+    }
+    .scale-option {
+      appearance: none;
+      text-align: left;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: border-color .15s, background .15s;
+    }
+    .scale-option:hover { border-color: var(--accent); }
+    .scale-option:focus-visible { outline: 2px solid var(--accent); }
+    .scale-option[aria-pressed="true"] {
+      border-color: var(--accent);
+      background: var(--panel-2);
+    }
+    .scale-option-name { font-weight: 600; }
+    .scale-option-desc { color: var(--muted); font-size: 12px; }
+    .scale-option[aria-pressed="true"] .scale-option-desc { color: var(--text); }
+    .scale-note {
+      color: var(--muted);
+      font-size: 12px;
+      max-width: 420px;
+      line-height: 1.5;
+    }
+
+    /* In-camera scale sub-step: framing reticle + countdown overlay. */
+    .scale-frame {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+    .scale-frame[hidden] { display: none; }
+    .scale-reticle {
+      width: 62%;
+      max-width: 320px;
+      /* ID-1 / sheet references are wide-ish rectangles; a neutral guide box. */
+      aspect-ratio: 1.6 / 1;
+      border: 2px dashed var(--accent);
+      border-radius: 10px;
+      box-shadow: 0 0 0 100vmax rgba(14,14,20,0.45);
+    }
+    .scale-frame-label {
+      background: rgba(14,14,20,0.82);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      max-width: 90%;
+      text-align: center;
+    }
+
     /* Generic progress bar (download/analyze/reconstruct) */
     .progress {
       width: 100%;
@@ -340,7 +409,7 @@
   <header>
     <span class="logo">Raku Capture</span>
     <span class="tagline" data-i18n="header.tagline">Scan a room &rarr; explorable 3D</span>
-    <span class="proto-badge" data-i18n="header.protoBadge" data-i18n-attr="title:header.protoBadgeTitle" title="Development prototype — capture and reconstruction run against the live backend, but the returned splat is still a placeholder">PROTOTYPE</span>
+    <span class="proto-badge" data-i18n="header.protoBadge" data-i18n-attr="title:header.protoBadgeTitle" title="Development prototype, not yet wired to a live backend">PROTOTYPE</span>
     <span class="lang-switcher" data-i18n-switcher></span>
   </header>
 
@@ -366,6 +435,7 @@
         <p class="intro-preview-caption" id="intro-preview-caption">Live sample &mdash; drag to look around</p>
       </div>
       <button class="btn" id="btn-grant-camera" data-i18n="intro.getStarted">Get started</button>
+      <button class="btn secondary" id="btn-my-captures" data-i18n="intro.myCaptures">My captures</button>
       <p class="progress-label" data-i18n="intro.cameraNote">Camera access is requested later, when you open the camera.</p>
     </section>
 
@@ -377,6 +447,13 @@
            sets the value via t() and re-renders on locale change, so no
            data-i18n here - declarative re-translation would clobber the
            live hint. The static text below is just a pre-JS placeholder. -->
+      <!-- scale-frame: shown only during the in-camera scale sub-step. A
+           framing guide + countdown while the user holds the reference object
+           in view. capture_app.js toggles [hidden] and owns its live text. -->
+      <div class="scale-frame" id="scale-frame" hidden>
+        <div class="scale-reticle" id="scale-reticle"></div>
+        <div class="scale-frame-label" id="scale-frame-label">Hold the reference steady in the frame</div>
+      </div>
       <div class="capture-hint" id="capture-hint">Hold steady to begin&hellip;</div>
         <div>
           <div class="coverage-bar">
@@ -402,6 +479,33 @@
         <li data-step="3"><span class="step-num">4</span> <span data-i18n="guide.step4">Look up and down to catch ceiling and floor</span></li>
       </ol>
       <button class="btn" id="btn-begin-capture" data-i18n="guide.openCamera">Open camera</button>
+    </section>
+
+    <!-- PHASE: scale reference (metric scale without LiDAR) ------------------ -->
+    <!-- A one-time calibration step (plan §6.1 step 2, §11 "Metric scale isn't
+         free"). The user picks a known-size reference object — credit card or a
+         standard sheet of paper — so the reconstruction backend can resolve a
+         real metric scale from the capture. It is skippable (LiDAR phones, or
+         no reference to hand); a skipped capture is honestly marked
+         scale-unknown. The scale_calibration.js module owns the dimension
+         table + the metadata this step produces. -->
+    <section class="screen" id="screen-scale" hidden>
+      <h2 data-i18n="scale.heading">Add a size reference</h2>
+      <p class="lead" data-i18n="scale.lead">A scan on its own has no real-world
+        scale, so measurements are not possible from it. Pick something of a
+        known size to place in view for a few seconds — the reconstruction can
+        then work out true metric scale. No LiDAR needed.</p>
+      <!-- scale-options is populated by scale_app code in capture_app.js from
+           the scale_calibration.js reference table; each option's label/desc
+           is localized via the per-reference i18n keys. -->
+      <div class="scale-options" id="scale-options"></div>
+      <p class="scale-note" id="scale-skip-note" data-i18n="scale.skipNote">On a
+        phone with a depth sensor (LiDAR) you can skip this — scale comes from
+        the sensor instead.</p>
+      <div class="capture-controls">
+        <button class="btn secondary" id="btn-skip-scale" data-i18n="scale.skip">Skip — no measurements</button>
+        <button class="btn" id="btn-scale-continue" data-i18n="scale.continue" disabled>Continue</button>
+      </div>
     </section>
 
     <!-- PHASE: uploading ----------------------------------------------------- -->

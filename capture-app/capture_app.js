@@ -38,12 +38,35 @@
 'use strict';
 
 // ============================================================================
+// Scale calibration module
+// ============================================================================
+// scale_calibration.js owns the metric-scale reference table and the metadata
+// builder. The capture side only RECORDS the chosen reference + its known
+// real-world dimensions; the actual scale solve is a reconstruction-backend
+// step (see scale_calibration.js header for the honest scope boundary).
+
+import {
+  SCALE_CAPTURE_MS,
+  listScaleReferences,
+  getScaleReference,
+  buildScaleMetadata,
+} from './scale_calibration.js';
+
+// ============================================================================
 // i18n shim
 // ============================================================================
 // window.RakuI18n is installed by i18n.js (loaded before this module). The
 // shim degrades gracefully if i18n.js is somehow absent: t() echoes a sensible
 // English-ish fallback string, raw() returns the fallback list. This keeps the
 // app functional even when the locale layer fails to load.
+
+// W2A: capture persistence -- localStorage history + the My Captures view.
+import { CaptureHistory, STATUS as HISTORY_STATUS } from './capture_history.js';
+import { CapturesView } from './captures_view.js';
+
+// One shared history store for this page. Anonymous-first: it records every
+// capture in localStorage so a user can recover a scan after the tab closes.
+const captureHistory = new CaptureHistory();
 
 const I18N = window.RakuI18n || null;
 
@@ -93,10 +116,8 @@ const API_BASE = detectApiBase();
 
 // Spark renderer pinned CDN module URL. Spark is an MIT-licensed 3D Gaussian
 // splat renderer for three.js (https://github.com/sparkjsdev/spark).
-// Pinned to an explicit version for deterministic, supply-chain-safe loads -
-// bump intentionally after verifying against the pinned three below. Spark's
-// 0.1.x line carries no `three` peer constraint and works with three@0.169.0;
-// the 2.x line requires three >= 0.180.0, so the two pins move together.
+// Pinned to the 0.1.x line: it has no `three` peer constraint and is
+// compatible with the pinned three@0.169.0 (the 2.x line needs three>=0.180.0).
 const SPARK_CDN_URL = 'https://cdn.jsdelivr.net/npm/@sparkjsdev/spark@0.1.10/dist/spark.module.js';
 const THREE_CDN_URL = 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
 
@@ -120,6 +141,7 @@ const KEYFRAME_MAX_EDGE = 1280;    // downscale long edge before upload
 const Phase = Object.freeze({
   INTRO: 'intro',
   GUIDE: 'guide',
+  SCALE: 'scale',
   CAPTURE: 'capture',
   UPLOADING: 'uploading',
   PROCESSING: 'processing',
@@ -152,6 +174,18 @@ const state = {
   errorMessageParams: null,// params for that key
   errorMessageText: null, // literal error text when it did NOT come from a key
   introSampleName: null,  // label of the intro preview sample, for its caption
+
+  // ---- metric-scale calibration ------------------------------------------
+  // The scale-reference step (plan §6.1 step 2). scaleReferenceId is the
+  // chosen reference's id (see scale_calibration.js), or null if none picked.
+  // scaleSkipped records an explicit opt-out. scaleFrames are the dedicated
+  // JPEG frames of the reference; scaleDwellMs is how long it was held in
+  // view. These feed buildScaleMetadata() at upload time.
+  scaleReferenceId: null, // 'credit_card' | 'paper_a4' | 'paper_letter' | null
+  scaleSkipped: false,    // true once the user explicitly skips the step
+  scaleFrames: [],        // Array<Blob> — dedicated reference keyframes
+  scaleDwellMs: 0,        // ms the reference was held in frame
+  scaleSubstep: false,    // true while the in-camera scale sub-step is running
 };
 
 // DOM lookup helper ----------------------------------------------------------
@@ -160,6 +194,7 @@ const $ = (id) => document.getElementById(id);
 const screens = {
   [Phase.INTRO]: 'screen-intro',
   [Phase.GUIDE]: 'screen-guide',
+  [Phase.SCALE]: 'screen-scale',
   [Phase.CAPTURE]: 'camera-stage',
   [Phase.UPLOADING]: 'screen-uploading',
   [Phase.PROCESSING]: 'screen-processing',
@@ -240,8 +275,228 @@ function resetRun() {
 }
 
 // ============================================================================
+// Metric-scale calibration -- the scale-reference step (plan section 6.1 step 2)
+// ============================================================================
+//
+// Flow: GUIDE -> SCALE (pick a reference, or skip) -> CAPTURE. When a reference
+// is chosen the camera opens into a brief in-camera scale SUB-STEP: the user
+// holds the known-size object in frame for ~3 s while the app grabs dedicated
+// reference frames, then it transitions seamlessly into the normal room sweep.
+//
+// HONEST BOUNDARY: this only RECORDS the reference and grabs frames of it. The
+// metric scale is solved server-side by the reconstruction backend, which
+// detects the reference and compares its reconstructed size to the known
+// real-world size in scale_calibration.js. Skipping leaves the capture
+// honestly marked scale-unknown.
+
+let scaleSubstepTimer = null;
+
+// Offscreen canvas reused for every scale-reference keyframe grab.
+const _scaleCanvas = document.createElement('canvas');
+
+// Upper bound on dedicated reference frames -- a short dwell needs only a few.
+const MAX_SCALE_FRAMES = 12;
+
+/**
+ * Render the reference picker into #scale-options from the scale_calibration.js
+ * reference table. Each option is a button localized via the reference's
+ * per-id i18n keys (scale.ref.<key>.name / .desc).
+ */
+function renderScaleOptions() {
+  const host = $('scale-options');
+  if (!host) return;
+  host.textContent = '';
+
+  listScaleReferences().forEach((ref) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'scale-option';
+    btn.dataset.refId = ref.id;
+    btn.setAttribute('aria-pressed', String(state.scaleReferenceId === ref.id));
+
+    const name = document.createElement('span');
+    name.className = 'scale-option-name';
+    name.textContent = t(ref.i18nKey + '.name', null, ref.id);
+
+    const desc = document.createElement('span');
+    desc.className = 'scale-option-desc';
+    desc.textContent = t(ref.i18nKey + '.desc', null, '');
+
+    btn.appendChild(name);
+    btn.appendChild(desc);
+    btn.addEventListener('click', () => selectScaleReference(ref.id));
+    host.appendChild(btn);
+  });
+}
+
+/** Mark a reference chosen; reflect it in the picker and enable Continue. */
+function selectScaleReference(id) {
+  state.scaleReferenceId = getScaleReference(id) ? id : null;
+  state.scaleSkipped = false;
+  document.querySelectorAll('#scale-options .scale-option').forEach((btn) => {
+    btn.setAttribute('aria-pressed',
+      String(btn.dataset.refId === state.scaleReferenceId));
+  });
+  const cont = $('btn-scale-continue');
+  if (cont) cont.disabled = !state.scaleReferenceId;
+}
+
+/**
+ * Resolve the localized display name of the chosen reference, for the live
+ * sub-step copy. Falls back to the bare id if the locale key is missing.
+ */
+function scaleReferenceName() {
+  const ref = getScaleReference(state.scaleReferenceId);
+  if (!ref) return '';
+  return t(ref.i18nKey + '.name', null, ref.id);
+}
+
+/**
+ * Run the in-camera scale sub-step: hold the reference in frame for
+ * SCALE_CAPTURE_MS while grabbing dedicated reference frames, with a live
+ * countdown. Resolves when the dwell completes (or is cut short by cancel via
+ * finishScaleSubstep()).
+ *
+ * @returns {Promise<void>}
+ */
+function runScaleSubstep() {
+  return new Promise((resolve) => {
+    state.scaleSubstep = true;
+    state.scaleFrames = [];
+    state.scaleDwellMs = 0;
+    const frame = $('scale-frame');
+    if (frame) frame.hidden = false;
+
+    const startedAt = performance.now();
+    applyScaleFrameLabel(); // initial localized label
+
+    // Stash the resolver so finishScaleSubstep() can settle this promise
+    // exactly once, whether the dwell completed normally or a cancel /
+    // resetScaleState() cut it short. Without this an aborted sub-step would
+    // leave `await runScaleSubstep()` in beginCapture() hanging forever.
+    runScaleSubstep._resolve = resolve;
+
+    if (scaleSubstepTimer) clearInterval(scaleSubstepTimer);
+    scaleSubstepTimer = setInterval(() => {
+      const elapsed = performance.now() - startedAt;
+      state.scaleDwellMs = Math.min(SCALE_CAPTURE_MS, Math.round(elapsed));
+      captureScaleKeyframe();
+      applyScaleFrameLabel();
+      if (elapsed >= SCALE_CAPTURE_MS) finishScaleSubstep();
+    }, 350);
+  });
+}
+
+/**
+ * Stop the scale sub-step cleanly (timer + overlay) AND settle the pending
+ * runScaleSubstep() promise so its awaiter can continue. Idempotent: a second
+ * call is a no-op because the resolver is cleared after it fires.
+ */
+function finishScaleSubstep() {
+  if (scaleSubstepTimer) { clearInterval(scaleSubstepTimer); scaleSubstepTimer = null; }
+  state.scaleSubstep = false;
+  const frame = $('scale-frame');
+  if (frame) frame.hidden = true;
+  const resolve = runScaleSubstep._resolve;
+  runScaleSubstep._resolve = null;
+  if (resolve) resolve();
+}
+
+/**
+ * Grab a frame of the reference object from the live video. Mirrors
+ * captureKeyframe() but writes into the dedicated state.scaleFrames bucket so
+ * the reference footage is identifiable to the backend solver.
+ */
+function captureScaleKeyframe() {
+  const video = $('camera-video');
+  if (!video || !video.videoWidth) return;
+  if (state.scaleFrames.length >= MAX_SCALE_FRAMES) return;
+
+  const longEdge = Math.max(video.videoWidth, video.videoHeight);
+  const scale = Math.min(1, KEYFRAME_MAX_EDGE / longEdge);
+  const w = Math.round(video.videoWidth * scale);
+  const h = Math.round(video.videoHeight * scale);
+  _scaleCanvas.width = w;
+  _scaleCanvas.height = h;
+  const ctx = _scaleCanvas.getContext('2d');
+  if (!ctx) return;
+  ctx.drawImage(video, 0, 0, w, h);
+  // toBlob is async: stash the current bucket so a late-arriving blob lands in
+  // the substep it was grabbed for, even if resetScaleState() / a new run has
+  // since swapped state.scaleFrames for a fresh array. Mirrors the room
+  // keyframe path's guard.
+  const targetFrames = state.scaleFrames;
+  _scaleCanvas.toBlob(
+    (blob) => {
+      if (blob && targetFrames && targetFrames.length < MAX_SCALE_FRAMES) {
+        targetFrames.push(blob);
+      }
+    },
+    'image/jpeg',
+    0.8 // slightly higher quality -- the reference's edges must stay crisp
+  );
+}
+
+/** Live, localized label for the in-camera scale sub-step overlay. */
+function applyScaleFrameLabel() {
+  const label = $('scale-frame-label');
+  if (!label) return;
+  if (!state.scaleSubstep) return; // overlay hidden -- nothing to render
+  const remainMs = Math.max(0, SCALE_CAPTURE_MS - state.scaleDwellMs);
+  const seconds = Math.ceil(remainMs / 1000);
+  if (state.scaleDwellMs <= 0) {
+    // Before the dwell has begun: a setup instruction naming the chosen
+    // reference, so the operator knows exactly what to place in frame.
+    const name = scaleReferenceName();
+    label.textContent = t('scale.frameLabel', { name: name },
+      'Hold the ' + name + ' steady in the frame.');
+  } else if (seconds > 0) {
+    label.textContent = t('scale.frameCountdown', { seconds: seconds },
+      'Hold steady... ' + seconds + 's');
+  } else {
+    label.textContent = t('scale.frameDone', null,
+      'Reference captured -- now scan the room.');
+  }
+}
+
+/**
+ * Reset every scale-calibration field to its pre-step default. Called when
+ * entering the scale step fresh and when starting a brand-new capture, so a
+ * second scan never inherits the previous run's reference or frames.
+ */
+function resetScaleState() {
+  state.scaleReferenceId = null;
+  state.scaleSkipped = false;
+  state.scaleFrames = [];
+  state.scaleDwellMs = 0;
+  finishScaleSubstep(); // clear any lingering timer/overlay
+}
+
+/**
+ * Open the camera and start the capture flow. Shared by both scale-step exits
+ * (skip / continue). When a reference was chosen it first runs the in-camera
+ * scale sub-step (hold the reference in frame ~3 s), then transitions into the
+ * normal room sweep. A skip goes straight to the sweep.
+ */
+async function beginCapture() {
+  const ok = await requestCamera();
+  if (!ok) return; // requestCamera() already surfaced the error screen
+  showPhase(Phase.CAPTURE);
+
+  if (state.scaleReferenceId && !state.scaleSkipped) {
+    // In-camera scale sub-step first -- grab dedicated frames of the reference.
+    await runScaleSubstep();
+    // The user may have cancelled out of the camera during the sub-step.
+    if (state.phase !== Phase.CAPTURE) return;
+  }
+
+  startCaptureLoop();
+}
+
+// ============================================================================
 // Camera + guided capture
 // ============================================================================
+
 
 async function requestCamera() {
   // Guard: navigator.mediaDevices is undefined in non-secure contexts (plain
@@ -402,12 +657,39 @@ function uploadCapture(frames, onProgress) {
     }
     const form = new FormData();
     frames.forEach((blob, i) => form.append('frames', blob, `frame_${i}.jpg`));
+
+    // Metric-scale calibration: the dedicated reference frames (if any) ride
+    // alongside the room frames so the backend solver can find the reference.
+    // They are named scale_* so they are identifiable, and counted in the
+    // scaleReference metadata below.
+    const scaleFrames = state.scaleFrames || [];
+    scaleFrames.forEach((blob, i) =>
+      form.append('frames', blob, `scale_${i}.jpg`));
+
+    // buildScaleMetadata() (scale_calibration.js) produces the scaleReference
+    // object: which known-size reference the user picked + its exact
+    // real-world dimensions, OR a skipped marker. The reconstruction backend
+    // reads this to resolve real metric scale — that solve is a backend step,
+    // not done here (see scale_calibration.js header).
+    const scaleReference = buildScaleMetadata({
+      referenceId: state.scaleReferenceId,
+      skipped: state.scaleSkipped,
+      frameCount: scaleFrames.length,
+      dwellMs: state.scaleDwellMs,
+    });
+
     form.append(
       'meta',
       JSON.stringify({
         device: navigator.userAgent,
-        frameCount: frames.length,
+        // frameCount reports every part appended to the `frames` field —
+        // room frames PLUS the scale-reference frames — so it matches what
+        // the backend actually receives. roomFrameCount / scaleReference
+        // break that total down for anything that needs the split.
+        frameCount: frames.length + scaleFrames.length,
+        roomFrameCount: frames.length,
         coverage: state.coverage,
+        scaleReference: scaleReference,
       })
     );
 
@@ -869,11 +1151,10 @@ async function initIntroPreview() {
 
 /**
  * Thin wrapper around loadSplatViewer for the intro canvas. loadSplatViewer
- * writes status into a { meta, note } pair; for the intro preview we don't
- * want the *capture* viewer's toolbar touched, so we hand it detached, never-
- * mounted stand-in nodes. Their textContent updates land harmlessly off-DOM —
- * no element ids are mutated, so the toolbar's #viewer-meta / #viewer-note
- * keep their ids even if this runs concurrently with the capture viewer.
+ * writes status into the capture viewer's #viewer-meta / #viewer-note nodes;
+ * for the intro we don't want those touched, so we pass detached stand-in
+ * nodes as the `targets` arg. No element ids are mutated, so the toolbar's
+ * #viewer-meta / #viewer-note stay intact for the real capture viewer.
  *
  * @param {HTMLCanvasElement} canvas
  * @param {string} url
@@ -908,6 +1189,16 @@ async function runPipeline() {
     });
     if (run !== state.runToken) return;
 
+    // W2A: persist the capture locally the moment it has an id, so it is
+    // recoverable from My Captures even if the user closes the tab now.
+    try {
+      captureHistory.add({
+        captureId: state.captureId,
+        status: HISTORY_STATUS.PROCESSING,
+        device: navigator.userAgent,
+      });
+    } catch (err) { console.warn('[Capture] history add failed:', err); }
+
     state.procStage = null;          // no stage reported yet
     state.procPct = 0;
     showPhase(Phase.PROCESSING);
@@ -923,6 +1214,15 @@ async function runPipeline() {
       () => run !== state.runToken
     );
     if (run !== state.runToken || !state.splatUrl) return;
+
+    // W2A: the capture is done -- update its history entry so My Captures
+    // can re-open the splat directly next visit.
+    try {
+      captureHistory.update(state.captureId, {
+        status: HISTORY_STATUS.READY,
+        splatUrl: state.splatUrl,
+      });
+    } catch (err) { console.warn('[Capture] history update failed:', err); }
 
     showPhase(Phase.READY);
     state.cleanupSplatUrl = state.splatUrl; // the 'Clean up' button acts on this
@@ -1056,22 +1356,119 @@ function applyIntroCaption() {
 // Wiring
 // ============================================================================
 
+// W2A: My Captures -- open the recovery view, wired to re-open a splat.
+let _capturesView = null;
+function openCapturesView() {
+  if (!_capturesView) {
+    _capturesView = new CapturesView({
+      history: captureHistory,
+      onReopen: (entry) => reopenCapture(entry),
+    });
+  }
+  _capturesView.open();
+}
+
+// Re-open a capture from history: ready -> viewer; else resume polling.
+async function reopenCapture(entry) {
+  if (!entry || !entry.captureId) return;
+  const run = resetRun();
+  state.captureId = entry.captureId;
+  if (entry.status === HISTORY_STATUS.READY && entry.splatUrl) {
+    state.splatUrl = entry.splatUrl;
+    showPhase(Phase.READY);
+    state.cleanupSplatUrl = entry.splatUrl;
+    state.viewerStatus = 'loading';
+    try {
+      const teardown = await loadSplatViewer(
+        $('viewer-canvas'), entry.splatUrl, true);
+      if (run !== state.runToken) { teardown(); return; }
+      state.viewerTeardown = teardown;
+    } catch (err) {
+      if (run === state.runToken) showError(err.message || String(err));
+    }
+    return;
+  }
+  try {
+    state.procStage = null;
+    state.procPct = 0;
+    showPhase(Phase.PROCESSING);
+    state.splatUrl = await pollReconstruction(
+      entry.captureId,
+      (stage, pct) => { state.procStage = stage; state.procPct = pct;
+        setFill('processing-fill', pct); applyProcessingLabels(); },
+      () => run !== state.runToken);
+    if (run !== state.runToken || !state.splatUrl) return;
+    try {
+      captureHistory.update(entry.captureId, {
+        status: HISTORY_STATUS.READY, splatUrl: state.splatUrl });
+    } catch (err) { /* non-fatal */ }
+    showPhase(Phase.READY);
+    state.cleanupSplatUrl = state.splatUrl;
+    const teardown = await loadSplatViewer($('viewer-canvas'), state.splatUrl, true);
+    if (run !== state.runToken) { teardown(); return; }
+    state.viewerTeardown = teardown;
+  } catch (err) {
+    // W2A: a failed re-open must not leave the entry stuck in
+    // 'processing' -- mark it failed so My Captures reflects reality.
+    try {
+      captureHistory.update(entry.captureId,
+        { status: HISTORY_STATUS.FAILED });
+    } catch (e2) { /* non-fatal */ }
+    if (run === state.runToken) showError(err.message || String(err));
+  }
+}
+
+// W2A: deep-link -- a shared ?capture=<id> URL re-opens that capture.
+function handleCaptureDeepLink() {
+  let id = null;
+  try { id = new URL(window.location.href).searchParams.get('capture'); }
+  catch (err) { return; }
+  if (!id) return;
+  const entry = captureHistory.get(id) ||
+    { captureId: id, status: HISTORY_STATUS.PROCESSING };
+  reopenCapture(entry);
+}
+
 function bindEvents() {
   // Intro -> guide (camera permission is requested on the guide screen).
   $('btn-grant-camera').addEventListener('click', () => {
     showPhase(Phase.GUIDE);
   });
 
-  // Guide -> request camera + open capture stage.
-  $('btn-begin-capture').addEventListener('click', async () => {
-    const ok = await requestCamera();
-    if (!ok) return;
-    showPhase(Phase.CAPTURE);
-    startCaptureLoop();
+  // W2A: open the My Captures recovery view. Button is optional.
+  const myCapturesBtn = $('btn-my-captures');
+  if (myCapturesBtn) {
+    myCapturesBtn.addEventListener('click', () => openCapturesView());
+  }
+
+  // Guide -> scale-reference step (metric-scale calibration, plan 6.1 step 2).
+  $('btn-begin-capture').addEventListener('click', () => {
+    resetScaleState();
+    renderScaleOptions();
+    const cont = $('btn-scale-continue');
+    if (cont) cont.disabled = true;
+    showPhase(Phase.SCALE);
+  });
+
+  // Scale step: skip -- capture proceeds with no metric scale (honestly marked
+  // scale-unknown by buildScaleMetadata()).
+  $('btn-skip-scale').addEventListener('click', () => {
+    state.scaleReferenceId = null;
+    state.scaleSkipped = true;
+    beginCapture();
+  });
+
+  // Scale step: continue -- a reference was chosen; the camera opens into the
+  // in-camera scale sub-step before the room sweep.
+  $('btn-scale-continue').addEventListener('click', () => {
+    if (!state.scaleReferenceId) return; // button is disabled until one is picked
+    state.scaleSkipped = false;
+    beginCapture();
   });
 
   // Capture controls.
   $('btn-cancel-capture').addEventListener('click', () => {
+    finishScaleSubstep(); // settles any in-flight scale sub-step
     stopCaptureLoop();
     stopCamera();
     showPhase(Phase.INTRO);
@@ -1086,6 +1483,7 @@ function bindEvents() {
   $('btn-cancel-processing').addEventListener('click', () => {
     cancelReconstruction(state.captureId);
     resetRun(); // abandon the in-flight pipeline so it cannot reappear
+    resetScaleState();
     showPhase(Phase.INTRO);
   });
 
@@ -1095,6 +1493,7 @@ function bindEvents() {
     state.captureId = null;
     state.splatUrl = null;
     state.cleanupSplatUrl = null;
+    resetScaleState(); // a fresh capture starts the scale step over
     showPhase(Phase.INTRO);
   });
 
@@ -1152,9 +1551,18 @@ function relocalizeDynamic() {
       // Fully static (data-i18n) — i18n.js already handled it. Nothing to do.
       break;
 
+    case Phase.SCALE:
+      // The picker option labels are JS-built (from the reference table), so
+      // re-render them in the new locale. i18n.js already handled the static
+      // [data-i18n] copy on this screen.
+      renderScaleOptions();
+      break;
+
     case Phase.CAPTURE:
-      // Re-renders #coverage-label and #capture-hint at the live coverage.
+      // Re-renders #coverage-label and #capture-hint at the live coverage, and
+      // the in-camera scale sub-step overlay label when that sub-step is up.
       updateCoverage(state.coverage);
+      applyScaleFrameLabel();
       break;
 
     case Phase.UPLOADING:
@@ -1190,5 +1598,6 @@ document.addEventListener('DOMContentLoaded', () => {
       bindEvents();
       showPhase(Phase.INTRO);
       initIntroPreview();
+      handleCaptureDeepLink(); // W2A: open ?capture= deep link
     });
 });
