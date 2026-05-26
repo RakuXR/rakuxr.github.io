@@ -23,7 +23,7 @@ INDEX_CSP = (
     "default-src 'self'; "
     "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
     "style-src 'self' 'unsafe-inline'; "
-    "img-src 'self' data: blob:; "
+    "img-src 'self' data: blob: https://api.qrserver.com; "
     "font-src 'self'; "
     "connect-src 'self' https://raku-api.fly.dev http://localhost:8000 "
     "https://cdn.jsdelivr.net https://cdn.raku.games; "

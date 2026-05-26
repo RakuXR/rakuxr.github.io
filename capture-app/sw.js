@@ -24,6 +24,8 @@ const SHELL_URLS = [
   './help.html',
   './capture_app.js',
   './scale_calibration.js',
+  './capture_history.js',
+  './captures_view.js',
   './i18n.js',
   './locales/en.json',
   './locales/ja.json',

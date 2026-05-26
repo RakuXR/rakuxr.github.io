@@ -65,7 +65,7 @@ rsync -a --delete --exclude README.md --exclude qr-capture-app.svg \
 # ...then apply the same deterministic hosting adaptations.
 python3 "$ADAPT" "$EXPECTED"
 
-if diff -ru "$EXPECTED" "$COMMITTED" > /tmp/capture-app-drift.diff 2>&1; then
+if diff -ru --exclude drift.diff "$EXPECTED" "$COMMITTED" > "$EXPECTED/drift.diff" 2>&1; then
   echo "OK: capture-app/ matches canonical raku-runtime/web/capture/"
   echo "    (verbatim + the declared hosting adaptations)."
   exit 0
@@ -83,6 +83,6 @@ echo "  * a new hosting tweak? -> add it to scripts/capture-app-adaptations.py"
 echo ""
 echo "Drift (- expected/canonical, + committed/mirror):"
 echo "------------------------------------------------------------"
-cat /tmp/capture-app-drift.diff
+cat "$EXPECTED/drift.diff"
 echo "------------------------------------------------------------"
 exit 1
