@@ -1,56 +1,83 @@
 #!/usr/bin/env sh
-# sync-capture-app.sh - re-sync the hosted capture app from its canonical source.
+# sync-capture-app.sh - regenerate the hosted capture app from canonical source.
 #
-# Canonical Raku Capture PWA lives in raku-runtime/web/capture/. The copy
-# under capture-app/ in this repo is a GitHub Pages deployment mirror served
-# at https://rakuai.com/capture-app/. This script refreshes that mirror.
+# SINGLE SOURCE OF TRUTH
+# ----------------------
+# The canonical Raku Capture PWA lives in raku-runtime/web/capture/. The copy
+# under capture-app/ in this repo is the GitHub Pages deployment mirror served
+# at https://rakuai.com/capture-app/.
 #
-# Usage (from the repo root):
-#   scripts/sync-capture-app.sh /path/to/raku-runtime
+# capture-app/ is NOT hand-edited. It is GENERATED:
+#
+#     capture-app/  ==  raku-runtime/web/capture/   (verbatim)
+#                       + deterministic hosting adaptations
+#                         (scripts/capture-app-adaptations.py)
+#                       + two preserved mirror-only files:
+#                         README.md, qr-capture-app.svg
+#
+# Because the adaptations are deterministic, the output is reproducible, and
+# .github/workflows/verify-capture-app-sync.yml re-runs this script in CI and
+# fails the build if the committed capture-app/ differs from the output. That
+# is what makes silent drift impossible: drift == a red build.
+#
+# Pull canonical changes into the mirror:
+#   scripts/sync-capture-app.sh /path/to/raku-runtime   (local checkout)
+#   scripts/sync-capture-app.sh                         (auto-clones canonical)
+# then review the diff and commit.
 set -eu
 
+REPO_ROOT=$(cd "$(dirname "$0")/.." && pwd)
+DEST="$REPO_ROOT/capture-app"
+ADAPT="$REPO_ROOT/scripts/capture-app-adaptations.py"
+
+# --- locate (or fetch) the canonical source -------------------------------
+CLEANUP_CLONE=""
 RT="${1:-}"
 if [ -z "$RT" ]; then
-  echo "usage: scripts/sync-capture-app.sh /path/to/raku-runtime" >&2
-  exit 1
+  RT=$(mktemp -d)
+  CLEANUP_CLONE="$RT"
+  echo "No raku-runtime path given - shallow-cloning canonical source..."
+  GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1 --filter=blob:none \
+    https://github.com/RakuXR/raku-runtime.git "$RT" >/dev/null 2>&1
 fi
 
 SRC="$RT/web/capture"
 if [ ! -d "$SRC" ]; then
   echo "error: $SRC not found - is \$RT a raku-runtime checkout?" >&2
+  [ -n "$CLEANUP_CLONE" ] && rm -rf "$CLEANUP_CLONE"
   exit 1
 fi
 
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-DEST="$SCRIPT_DIR/../capture-app"
-mkdir -p "$DEST"
-
-# Preserve the hosted-copy README - the canonical source has its own
-# prototype-facing README that must not overwrite ours. Guard the copy: on a
-# first run (or if the README was removed) $DEST/README.md may not exist, and
-# an unguarded `cp` would abort the whole script under `set -e`.
+# --- preserve the two mirror-only files -----------------------------------
 TMP_README=""
 if [ -f "$DEST/README.md" ]; then
-  TMP_README=$(mktemp)
-  cp "$DEST/README.md" "$TMP_README"
+  TMP_README=$(mktemp); cp "$DEST/README.md" "$TMP_README"
+fi
+TMP_QR=""
+if [ -f "$DEST/qr-capture-app.svg" ]; then
+  TMP_QR=$(mktemp); cp "$DEST/qr-capture-app.svg" "$TMP_QR"
 fi
 
-# Mirror the canonical source into $DEST. rsync --delete removes files that
-# were deleted upstream so the hosted copy never accumulates stale assets; a
-# plain `cp -R` only ever adds/overwrites. README.md is excluded so the
-# hosted-copy README below is never clobbered or deleted by the mirror.
-if command -v rsync >/dev/null 2>&1; then
-  rsync -a --delete --exclude 'README.md' "$SRC"/ "$DEST"/
-else
-  echo "warning: rsync not found - falling back to cp (stale files not pruned)" >&2
-  cp -R "$SRC"/. "$DEST"/
+# --- mirror canonical verbatim --------------------------------------------
+# rsync --delete prunes files removed upstream so the mirror never keeps stale
+# assets. README.md / qr-capture-app.svg are excluded: they are mirror-only.
+mkdir -p "$DEST"
+if ! command -v rsync >/dev/null 2>&1; then
+  echo "error: rsync is required (cp cannot prune stale files)." >&2
+  [ -n "$CLEANUP_CLONE" ] && rm -rf "$CLEANUP_CLONE"
+  exit 1
 fi
+rsync -a --delete --exclude README.md --exclude qr-capture-app.svg \
+  "$SRC"/ "$DEST"/
 
-# Restore the hosted-copy README if we stashed one above.
-if [ -n "$TMP_README" ]; then
-  cp "$TMP_README" "$DEST/README.md"
-  rm -f "$TMP_README"
-fi
+# --- restore the mirror-only files ----------------------------------------
+if [ -n "$TMP_README" ]; then cp "$TMP_README" "$DEST/README.md"; rm -f "$TMP_README"; fi
+if [ -n "$TMP_QR" ]; then cp "$TMP_QR" "$DEST/qr-capture-app.svg"; rm -f "$TMP_QR"; fi
 
-echo "Synced capture app: $SRC -> $DEST"
+# --- apply the deterministic hosting adaptations --------------------------
+python3 "$ADAPT" "$DEST"
+
+[ -n "$CLEANUP_CLONE" ] && rm -rf "$CLEANUP_CLONE"
+
+echo "Synced + adapted capture app: $SRC -> $DEST"
 echo "Review the diff, then commit."

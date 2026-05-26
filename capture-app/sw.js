@@ -15,7 +15,7 @@
 //
 // Mirrors web/player/sw.js conventions.
 
-const CACHE_VERSION = 'raku-capture-v3';
+const CACHE_VERSION = 'raku-capture-v4';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 
 const SHELL_URLS = [
@@ -23,6 +23,7 @@ const SHELL_URLS = [
   './index.html',
   './help.html',
   './capture_app.js',
+  './scale_calibration.js',
   './i18n.js',
   './locales/en.json',
   './locales/ja.json',
@@ -85,8 +86,8 @@ self.addEventListener('fetch', (event) => {
   // SHELL_NAMES is derived from SHELL_URLS above — matching SHELL_URLS
   // directly fails because './' -> '' and endsWith('') is always true.
   // isRoot must match ONLY the app root ('/capture-app/'), not every
-  // sub-directory (e.g. '/capture-app/locales/'): a bare endsWith('/') test
-  // would wrongly treat those as the shell and apply shell caching to them.
+  // sub-directory (e.g. '/capture-app/locales/'): a bare endsWith('/')
+  // test would wrongly treat those as the shell and shell-cache them.
   const rootPath = new URL('./', self.registration.scope).pathname;
   const isRoot = url.pathname === rootPath;
   const isShell =

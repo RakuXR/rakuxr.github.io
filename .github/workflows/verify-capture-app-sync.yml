@@ -1,0 +1,50 @@
+# Fail the build if the hosted capture-app/ has drifted from its canonical
+# source in raku-runtime/web/capture/.
+#
+# capture-app/ is a GENERATED mirror: canonical web/capture/ verbatim, plus the
+# deterministic hosting adaptations in scripts/capture-app-adaptations.py, plus
+# two preserved mirror-only files (README.md, qr-capture-app.svg).
+# scripts/verify-capture-app.sh regenerates that and diffs it against what is
+# committed; any difference fails this job. So the mirror cannot silently
+# diverge from canonical - drift becomes a red check on the PR.
+name: Verify capture-app sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'capture-app/**'
+      - 'scripts/sync-capture-app.sh'
+      - 'scripts/verify-capture-app.sh'
+      - 'scripts/capture-app-adaptations.py'
+      - '.github/workflows/verify-capture-app-sync.yml'
+  pull_request:
+    paths:
+      - 'capture-app/**'
+      - 'scripts/sync-capture-app.sh'
+      - 'scripts/verify-capture-app.sh'
+      - 'scripts/capture-app-adaptations.py'
+      - '.github/workflows/verify-capture-app-sync.yml'
+  # Manual trigger - useful to catch canonical-side changes that landed in
+  # raku-runtime without a corresponding sync commit here.
+  workflow_dispatch:
+
+jobs:
+  verify-capture-app-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout rakuxr.github.io
+        uses: actions/checkout@v4
+
+      - name: Checkout canonical raku-runtime (capture app only)
+        uses: actions/checkout@v4
+        with:
+          repository: RakuXR/raku-runtime
+          ref: main
+          path: _canonical-raku-runtime
+          sparse-checkout: web/capture
+          sparse-checkout-cone-mode: false
+
+      - name: Verify capture-app/ matches canonical
+        run: |
+          sh scripts/verify-capture-app.sh "$GITHUB_WORKSPACE/_canonical-raku-runtime"
