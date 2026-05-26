@@ -895,13 +895,18 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
     // still draw the inline placeholder so READY stays observable.
     console.warn('[RakuCapture] Spark viewer unavailable, using placeholder:', err);
     let offlineFile = splatUrl.split('/').pop() || splatUrl;
+    // Use the outer-scope metaEl/noteEl (resolved from `targets` at the top
+    // of loadSplatViewer) so the intro preview's detached stand-in nodes
+    // receive the status text instead of bleeding into the capture viewer's
+    // real #viewer-meta / #viewer-note. Fixes a bug where the fallback path
+    // re-queried the page DOM and shadowed the outer bindings.
     if (typeof window !== 'undefined' && window.RakuCdnFallback) {
       const r = window.RakuCdnFallback.renderViewerFallback({
         canvas: canvas,
         splatUrl: splatUrl,
         reason: err,
-        metaEl: $('viewer-meta'),
-        noteEl: $('viewer-note'),
+        metaEl: metaEl,
+        noteEl: noteEl,
         strings: {
           placeholder: t('viewer.placeholderCaption', null,
             'splat preview placeholder'),
@@ -915,14 +920,12 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
     } else {
       // Defensive last resort — the resilience module did not load.
       drawViewerPlaceholder(canvas, splatUrl);
-      const noteEl = $('viewer-note');
       if (noteEl) {
         noteEl.hidden = false;
         noteEl.textContent =
           t('viewer.noteOffline', { file: offlineFile },
             'Spark viewer offline — placeholder for ' + offlineFile);
       }
-      const metaEl = $('viewer-meta');
       if (metaEl) {
         metaEl.textContent =
           t('viewer.metaReadyPlaceholder', null, 'Splat ready (placeholder)');
@@ -1228,6 +1231,13 @@ async function resolveSampleUrl(sample) {
         signal: ctrl.signal,
         cache: 'no-store',
       });
+      // Drain the response body — if the origin ignored the Range header
+      // and replied 200 with the full body (~30 MB for a real splat), this
+      // releases the stream so the browser doesn't continue downloading.
+      // Fire-and-forget: don't await — the cancel is a hint to the browser
+      // and adds no useful latency to the probe. The .catch() swallows
+      // environments where resp.body is absent or not a cancellable stream.
+      resp.body?.cancel().catch(() => { /* best-effort */ });
       if (resp.ok || resp.status === 206) return url;
       console.warn('[RakuCapture] sample URL not reachable (' +
         resp.status + '), trying fallback:', url);
