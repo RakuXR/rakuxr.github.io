@@ -109,7 +109,7 @@ function tRaw(key, fallback) {
 function detectApiBase() {
   const host = window.location.hostname;
   if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8000';
-  return 'https://raku-api.fly.dev';
+  return 'https://api.rakuai.com';
 }
 
 const API_BASE = detectApiBase();

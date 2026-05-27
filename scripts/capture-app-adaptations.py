@@ -17,7 +17,7 @@ VIEWPORT = ('  <meta name="viewport" content="width=device-width, '
             'initial-scale=1.0, viewport-fit=cover">')
 
 # (1) index.html CSP: the public host needs a policy; the Spark/three ES
-# modules load from cdn.jsdelivr.net and the app fetches raku-api.fly.dev.
+# modules load from cdn.jsdelivr.net and the app fetches api.rakuai.com.
 INDEX_CSP = (
     '  <meta http-equiv="Content-Security-Policy" content="'
     "default-src 'self'; "
@@ -25,7 +25,7 @@ INDEX_CSP = (
     "style-src 'self' 'unsafe-inline'; "
     "img-src 'self' data: blob: https://api.qrserver.com; "
     "font-src 'self'; "
-    "connect-src 'self' https://raku-api.fly.dev http://localhost:8000 "
+    "connect-src 'self' https://api.rakuai.com http://localhost:8000 "
     "https://cdn.jsdelivr.net https://cdn.raku.games; "
     "worker-src 'self' blob:; "
     "manifest-src 'self'; "

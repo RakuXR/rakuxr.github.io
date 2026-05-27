@@ -48,7 +48,7 @@ works because every asset reference in the app is **relative** (`./sw.js`,
 - the service worker registers as `./sw.js`, so its scope is `/capture-app/`;
 - `manifest.webmanifest` uses `"start_url": "./"` and `"scope": "./"`, both of
   which resolve to `/capture-app/`;
-- `detectApiBase()` in `capture_app.js` targets `https://raku-api.fly.dev` for
+- `detectApiBase()` in `capture_app.js` targets `https://api.rakuai.com` for
   any non-localhost host, so the hosted app talks to production `raku-api`.
 
 No path rewriting is needed when syncing.
