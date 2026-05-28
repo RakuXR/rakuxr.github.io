@@ -56,18 +56,21 @@
     // trees land.
     var EN_PAGES = [
         '', 'index.html',
-        '404.html', 'ai-systems.html', 'contact.html', 'content-packs.html',
-        'capture.html', 'creator.html', 'dashboard.html', 'developer-guide.html',
-        'discover.html', 'docs.html', 'enterprise.html', 'llm-guide.html',
+        '404.html', 'ai-systems.html', 'capture.html', 'compare.html',
+        'contact.html', 'content-packs.html', 'creator.html',
+        'dashboard.html', 'developer-guide.html', 'discover.html', 'docs.html',
+        'enterprise.html', 'llm-guide.html', 'llm-makers.html', 'mcp.html',
         'my-games.html', 'press.html', 'pricing.html', 'privacy.html',
         'pro-features.html', 'profile.html', 'schema.html', 'sdk.html',
-        'share.html', 'spatial-engine.html', 'templates.html', 'terms.html',
-        'validate.html', 'why-rakuai.html', 'xr-features.html',
-        'developers/', 'developers/index.html', 'developers/dashboard.html',
+        'share.html', 'smart-glasses.html', 'spatial-engine.html',
+        'templates.html', 'terms.html', 'validate.html', 'why-rakuai.html',
+        'xr-features.html',
+        'developers/', 'developers/index.html',
+        'developers/claude-desktop.html', 'developers/dashboard.html',
         'developers/docs.html', 'developers/login.html',
         'developers/register.html', 'developers/sdk.html',
-        'developers/showcase.html', 'developers/status.html',
-        'developers/support.html',
+        'developers/showcase.html', 'developers/signup.html',
+        'developers/status.html', 'developers/support.html',
         'scenarios/', 'scenarios/index.html', 'scenarios/safespace.html',
         'scenarios/timelens.html', 'scenarios/trailquest.html',
         'tutorials/', 'tutorials/index.html', 'tutorials/ai-npc-tutorial.html',
@@ -80,16 +83,20 @@
 
     var JA_PAGES = [
         '', 'index.html',
-        '404.html', 'ai-systems.html', 'capture.html', 'contact.html', 'creator.html',
-        'developer-guide.html', 'discover.html', 'docs.html',
-        'enterprise.html', 'llm-guide.html', 'pricing.html', 'privacy.html',
-        'pro-features.html', 'schema.html', 'sdk.html', 'spatial-engine.html',
-        'templates.html', 'terms.html', 'why-rakuai.html', 'xr-features.html',
+        '404.html', 'ai-systems.html', 'capture.html', 'compare.html',
+        'contact.html', 'content-packs.html', 'creator.html',
+        'dashboard.html', 'developer-guide.html', 'discover.html', 'docs.html',
+        'enterprise.html', 'llm-guide.html', 'llm-makers.html', 'mcp.html',
+        'my-games.html', 'press.html', 'pricing.html', 'privacy.html',
+        'pro-features.html', 'profile.html', 'schema.html', 'sdk.html',
+        'share.html', 'smart-glasses.html', 'spatial-engine.html',
+        'templates.html', 'terms.html', 'validate.html', 'why-rakuai.html',
+        'xr-features.html',
         'developers/', 'developers/index.html', 'developers/dashboard.html',
         'developers/docs.html', 'developers/login.html',
-        'developers/register.html', 'developers/sdk.html',
-        'developers/showcase.html', 'developers/status.html',
-        'developers/support.html'
+        'developers/register.html', 'developers/signup.html',
+        'developers/sdk.html', 'developers/showcase.html',
+        'developers/status.html', 'developers/support.html'
     ];
 
     // Tier-1 page set shared by all seven incoming locale trees
