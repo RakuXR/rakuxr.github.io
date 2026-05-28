@@ -41,7 +41,7 @@ The most user-visible gap is `capture.html` — the new flagship Raku Capture pa
 |---|-------|-------|----------|--------|
 | F1 | `linkedin-cover-space-battle.svg:239` | `DESCRIBE ANY GAME. PLAY IT INSTANTLY.` strapline | HIGH (public LinkedIn cover) | Fixed |
 | F2 | `linkedin-banner-1128x191.svg:40` | `Describe any game. Play it instantly.` strapline | HIGH (public LinkedIn banner) | Fixed |
-| F3 | `branding/linkedin-cover.svg` | Possible duplicate of above | HIGH | Fixed |
+| F3 | `branding/linkedin-cover.svg` | Inspected — not a duplicate of F1/F2; brand-only mark with no overclaim copy | HIGH | Keep |
 | F4 | `index.html:319` | Hidden legacy `<textarea placeholder="Describe your game idea...">` — element is `hidden aria-hidden="true" display:none`, kept alive only because old JS binds to its DOM id (see comment lines 307-313) | MEDIUM (not user-visible but indexable) | Fixed |
 | F5 | `capture.html:607` | `"We are not promising prompt-to-game..."` | NONE (explicit honest disavowal) | Keep |
 | F6 | `pricing.html:13` | og:description `"Create real playable games by describing them to AI."` — survived the May 2 honesty pass because meta tags weren't grepped | MEDIUM | Fixed |
