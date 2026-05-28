@@ -412,14 +412,46 @@
       border-radius: 8px; font-weight: 500; transition: background 0.2s;
     }
     .btn-link:hover { background: rgba(108, 99, 255, 0.1); }
-  </style>
+  
+    /* Auth chrome added by task #172 (sign-in / register). */
+    .header-link, .header-signin {
+      color: var(--text-secondary, #7a7a9a); font-weight: 500;
+      text-decoration: none; padding: 6px 10px; border-radius: 6px;
+      font-size: 0.85rem; transition: background 0.15s, color 0.15s;
+    }
+    .header-link:hover, .header-signin:hover {
+      background: rgba(108,99,255,0.08); color: var(--text, #e8e8f0);
+    }
+    .header-signin {
+      border: 1px solid rgba(108,99,255,0.45); color: var(--accent, #6c63ff);
+    }
+    .intro-auth {
+      margin-top: 20px; padding: 16px; border-top: 1px solid var(--border, #2a2a3a);
+      display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center;
+    }
+    .intro-auth .progress-label { width: 100%; margin: 0 0 4px; }
+    .auth-form { display: flex; flex-direction: column; gap: 14px; max-width: 360px; margin: 16px auto; }
+    .auth-form label { display: flex; flex-direction: column; gap: 6px; text-align: left; font-size: 0.95rem; color: var(--text-secondary, #7a7a9a); }
+    .auth-form input[type="email"], .auth-form input[type="password"] {
+      padding: 10px 12px; border: 1px solid var(--border, #2a2a3a);
+      background: var(--panel-2, #1d1d2a); color: var(--text, #e8e8f0);
+      border-radius: 8px; font-size: 1rem; font-family: inherit;
+    }
+    .auth-form input:focus { outline: 2px solid var(--accent, #6c63ff); outline-offset: 1px; }
+    .auth-form small { color: var(--muted, #7a7a9a); font-size: 0.8rem; }
+    .auth-form .auth-terms { flex-direction: row; align-items: center; gap: 8px; }
+    .auth-form .auth-terms input { width: auto; }
+    .auth-error { color: var(--err, #ff6b6b); font-size: 0.9rem; min-height: 1.2em; margin: -4px 0 0; }
+</style>
 </head>
 
 <body>
   <header>
     <a class="logo-link" href="https://rakuai.com/" data-i18n-attr="aria-label:header.homeAria" aria-label="Back to rakuai.com"><span class="logo">Raku Capture</span></a>
+    <a class="header-link" href="https://rakuai.com/capture.html" data-i18n="header.aboutCapture">About Raku Capture</a>
     <span class="tagline" data-i18n="header.tagline">Scan a room &rarr; explorable 3D</span>
     <span class="proto-badge" data-i18n="header.protoBadge" data-i18n-attr="title:header.protoBadgeTitle" title="Development prototype, not yet wired to a live backend">PROTOTYPE</span>
+    <a class="header-signin" href="#" id="header-signin-link" data-i18n="header.signin">Sign in</a>
     <span class="lang-switcher" data-i18n-switcher></span>
   </header>
 
@@ -447,6 +479,56 @@
       <button class="btn" id="btn-grant-camera" data-i18n="intro.getStarted">Get started</button>
       <button class="btn secondary" id="btn-my-captures" data-i18n="intro.myCaptures">My captures</button>
       <p class="progress-label" data-i18n="intro.cameraNote">Camera access is requested later, when you open the camera.</p>
+      <div class="intro-auth" id="intro-auth">
+        <p class="progress-label" id="auth-state" data-i18n="auth.signedOut">Not signed in — captures stay anonymous (3/day limit).</p>
+        <button class="btn secondary" id="btn-signin" data-i18n="auth.signin">Sign in</button>
+        <button class="btn secondary" id="btn-register" data-i18n="auth.register">Create account</button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-signin" hidden>
+      <h2 data-i18n="signin.heading">Sign in to Raku</h2>
+      <p class="lead" data-i18n="signin.lead">Sign in to keep your captures safe + get higher daily limits (Free: 10/day, Pro Beta: 100/day).</p>
+      <form class="auth-form" id="signin-form" autocomplete="on" onsubmit="return false;">
+        <label data-i18n="signin.emailLabel">Email
+          <input type="email" id="signin-email" autocomplete="email" required>
+        </label>
+        <label data-i18n="signin.passwordLabel">Password
+          <input type="password" id="signin-password" autocomplete="current-password" required minlength="6">
+        </label>
+        <p class="auth-error" id="signin-error" hidden></p>
+        <button class="btn" id="btn-signin-submit" data-i18n="signin.submit">Sign in</button>
+      </form>
+      <p>
+        <a href="#" id="link-go-register" data-i18n="signin.toRegister">No account yet? Create one</a>
+        &middot;
+        <a href="#" id="link-back-to-intro" data-i18n="signin.cancel">Cancel</a>
+      </p>
+    </section>
+
+    <section class="screen" id="screen-register" hidden>
+      <h2 data-i18n="register.heading">Create your account</h2>
+      <p class="lead" data-i18n="register.lead">Free tier: 10 captures/day. No card required. Email + password only.</p>
+      <form class="auth-form" id="register-form" autocomplete="on" onsubmit="return false;">
+        <label data-i18n="register.emailLabel">Email
+          <input type="email" id="register-email" autocomplete="email" required>
+        </label>
+        <label data-i18n="register.passwordLabel">Password
+          <input type="password" id="register-password" autocomplete="new-password" required minlength="8">
+          <small data-i18n="register.passwordHint">Minimum 8 characters.</small>
+        </label>
+        <label class="auth-terms">
+          <input type="checkbox" id="register-terms" required>
+          <span data-i18n="register.terms">I agree to the <a href="https://rakuai.com/terms.html" target="_blank">terms</a> and <a href="https://rakuai.com/privacy.html" target="_blank">privacy policy</a>.</span>
+        </label>
+        <p class="auth-error" id="register-error" hidden></p>
+        <button class="btn" id="btn-register-submit" data-i18n="register.submit">Create account</button>
+      </form>
+      <p>
+        <a href="#" id="link-go-signin" data-i18n="register.toSignin">Already have an account? Sign in</a>
+        &middot;
+        <a href="#" id="link-register-back" data-i18n="register.cancel">Cancel</a>
+      </p>
     </section>
 
     <!-- PHASE: guided capture (live camera) ---------------------------------- -->
