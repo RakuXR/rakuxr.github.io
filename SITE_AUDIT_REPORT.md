@@ -44,6 +44,7 @@ The most user-visible gap is `capture.html` — the new flagship Raku Capture pa
 | F3 | `branding/linkedin-cover.svg` | Possible duplicate of above | HIGH | Fixed |
 | F4 | `index.html:319` | Hidden legacy `<textarea placeholder="Describe your game idea...">` — element is `hidden aria-hidden="true" display:none`, kept alive only because old JS binds to its DOM id (see comment lines 307-313) | MEDIUM (not user-visible but indexable) | Fixed |
 | F5 | `capture.html:607` | `"We are not promising prompt-to-game..."` | NONE (explicit honest disavowal) | Keep |
+| F6 | `pricing.html:13` | og:description `"Create real playable games by describing them to AI."` — survived the May 2 honesty pass because meta tags weren't grepped | MEDIUM | Fixed |
 
 The hero `<h1>` on `index.html` is `"Supercharge your AI in the real world."` — clean. No `"Try It in 60 Seconds"`, no `"in 60 seconds"`, no `"no coding required"`, no `"anyone can create"`, no `"complete executable"`, no `"first try"`, no LLM-quoted endorsements remain anywhere site-wide.
 
@@ -181,4 +182,14 @@ No items. The DNS NXDOMAIN that breaks signup/login flows is a backend issue and
 6. **F4 hidden legacy placeholder** — sanitized `placeholder="Describe your game idea..."` on the hidden, non-user-visible textarea in `index.html`. (Element still kept as a JS-binding stub per the existing comment; placeholder copy is now neutral.)
 
 ### Phase 4 — Low
-No items in the autonomous scope. Anything that would qualify (typography, spacing, alt-text polish) wasn't surfaced as an issue by the static audit, and live-browser verification is out of scope.
+1. **og:image meta missing on 22 EN root pages + 22 JA root pages** — every page that has `og:title` now also has the canonical `og-default.png` (1200x630, the neon hero) so LinkedIn / Twitter / Slack / Facebook share previews render an image instead of falling back blank. Pages without `og:title` (`404.html`, `dashboard.html`) left alone — they're app-shells, not share targets.
+2. **F6 `pricing.html:13` og:description** — replaced the deprecated `"Create real playable games by describing them to AI."` overclaim (caught only at audit-report-time when reviewing the new og:image diff — meta tags weren't in the May 2 honesty grep set) with a claim-neutral pricing-focused description.
+
+### Follow-ups for separate PRs (out of audit scope)
+
+- Translate `capture.html` into de/es/fr/ko/pt-BR/zh-CN/zh-TW so the nav/footer entries in those locales stop 404-ing.
+- Standardize the beta-announcement-bar copy site-wide once Kevin picks the canonical variant (recommend Universal Runtime for World Models).
+- Improve the network-error UX on signup/admin pages so a backend outage shows "service temporarily unavailable" instead of "Network error. Check your connection."
+- Reconcile the developer Free/Creative/Pro pricing claims (`developers/index.html` lines 421-470) with what the backend actually enforces.
+- Add `og:image` to the other 6 locale trees (de/es/fr/ko/pt-BR/zh-CN/zh-TW) the same way — straight scope mirror of the EN+JA pass in this PR.
+- Add `<link rel="canonical">` to the small set of pages missing it (`creator.html`, `dashboard.html`, `discover.html`, `profile.html`, `404.html`).
