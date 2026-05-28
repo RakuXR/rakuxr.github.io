@@ -402,12 +402,22 @@
     }
     #intro-preview-canvas:active { cursor: grabbing; }
     .intro-preview-caption { font-size: 12px; color: var(--muted); }
+    /* Navigation helpers (added by task #154). */
+    .logo-link { text-decoration: none; color: inherit; cursor: pointer; }
+    .logo-link:focus-visible { outline: 2px solid var(--accent, #6c63ff); outline-offset: 2px; border-radius: 4px; }
+    .btn-link {
+      display: inline-block; margin-top: 12px; padding: 10px 16px;
+      background: transparent; color: var(--accent, #6c63ff);
+      text-decoration: none; border: 1px solid var(--accent, #6c63ff);
+      border-radius: 8px; font-weight: 500; transition: background 0.2s;
+    }
+    .btn-link:hover { background: rgba(108, 99, 255, 0.1); }
   </style>
 </head>
 
 <body>
   <header>
-    <span class="logo">Raku Capture</span>
+    <a class="logo-link" href="https://rakuai.com/" data-i18n-attr="aria-label:header.homeAria" aria-label="Back to rakuai.com"><span class="logo">Raku Capture</span></a>
     <span class="tagline" data-i18n="header.tagline">Scan a room &rarr; explorable 3D</span>
     <span class="proto-badge" data-i18n="header.protoBadge" data-i18n-attr="title:header.protoBadgeTitle" title="Development prototype, not yet wired to a live backend">PROTOTYPE</span>
     <span class="lang-switcher" data-i18n-switcher></span>
@@ -517,6 +527,7 @@
            live upload %). No data-i18n: the app sets it via t() and
            re-renders it on locale change. -->
       <p class="progress-label" id="upload-label">Preparing&hellip;</p>
+      <button class="btn secondary" id="btn-cancel-uploading" data-i18n="uploading.cancel">Cancel upload</button>
     </section>
 
     <!-- PHASE: analyzing -> reconstructing ----------------------------------- -->
@@ -556,6 +567,7 @@
            sets it via t() and re-renders the current error on locale change. -->
       <div class="error-box" id="error-message">Something went wrong.</div>
       <button class="btn secondary" id="btn-retry" data-i18n="error.title">Try again</button>
+      <a class="btn-link" id="btn-exit-error" href="/capture-app/" data-i18n="error.backHome">Back to start</a>
     </section>
   </main>
 
