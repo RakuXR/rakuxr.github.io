@@ -755,6 +755,7 @@ function uploadCapture(frames, onProgress) {
       'meta',
       JSON.stringify({
         device: navigator.userAgent,
+        compute_backend: _getComputeBackend(),
         // frameCount reports every part appended to the `frames` field —
         // room frames PLUS the scale-reference frames — so it matches what
         // the backend actually receives. roomFrameCount / scaleReference
@@ -1920,4 +1921,61 @@ function _bindAuth() {
 if (typeof bindEvents === 'function') {
   const _origBindEvents = bindEvents;
   bindEvents = function() { _origBindEvents.apply(this, arguments); _bindAuth(); };
+}
+
+
+// ============================================================================
+// Phone vs Cloud compute backend toggle (task #174)
+// ============================================================================
+// User picks "cloud" (default) or "phone" (experimental WebGPU). The choice
+// is persisted to localStorage so we don't ask every visit, and appended to
+// the upload meta as `compute_backend` so the server can route appropriately
+// when the GPU lane lands. WebGPU is feature-detected — if absent, the
+// "phone" option is disabled and a fallback note is surfaced.
+
+const _COMPUTE_KEY = 'raku.compute_backend';
+
+function _hasWebGPU() {
+  try { return typeof navigator !== 'undefined' && 'gpu' in navigator; }
+  catch (e) { return false; }
+}
+
+function _getComputeBackend() {
+  try {
+    const v = localStorage.getItem(_COMPUTE_KEY);
+    if (v === 'phone' || v === 'cloud') return v;
+  } catch (e) { /* ignore */ }
+  return 'cloud';  // default
+}
+
+function _setComputeBackend(v) {
+  try { localStorage.setItem(_COMPUTE_KEY, v); } catch (e) { /* ignore */ }
+}
+
+function _bindComputeToggle() {
+  const toggle = document.getElementById('compute-toggle');
+  if (!toggle) return;
+  const radios = toggle.querySelectorAll('input[name="compute_backend"]');
+  const phoneRadio = toggle.querySelector('input[value="phone"]');
+  const fallbackNote = document.getElementById('compute-fallback-note');
+  const initial = _getComputeBackend();
+  // Hard-disable the phone option when WebGPU is missing.
+  if (!_hasWebGPU() && phoneRadio) {
+    phoneRadio.disabled = true;
+    if (fallbackNote) fallbackNote.hidden = false;
+    if (initial === 'phone') _setComputeBackend('cloud');
+  }
+  // Apply the saved choice + listen for changes.
+  for (const r of radios) {
+    r.checked = (r.value === _getComputeBackend());
+    r.addEventListener('change', () => {
+      if (r.checked) _setComputeBackend(r.value);
+    });
+  }
+}
+
+// Hook into bindEvents so the toggle lights up alongside the rest.
+if (typeof bindEvents === 'function') {
+  const _origBindEventsCompute = bindEvents;
+  bindEvents = function() { _origBindEventsCompute.apply(this, arguments); _bindComputeToggle(); };
 }
