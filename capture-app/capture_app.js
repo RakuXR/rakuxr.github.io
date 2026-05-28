@@ -644,24 +644,69 @@ function updateCoverage(coverage) {
 /**
  * Read a stored access token from localStorage if the user is signed in.
  *
- * The sign-in surface (Phase I15) stores the JWT under one of a few
- * candidate keys; this helper tolerates either name so a future rename
- * does not silently regress to anonymous uploads. Returns null when not
- * signed in or when localStorage is unavailable (private mode); the
- * caller treats null as anonymous and accepts the lower rate-limit tier.
+ * The PWA can be reached from accounts created on rakuai.com (which uses
+ * ``raku_access_token`` as the canonical key) or from Phase I5b's in-app
+ * sign-in surface (which may use a Raku-Capture-specific key, named in
+ * task #145). This helper checks both so a future rename does not silently
+ * regress to anonymous uploads. ``raku_access_token`` is preferred since
+ * it's the site-wide standard (js/auth-nav.js, js/upgrade-flow.js, etc.).
+ *
+ * Returns null when not signed in or when localStorage is unavailable
+ * (private mode); the caller treats null as anonymous and accepts the
+ * lower rate-limit tier.
  *
  * Why we read this BEFORE the upload XHR: /api/v1/capture is rate-limited
  * per-tier (anonymous 3/day, free 10/day, pro 100/day). Without this
  * header, every authenticated user falls into the anonymous bucket and
  * trips the cap during normal use.
+ *
+ * Expired-token guard: an old logged-out JWT lingering under one of the
+ * candidate keys would otherwise be sent and rejected with 401 by the
+ * backend, blocking the upload entirely. We parse the JWT payload and
+ * skip any token whose ``exp`` claim is in the past, so the caller falls
+ * back to anonymous (and gets a working — if rate-limited — flow).
  */
+function _isJwtExpired(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;  // not a JWT shape; let server decide
+    let payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (payload.length % 4) payload += '=';
+    const decoded = JSON.parse(atob(payload));
+    if (decoded && typeof decoded.exp === 'number') {
+      // Treat anything within 30s of expiry as already expired so we don't
+      // race a request to the wire and get a 401 for a token that lapsed
+      // between the check and the fetch.
+      return Date.now() >= (decoded.exp * 1000) - 30_000;
+    }
+  } catch (e) {
+    // Opaque token / corrupted base64 — let the server decide rather than
+    // discarding a token that might be valid.
+  }
+  return false;
+}
+
 function _getAuthToken() {
   try {
     if (typeof localStorage === 'undefined') return null;
-    const keys = ['rakuai_jwt', 'rakuai_access_token', 'raku_jwt', 'rakuCaptureJwt'];
+    // raku_access_token is the site-wide canonical key (rakuai.com login).
+    // The other keys are alternatives the Phase I5b / I15 sign-in surface
+    // may use; they exist as forward-compat hooks.
+    const keys = [
+      'raku_access_token',
+      'raku_auth_token',
+      'rakuai_jwt',
+      'rakuai_access_token',
+      'raku_jwt',
+      'rakuCaptureJwt',
+    ];
     for (const k of keys) {
       const v = localStorage.getItem(k);
-      if (v && v.length > 16) return v.trim();
+      if (v && v.length > 16) {
+        const token = v.trim();
+        if (_isJwtExpired(token)) continue;  // try the next candidate key
+        return token;
+      }
     }
   } catch (e) {
     // localStorage blocked (Safari private mode etc.) - treat as anonymous.
