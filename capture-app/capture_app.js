@@ -1792,3 +1792,132 @@ document.addEventListener('DOMContentLoaded', () => {
       handleCaptureDeepLink(); // W2A: open ?capture= deep link
     });
 });
+
+
+// ============================================================================
+// Auth wiring (task #172) — sign-in + create account
+// ============================================================================
+
+const API_BASE_FOR_AUTH = (window.RAKU_API_BASE || 'https://api.rakuai.com');
+
+function _setAuthToken(token) {
+  try { localStorage.setItem('raku_access_token', token); } catch (e) { /* ignore */ }
+  applyAuthState();
+}
+
+function _clearAuthToken() {
+  try { localStorage.removeItem('raku_access_token'); } catch (e) { /* ignore */ }
+  applyAuthState();
+}
+
+function _parseJwt(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    let p = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (p.length % 4) p += '=';
+    return JSON.parse(atob(p));
+  } catch (e) { return null; }
+}
+
+function applyAuthState() {
+  const t = _getAuthToken();
+  const signedOut = $('auth-state');
+  const signinBtn = $('btn-signin');
+  const registerBtn = $('btn-register');
+  const headerLink = $('header-signin-link');
+  if (!signedOut) return;
+  if (t) {
+    const payload = _parseJwt(t);
+    const who = payload && (payload.email || payload.sub) || 'signed in';
+    signedOut.textContent = t === null ? '' : (window.RakuI18n
+      ? window.RakuI18n.t('auth.signedInAs', { who }, 'Signed in as ' + who + '.')
+      : 'Signed in as ' + who + '.');
+    if (signinBtn) { signinBtn.textContent = window.RakuI18n ? window.RakuI18n.t('auth.signout', null, 'Sign out') : 'Sign out'; signinBtn.dataset.action = 'signout'; }
+    if (registerBtn) registerBtn.style.display = 'none';
+    if (headerLink) headerLink.textContent = window.RakuI18n ? window.RakuI18n.t('header.signout', null, 'Sign out') : 'Sign out';
+  } else {
+    signedOut.textContent = window.RakuI18n
+      ? window.RakuI18n.t('auth.signedOut', null, 'Not signed in - captures stay anonymous (3/day limit).')
+      : 'Not signed in - captures stay anonymous (3/day limit).';
+    if (signinBtn) { signinBtn.textContent = window.RakuI18n ? window.RakuI18n.t('auth.signin', null, 'Sign in') : 'Sign in'; signinBtn.dataset.action = 'signin'; }
+    if (registerBtn) registerBtn.style.display = '';
+    if (headerLink) headerLink.textContent = window.RakuI18n ? window.RakuI18n.t('header.signin', null, 'Sign in') : 'Sign in';
+  }
+}
+
+async function _postAuth(path, payload) {
+  const res = await fetch(`${API_BASE_FOR_AUTH}/api/v1/auth/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    throw new Error(d.detail || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+function _bindAuth() {
+  const signinBtn = $('btn-signin');
+  const registerBtn = $('btn-register');
+  const headerLink = $('header-signin-link');
+  if (signinBtn) signinBtn.addEventListener('click', () => {
+    if (signinBtn.dataset.action === 'signout') { _clearAuthToken(); return; }
+    showPhase(Phase.SIGNIN);
+  });
+  if (registerBtn) registerBtn.addEventListener('click', () => showPhase(Phase.REGISTER));
+  if (headerLink) headerLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (_getAuthToken()) _clearAuthToken();
+    else showPhase(Phase.SIGNIN);
+  });
+  const linkGoReg = $('link-go-register');
+  const linkBack1 = $('link-back-to-intro');
+  const linkGoSign = $('link-go-signin');
+  const linkBack2 = $('link-register-back');
+  if (linkGoReg) linkGoReg.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.REGISTER); });
+  if (linkBack1) linkBack1.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.INTRO); });
+  if (linkGoSign) linkGoSign.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.SIGNIN); });
+  if (linkBack2) linkBack2.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.INTRO); });
+
+  const sf = $('signin-form');
+  if (sf) sf.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = $('signin-error');
+    if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+    try {
+      const email = $('signin-email').value.trim();
+      const password = $('signin-password').value;
+      const result = await _postAuth('login', { email, password });
+      if (result.access_token) { _setAuthToken(result.access_token); showPhase(Phase.INTRO); }
+    } catch (err) {
+      if (errEl) { errEl.hidden = false; errEl.textContent = err.message || 'Sign-in failed.'; }
+    }
+  });
+  const rf = $('register-form');
+  if (rf) rf.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = $('register-error');
+    if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+    try {
+      const email = $('register-email').value.trim();
+      const password = $('register-password').value;
+      const terms = $('register-terms').checked;
+      if (!terms) throw new Error('Please accept the terms.');
+      const result = await _postAuth('register', { email, password });
+      if (result.access_token) { _setAuthToken(result.access_token); showPhase(Phase.INTRO); }
+    } catch (err) {
+      if (errEl) { errEl.hidden = false; errEl.textContent = err.message || 'Registration failed.'; }
+    }
+  });
+
+  applyAuthState();
+}
+
+// Hook into the existing init path — bind auth alongside the other event wiring.
+if (typeof bindEvents === 'function') {
+  const _origBindEvents = bindEvents;
+  bindEvents = function() { _origBindEvents.apply(this, arguments); _bindAuth(); };
+}
