@@ -818,8 +818,14 @@ function uploadCapture(frames, onProgress) {
  */
 async function pollReconstruction(captureId, onProgress, shouldAbort) {
   const POLL_MS = 2000;
-  const MAX_MS = 10 * 60 * 1000;
+  // CPU SfM on big scenes can legitimately take 20+ min. Set the ceiling at
+  // 30 min so the client doesn't kill a job that is still making progress.
+  // The server enforces its own job timeout; this is just the client patience.
+  const MAX_MS = 30 * 60 * 1000;
   const MAX_CONSECUTIVE_FAILURES = 5;
+  // After 10 min, surface a "still working" hint via the progress label so
+  // the user knows the long wait is expected, not a hang.
+  const SLOW_HINT_MS = 10 * 60 * 1000;
   const started = performance.now();
   let consecutiveFailures = 0;
 
@@ -858,6 +864,10 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
       }
       // queued | analyzing | reconstructing
       const stage = job.status === 'queued' ? 'analyzing' : job.status;
+      const elapsed = performance.now() - started;
+      // The slow-hint message is set on state so the label renderer can pick
+      // it up; the server's job is fine, we just want the user to know.
+      state.procSlowHint = elapsed > SLOW_HINT_MS;
       if (onProgress) onProgress(stage, job.progress || 0);
     } else if (gone || consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
       throw new Error(t('error.reconstructionLostContact', null,
@@ -1456,12 +1466,22 @@ function applyUploadLabel() {
   if (state.uploadPct == null) {
     el.textContent = t('uploading.preparing', null, 'Preparing…');
   } else {
-    const pct = Math.round(state.uploadPct * 100);
+    const pct = (state.uploadPct * 100).toFixed(1);
     el.textContent = t('uploading.progress', { pct: pct }, 'Uploading ' + pct + '%');
   }
 }
 
 /** PROCESSING — stage-specific title + label, or the default copy pre-stage. */
+function _appendSlowHint(text) {
+  if (state.procSlowHint) {
+    const hint = window.RakuI18n ? window.RakuI18n.t('processing.slowHint', null,
+      'Still working — slow scenes can take 20+ minutes. We will not give up while the server is making progress.')
+      : 'Still working — slow scenes can take 20+ minutes. We will not give up while the server is making progress.';
+    return text + '\n' + hint;
+  }
+  return text;
+}
+
 function applyProcessingLabels() {
   const titleEl = $('processing-title');
   const labelEl = $('processing-label');
@@ -1483,7 +1503,7 @@ function applyProcessingLabels() {
       labelEl.textContent =
         t('processing.labelDefault', null, 'This usually takes a minute or two…');
     } else {
-      const pct = Math.round((state.procPct || 0) * 100);
+      const pct = ((state.procPct || 0) * 100).toFixed(1);
       const labelKey = stage === 'reconstructing'
         ? 'processing.labelReconstructing'
         : 'processing.labelAnalyzing';
