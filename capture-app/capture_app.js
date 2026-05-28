@@ -642,6 +642,34 @@ function updateCoverage(coverage) {
 // ============================================================================
 
 /**
+ * Read a stored access token from localStorage if the user is signed in.
+ *
+ * The sign-in surface (Phase I15) stores the JWT under one of a few
+ * candidate keys; this helper tolerates either name so a future rename
+ * does not silently regress to anonymous uploads. Returns null when not
+ * signed in or when localStorage is unavailable (private mode); the
+ * caller treats null as anonymous and accepts the lower rate-limit tier.
+ *
+ * Why we read this BEFORE the upload XHR: /api/v1/capture is rate-limited
+ * per-tier (anonymous 3/day, free 10/day, pro 100/day). Without this
+ * header, every authenticated user falls into the anonymous bucket and
+ * trips the cap during normal use.
+ */
+function _getAuthToken() {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const keys = ['rakuai_jwt', 'rakuai_access_token', 'raku_jwt', 'rakuCaptureJwt'];
+    for (const k of keys) {
+      const v = localStorage.getItem(k);
+      if (v && v.length > 16) return v.trim();
+    }
+  } catch (e) {
+    // localStorage blocked (Safari private mode etc.) - treat as anonymous.
+  }
+  return null;
+}
+
+/**
  * Upload captured keyframes to the reconstruction service.
  *
  * @param {Blob[]} frames captured JPEG keyframes
@@ -696,6 +724,14 @@ function uploadCapture(frames, onProgress) {
     // XHR (not fetch) so the progress bar reflects real upload progress.
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_BASE}/api/v1/capture`);
+    // Authenticated users get the free/pro tier rate-limit bucket;
+    // anonymous users keep falling under the 3/day cap. The header is
+    // simply omitted when no token is stored so existing anonymous
+    // capture flows still work unchanged.
+    const _authToken = _getAuthToken();
+    if (_authToken) {
+      xhr.setRequestHeader('Authorization', `Bearer ${_authToken}`);
+    }
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
     };
