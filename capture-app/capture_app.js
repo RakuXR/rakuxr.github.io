@@ -1663,6 +1663,14 @@ function bindEvents() {
     runPipeline();
   });
 
+  $('btn-cancel-uploading').addEventListener('click', () => {
+    // While the multipart upload is in flight there is no captureId yet
+    // (the server hands it back on the 202). Aborting on the client side
+    // means we just bump the run token so the upload promise's resolve
+    // becomes a no-op and tear down the UI back to the intro screen.
+    resetRun();
+    showPhase(Phase.INTRO);
+  });
   $('btn-cancel-processing').addEventListener('click', () => {
     cancelReconstruction(state.captureId);
     resetRun(); // abandon the in-flight pipeline so it cannot reappear
