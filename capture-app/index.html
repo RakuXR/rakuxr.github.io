@@ -442,6 +442,39 @@
     .auth-form .auth-terms { flex-direction: row; align-items: center; gap: 8px; }
     .auth-form .auth-terms input { width: auto; }
     .auth-error { color: var(--err, #ff6b6b); font-size: 0.9rem; min-height: 1.2em; margin: -4px 0 0; }
+
+    /* Phone vs Cloud toggle (task #174). */
+    .compute-toggle {
+      margin: 20px auto 8px; padding: 14px; max-width: 380px;
+      border: 1px solid var(--border, #2a2a3a); border-radius: 12px;
+      display: flex; flex-direction: column; gap: 10px; text-align: left;
+    }
+    .compute-toggle legend {
+      padding: 0 8px; font-size: 0.95rem; font-weight: 600;
+      color: var(--text, #e8e8f0);
+    }
+    .compute-option {
+      display: flex; align-items: flex-start; gap: 10px; padding: 10px;
+      border: 1px solid transparent; border-radius: 8px; cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .compute-option:hover { background: rgba(108,99,255,0.05); }
+    .compute-option input[type="radio"] { margin-top: 3px; }
+    .compute-option:has(input:checked) {
+      background: rgba(108,99,255,0.08); border-color: rgba(108,99,255,0.45);
+    }
+    .compute-radio-label {
+      display: flex; flex-direction: column; gap: 4px;
+      font-size: 0.9rem;
+    }
+    .compute-radio-label strong { color: var(--text, #e8e8f0); }
+    .compute-radio-label small { color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; line-height: 1.45; }
+    .compute-option-phone:has(input:disabled) { opacity: 0.6; cursor: not-allowed; }
+    .compute-fallback-note {
+      margin: 4px 0 0; padding: 8px 10px; border-radius: 6px;
+      background: rgba(240,180,41,0.08); color: var(--warn, #f0b429);
+      font-size: 0.85rem;
+    }
 </style>
 </head>
 
@@ -479,6 +512,27 @@
       <button class="btn" id="btn-grant-camera" data-i18n="intro.getStarted">Get started</button>
       <button class="btn secondary" id="btn-my-captures" data-i18n="intro.myCaptures">My captures</button>
       <p class="progress-label" data-i18n="intro.cameraNote">Camera access is requested later, when you open the camera.</p>
+
+      <!-- Phone vs Cloud reconstruction toggle (task #174) -->
+      <fieldset class="compute-toggle" id="compute-toggle" aria-describedby="compute-toggle-hint">
+        <legend data-i18n="compute.title">Where do you want to process this?</legend>
+        <label class="compute-option compute-option-cloud">
+          <input type="radio" name="compute_backend" value="cloud" checked>
+          <span class="compute-radio-label">
+            <strong data-i18n="compute.cloud.title">Cloud (recommended)</strong>
+            <small data-i18n="compute.cloud.desc">We reconstruct on our servers. Works on any device. Takes ~2-20 minutes depending on the scene.</small>
+          </span>
+        </label>
+        <label class="compute-option compute-option-phone">
+          <input type="radio" name="compute_backend" value="phone">
+          <span class="compute-radio-label">
+            <strong data-i18n="compute.phone.title">Phone GPU (experimental)</strong>
+            <small data-i18n="compute.phone.desc">For testing: reconstruct on this device. Unless you have a high-end smartphone (iPhone 15 Pro+, Pixel 8 Pro+, Galaxy S24 Ultra+), select Cloud — phone GPU is currently in beta and slow on older devices.</small>
+          </span>
+        </label>
+        <p class="compute-fallback-note" id="compute-fallback-note" hidden data-i18n="compute.fallback">Your browser doesn't support WebGPU yet. Falling back to Cloud automatically.</p>
+      </fieldset>
+
       <div class="intro-auth" id="intro-auth">
         <p class="progress-label" id="auth-state" data-i18n="auth.signedOut">Not signed in — captures stay anonymous (3/day limit).</p>
         <button class="btn secondary" id="btn-signin" data-i18n="auth.signin">Sign in</button>
