@@ -22,6 +22,31 @@ Run from the repo root:
     python3 scripts/inject-footer-recognition.py            # dry-run
     python3 scripts/inject-footer-recognition.py --write    # actually edit
 """
+
+# ===========================================================================
+# DRAFT (DO NOT ENABLE YET): "Powered by AWS" footer strip.
+# Gated on AWS Activate credits landing + AWS account "in good standing"
+# (AWS Trademark Guidelines 3(a)). See branding/aws/README.md. When ready,
+# add a sibling injector mirroring the nv-inception block below, inserting:
+#
+#   <!-- powered-by-aws:start -->
+#   <div class="footer-recognition footer-aws"
+#        style="display:flex; align-items:center; justify-content:center;
+#               margin:12px 0 8px; opacity:0.9;">
+#     <a href="https://aws.amazon.com/what-is-cloud-computing/"
+#        aria-label="Powered by AWS" style="line-height:0;">
+#       <img src="{src}" alt="Powered by AWS"  # {src} = badge_src(rel_path), NOT root-relative
+#            width="120" height="43"
+#            style="height:34px; width:auto; display:block;">
+#     </a>
+#   </div>
+#   <!-- powered-by-aws:end -->
+#
+# Rules: white variant on the dark footer; light variant
+# (/branding/aws/powered-by-aws.png) for light backgrounds; never combine with
+# the RakuAI mark; keep it no larger/more prominent than RakuAI branding;
+# preserve clear space (= height of the lowercase "a"). Not for China pages.
+# ===========================================================================
 import os
 import re
 import sys
