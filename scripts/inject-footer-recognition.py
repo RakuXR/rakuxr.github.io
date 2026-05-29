@@ -35,7 +35,7 @@ Run from the repo root:
 #               margin:12px 0 8px; opacity:0.9;">
 #     <a href="https://aws.amazon.com/what-is-cloud-computing/"
 #        aria-label="Powered by AWS" style="line-height:0;">
-#       <img src="/branding/aws/powered-by-aws-white.png" alt="Powered by AWS"
+#       <img src="{src}" alt="Powered by AWS"  # {src} = badge_src(rel_path), NOT root-relative
 #            width="120" height="43"
 #            style="height:34px; width:auto; display:block;">
 #     </a>
