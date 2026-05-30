@@ -671,7 +671,7 @@
         <div class="sg-mcp-arch">
         <svg viewBox="0 0 1040 420" width="100%" style="max-width:1040px; height:auto; display:block;" role="img" aria-labelledby="sgmcp-title sgmcp-desc" xmlns="http://www.w3.org/2000/svg">
             <title id="sgmcp-title">MCP-from-glasses architecture diagram</title>
-            <desc id="sgmcp-desc">An LLM on the glasses sends an MCP request through the installable PWA to the RakuAI runtime; the runtime exposes six core MCP tools plus six xr_ adapter tools, performs spatial reasoning over the captured scene, and returns a structured answer the assistant speaks back in the glasses.</desc>
+            <desc id="sgmcp-desc">An LLM on the glasses sends an MCP request through the installable PWA to the RakuAI runtime; the runtime exposes 17 native MCP tools (5 read-only + 12 mutation) on the production server, of which ~12 are glasses-relevant (6 core capture/scene plus 6 xr_ adapter tools), performs spatial reasoning over the captured scene, and returns a structured answer the assistant speaks back in the glasses.</desc>
             <defs>
                 <linearGradient id="sgmcp-grad" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0" stop-color="#6c5ce7"/>
@@ -724,7 +724,7 @@
             <!-- Column 3: MCP surface -->
             <rect x="550" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
             <text x="660" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">RakuAI MCP</text>
-            <text x="660" y="110" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">6 core + 6 xr_ adapter tools</text>
+            <text x="660" y="110" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">6 core + 6 xr_ adapter tools (of 17 native)</text>
             <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="11.5">
                 <text x="572" y="138">&middot; capture_create</text>
                 <text x="572" y="156">&middot; capture_status</text>
@@ -775,7 +775,7 @@
         </div>
 
         <p class="sg-mcp-note">
-            Both halves are real and shipping. The 6 core MCP tools are <a href="mcp.html" style="color: var(--accent-bright);">documented on the MCP page</a>; the 6 <code>xr_</code> adapter tools are session, head-pose, input, and anchor primitives for glasses-driven flows. The hosted MCP runs on Azure Container Apps in East US.
+            Both halves are real and shipping. The production MCP server exposes <strong>17 native tools</strong> (5 read-only + 12 mutation) &mdash; see <a href="engine.html" style="color: var(--accent-bright);">engine.html</a> for the full inventory. The ~12 glasses-relevant ones are split as: 6 core capture/scene tools (<a href="mcp.html" style="color: var(--accent-bright);">documented on the MCP page</a>), and 6 <code>xr_</code> adapter tools (session, head-pose, input, and anchor primitives for glasses-driven flows). The hosted MCP runs on Azure Container Apps in East US.
         </p>
     </div>
 </section>
@@ -795,7 +795,7 @@
                 <ul>
                     <li>Installable PWA at <code>rakuai.com/capture-app/</code></li>
                     <li>Capture &rarr; cloud reconstruction (GLOMAP + Brush, .spz output)</li>
-                    <li>6 core MCP tools live for Claude, ChatGPT, Gemini, Copilot</li>
+                    <li>17 native MCP tools live for Claude, ChatGPT, Gemini, Copilot (6 core capture/scene + 6 xr_ adapters glasses-relevant)</li>
                     <li>6 <code>xr_</code> adapter tools (session, head-pose, input, anchors)</li>
                     <li>Spatial query layer over reconstructed scenes</li>
                     <li>Multi-tenant accounts, JWT auth, hosted MCP on Azure</li>
