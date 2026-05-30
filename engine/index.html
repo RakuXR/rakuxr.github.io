@@ -3,68 +3,174 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RakuAI Engine Dashboard — 18 DLLs, 10,328 Functions, 9,500+ Endpoints</title>
+<title>RakuAI Engine — 18 DLLs, 30,738 Native Exports, MCP-Native C++ Spatial Runtime</title>
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-<meta name="description" content="Explore the RakuAI spatial game engine: 18 native DLLs, 10,328 engine functions, 9,500+ REST endpoints covering physics, rendering, XR, AI, and more.">
+<meta name="description" content="The RakuAI engine: 18 native DLLs, 30,738 C++ exports, an MCP server with 17 native tools plus universal api_call / engine_call passthrough to ~9,500 REST endpoints. CI-green on Windows, Linux, and macOS. Multi-vendor LLM ready — bring Claude, GPT, Gemini, or your own.">
+<meta name="keywords" content="MCP game engine, spatial runtime, C++ engine for AR, smart glasses runtime, OpenXR engine, MCP server engine, LLM game engine">
+<meta property="og:title" content="RakuAI Engine — 18 DLLs, 30,738 exports, MCP-native">
+<meta property="og:description" content="C++ spatial runtime. 18 DLLs. 30,738 native exports. 17 MCP tools + universal API passthrough. CI-green on Windows / Linux / macOS. Bring your own LLM.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rakuai.com/engine/">
+<meta property="og:image" content="https://rakuai.com/og-default.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://rakuai.com/engine/">
 <link rel="stylesheet" href="../style.css">
 <style>
-:root { --bg: #0a0a1a; --bg2: #111128; --bg3: #1a1a3a; --text: #e8e8f0; --dim: #7a7a9a; --accent: #6c5ce7; --bright: #a388ff; --success: #00cec9; --warn: #fdcb6e; --danger: #ff6b6b; }
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
-a { color: var(--bright); text-decoration: none; } a:hover { text-decoration: underline; }
+:root { --bg: #0a0a1a; --bg2: #111128; --bg3: #1a1a3a; --text: #e8e8f0; --dim: #9090b0; --muted: #7a7a9a; --accent: #6c5ce7; --bright: #a388ff; --success: #00cec9; --warn: #fdcb6e; --danger: #ff6b6b; --border: #222; }
+.engine-page { background: var(--bg); color: var(--text); }
+.engine-page .container { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+.engine-page a { color: var(--bright); text-decoration: none; }
+.engine-page a:hover { text-decoration: underline; }
 
-header { background: var(--bg2); border-bottom: 1px solid #222; padding: 20px 0; text-align: center; }
-header h1 { font-size: 1.8rem; background: linear-gradient(135deg, var(--bright), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-header h1 .kanji { font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; margin-right: 4px; }
-header p { color: var(--dim); margin-top: 4px; }
-nav { display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 0.85rem; flex-wrap: wrap; }
+/* Hero */
+.eng-hero { padding: 72px 0 40px; text-align: center; background: radial-gradient(1200px 600px at 50% -100px, rgba(108,92,231,0.25), transparent 60%); }
+.eng-hero .eyebrow { display: inline-block; font-size: 0.78rem; letter-spacing: 2px; text-transform: uppercase; color: var(--bright); padding: 6px 14px; border: 1px solid rgba(108,92,231,0.45); border-radius: 999px; margin-bottom: 18px; }
+.eng-hero h1 { font-size: clamp(2.0rem, 4.6vw, 3.2rem); line-height: 1.12; margin-bottom: 16px; background: linear-gradient(135deg, #ffffff 20%, var(--bright) 60%, var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+.eng-hero h1 .kanji { font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; }
+.eng-hero p.lede { color: var(--dim); max-width: 780px; margin: 0 auto 24px; font-size: 1.10rem; }
+.eng-hero .meta { color: var(--muted); font-size: 0.85rem; margin-top: 6px; }
+.audience-pills { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 20px 0 8px; }
+.audience-pill { font-size: 0.78rem; padding: 6px 12px; border: 1px solid #2a2a4a; border-radius: 999px; color: var(--dim); background: rgba(17,17,40,0.6); }
 
-.stats-bar { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; padding: 20px; }
-.stat-card { background: var(--bg2); border: 1px solid #222; border-radius: 10px; padding: 16px 24px; text-align: center; min-width: 140px; }
-.stat-num { font-size: 2rem; font-weight: 700; color: var(--bright); }
-.stat-label { color: var(--dim); font-size: 0.8rem; }
+/* Above-fold NVIDIA chip */
+.nv-fold-chip { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; padding: 6px 12px; border-radius: 999px; border: 1px solid #2a2a4a; background: rgba(17,17,40,0.6); color: var(--dim); font-size: 0.78rem; }
+.nv-fold-chip a { color: var(--dim); }
+.nv-fold-chip a:hover { color: var(--bright); text-decoration: none; }
+
+/* Stats */
+.stats-bar { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; padding: 12px 0 32px; }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 22px; text-align: center; min-width: 140px; }
+.stat-num { font-size: 1.9rem; font-weight: 700; color: var(--bright); }
+.stat-label { color: var(--dim); font-size: 0.78rem; margin-top: 2px; }
 .stat-card.active .stat-num { color: var(--success); }
+.stat-foot { color: var(--muted); font-size: 0.72rem; margin-top: 4px; }
 
-.section { padding: 24px 0; }
-.section h2 { font-size: 1.3rem; margin-bottom: 16px; color: var(--bright); }
+/* Sections */
+.section { padding: 40px 0; border-top: 1px solid #15152a; }
+.section h2 { font-size: 1.5rem; margin-bottom: 8px; color: var(--bright); }
+.section .sub { color: var(--dim); max-width: 720px; margin-bottom: 22px; font-size: 0.95rem; }
 
-.dll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
-.dll-card { background: var(--bg2); border: 1px solid #222; border-radius: 8px; padding: 16px; transition: all 0.3s; cursor: pointer; }
-.dll-card:hover { border-color: var(--accent); }
-.dll-card.active { border-color: var(--success); box-shadow: 0 0 12px rgba(0,206,201,0.15); }
-.dll-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.dll-dot { width: 10px; height: 10px; border-radius: 50%; background: #333; transition: all 0.5s; }
-.dll-card.active .dll-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
-.dll-name { font-weight: 700; font-size: 0.95rem; }
-.dll-fns { color: var(--dim); font-size: 0.75rem; margin-left: auto; }
-.dll-desc { color: var(--dim); font-size: 0.8rem; line-height: 1.4; }
-.dll-bar { height: 3px; background: #222; border-radius: 2px; margin-top: 10px; overflow: hidden; }
-.dll-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 1s ease; }
-.dll-card.active .dll-bar-fill { background: var(--success); }
+/* DLL table */
+.dll-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+.dll-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.dll-table th, .dll-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #1a1a30; }
+.dll-table thead th { background: var(--bg2); color: var(--bright); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; }
+.dll-table tbody tr:hover { background: rgba(108,92,231,0.06); }
+.dll-table td.fns { color: var(--success); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+.dll-table td.name { font-family: 'SF Mono', Monaco, monospace; color: var(--text); font-weight: 600; }
+.dll-table tfoot td { background: var(--bg2); color: var(--bright); font-weight: 700; }
+.dll-table tfoot td.fns { color: var(--bright); }
+.table-foot-note { color: var(--muted); font-size: 0.78rem; margin-top: 10px; }
 
-.test-btn { background: rgba(108,92,231,0.2); border: 1px solid var(--accent); color: var(--bright); padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-top: 12px; }
+/* MCP tools */
+.mcp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.mcp-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+.mcp-card h3 { color: var(--bright); font-size: 0.95rem; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline; }
+.mcp-card h3 .count { color: var(--muted); font-size: 0.78rem; font-weight: 400; }
+.mcp-card ul { list-style: none; padding: 0; margin: 0; }
+.mcp-card li { padding: 4px 0; font-family: 'SF Mono', Monaco, monospace; font-size: 0.82rem; color: var(--text); }
+.mcp-card li .desc { display: block; color: var(--muted); font-family: -apple-system, sans-serif; font-size: 0.78rem; margin-top: 2px; }
+.mcp-card.universal { border-color: rgba(0,206,201,0.35); }
+.mcp-card.universal h3 { color: var(--success); }
+.mcp-note { color: var(--dim); font-size: 0.88rem; margin: 16px 0 0; line-height: 1.6; }
+
+/* Platform matrix */
+.platform-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.platform-table th, .platform-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #1a1a30; }
+.platform-table thead th { background: var(--bg2); color: var(--bright); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; }
+.platform-table tbody tr:last-child td { border-bottom: none; }
+.pf-status { font-weight: 700; font-variant-numeric: tabular-nums; }
+.pf-status.ship { color: var(--success); }
+.pf-status.beta { color: var(--warn); }
+.pf-status.plan { color: var(--muted); }
+.platform-note { color: var(--muted); font-size: 0.78rem; margin-top: 10px; }
+
+/* Perf section */
+.perf-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; }
+.perf-card h3 { color: var(--bright); margin-bottom: 10px; }
+.perf-card .meas { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 12px; }
+.perf-card .meas div { background: var(--bg); border: 1px solid #1a1a30; border-radius: 8px; padding: 12px 14px; }
+.perf-card .meas .num { color: var(--success); font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.perf-card .meas .num.todo { color: var(--warn); }
+.perf-card .meas .src { color: var(--muted); font-size: 0.74rem; margin-top: 4px; }
+.perf-card p { color: var(--dim); font-size: 0.9rem; margin-top: 12px; }
+
+/* Patents */
+.patents-card { background: linear-gradient(135deg, rgba(108,92,231,0.10), rgba(0,206,201,0.06)); border: 1px solid #2a2a4a; border-radius: 12px; padding: 22px 24px; }
+.patents-card h3 { color: var(--bright); margin-bottom: 6px; font-size: 1.1rem; }
+.patents-card p { color: var(--dim); font-size: 0.92rem; }
+
+/* Cross-links */
+.related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.related-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; transition: border-color 0.2s, transform 0.2s; }
+.related-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.related-card a { display: block; color: var(--text); text-decoration: none; }
+.related-card a:hover { text-decoration: none; }
+.related-card .label { color: var(--bright); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.related-card .title { font-size: 1.0rem; font-weight: 700; margin-bottom: 4px; }
+.related-card .desc { color: var(--dim); font-size: 0.82rem; }
+
+/* Blog links */
+.blog-list { list-style: none; padding: 0; margin: 16px 0 0; }
+.blog-list li { padding: 8px 0; border-bottom: 1px solid #1a1a30; }
+.blog-list li:last-child { border-bottom: none; }
+.blog-list .title { font-weight: 600; color: var(--text); }
+.blog-list .note { color: var(--dim); font-size: 0.85rem; margin-left: 6px; }
+
+/* NVIDIA validation strip */
+#nvidia-inception.nv-strip { background: var(--bg2); border: 1px solid #2a2a4a; border-radius: 12px; padding: 22px 24px; margin: 8px 0 0; scroll-margin-top: 80px; display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+#nvidia-inception .nv-img { line-height: 0; }
+#nvidia-inception .nv-img img { height: 56px; width: auto; display: block; }
+#nvidia-inception .nv-copy { flex: 1; min-width: 260px; }
+#nvidia-inception .nv-copy h3 { color: var(--bright); margin-bottom: 4px; font-size: 1.0rem; }
+#nvidia-inception .nv-copy p { color: var(--dim); font-size: 0.88rem; }
+#nvidia-inception .nv-copy a { color: var(--bright); }
+
+/* Interactive dashboard */
+.dash-section { padding: 40px 0; border-top: 1px solid #15152a; }
+.dash-section h2 { color: var(--bright); font-size: 1.4rem; }
+.dash-section .sub { color: var(--dim); margin-bottom: 18px; font-size: 0.9rem; }
+.try-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; margin: 16px 0; text-align: center; }
+.try-section h3 { color: var(--bright); margin-bottom: 6px; }
+.try-section p { color: var(--dim); margin-bottom: 12px; font-size: 0.88rem; }
+.try-links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.try-link { background: var(--accent); color: white; padding: 9px 20px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; display: inline-block; }
+.try-link:hover { background: var(--bright); text-decoration: none; }
+.test-btn { background: rgba(108,92,231,0.2); border: 1px solid var(--accent); color: var(--bright); padding: 10px 26px; border-radius: 6px; cursor: pointer; font-size: 0.92rem; }
 .test-btn:hover { background: rgba(108,92,231,0.4); }
-
-.try-section { background: var(--bg2); border: 1px solid #222; border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center; }
-.try-section h3 { color: var(--bright); margin-bottom: 8px; }
-.try-section p { color: var(--dim); margin-bottom: 16px; font-size: 0.9rem; }
-.try-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.try-link { background: var(--accent); color: white; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: inline-block; } .try-link:hover { background: var(--bright); text-decoration: none; }
-
-.log-area { background: #050510; border: 1px solid #222; border-radius: 8px; padding: 12px; max-height: 300px; overflow-y: auto; font-family: 'SF Mono', Monaco, monospace; font-size: 0.75rem; color: var(--dim); }
+.dll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 10px; }
+.dll-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; cursor: pointer; transition: border-color 0.3s; }
+.dll-card:hover { border-color: var(--accent); }
+.dll-card.active { border-color: var(--success); box-shadow: 0 0 10px rgba(0,206,201,0.15); }
+.dll-card .dll-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.dll-card .dll-dot { width: 9px; height: 9px; border-radius: 50%; background: #333; }
+.dll-card.active .dll-dot { background: var(--success); box-shadow: 0 0 6px var(--success); }
+.dll-card .dll-name { font-weight: 700; font-size: 0.9rem; font-family: 'SF Mono', Monaco, monospace; }
+.dll-card .dll-fns { color: var(--dim); font-size: 0.72rem; margin-left: auto; }
+.dll-card .dll-desc { color: var(--dim); font-size: 0.78rem; line-height: 1.4; }
+.log-area { background: #050510; border: 1px solid var(--border); border-radius: 8px; padding: 12px; max-height: 260px; overflow-y: auto; font-family: 'SF Mono', Monaco, monospace; font-size: 0.74rem; color: var(--dim); margin-top: 12px; }
 .log-entry { padding: 2px 0; border-bottom: 1px solid #111; }
 .log-method { font-weight: 700; }
 .log-method.POST { color: var(--bright); } .log-method.GET { color: var(--success); } .log-method.DELETE { color: var(--danger); }
 .log-status { color: var(--success); } .log-latency { color: var(--warn); }
 
-footer { text-align: center; padding: 32px; color: #444; font-size: 0.75rem; border-top: 1px solid #151530; }
+@media (max-width: 720px) {
+  .eng-hero { padding: 48px 0 28px; }
+  .stats-bar { gap: 8px; }
+  .stat-card { padding: 12px 16px; min-width: 110px; }
+  .stat-num { font-size: 1.5rem; }
+  .dll-table th, .dll-table td { padding: 8px 10px; font-size: 0.82rem; }
+  #nvidia-inception.nv-strip { padding: 18px; gap: 16px; }
+  #nvidia-inception .nv-img img { height: 44px; }
+}
+
+footer.engine-footer { text-align: center; padding: 32px 24px; color: #444; font-size: 0.75rem; border-top: 1px solid #151530; }
 </style>
 </head>
-<body>
+<body class="engine-page">
 
 <div class="beta-announcement-bar">
-    5 Patents | 9,500+ API Endpoints | 18 Native DLLs | The AI-Native Spatial Game Engine — Now in Early Access
+    5 Patents | 18 Native DLLs | 30,738 C++ Exports | MCP-Native — Bring Your Own LLM
 </div>
 
 <nav role="navigation" aria-label="Primary">
@@ -125,190 +231,3 @@ footer { text-align: center; padding: 32px; color: #444; font-size: 0.75rem; bor
                 </li>
                 <li class="nav-item" role="none">
                     <a role="menuitem" href="../blog/">Blog</a>
-                </li>
-            </ul>
-            <a href="../developers/login.html" class="nav-signin">Sign In</a>
-            <a href="../ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
-        </div>
-    </div>
-</nav>
-
-<header>
-  <h1><span class="kanji">楽</span>AI Engine Dashboard</h1>
-  <p>18 Native DLLs &bull; 10,328 Engine Functions &bull; 9,500+ REST Endpoints &bull; Running in Your Browser</p>
-</header>
-
-<div class="container">
-
-  <div class="stats-bar">
-    <div class="stat-card"><div class="stat-num">18</div><div class="stat-label">Native DLLs</div></div>
-    <div class="stat-card"><div class="stat-num" id="total-fns">10,328</div><div class="stat-label">Engine Functions</div></div>
-    <div class="stat-card"><div class="stat-num">9,500+</div><div class="stat-label">REST Endpoints</div></div>
-    <div class="stat-card active" id="active-card"><div class="stat-num" id="active-count">0</div><div class="stat-label">Active in Browser</div></div>
-    <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">US Patents</div></div>
-  </div>
-
-  <div class="try-section">
-    <h3>Activate the Engine</h3>
-    <p>Click "Run All Tests" to activate all 18 subsystems, or explore them individually below. Each test exercises real engine logic running as JavaScript in your browser — the same algorithms that power the native C++ runtime.</p>
-    <button class="test-btn" id="run-all-btn" onclick="runAllTests()" style="font-size:1rem; padding:12px 32px;">Run All Tests</button>
-  </div>
-
-  <div class="section">
-    <h2>Engine Subsystems</h2>
-    <div class="dll-grid" id="dll-grid"></div>
-  </div>
-
-  <div class="section">
-    <h2>API Activity Log</h2>
-    <div class="log-area" id="log-area">
-      <div style="color:#444;">Run tests or interact with the engine to see API calls...</div>
-    </div>
-  </div>
-
-  <div class="try-section">
-    <h3>Experience the Engine</h3>
-    <p>See these 10,328 functions in action across different experiences:</p>
-    <div class="try-links">
-      <a href="../worlds/" class="try-link">Play RakuAI Worlds</a>
-      <a href="../api/" class="try-link" style="background:var(--bright);">API Docs</a>
-      <a href="../explorer/" class="try-link" style="background:var(--success);">API Explorer</a>
-      <a href="../demo/" class="try-link" style="background:#e17055;">TimeLens Tour</a>
-    </div>
-  </div>
-
-</div>
-
-<footer>
-  <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
-  <p style="margin-top: 6px;">
-    <a href="../engine/">Engine</a> &bull;
-    <a href="../api/">API</a> &bull;
-    <a href="../docs.html">Docs</a> &bull;
-    <a href="../games/">Arcade</a> &bull;
-    <a href="../press.html">Press</a> &bull;
-    <a href="../developers/">Developers</a> &bull;
-    <a href="../privacy.html">Privacy</a> &bull;
-    <a href="../terms.html">Terms</a> &bull;
-    <a href="../contact.html">Contact</a> &bull;
-    <a href="https://github.com/RakuXR">GitHub</a>
-  </p>
-  <p class="trademark-notice">
-    RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
-    <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
-    5 Granted US Patents (Priority: July 2012).
-  </p>
-        <!-- nv-inception:start -->
-        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
-            <a href="../press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
-                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
-            </a>
-        </div>
-        <!-- nv-inception:end -->
-</footer>
-
-<script type="module">
-import { RakuEngine, DLLS, TOTAL_API_FUNCTIONS } from './raku-engine.js';
-
-const engine = new RakuEngine();
-const logArea = document.getElementById('log-area');
-
-// Build DLL cards
-const grid = document.getElementById('dll-grid');
-const maxFns = Math.max(...DLLS.map(d => d.fns));
-let gridHTML = '';
-DLLS.forEach((dll, i) => {
-  const pct = (dll.fns / maxFns * 100).toFixed(0); // relative to largest
-  gridHTML += `
-    <div class="dll-card" id="card-${dll.name}" onclick="testDLL(${i})">
-      <div class="dll-header">
-        <div class="dll-dot" id="dot-${dll.name}"></div>
-        <span class="dll-name">${dll.name}</span>
-        <span class="dll-fns">${dll.fns} functions</span>
-      </div>
-      <div class="dll-desc">${dll.desc}</div>
-      <div class="dll-bar"><div class="dll-bar-fill" style="width:${pct}%"></div></div>
-    </div>`;
-});
-grid.innerHTML = gridHTML;
-
-// Listen for engine events
-engine.on('dll', ({ name, total }) => {
-  const card = document.getElementById('card-' + name);
-  if (card) card.classList.add('active');
-  document.getElementById('active-count').textContent = total;
-});
-
-engine.on('api', (entry) => {
-  if (logArea.querySelector('div[style]')) logArea.innerHTML = '';
-  const div = document.createElement('div');
-  div.className = 'log-entry';
-  div.innerHTML = `<span class="log-method ${entry.method}">${entry.method}</span> <span>${entry.path}</span> <span class="log-status">${entry.status}</span> <span class="log-latency">${entry.latency}ms</span>`;
-  logArea.prepend(div);
-});
-
-// Test individual DLL
-window.testDLL = async function(index) {
-  const dll = DLLS[index];
-  const worldData = engine.createWorld('test_' + dll.name, { lat: 39.9496, lng: -75.1503, alt: 12 });
-  const wid = worldData.world_id;
-
-  // Each DLL gets a specific test
-  switch(dll.name) {
-    case 'RakuCore': case 'RakuScene': case 'RakuGameplay':
-      engine.createEntity(wid, { type: 'cube', position: [0, 2, 0] });
-      engine.saveWorld(wid); engine.loadWorld(wid);
-      break;
-    case 'RakuRenderer': case 'RakuEditor':
-      for (let i = 0; i < 5; i++) engine.createEntity(wid, { type: 'sphere', position: [Math.random()*10-5, 5, Math.random()*10-5] });
-      engine.captureFrame(wid);
-      break;
-    case 'RakuPhysics':
-      const e = engine.createEntity(wid, { type: 'cube', position: [0, 10, 0] });
-      engine.addPhysicsBody(wid, e.entity_id, { mass: 1, restitution: 0.7 });
-      for (let i = 0; i < 30; i++) engine.stepPhysics(wid, 0.016);
-      break;
-    case 'RakuAudio': case 'RakuVoice':
-      engine.createEntity(wid, { type: 'npc', position: [5, 0, 0] });
-      engine.observeWorld(wid);
-      break;
-    case 'RakuAI': case 'RakuSLM': case 'RakuScripting':
-      const ag = engine.createAgent(wid, { type: 'guide', name: 'Franklin' });
-      await engine.agentAct(wid, ag.agent_id, { playerAction: 'Hello!' });
-      engine.agentReward(wid, ag.agent_id, 1.0);
-      break;
-    case 'RakuAnimation': case 'RakuCSG':
-      for (let i = 0; i < 3; i++) engine.createEntity(wid, { type: 'npc', position: [i*3, 0, 0] });
-      break;
-    case 'RakuNetwork':
-      engine.startRecording(wid); engine.stopRecording(wid);
-      break;
-    case 'RakuInput': case 'RakuUI':
-      engine.contentFilter('This is a safe test message');
-      engine.observeJSON(wid);
-      break;
-    case 'RakuAssets': case 'RakuXR':
-      engine.createEntity(wid, { type: 'cube', gps: { lat: 39.9498, lng: -75.1501, alt: 13 } });
-      engine.observeWorld(wid);
-      break;
-    default:
-      engine.createEntity(wid, { type: 'cube' }); engine.observeWorld(wid);
-  }
-};
-
-// Run all tests sequentially with visual effect
-window.runAllTests = async function() {
-  const btn = document.getElementById('run-all-btn');
-  btn.textContent = 'Running...'; btn.disabled = true;
-  for (let i = 0; i < DLLS.length; i++) {
-    await testDLL(i);
-    await new Promise(r => setTimeout(r, 150));
-  }
-  btn.textContent = 'All 18 Active!'; btn.style.background = 'var(--success)'; btn.style.borderColor = 'var(--success)';
-};
-</script>
-<script src="/js/auth-nav.js" defer></script>
-<script src="/js/lang-selector.js" defer></script>
-<script src="/js/nav-dropdown.js" defer></script>
-</body>
-</html>
