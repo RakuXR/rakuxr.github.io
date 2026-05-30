@@ -45,5 +45,4 @@ gh workflow run deploy.yml --repo RakuXR/rakuxr.github.io
 
 ## License
 
-Site content is © RakuAI, LLC. Code samples and snippets are MIT unless
-otherwise marked. RakuAI and RakuXR are trademarks of RakuAI, LLC.
+Released under the [MIT License](./LICENSE). RakuAI and RakuXR are trademarks of RakuAI, LLC.
