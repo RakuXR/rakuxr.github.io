@@ -128,7 +128,7 @@ export class RakuEngine {
     this._listeners = { dll: [], api: [], input: [] };
     this._inputState = {};
     this.anthropicKey = options.anthropicKey || '';
-    this.serverUrl = options.serverUrl || '';  // e.g. 'https://raku-api-staging.fly.dev'
+    this.serverUrl = options.serverUrl || '';  // e.g. 'https://api.rakuai.com'
     this.apiKey = options.apiKey || '';  // X-Raku-API-Key header value
     this.serverMode = !!this.serverUrl;
   }
