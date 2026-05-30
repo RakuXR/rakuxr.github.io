@@ -4,22 +4,28 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RakuAI pour les fabricants de lunettes connectées — Conçu pour les lunettes, breveté en 2012</title>
-    <meta name="description" content="RakuAI pour les partenaires fabricants de lunettes connectées — un runtime optimisé pour l'enveloppe thermique des lunettes, 5 brevets remontant à 2012, 18 ms de latence mouvement-à-photon, précision spatiale submillimétrique.">
-    <meta name="keywords" content="runtime lunettes connectées, lunettes AR, partenaire matériel AR, brevets lunettes connectées, mouvement-à-photon, rendu fovéal, Meta Ray-Ban, Xreal, Android XR, OpenXR">
-    <meta property="og:title" content="RakuAI pour les fabricants de lunettes connectées — Conçu pour les lunettes, breveté en 2012">
-    <meta property="og:description" content="RakuAI est le runtime conçu dès le premier jour pour les contraintes thermiques, de latence et de double appareil des lunettes connectées. 5 brevets américains délivrés, priorité juillet 2012.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>RakuAI pour les fabricants de lunettes connectées — Un partenaire runtime pour l'ère PWA de la RA</title>
+    <meta name="description" content="Un dossier honnête à destination des partenaires, pour les responsables techniques OEM de lunettes connectées. Runtime spatial installable en PWA, architecture MCP-depuis-les-lunettes, pilote multi-LLM, 5 brevets US accordés avec priorité juillet 2012.">
+    <meta name="keywords" content="runtime lunettes connectées, partenaire OEM lunettes connectées, Meta Ray-Ban Display, Android XR, Apple Vision Pro, MCP depuis les lunettes, PWA RA, runtime spatial, multi-LLM, Gaussian Splatting 3D">
+    <meta property="og:title" content="RakuAI pour les fabricants de lunettes connectées — Un partenaire runtime pour l'ère PWA de la RA">
+    <meta property="og:description" content="Ce qui est livré aujourd'hui, au T3 2026 et en 2027. Matrice de capacités pour Meta Ray-Ban Display, Android XR et Apple Vision Pro. Architecture MCP-depuis-les-lunettes.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rakuai.com/fr/smart-glasses.html">
     <meta property="og:image" content="https://rakuai.com/og-default.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:site_name" content="RakuAI">
+    <meta property="og:locale" content="fr_FR">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="RakuAI pour les fabricants de lunettes connectées — Conçu pour les lunettes, breveté en 2012">
-    <meta name="twitter:description" content="RakuAI pour les partenaires fabricants de lunettes connectées — un runtime optimisé pour l'enveloppe thermique des lunettes, 5 brevets remontant à 2012, 18 ms de latence mouvement-à-photon, précision spatiale submillimétrique.">
+    <meta name="twitter:title" content="RakuAI pour les fabricants de lunettes connectées — Un partenaire runtime pour l'ère PWA de la RA">
+    <meta name="twitter:description" content="Ce qui est livré aujourd'hui, au T3 2026 et en 2027. Matrice de capacités pour Meta Ray-Ban Display, Android XR et Apple Vision Pro. Architecture MCP-depuis-les-lunettes.">
     <meta name="twitter:image" content="https://rakuai.com/og-default.png">
     <link rel="canonical" href="https://rakuai.com/fr/smart-glasses.html">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/smart-glasses.html">
+    <link rel="alternate" hreflang="ja" href="https://rakuai.com/ja/smart-glasses.html">
+    <link rel="alternate" hreflang="fr" href="https://rakuai.com/fr/smart-glasses.html">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/smart-glasses.html">
     <link rel="stylesheet" href="../style.css">
     <style>
         .sg-section {
@@ -32,6 +38,17 @@
         .sg-hero {
             padding: 96px 0 72px;
             text-align: center;
+        }
+        .sg-hero .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            padding: 6px 14px;
+            border: 1px solid rgba(108, 92, 231, 0.45);
+            border-radius: 999px;
+            margin-bottom: 18px;
         }
         .sg-hero h1 {
             font-size: clamp(2.2rem, 5vw, 3.6rem);
@@ -46,8 +63,16 @@
             color: var(--text-secondary);
             font-size: 1.15rem;
             line-height: 1.65;
-            max-width: 780px;
+            max-width: 820px;
             margin: 0 auto 32px;
+        }
+        .sg-hero .audience-line {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 720px;
+            margin: 18px auto 0;
+            opacity: 0.85;
+            font-style: italic;
         }
         .sg-cta-row {
             display: flex;
@@ -96,9 +121,112 @@
             text-align: center;
             color: var(--text-secondary);
             font-size: 1.05rem;
-            max-width: 720px;
+            max-width: 760px;
             margin: 0 auto 40px;
         }
+
+        /* Capability matrix */
+        .sg-matrix-wrap {
+            max-width: 1080px;
+            margin: 0 auto;
+            overflow-x: auto;
+            border: 1px solid #222244;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+        .sg-matrix {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+            font-size: 0.95rem;
+        }
+        .sg-matrix th, .sg-matrix td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid #222244;
+            vertical-align: top;
+        }
+        .sg-matrix thead th {
+            background: rgba(108, 92, 231, 0.08);
+            color: var(--accent-bright);
+            font-weight: 700;
+            font-size: 0.92rem;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        .sg-matrix tbody th {
+            color: var(--text-primary);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.015);
+            min-width: 240px;
+        }
+        .sg-matrix td {
+            color: var(--text-secondary);
+            text-align: center;
+            white-space: nowrap;
+        }
+        .sg-matrix tr:last-child th, .sg-matrix tr:last-child td {
+            border-bottom: none;
+        }
+        .sg-cell-mark {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: inline-block;
+            min-width: 1.8em;
+            line-height: 1;
+        }
+        .sg-mark-yes { color: var(--success); }
+        .sg-mark-partial { color: #fdcb6e; }
+        .sg-mark-roadmap { color: var(--accent-bright); }
+        .sg-mark-no { color: #ff6b6b; }
+        .sg-cell-note {
+            display: block;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            opacity: 0.8;
+            margin-top: 4px;
+            white-space: normal;
+            line-height: 1.4;
+        }
+        .sg-matrix-footnotes {
+            max-width: 1080px;
+            margin: 18px auto 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            opacity: 0.85;
+            padding: 0 6px;
+        }
+        .sg-matrix-footnotes ol {
+            padding-left: 22px;
+            line-height: 1.65;
+        }
+        .sg-matrix-legend {
+            max-width: 1080px;
+            margin: 12px auto 18px;
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            justify-content: center;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+        .sg-matrix-legend span { white-space: nowrap; }
+
+        /* MCP-from-glasses diagram block */
+        .sg-mcp-arch {
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        .sg-mcp-arch .sg-mcp-note {
+            max-width: 820px;
+            margin: 20px auto 0;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        /* Patent list */
         .sg-patent-list {
             max-width: 820px;
             margin: 0 auto 40px;
@@ -158,6 +286,8 @@
             color: var(--text-primary);
             font-style: italic;
         }
+
+        /* Engineering stats */
         .sg-stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -188,34 +318,60 @@
             font-size: 0.9rem;
             line-height: 1.4;
         }
-        .sg-callout {
-            max-width: 820px;
+
+        /* Roadmap */
+        .sg-roadmap {
+            max-width: 980px;
             margin: 0 auto;
-            background: linear-gradient(135deg, rgba(108, 92, 231, 0.12), rgba(0, 206, 201, 0.08));
-            border: 1px solid var(--accent);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .sg-roadmap-col {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
             border-radius: 12px;
-            padding: 32px 36px;
+            padding: 24px 26px;
         }
-        .sg-callout h3 {
+        .sg-roadmap-col.shipping { border-top: 4px solid var(--success); }
+        .sg-roadmap-col.q3 { border-top: 4px solid var(--accent-bright); }
+        .sg-roadmap-col.later { border-top: 4px solid #fdcb6e; }
+        .sg-roadmap-col h3 {
             color: var(--accent-bright);
-            font-size: 1.4rem;
-            margin-bottom: 18px;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
         }
-        .sg-callout ul {
+        .sg-roadmap-col .when {
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 14px;
+        }
+        .sg-roadmap-col ul {
             list-style: none;
             padding: 0;
+            margin: 0;
         }
-        .sg-callout li {
+        .sg-roadmap-col li {
             padding: 8px 0;
             color: var(--text-secondary);
+            line-height: 1.55;
+            font-size: 0.94rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .sg-roadmap-col li:first-child { border-top: none; }
+        .sg-roadmap-note {
+            max-width: 820px;
+            margin: 24px auto 0;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            text-align: center;
+            opacity: 0.85;
             line-height: 1.6;
         }
-        .sg-callout li:before {
-            content: "\2715 ";
-            color: #ff6b6b;
-            font-weight: 700;
-            margin-right: 10px;
-        }
+
+        /* Devices + arch */
         .sg-devices {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -253,45 +409,97 @@
             line-height: 1.6;
             margin: 0;
         }
-        .sg-partnership {
-            max-width: 780px;
+
+        /* Partner CTA */
+        .sg-partner-grid {
+            max-width: 1000px;
             margin: 0 auto;
-            text-align: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
         }
-        .sg-partnership p {
+        .sg-partner-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 28px 26px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .sg-partner-card h3 {
+            color: var(--accent-bright);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        .sg-partner-card > div > p {
             color: var(--text-secondary);
-            font-size: 1.05rem;
-            line-height: 1.7;
+            font-size: 0.95rem;
+            line-height: 1.6;
             margin-bottom: 18px;
         }
-        .sg-partnership ul {
-            text-align: left;
-            display: inline-block;
-            margin: 0 auto 24px;
-            list-style: none;
-            padding: 0;
+        .sg-partner-card > div {
+            flex-grow: 1;
         }
-        .sg-partnership ul li {
-            padding: 6px 0;
+        .sg-partner-card .sg-partner-meta {
+            font-size: 0.8rem;
             color: var(--text-secondary);
+            opacity: 0.75;
+            margin-top: 10px;
+            margin-bottom: 0;
+            flex-grow: 0;
         }
-        .sg-partnership ul li:before {
-            content: "\2192 ";
+
+        /* Cross-links */
+        .sg-crosslinks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .sg-crosslink {
+            display: block;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px 22px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: border-color 0.15s ease, transform 0.15s ease;
+        }
+        .sg-crosslink:hover {
+            border-color: var(--accent-bright);
+            transform: translateY(-2px);
+        }
+        .sg-crosslink .label {
             color: var(--accent-bright);
             font-weight: 700;
-            margin-right: 8px;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        .sg-crosslink .desc {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .sg-hero { padding: 64px 0 48px; }
+            .sg-section { padding: 56px 0; }
+            .sg-coverage { padding: 22px 20px; }
+            .sg-matrix th, .sg-matrix td { padding: 11px 12px; font-size: 0.88rem; }
+        }
+        @media (max-width: 480px) {
+            .sg-cta-row { flex-direction: column; align-items: stretch; }
+            .sg-btn-primary, .sg-btn-secondary { text-align: center; }
         }
     </style>
 </head>
 <body>
-<!--
-  Machine-translated by Claude. Pending human review.
-  Source: smart-glasses.html
-  Date: 2026-05-23
--->
 
 <div class="beta-announcement-bar">
-    &#x697D;AI<sup class="tm">™</sup> — Le runtime universel pour les World Models &nbsp;|&nbsp; <a href="index.html#for-studios">Pour les studios et développeurs →</a> &nbsp;&nbsp; Aussi : <a href="index.html#quickstart">Essayer la démo grand public →</a>
+    5 brevets | Plus de 9 500 endpoints API | 18 DLL natives | Le moteur de jeu spatial AI-native — désormais en accès anticipé
 </div>
 
 <nav role="navigation" aria-label="Primary">
@@ -305,25 +513,26 @@
                 <li class="nav-item has-dropdown" role="none">
                     <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" aria-label="Ouvrir le menu Solutions" role="menuitem">Solutions &#x25BC;</button>
                     <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
-                        <div class="col-heading">Par public</div>
-                        <div class="col-heading">Plateforme</div>
-                        <ul class="col" role="none">
+                        <div class="col-heading" role="presentation">Par public</div>
+                        <div class="col-heading" role="presentation">Plateforme</div>
+                        <ul class="col" role="group">
                             <li role="none"><a role="menuitem" href="smart-glasses.html">Pour fabricants de lunettes connectées<span class="item-desc">Programme partenaire OEM matériel</span></a></li>
                             <li role="none"><a role="menuitem" href="llm-makers.html">Pour laboratoires d'IA<span class="item-desc">Runtime MCP pour modèles de fondation</span></a></li>
-                            <li role="none"><a role="menuitem" href="enterprise.html">Pour les entreprises<span class="item-desc">Déployer l'IA spatiale à grande échelle</span></a></li>
-                            <li role="none"><a role="menuitem" href="creator.html">Pour les créateurs<span class="item-desc">Créer &amp; publier des mondes spatiaux</span></a></li>
-                            <li role="none"><a role="menuitem" href="compare.html">Comparaison avec Unity / Unreal<span class="item-desc">Une comparaison honnête</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Pour les entreprises<span class="item-desc">Déployer l'IA spatiale à l'échelle</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Pour les créateurs<span class="item-desc">Construire et publier des mondes spatiaux</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Comparaison avec Unity / Unreal<span class="item-desc">La comparaison honnête</span></a></li>
                         </ul>
-                        <ul class="col" role="none">
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">Scanner un espace, puis lui parler</span></a></li>
                             <li role="none"><a role="menuitem" href="spatial-engine.html">Moteur spatial<span class="item-desc">Le pilier du runtime</span></a></li>
-                            <li role="none"><a role="menuitem" href="ai-systems.html">Systèmes d'IA<span class="item-desc">Orchestration &amp; permissions</span></a></li>
-                            <li role="none"><a role="menuitem" href="xr-features.html">Fonctionnalités XR<span class="item-desc">Affichage, suivi et ancrage</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">Systèmes d'IA<span class="item-desc">Orchestration et permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">Fonctionnalités XR<span class="item-desc">Affichage, tracking, ancrage</span></a></li>
                         </ul>
                     </div>
                 </li>
                 <li class="nav-item has-dropdown" role="none">
                     <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" aria-label="Ouvrir le menu Développeurs" role="menuitem">Développeurs &#x25BC;</button>
-                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Développeurs" hidden>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
                         <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
                         <li role="none"><a role="menuitem" href="mcp.html">Serveur MCP</a></li>
                         <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
@@ -337,18 +546,21 @@
                 </li>
                 <li class="nav-item has-dropdown" role="none">
                     <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" aria-label="Ouvrir le menu Ressources" role="menuitem">Ressources &#x25BC;</button>
-                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Ressources" hidden>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
                         <li role="none"><a role="menuitem" href="../blog/">Blog</a></li>
                         <li role="none"><a role="menuitem" href="why-rakuai.html">Pourquoi RakuAI</a></li>
                         <li role="none"><a role="menuitem" href="press.html">Kit presse</a></li>
-                        <li role="none"><a role="menuitem" href="../discover.html">Découvrir</a></li>
+                        <li role="none"><a role="menuitem" href="discover.html">Découvrir</a></li>
                         <li role="none"><a role="menuitem" href="content-packs.html">Packs de contenu</a></li>
-                        <li role="none"><a role="menuitem" href="docs.html">Aperçu de la documentation</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
                         <li role="none"><a role="menuitem" href="contact.html">Contact</a></li>
                     </ul>
                 </li>
                 <li class="nav-item" role="none">
                     <a role="menuitem" href="pricing.html">Tarifs</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">Blog</a>
                 </li>
             </ul>
             <a href="developers/login.html" class="nav-signin">Se connecter</a>
@@ -359,47 +571,302 @@
 
 <section class="sg-hero">
     <div class="container">
-        <h1>Conçu pour les lunettes. Breveté en 2012.</h1>
+        <span class="eyebrow">Pour les responsables techniques OEM de lunettes connectées</span>
+        <h1>Un partenaire runtime pour l'ère PWA des lunettes de RA.</h1>
         <p class="subhead">
-            RakuAI est le runtime conçu dès le premier jour pour les contraintes thermiques, de latence et de double appareil des lunettes connectées. Cinq brevets américains délivrés — priorité juillet 2012 — nous donnent une décennie d'avance sur une industrie qui commence tout juste à livrer des lunettes AR.
+            RakuAI est un runtime spatial conçu pour la voie sur laquelle votre matériel est réellement livré aujourd'hui : une application web installable depuis les lunettes, une surface MCP que les principaux LLM peuvent piloter, et un budget thermique/latence calibré pour les affichages portés sur la tête. Nous ne concurrençons pas votre matériel &mdash; nous faisons en sorte que les expériences d'IA qui s'y exécutent soient livrées plus tôt.
         </p>
+        <p class="audience-line">
+            Cette page s'adresse aux ingénieurs et aux responsables partenariats qui évaluent des partenaires runtime chez Meta, Samsung, Google et d'autres acteurs livrant des lunettes en 2026&ndash;2027. Elle s'efforce d'être honnête sur ce qui est en ligne, ce qui est en cours et ce qui relève de la feuille de route.
+        </p>
+
+<div style="display: flex; justify-content: center; margin: 22px 0 4px;">
+    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Membre de NVIDIA Inception - défiler vers les détails">
+        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Membre de</span>
+        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">En savoir plus &darr;</span>
+    </a>
+</div>
         <div class="sg-cta-row">
-            <a href="mailto:partners@rakuai.com" class="sg-btn-primary">Parlons partenariat matériel &rarr;</a>
-            <a href="../blog/" class="sg-btn-secondary">Voir le journal d'ingénierie &rarr;</a>
+            <a href="mailto:partnerships@rakuai.com?subject=Smart-glasses%20OEM%20capability%20inquiry" class="sg-btn-primary">Écrire à partnerships@rakuai.com &rarr;</a>
+            <a href="#capability-matrix" class="sg-btn-secondary">Aller directement à la matrice de capacités &darr;</a>
         </div>
     </div>
 </section>
 
+<!-- Capability matrix - what's real per platform today -->
+<section class="sg-section" id="capability-matrix">
+    <div class="container">
+        <h2>Ce qui est livré par plateforme, aujourd'hui.</h2>
+        <p class="sg-subtitle">
+            Nous mettons en correspondance les capacités de RakuAI avec les trois plateformes qui comptent pour les lunettes dans la fenêtre 2026. ✅ livré. 🟡 partiel / derrière un flag. ⏳ sur la feuille de route de la plateforme. ❌ aucune voie actuelle. Notes de bas de page sous le tableau.
+        </p>
+
+        <div class="sg-matrix-legend" aria-hidden="true">
+            <span><span class="sg-cell-mark sg-mark-yes">&#x2705;</span> livré</span>
+            <span><span class="sg-cell-mark sg-mark-partial">&#x1F7E1;</span> partiel / derrière un flag</span>
+            <span><span class="sg-cell-mark sg-mark-roadmap">&#x23F3;</span> sur la feuille de route de la plateforme</span>
+            <span><span class="sg-cell-mark sg-mark-no">&#x274C;</span> aucune voie actuelle</span>
+        </div>
+
+        <div class="sg-matrix-wrap" role="region" aria-label="Matrice de capacités pour les plateformes de lunettes connectées">
+            <table class="sg-matrix">
+                <thead>
+                    <tr>
+                        <th scope="col">Capacité</th>
+                        <th scope="col">Meta Ray-Ban Display<br><span style="font-weight:400; opacity:0.75; font-size:0.78rem;">Livré</span></th>
+                        <th scope="col">Android XR (Samsung et partenaires)<br><span style="font-weight:400; opacity:0.75; font-size:0.78rem;">Fenêtre de lancement T3 2026</span></th>
+                        <th scope="col">Apple Vision Pro<br><span style="font-weight:400; opacity:0.75; font-size:0.78rem;">À déterminer</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">Point d'entrée web-app installable en PWA depuis l'appareil<span class="sg-cell-note">RakuAI se distribue sous forme de PWA installable &mdash; sans verrou de boutique d'applications.</span></th>
+                        <td><span class="sg-cell-mark sg-mark-yes" aria-label="Oui">&#x2705;</span><span class="sg-cell-note">Voie web-app lançable sur les lunettes Meta&nbsp;AI<sup>1</sup></span></td>
+                        <td><span class="sg-cell-mark sg-mark-yes" aria-label="Oui">&#x2705;</span><span class="sg-cell-note">Chrome sur Android XR prend en charge les PWA<sup>2</sup></span></td>
+                        <td><span class="sg-cell-mark sg-mark-no" aria-label="Non">&#x274C;</span><span class="sg-cell-note">visionOS redirige vers le natif ; nous fournissons un repli WebXR<sup>3</sup></span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Accès au serveur MCP (Claude / ChatGPT / Gemini pilotent le runtime)<span class="sg-cell-note">MCP hébergé via HTTPS + stdio pour les assistants IA de bureau.</span></th>
+                        <td><span class="sg-cell-mark sg-mark-yes" aria-label="Oui">&#x2705;</span><span class="sg-cell-note">via le téléphone compagnon / le MCP cloud</span></td>
+                        <td><span class="sg-cell-mark sg-mark-yes" aria-label="Oui">&#x2705;</span><span class="sg-cell-note">Gemini sur l'appareil ou MCP cloud, les deux fonctionnent</span></td>
+                        <td><span class="sg-cell-mark sg-mark-partial" aria-label="Partiel">&#x1F7E1;</span><span class="sg-cell-note">le MCP cloud fonctionne ; la voie sur l'appareil est sur la feuille de route</span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Flux de capture depuis les lunettes (scanner un espace, le transmettre au LLM)<span class="sg-cell-note">Images brutes + IMU &rarr; reconstruction cloud &rarr; splat explorable en quelques minutes.</span></th>
+                        <td><span class="sg-cell-mark sg-mark-partial" aria-label="Partiel">&#x1F7E1;</span><span class="sg-cell-note">capture via le téléphone compagnon aujourd'hui<sup>4</sup></span></td>
+                        <td><span class="sg-cell-mark sg-mark-roadmap" aria-label="Feuille de route">&#x23F3;</span><span class="sg-cell-note">directement depuis les lunettes au lancement de la plateforme</span></td>
+                        <td><span class="sg-cell-mark sg-mark-roadmap" aria-label="Feuille de route">&#x23F3;</span><span class="sg-cell-note">en attente d'une surface d'accès caméra</span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Requête de scène en temps réel (demander &ldquo;qu'y a-t-il dans la cuisine ?&rdquo;, obtenir une réponse structurée)<span class="sg-cell-note">Couche de requête spatiale sur la scène reconstruite ; livrée aujourd'hui.</span></th>
+                        <td><span class="sg-cell-mark sg-mark-yes" aria-label="Oui">&#x2705;</span><span class="sg-cell-note">après capture ; requête de scène en direct sur la feuille de route</span></td>
+                        <td><span class="sg-cell-mark sg-mark-yes" aria-label="Oui">&#x2705;</span><span class="sg-cell-note">même voie que Meta aujourd'hui</span></td>
+                        <td><span class="sg-cell-mark sg-mark-yes" aria-label="Oui">&#x2705;</span><span class="sg-cell-note">via WebXR + MCP cloud</span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Pilote multi-LLM (Claude, ChatGPT, Gemini, Copilot)<span class="sg-cell-note">Neutre vis-à-vis des fournisseurs &mdash; le choix du LLM appartient à l'utilisateur, pas à la plateforme.</span></th>
+                        <td><span class="sg-cell-mark sg-mark-yes" aria-label="Oui">&#x2705;</span><span class="sg-cell-note">les quatre pilotent le MCP RakuAI aujourd'hui</span></td>
+                        <td><span class="sg-cell-mark sg-mark-yes" aria-label="Oui">&#x2705;</span><span class="sg-cell-note">les quatre ; Gemini bénéficie d'un support de premier ordre sur l'appareil</span></td>
+                        <td><span class="sg-cell-mark sg-mark-yes" aria-label="Oui">&#x2705;</span><span class="sg-cell-note">cloud uniquement au lancement</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="sg-matrix-footnotes">
+            <ol>
+                <li>D'après les supports de lancement publics de Meta pour Ray-Ban Display : l'appareil prend en charge les applications web installables depuis la surface web des lunettes. Nous n'avons pas signé de partenariat avec Meta et n'en revendiquons aucun &mdash; nous sommes compatibles avec le point d'entrée web-app public.</li>
+                <li>Android XR suit la voie d'installation PWA standard de Chrome. Nous n'avons pas signé de partenariat avec Samsung ni Google.</li>
+                <li>visionOS n'expose pas actuellement de voie PWA installable équivalente à celle des lunettes. Notre plan pour visionOS est WebXR + une enveloppe native distincte en suivi.</li>
+                <li>&ldquo;Capture depuis les lunettes aujourd'hui&rdquo; signifie : l'utilisateur porte Ray-Ban Display, le téléphone compagnon exécute notre PWA, et le téléphone est la source de vérité de la caméra. La capture d'images directement depuis les lunettes arrivera lorsque l'OEM exposera l'API d'images.</li>
+            </ol>
+        </div>
+    </div>
+</section>
+
+<!-- MCP-from-glasses architecture -->
 <section class="sg-section">
     <div class="container">
-        <h2>Les brevets l'avaient anticipé il y a une décennie.</h2>
-        <p class="sg-subtitle">Cinq brevets américains délivrés. Priorité juillet 2012. Le portefeuille de brevets court jusqu'en juillet 2032.</p>
+        <h2>MCP depuis les lunettes, en un seul schéma.</h2>
+        <p class="sg-subtitle">
+            Un LLM sur les lunettes communique avec <a href="mcp.html" style="color: var(--accent-bright);">la surface MCP de RakuAI</a> via la PWA &mdash; soit par un pont stdio vers l'appareil compagnon, soit via HTTPS vers le MCP hébergé. Le runtime répond en primitives spatiales : ancres, poses, requêtes de scène, références de splat.
+        </p>
+
+        <div class="sg-mcp-arch">
+        <svg viewBox="0 0 1040 420" width="100%" style="max-width:1040px; height:auto; display:block;" role="img" aria-labelledby="sgmcp-title sgmcp-desc" xmlns="http://www.w3.org/2000/svg">
+            <title id="sgmcp-title">Schéma d'architecture MCP-depuis-les-lunettes</title>
+            <desc id="sgmcp-desc">Un LLM sur les lunettes envoie une requête MCP via la PWA installable au runtime RakuAI ; le runtime expose 17 outils MCP natifs (5 en lecture seule + 12 de mutation) sur le serveur de production, dont ~12 sont pertinents pour les lunettes (6 outils principaux de capture/scène plus 6 outils adaptateurs xr_), effectue un raisonnement spatial sur la scène capturée, et renvoie une réponse structurée que l'assistant énonce dans les lunettes.</desc>
+            <defs>
+                <linearGradient id="sgmcp-grad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <marker id="sgmcp-arr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#a388ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+                <marker id="sgmcp-arr-back" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+
+            <!-- Column 1: Glasses -->
+            <rect x="30" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+            <text x="140" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">Lunettes connectées</text>
+            <g stroke="#a388ff" stroke-width="1.6" fill="none">
+                <circle cx="100" cy="130" r="14"/>
+                <circle cx="158" cy="130" r="14"/>
+                <line x1="114" y1="130" x2="144" y2="130"/>
+                <line x1="86" y1="127" x2="74" y2="122"/>
+                <line x1="172" y1="127" x2="184" y2="122"/>
+            </g>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
+                <text x="140" y="180" text-anchor="middle">LLM sur les lunettes /</text>
+                <text x="140" y="196" text-anchor="middle">assistant sur l'appareil</text>
+                <text x="140" y="226" text-anchor="middle" fill="#a388ff" font-weight="600">&quot;Où ai-je laissé</text>
+                <text x="140" y="242" text-anchor="middle" fill="#a388ff" font-weight="600">mes clés ?&quot;</text>
+                <text x="140" y="284" text-anchor="middle">&hellip; réponse vocale &hellip;</text>
+                <text x="140" y="310" text-anchor="middle" fill="#00cec9" font-weight="600">&quot;Sur l'îlot de cuisine,</text>
+                <text x="140" y="326" text-anchor="middle" fill="#00cec9" font-weight="600">à gauche de la corbeille de fruits.&quot;</text>
+            </g>
+
+            <!-- Column 2: PWA -->
+            <rect x="290" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+            <text x="400" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">PWA installable</text>
+            <text x="400" y="112" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">rakuai.com/capture-app/</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
+                <text x="400" y="148" text-anchor="middle">Caméra + IMU + audio</text>
+                <text x="400" y="170" text-anchor="middle">WebXR / WebGPU</text>
+                <text x="400" y="192" text-anchor="middle">stdio MCP bridge</text>
+                <text x="400" y="214" text-anchor="middle">JWT &rarr; hosted MCP</text>
+            </g>
+            <rect x="316" y="240" width="168" height="92" rx="8" fill="#0d0d20" stroke="#222244" stroke-width="1"/>
+            <text x="400" y="262" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="11" font-weight="600">stdio | https</text>
+            <text x="400" y="282" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">requête / réponse</text>
+            <text x="400" y="304" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">événements en streaming</text>
+            <text x="400" y="324" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">flux de jeton de connexion</text>
+
+            <!-- Column 3: MCP surface -->
+            <rect x="550" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="660" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">RakuAI MCP</text>
+            <text x="660" y="105" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">6 outils principaux + 6 adaptateurs xr_</text><text x="660" y="120" text-anchor="middle" fill="#7070a0" font-family="system-ui,sans-serif" font-size="10">(sur 17 outils MCP natifs)</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="11.5">
+                <text x="572" y="138">&middot; capture_create</text>
+                <text x="572" y="156">&middot; capture_status</text>
+                <text x="572" y="174">&middot; scene_query</text>
+                <text x="572" y="192">&middot; scene_describe</text>
+                <text x="572" y="210">&middot; capture_list</text>
+                <text x="572" y="228">&middot; capture_open</text>
+            </g>
+            <line x1="572" y1="244" x2="748" y2="244" stroke="#222244" stroke-width="1" stroke-dasharray="3,3"/>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="11.5">
+                <text x="572" y="264">&middot; xr_get_session</text>
+                <text x="572" y="282">&middot; xr_set_head_pose</text>
+                <text x="572" y="300">&middot; xr_simulate_input</text>
+                <text x="572" y="318">&middot; xr_create_anchor</text>
+                <text x="572" y="336">&middot; xr_list_anchors</text>
+                <text x="572" y="354">&middot; xr_remove_anchor</text>
+            </g>
+
+            <!-- Column 4: Runtime + reasoning -->
+            <rect x="810" y="60" width="200" height="300" rx="14" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="910" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">raku-runtime</text>
+            <text x="910" y="110" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">Moteur C++</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
+                <text x="910" y="146" text-anchor="middle">Raisonnement spatial</text>
+                <text x="910" y="166" text-anchor="middle">Stockage splat / maillage</text>
+                <text x="910" y="186" text-anchor="middle">Ancres + poses</text>
+                <text x="910" y="206" text-anchor="middle">Permissions et portée</text>
+                <text x="910" y="226" text-anchor="middle">~9 500 endpoints API</text>
+                <text x="910" y="246" text-anchor="middle">18 DLL natives</text>
+            </g>
+            <text x="910" y="288" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="11" font-weight="600">réponse structurée</text>
+            <text x="910" y="306" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">{ object_id, pose,</text>
+            <text x="910" y="322" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">&nbsp;&nbsp;confidence }</text>
+
+            <!-- Forward arrows (top, purple) -->
+            <line x1="250" y1="200" x2="287" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#sgmcp-arr)"/>
+            <line x1="510" y1="200" x2="547" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#sgmcp-arr)"/>
+            <line x1="770" y1="200" x2="807" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#sgmcp-arr)"/>
+
+            <!-- Reverse arrows (bottom, teal) -->
+            <line x1="287" y1="290" x2="250" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#sgmcp-arr-back)"/>
+            <line x1="547" y1="290" x2="510" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#sgmcp-arr-back)"/>
+            <line x1="807" y1="290" x2="770" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#sgmcp-arr-back)"/>
+
+            <!-- Bottom legend bar -->
+            <text x="520" y="400" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">Flux de requête MCP &mdash; identique que le LLM réside sur l'appareil, dans le cloud ou sur un poste pilotant les lunettes.</text>
+        </svg>
+        </div>
+
+        <p class="sg-mcp-note">
+            Les deux moitiés sont réelles et livrées. Le serveur MCP de production expose <strong>17 outils natifs</strong> (5 en lecture seule + 12 de mutation) &mdash; voir <a href="../engine/" style="color: var(--accent-bright);">engine.html</a> pour l'inventaire complet. Les ~12 outils pertinents pour les lunettes se répartissent ainsi : 6 outils principaux de capture/scène (<a href="mcp.html" style="color: var(--accent-bright);">documentés sur la page MCP</a>) et 6 outils adaptateurs <code>xr_</code> (session, pose de tête, entrée et primitives d'ancrage pour les flux pilotés par les lunettes). Le MCP hébergé s'exécute sur Azure Container Apps en East US.
+        </p>
+    </div>
+</section>
+
+<!-- Honest roadmap -->
+<section class="sg-section">
+    <div class="container">
+        <h2>La feuille de route, en toute honnêteté.</h2>
+        <p class="sg-subtitle">
+            Trois colonnes, trois horizons. Nous ne promettons pas ce que nous ne pouvons pas livrer, et nous signalons ce qui dépend d'un comportement de plateforme que nous ne contrôlons pas.
+        </p>
+
+        <div class="sg-roadmap">
+            <div class="sg-roadmap-col shipping">
+                <h3>Livré aujourd'hui</h3>
+                <p class="when">Production &middot; mai 2026</p>
+                <ul>
+                    <li>PWA installable à <code>rakuai.com/capture-app/</code></li>
+                    <li>Capture &rarr; reconstruction cloud (GLOMAP + Brush, sortie .spz)</li>
+                    <li>17 outils MCP natifs (5 en lecture seule + 12 de mutation) en ligne pour Claude, ChatGPT, Gemini, Copilot &mdash; voir <a href="../engine/" style="color: var(--accent-bright);">engine.html</a> pour l'inventaire complet</li>
+                    <li>6 outils adaptateurs <code>xr_</code> (session, pose de tête, entrée, ancres)</li>
+                    <li>Couche de requête spatiale sur les scènes reconstruites</li>
+                    <li>Comptes multi-locataires, authentification JWT, MCP hébergé sur Azure</li>
+                </ul>
+            </div>
+            <div class="sg-roadmap-col q3">
+                <h3>Fenêtre de lancement T3 2026</h3>
+                <p class="when">Aligné sur le lancement d'Android XR</p>
+                <ul>
+                    <li>Capture depuis les lunettes (source d'images = caméra Ray-Ban Display / Android XR)</li>
+                    <li>Entraînement de splat côté client en WebGPU (voie sans aller-retour cloud)</li>
+                    <li>Requête de scène en direct pendant la capture (pas seulement après capture)</li>
+                    <li>Aperçu du SDK OEM sous NDA</li>
+                    <li>Reconstruction GPU sur NVIDIA A10 / G5 / H100 (crédits en cours d'attribution)</li>
+                </ul>
+            </div>
+            <div class="sg-roadmap-col later">
+                <h3>2027</h3>
+                <p class="when">Sous réserve des surfaces de plateforme</p>
+                <ul>
+                    <li>Enveloppe native visionOS (repli WebXR jusque-là)</li>
+                    <li>SLM sur l'appareil pour les enveloppes de calcul de la classe lunettes</li>
+                    <li>Programme de licence de brevets pour les OEM qui le souhaitent</li>
+                    <li>Application de lancement co-marquée pour un ou plusieurs partenaires OEM</li>
+                    <li>Sim-to-real en temps réel pour la robotique + les flux agentiques sur lunettes</li>
+                </ul>
+            </div>
+        </div>
+
+        <p class="sg-roadmap-note">
+            Ce que nous ne promettrons pas : qu'un OEM en particulier préinstallera notre PWA, qu'un fournisseur de LLM en particulier passera par nous par défaut, ou que des API caméra que nous ne contrôlons pas existeront selon le calendrier que nous souhaitons. Nous concevons pour les surfaces publiques et laissons les plateformes décider.
+        </p>
+    </div>
+</section>
+
+<!-- Patents block (kept - it's substantive) -->
+<section class="sg-section">
+    <div class="container">
+        <h2>Le portefeuille de propriété intellectuelle derrière le runtime.</h2>
+        <p class="sg-subtitle">Cinq brevets US accordés, priorité juillet 2012, portefeuille courant jusqu'en juillet 2032. L'architecture décrite sur cette page est celle que ces brevets avaient anticipée.</p>
 
         <ul class="sg-patent-list">
-            <li><strong>US9781244B2</strong> Smart Eyeglasses (délivré oct. 2017)</li>
-            <li><strong>US9210358B2</strong> Entertainment Console (délivré déc. 2015)</li>
-            <li><strong>US9654613B2</strong> Arena Gaming (délivré mai 2017)</li>
-            <li><strong>US10027361B2</strong> Point-of-Service (délivré juil. 2018)</li>
-            <li><strong>US10432772B2</strong> Eyeglasses (21 revendications)</li>
+            <li><strong>US9781244B2</strong> Lunettes connectées (accordé oct. 2017)</li>
+            <li><strong>US9210358B2</strong> Console de divertissement (accordé déc. 2015)</li>
+            <li><strong>US9654613B2</strong> Jeu en arène (accordé mai 2017)</li>
+            <li><strong>US10027361B2</strong> Point de service (accordé juil. 2018)</li>
+            <li><strong>US10432772B2</strong> Lunettes (21 revendications)</li>
         </ul>
 
         <div class="sg-coverage">
-            <h3>Ce qu'ils couvrent</h3>
+            <h3>Ce que couvrent les revendications</h3>
             <ul>
-                <li>Communication sans fil double mode (faible latence + haut débit)</li>
-                <li>Architecture lunettes connectées + hôte de calcul (téléphone)</li>
+                <li>Communication sans fil bimode (faible latence + haute bande passante)</li>
+                <li>Architecture lunettes connectées + hôte de calcul/téléphone</li>
                 <li>Déport du rendu de l'hôte de calcul vers les lunettes</li>
                 <li>Synchronisation de l'état du monde en multijoueur</li>
-                <li>Diffusion du monde (livraison de deltas de scène, et non de vidéo)</li>
+                <li>Streaming de monde (livraison de deltas de scène, pas de vidéo)</li>
             </ul>
         </div>
 
         <p class="sg-prior-art-note">
-            Ces brevets précèdent les Meta Ray-Bans (2021), les Xreal Air (2022) et Android XR (2026).
+            Ces brevets sont antérieurs aux Meta Ray-Bans (2021), au Xreal Air (2022), au Meta Ray-Ban Display (2024&ndash;25) et à Android XR (2026). Pour les OEM qui souhaitent une voie claire sur les revendications au niveau de l'architecture, nous proposons des licences en complément du partenariat.
         </p>
         <div style="max-width:980px; margin:32px auto 0;">
         <svg viewBox="0 0 980 150" width="100%" style="max-width:980px; height:auto; display:block;" role="img" aria-labelledby="sgtl-title" xmlns="http://www.w3.org/2000/svg">
-            <title id="sgtl-title">Chronologie du portefeuille de brevets : priorit&#233; juillet 2012, d&#233;livrances de 2015 &#224; 2018, l&#8217;industrie livrant des lunettes AR &#224; partir de 2021, et le portefeuille courant jusqu&#8217;en juillet 2032.</title>
+            <title id="sgtl-title">Chronologie du portefeuille de brevets : priorité juillet 2012, délivrances de 2015 à 2018, l'industrie livrant des lunettes de RA à partir de 2021, et le portefeuille courant jusqu'en juillet 2032.</title>
             <defs>
                 <linearGradient id="sgtl-grad" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0" stop-color="#6c5ce7"/>
@@ -407,45 +874,45 @@
                 </linearGradient>
             </defs>
             <line x1="60" y1="78" x2="920" y2="78" stroke="url(#sgtl-grad)" stroke-width="2.5"/>
-            <!-- ticks: 2012 priority, 2015-18 grants, 2021/22/26 industry, 2032 estate -->
             <g font-family="system-ui,sans-serif">
                 <circle cx="60" cy="78" r="7" fill="#6c5ce7"/>
                 <text x="60" y="52" text-anchor="middle" fill="#e8e8f0" font-size="13" font-weight="700">2012</text>
-                <text x="60" y="104" text-anchor="middle" fill="#a388ff" font-size="11">priorit&#233;</text>
+                <text x="60" y="104" text-anchor="middle" fill="#a388ff" font-size="11">priorité</text>
 
                 <circle cx="290" cy="78" r="5" fill="#a388ff"/>
                 <text x="290" y="52" text-anchor="middle" fill="#9090b0" font-size="12">2015&#8211;18</text>
-                <text x="290" y="104" text-anchor="middle" fill="#9090b0" font-size="11">5 brevets d&#233;livr&#233;s</text>
+                <text x="290" y="104" text-anchor="middle" fill="#9090b0" font-size="11">5 brevets accordés</text>
 
                 <circle cx="560" cy="78" r="5" fill="#9090b0"/>
                 <text x="560" y="52" text-anchor="middle" fill="#9090b0" font-size="12">2021&#8211;26</text>
-                <text x="560" y="104" text-anchor="middle" fill="#9090b0" font-size="11">l&#8217;industrie livre des lunettes AR</text>
+                <text x="560" y="104" text-anchor="middle" fill="#9090b0" font-size="11">l'industrie livre des lunettes de RA</text>
 
                 <circle cx="920" cy="78" r="7" fill="#00cec9"/>
                 <text x="920" y="52" text-anchor="middle" fill="#e8e8f0" font-size="13" font-weight="700">2032</text>
-                <text x="920" y="104" text-anchor="middle" fill="#00cec9" font-size="11">portefeuille courant jusqu&#8217;&#224;</text>
+                <text x="920" y="104" text-anchor="middle" fill="#00cec9" font-size="11">portefeuille courant jusqu'en</text>
             </g>
         </svg>
         </div>
     </div>
 </section>
 
+<!-- Engineering proof (kept - it's substantive) -->
 <section class="sg-section">
     <div class="container">
-        <h2>Preuves d'ingénierie</h2>
-        <p class="sg-subtitle">Des chiffres mesurés issus d'un runtime conçu dès le premier jour face aux contraintes des lunettes.</p>
+        <h2>Preuves d'ingénierie.</h2>
+        <p class="sg-subtitle">Chiffres mesurés d'un runtime conçu dès le premier jour selon les contraintes des lunettes. Ce ne sont pas des revendications de plateforme &mdash; c'est ce que RakuAI lui-même vise et observe.</p>
 
         <div class="sg-stats-grid">
             <div class="sg-stat">
                 <div class="num">18 ms</div>
-                <div class="label">latence mouvement-à-photon</div>
+                <div class="label">latence mouvement-vers-photon</div>
             </div>
             <div class="sg-stat">
-                <div class="num">0,5&#8211;0,8 mm</div>
+                <div class="num">0.5&#8211;0.8 mm</div>
                 <div class="label">précision de position à 40 cm</div>
             </div>
             <div class="sg-stat">
-                <div class="num">0,3 mm</div>
+                <div class="num">0.3 mm</div>
                 <div class="label">gigue de pose (filtrée par Kalman)</div>
             </div>
             <div class="sg-stat">
@@ -458,64 +925,32 @@
             </div>
             <div class="sg-stat">
                 <div class="num">~20 Hz / 400&#8211;1400 B</div>
-                <div class="label">sync de delta de scène (PAS de vidéo)</div>
+                <div class="label">synchro de delta de scène (pas de vidéo)</div>
             </div>
             <div class="sg-stat">
                 <div class="num">3 modes thermiques</div>
-                <div class="label">Performance, Équilibré, Basse consommation</div>
+                <div class="label">Performance / Équilibré / Basse consommation</div>
             </div>
             <div class="sg-stat">
-                <div class="num">squelette à 71 articulations</div>
-                <div class="label">suivi du corps entier</div>
+                <div class="num">Squelette à 71 articulations</div>
+                <div class="label">suivi corporel complet</div>
             </div>
             <div class="sg-stat">
-                <div class="num">2&#8211;4x</div>
+                <div class="num">2&#8211;4&times;</div>
                 <div class="label">gain de performance du rendu fovéal</div>
             </div>
         </div>
     </div>
 </section>
 
+<!-- Phone-as-compute architecture (kept - this is core diff) -->
 <section class="sg-section">
     <div class="container">
-        <h2>Pourquoi pas Unity ?</h2>
-        <div class="sg-callout">
-            <h3>Ce que vous perdez avec Unity pour les lunettes connectées :</h3>
-            <ul>
-                <li>Moteur généraliste, non optimisé pour les lunettes</li>
-                <li>Aucune conscience du budget énergétique (suppose une alimentation secteur)</li>
-                <li>Optimisé pour 60 FPS, et non pour la prévisibilité du mouvement-à-photon</li>
-                <li>Aucune voie d'intégration de petit modèle de langage sur l'appareil</li>
-                <li>Aucune orchestration de world model</li>
-                <li>L'architecture à double appareil est une réflexion après coup</li>
-            </ul>
-        </div>
-    </div>
-</section>
-
-<section class="sg-section">
-    <div class="container">
-        <h2>Matrice de prise en charge des appareils</h2>
-        <p class="sg-subtitle">Conforme OpenXR lorsque c'est possible. Extensions constructeur lorsque nécessaire.</p>
-        <div class="sg-devices">
-            <div class="sg-device">Meta Quest 3</div>
-            <div class="sg-device">Meta Ray-Ban (Display)</div>
-            <div class="sg-device">Xreal Air / Air 2 / One</div>
-            <div class="sg-device">Samsung Android XR</div>
-            <div class="sg-device">MiRZA AR2</div>
-            <div class="sg-device">Rokid</div>
-            <div class="sg-device">Futurs appareils conformes OpenXR (il suffit de les brancher)</div>
-        </div>
-    </div>
-</section>
-
-<section class="sg-section">
-    <div class="container">
-        <h2>Architecture téléphone-comme-calcul</h2>
-        <p class="sg-subtitle">La répartition que les brevets de 2012 avaient prédite — désormais la seule architecture qui tient dans l'enveloppe thermique des lunettes.</p>
+        <h2>Architecture téléphone-comme-calcul.</h2>
+        <p class="sg-subtitle">La répartition que les brevets de 2012 avaient anticipée &mdash; aujourd'hui la seule architecture qui tient dans l'enveloppe thermique des lunettes.</p>
         <div style="max-width:980px; margin:0 auto 36px;">
         <svg viewBox="0 0 980 320" width="100%" style="max-width:980px; height:auto; display:block;" role="img" aria-labelledby="sgsplit-title" xmlns="http://www.w3.org/2000/svg">
-            <title id="sgsplit-title">Architecture t&#233;l&#233;phone-comme-calcul : le t&#233;l&#233;phone ex&#233;cute la physique, l&#8217;IA, l&#8217;&#233;tat du jeu et le streaming d&#8217;assets, reli&#233; aux lunettes par delta de sc&#232;ne en Wi-Fi 7 avec repli optique, tandis que les lunettes g&#232;rent le rendu, la pr&#233;diction de pose et l&#8217;odom&#233;trie visuelle.</title>
+            <title id="sgsplit-title">Architecture téléphone-comme-calcul : le téléphone exécute la physique, l'IA, l'état du jeu et le streaming d'assets, relié aux lunettes par un delta de scène en Wi-Fi 7 avec repli optique, tandis que les lunettes gèrent le rendu, la prédiction de pose et l'odométrie visuelle.</title>
             <defs>
                 <linearGradient id="sgsplit-grad" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0" stop-color="#6c5ce7"/>
@@ -529,22 +964,18 @@
                 </marker>
             </defs>
 
-            <!-- Phone node -->
             <rect x="40" y="60" width="320" height="200" rx="14" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
-            <!-- phone glyph -->
             <rect x="64" y="92" width="40" height="64" rx="6" fill="none" stroke="#a388ff" stroke-width="1.8"/>
             <line x1="76" y1="100" x2="92" y2="100" stroke="#a388ff" stroke-width="1.8" stroke-linecap="round"/>
-            <text x="124" y="104" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="16" font-weight="700">T&#233;l&#233;phone — calcul</text>
+            <text x="124" y="104" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="16" font-weight="700">Téléphone &mdash; calcul</text>
             <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="13">
-                <text x="64" y="178">Physique — 60 Hz fixe</text>
-                <text x="64" y="200">Comportement IA &amp; &#233;tat du jeu</text>
-                <text x="64" y="222">Streaming d&#8217;assets</text>
-                <text x="64" y="244">Orchestration de world model</text>
+                <text x="64" y="178">Physique &mdash; 60 Hz fixe</text>
+                <text x="64" y="200">Comportement IA et état du jeu</text>
+                <text x="64" y="222">Streaming d'assets</text>
+                <text x="64" y="244">Orchestration du modèle de monde</text>
             </g>
 
-            <!-- Glasses node -->
             <rect x="620" y="60" width="320" height="200" rx="14" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
-            <!-- glasses glyph -->
             <g stroke="#00cec9" stroke-width="1.8" fill="none">
                 <circle cx="656" cy="116" r="13"/>
                 <circle cx="700" cy="116" r="13"/>
@@ -552,26 +983,25 @@
                 <line x1="643" y1="113" x2="634" y2="108"/>
                 <line x1="713" y1="113" x2="722" y2="108"/>
             </g>
-            <text x="732" y="104" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="16" font-weight="700">Lunettes — affichage</text>
+            <text x="732" y="104" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="16" font-weight="700">Lunettes &mdash; affichage</text>
             <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="13">
-                <text x="644" y="178">Rendu — 90 Hz</text>
-                <text x="644" y="200">Pr&#233;diction de pose</text>
-                <text x="644" y="222">Rendu fov&#233;al</text>
-                <text x="644" y="244">IMU + odom&#233;trie visuelle</text>
+                <text x="644" y="178">Rendu &mdash; 90 Hz</text>
+                <text x="644" y="200">Prédiction de pose</text>
+                <text x="644" y="222">Rendu fovéal</text>
+                <text x="644" y="244">IMU + odométrie visuelle</text>
             </g>
 
-            <!-- Link -->
             <line x1="364" y1="142" x2="614" y2="142" stroke="url(#sgsplit-grad)" stroke-width="2.5" marker-end="url(#sgsplit-arr-r)"/>
             <line x1="614" y1="182" x2="364" y2="182" stroke="url(#sgsplit-grad)" stroke-width="2.5" marker-end="url(#sgsplit-arr-l)"/>
-            <text x="489" y="128" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="12" font-weight="600">delta de sc&#232;ne ~20 Hz</text>
-            <text x="489" y="166" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">Wi-Fi 7 &#183; repli optique</text>
-            <text x="489" y="206" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="12" font-weight="600">liaison montante capteurs</text>
-            <text x="489" y="232" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">aucun streaming vid&#233;o</text>
+            <text x="489" y="128" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="12" font-weight="600">delta de scène ~20 Hz</text>
+            <text x="489" y="166" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">Wi-Fi 7 &middot; repli optique</text>
+            <text x="489" y="206" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="12" font-weight="600">liaison montante des capteurs</text>
+            <text x="489" y="232" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">aucun streaming vidéo</text>
         </svg>
         </div>
         <div class="sg-arch">
             <div class="sg-arch-row">
-                <h4>Le téléphone exécute le monde</h4>
+                <h4>Le téléphone fait tourner le monde</h4>
                 <p>Physique (60 Hz fixe), comportement IA, état du jeu, streaming d'assets.</p>
             </div>
             <div class="sg-arch-row">
@@ -580,65 +1010,185 @@
             </div>
             <div class="sg-arch-row">
                 <h4>La liaison fait le reste</h4>
-                <p>Delta de scène en Wi-Fi 7 (avec repli optique lorsque disponible), liaison montante des capteurs, aucun streaming vidéo nécessaire.</p>
+                <p>Delta de scène en Wi-Fi 7 (avec repli optique lorsque disponible), liaison montante des capteurs, aucun streaming vidéo requis.</p>
             </div>
         </div>
     </div>
 </section>
 
+<!-- Device support -->
 <section class="sg-section">
     <div class="container">
-        <h2>Si vous livrez des lunettes connectées, parlons-en.</h2>
-        <div class="sg-partnership">
-            <p>
-                Nous sommes purement logiciels. Nous ne concurrençons pas les partenaires matériels &mdash; nous les rendons plus performants. Notre runtime est la couche manquante entre votre matériel et l'écosystème LLM.
-            </p>
-            <p>Si vous :</p>
-            <ul>
-                <li>Concevez des lunettes AR grand public pour un lancement 2026&#8211;2027</li>
-                <li>Cherchez un runtime qui livre des expériences IA dès le premier jour</li>
-                <li>Vous préoccupez des budgets thermiques, de latence ou de calcul</li>
-                <li>Souhaitez licencier le portefeuille de brevets</li>
-            </ul>
-            <p>Parlons-en.</p>
-            <div class="sg-cta-row">
-                <a href="mailto:partners@rakuai.com" class="sg-btn-primary">Nous contacter &rarr;</a>
+        <h2>Appareils pris en charge aujourd'hui.</h2>
+        <p class="sg-subtitle">Conforme à OpenXR lorsque c'est possible. Extensions fournisseur lorsque c'est nécessaire. Voie PWA lorsqu'elle est disponible.</p>
+        <div class="sg-devices">
+            <div class="sg-device">Meta Quest 3</div>
+            <div class="sg-device">Meta Ray-Ban Display</div>
+            <div class="sg-device">Xreal Air / Air 2 / One</div>
+            <div class="sg-device">Samsung Android XR</div>
+            <div class="sg-device">MiRZA AR2</div>
+            <div class="sg-device">Rokid</div>
+            <div class="sg-device">Apple Vision Pro (WebXR)</div>
+            <div class="sg-device">Futurs appareils conformes à OpenXR</div>
+        </div>
+    </div>
+</section>
+
+<!-- Partner CTA - concrete paths, not generic "contact us" -->
+<section class="sg-section">
+    <div class="container">
+        <h2>Trois façons concrètes de nous solliciter.</h2>
+        <p class="sg-subtitle">Choisissez la voie qui correspond à l'étape où se trouve votre équipe. Nous garderons le premier échange court.</p>
+
+        <div class="sg-partner-grid">
+            <div class="sg-partner-card">
+                <div>
+                    <h3>1. Demande de capacités</h3>
+                    <p>Vous évaluez des partenaires runtime et souhaitez une réponse écrite sur la manière dont RakuAI s'adapte à votre appareil, votre OS et vos jalons de lancement 2026. Envoyez-nous vos contraintes de plateforme, nous répondrons avec ce qui est réel aujourd'hui et ce qu'il nous faudrait livrer pour votre lancement.</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=Capability%20inquiry%20%E2%80%94%20%5Byour%20platform%5D" class="sg-btn-secondary" style="text-align:center;">partnerships@rakuai.com &rarr;</a>
+            </div>
+
+            <div class="sg-partner-card">
+                <div>
+                    <h3>2. Document de spécification d'intégration</h3>
+                    <p>Dossier au niveau ingénierie : surface d'entrée PWA, transport MCP, API du flux de capture, modèle de permissions et les points d'accroche côté OEM que nous recommanderions. Nous rédigeons encore la version publique &mdash; demandez et nous vous enverrons la version actuelle directement.</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=Integration%20spec%20request" class="sg-btn-secondary" style="text-align:center;">Demander la spécification &rarr;</a>
+                <p class="sg-partner-meta">Le document public est en cours de rédaction &mdash; attendez-vous à une URL <code>/docs/oem-integration-spec.html</code> dans un suivi.</p>
+            </div>
+
+            <div class="sg-partner-card">
+                <div>
+                    <h3>3. Aperçu du SDK en accès anticipé</h3>
+                    <p>Accès sous NDA mutuel aux outils adaptateurs <code>xr_</code>, à l'aperçu de la capture depuis les lunettes et au pipeline de splat côté client en WebGPU avant la fenêtre de lancement T3 2026. Limité à un petit nombre de partenaires OEM.</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=Early-access%20SDK%20under%20NDA" class="sg-btn-secondary" style="text-align:center;">Lancer le NDA &rarr;</a>
+                <p class="sg-partner-meta">Nous signons des NDA mutuels selon des conditions standard ; le délai se compte en jours, pas en semaines.</p>
             </div>
         </div>
     </div>
+</section>
+
+<!-- Cross-links -->
+<section class="sg-section">
+    <div class="container">
+        <h2>Si vous voulez approfondir avant de nous écrire.</h2>
+        <p class="sg-subtitle">Les quatre pages que les partenaires consultent le plus avant un premier appel.</p>
+
+        <div class="sg-crosslinks">
+            <a href="spatial-engine.html" class="sg-crosslink">
+                <div class="label">Moteur spatial &rarr;</div>
+                <div class="desc">Le runtime C++ &mdash; 18 DLL natives, ~9 500 endpoints API, la plateforme sur laquelle repose la surface MCP.</div>
+            </a>
+            <a href="mcp.html" class="sg-crosslink">
+                <div class="label">Serveur MCP &rarr;</div>
+                <div class="desc">La surface MCP à six outils qui permet à Claude, ChatGPT, Gemini et Copilot de piloter le runtime. En production depuis mars 2026.</div>
+            </a>
+            <a href="why-rakuai.html" class="sg-crosslink">
+                <div class="label">Pourquoi RakuAI &rarr;</div>
+                <div class="desc">L'argumentaire détaillé en faveur d'un moteur spatial AI-native &mdash; une seule API pour le web, le natif et la XR.</div>
+            </a>
+            <a href="../blog/" class="sg-crosslink">
+                <div class="label">Blog d'ingénierie &rarr;</div>
+                <div class="desc">Journal de développement comprenant l'article sur l'adaptateur MCP, l'annonce NVIDIA Inception et les comptes rendus sur Raku Capture.</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- NVIDIA Inception validation strip (member chip + recognition card) -->
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 32px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="../press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception Member - en savoir plus sur la page presse">
+            <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <p style="max-width: 640px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            RakuAI est membre de <strong>NVIDIA Inception</strong>. La même pile de Gaussian Splatting 3D accélérée par NVIDIA que nous livrons dans <a href="capture.html" style="color: var(--accent-bright);">Raku Capture</a> est celle qui alimente le flux de scan piloté par les lunettes décrit ci-dessus. <a href="../press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">En savoir plus &rarr;</a>
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 14px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        NVIDIA Inception est un programme gratuit pour les startups d'IA ; l'adhésion de RakuAI n'implique pas que NVIDIA approuve les produits de RakuAI. En savoir plus sur <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color: var(--text-secondary);">nvidia.com/startups</a>.
+    </p>
 </section>
 
 <footer>
-  <p>&copy; 2026 RakuAI, LLC &bull; 5 brevets américains délivrés (Priorité : juillet 2012) &bull; Propulsé par le moteur RakuAI</p>
-  <p style="margin-top: 6px;">
-    <a href="../engine/">Moteur</a> &bull;
-    <a href="../api/">API</a> &bull;
-    <a href="docs.html">Docs</a> &bull;
-    <a href="../games/">Arcade</a> &bull;
-    <a href="press.html">Presse</a> &bull;
-    <a href="developers/">Développeurs</a> &bull;
-    <a href="../privacy.html">Confidentialité</a> &bull;
-    <a href="../terms.html">Conditions</a> &bull;
-    <a href="contact.html">Contact</a> &bull;
-    <a href="https://github.com/RakuXR">GitHub</a>
-  </p>
-  <p class="trademark-notice">
-    RakuAI&trade; et RakuXR&trade; sont des marques déposées de RakuAI, LLC.
-    <span class="kanji-logo">&#x697D;</span>AI et <span class="kanji-logo">&#x697D;</span>XR sont des marques stylisées de RakuAI, LLC.
-    5 brevets américains délivrés (Priorité : juillet 2012).
-  </p>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Solutions</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">Fabricants de lunettes connectées</a></li>
+                    <li><a href="llm-makers.html">Laboratoires d'IA</a></li>
+                    <li><a href="enterprise.html">Entreprises</a></li>
+                    <li><a href="creator.html">Créateurs</a></li>
+                    <li><a href="compare.html">Comparaison avec Unity / Unreal</a></li>
+                    <li><a href="spatial-engine.html">Moteur spatial</a></li>
+                    <li><a href="ai-systems.html">Systèmes d'IA</a></li>
+                    <li><a href="xr-features.html">Fonctionnalités XR</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Développeurs</h4>
+                <ul>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="mcp.html">Serveur MCP</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="../api/">Référence API</a></li>
+                    <li><a href="templates.html">Modèles</a></li>
+                    <li><a href="developers/">Portail développeur</a></li>
+                    <li><a href="../developers/claude-desktop.html">Guide Claude Desktop</a></li>
+                    <li><a href="developer-guide.html">Guide développeur</a></li>
+                    <li><a href="llm-guide.html">Guide d'intégration LLM</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Ressources</h4>
+                <ul>
+                    <li><a href="../blog/">Blog</a></li>
+                    <li><a href="why-rakuai.html">Pourquoi RakuAI</a></li>
+                    <li><a href="press.html">Kit presse</a></li>
+                    <li><a href="discover.html">Découvrir</a></li>
+                    <li><a href="content-packs.html">Packs de contenu</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Entreprise</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">À propos</a></li>
+                    <li><a href="pricing.html">Tarifs</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">Partenaires</a></li>
+                    <li><a href="../privacy.html">Confidentialité</a></li>
+                    <li><a href="../terms.html">Conditions</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 brevets US accordés (Priorité : juillet 2012) &bull; Propulsé par le moteur RakuAI</p>
+        <p class="trademark-notice">
+            RakuAI&trade; et RakuXR&trade; sont des marques de RakuAI, LLC. <span class="kanji-logo">&#x697D;</span>AI et <span class="kanji-logo">&#x697D;</span>XR sont des marques stylisées de RakuAI, LLC. 5 brevets US accordés (Priorité : juillet 2012).
+        </p>
+    </div>
         <!-- nv-inception:start -->
         <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
-            <a href="../press.html#nvidia-inception" aria-label="Membre de NVIDIA Inception - read more on the press page" style="line-height: 0;">
-                <img src="../branding/nvidia-inception-member.svg" alt="Membre de NVIDIA Inception" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            <a href="../press.html#nvidia-inception" aria-label="NVIDIA Inception Member - en savoir plus sur la page presse" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
             </a>
         </div>
         <!-- nv-inception:end -->
 </footer>
 
+<script src="../js/public-config.js"></script>
+<script src="../js/api-client.js"></script>
 <script src="../js/auth-nav.js" defer></script>
 <script src="../js/lang-selector.js" defer></script>
+
+
 <script src="../js/nav-dropdown.js" defer></script>
     <script src="../js/section-nav.js" defer></script>
-</body>
-</html>
