@@ -1,6 +1,20 @@
 # rakuxr.github.io
 
-RakuAI - Make Games by Talking. Official website and public downloads.
+**Supercharge your AI in the real world.**
+
+This is the official **RakuAI** public website (<https://rakuai.com>) and the
+public downloads index. RakuAI is an AI-native spatial runtime: phone scans of
+rooms become 3D Gaussian splats, and any LLM (Claude, ChatGPT, Gemini,
+Copilot) drives them via MCP. Built for smart-glasses + phone capture.
+NVIDIA Inception member. Bootstrapped by Kevin Griffin in Atlanta.
+
+For the rest of the platform:
+
+- **Engine** (C++ runtime + MCP server + capture-app PWA) → [raku-runtime](https://github.com/RakuXR/raku-runtime)
+- **Backend** (FastAPI + recon-worker, Azure Container Apps) → [raku-api](https://github.com/RakuXR/raku-api)
+- **This repo** → the public marketing site you are reading
+
+---
 
 ## Deployment
 
@@ -29,4 +43,6 @@ gh workflow run deploy.yml --repo RakuXR/rakuxr.github.io
 
 ---
 
-RakuAI and RakuXR are trademarks of RakuAI, LLC.
+## License
+
+Released under the [MIT License](./LICENSE). RakuAI and RakuXR are trademarks of RakuAI, LLC.
