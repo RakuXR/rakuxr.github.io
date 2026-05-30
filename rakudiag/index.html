@@ -563,7 +563,13 @@ footer a { color: var(--dim); }
   // ---------- Init base URL ----------
   function getBaseUrl() {
     try {
-      return localStorage.getItem(STORAGE_KEY) || DEFAULT_BASE_URL;
+      const saved = localStorage.getItem(STORAGE_KEY);
+      // Migrate away from the retired Fly host: ignore stale saved values.
+      if (saved && saved.includes('fly.dev')) {
+        localStorage.removeItem(STORAGE_KEY);
+        return DEFAULT_BASE_URL;
+      }
+      return saved || DEFAULT_BASE_URL;
     } catch (e) {
       return DEFAULT_BASE_URL;
     }

@@ -400,7 +400,13 @@ async function serverCall(method, path, body) {
 
 // Restore server connection from localStorage on load
 (function restoreServerConnection() {
-  const savedUrl = localStorage.getItem('raku_server_url');
+  let savedUrl = localStorage.getItem('raku_server_url');
+  // Migrate away from the retired Fly host: drop stale saved values.
+  if (savedUrl && savedUrl.includes('fly.dev')) {
+    localStorage.removeItem('raku_server_url');
+    localStorage.removeItem('raku_server_key');
+    savedUrl = null;
+  }
   if (savedUrl) {
     document.getElementById('srv-url').value = savedUrl;
     const savedKey = localStorage.getItem('raku_server_key');
