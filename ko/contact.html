@@ -12,7 +12,7 @@
     <meta property="og:url" content="https://rakuai.com/ko/contact">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="canonical" href="https://rakuai.com/ko/contact.html">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action 'self'; connect-src 'self' https://api.raku.ai https://api.rakuai.com; frame-src https://hcaptcha.com;">
     <link rel="stylesheet" href="../style.css">
     <!--
       Machine-translated by Claude. Pending human review.
@@ -20,7 +20,7 @@
       Date: 2026-05-17
       Language: ko (Korean)
     -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action 'self'; connect-src 'self' https://api.raku.ai https://api.rakuai.com; frame-src https://hcaptcha.com;">
     <style>
         .contact-form {
             max-width: 600px;
@@ -252,7 +252,7 @@
             <p style="color: var(--text-secondary);">연락해 주셔서 감사합니다. 가능한 한 빨리 회신해 드리겠습니다.</p>
         </div>
 
-        <form class="contact-form" id="contact-form" action="https://formspree.io/f/xaqpnyng" method="POST">
+        <form class="contact-form" id="contact-form" action="https://api.rakuai.com/api/v1/leads" method="POST">
             <div class="form-group">
                 <label for="name">이름</label>
                 <input type="text" id="name" name="name" required autocomplete="name" placeholder="이름" aria-label="Name">
@@ -374,13 +374,33 @@
         submitBtn.disabled = true;
         submitBtn.textContent = '전송 중...';
 
+        // Honeypot check - bots fill _gotcha; quietly succeed if they do.
+        var gotcha = (form.querySelector('input[name="_gotcha"]') || {}).value;
+        if (gotcha) {
+            form.style.display = 'none';
+            if (successMsg) successMsg.style.display = 'block';
+            return;
+        }
+
         var formData = new FormData(form);
         formData.delete('captcha_answer');
 
-        fetch(form.action, {
+        var payload = {
+            name: (formData.get('name') || '').toString(),
+            email: (formData.get('email') || '').toString(),
+            message: (formData.get('message') || '').toString(),
+            source: 'contact',
+            subject: (formData.get('subject') || formData.get('_subject') || '').toString() || null,
+            _gotcha: (formData.get('_gotcha') || '').toString(),
+            metadata: {
+                _subject: (formData.get('_subject') || '').toString() || undefined
+            }
+        };
+
+        fetch('https://api.rakuai.com/api/v1/leads', {
             method: 'POST',
-            body: formData,
-            headers: { 'Accept': 'application/json' }
+            body: JSON.stringify(payload),
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
         }).then(function(response) {
             return response.json().then(function(data) {
                 if (response.ok) {
