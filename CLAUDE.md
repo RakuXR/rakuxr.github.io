@@ -107,3 +107,7 @@ This is a static site — no build step. All HTML/CSS/JS files deploy as-is.
 - **Phase 3**: Browser game player (WebGL/WASM), shareable links
 - **Phase 4**: Discover page, community features, remix
 - **Phase 5**: XR deep links, platform-specific landing pages
+
+---
+
+Last canonical sync: 2026-05-30 (Lane B, task #237). For cross-repo KT, see raku-api docs/knowledge-transfer/ (private).
