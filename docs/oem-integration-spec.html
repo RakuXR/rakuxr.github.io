@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.rakuai.com; base-uri 'self'; object-src 'none';">
+    <title>OEM Integration Spec - RakuAI for Smart Glasses</title>
+    <meta name="description" content="Engineering brief for smart-glasses OEM tech leads: architecture, hardware envelope, three integration tiers, MCP tool surface, preliminary licensing, and estimated effort.">
+    <meta name="keywords" content="smart glasses OEM integration, RakuAI SDK, MCP spatial runtime, Meta Reality Labs, Samsung Galaxy XR, Google Android XR, Xreal, Rokid, Apple Vision Pro">
+    <meta property="og:title" content="OEM Integration Spec - RakuAI for Smart Glasses">
+    <meta property="og:description" content="Three integration tiers (web-app, native SDK, custom partnership), hardware envelope, MCP tool surface, and engineering effort estimates for smart-glasses OEMs.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/docs/oem-integration-spec.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="OEM Integration Spec - RakuAI for Smart Glasses">
+    <meta name="twitter:description" content="Three integration tiers, hardware envelope, MCP tool surface, and engineering effort estimates for smart-glasses OEMs.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/docs/oem-integration-spec.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .oem-section {
+            padding: 64px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .oem-section:last-of-type { border-bottom: none; }
+        .oem-hero {
+            padding: 88px 0 56px;
+            text-align: center;
+        }
+        .oem-hero .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            padding: 6px 14px;
+            border: 1px solid rgba(108, 92, 231, 0.45);
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+        .oem-hero h1 {
+            font-size: clamp(2rem, 4.5vw, 3.2rem);
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .oem-hero .lede {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.65;
+            max-width: 820px;
+            margin: 0 auto 32px;
+        }
+        .oem-section h2 {
+            font-size: clamp(1.6rem, 3vw, 2.2rem);
+            color: var(--accent-bright);
+            margin-bottom: 14px;
+            text-align: center;
+        }
+        .oem-section .sub {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            max-width: 780px;
+            margin: 0 auto 36px;
+            line-height: 1.6;
+        }
+        .oem-section .body {
+            max-width: 880px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 0.98rem;
+        }
+        .oem-section .body p { margin: 0 0 16px; }
+        .oem-section .body strong { color: var(--text-primary); }
+        .oem-section .body code {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.88em;
+            background: rgba(108, 92, 231, 0.1);
+            padding: 1px 6px;
+            border-radius: 4px;
+            color: var(--accent-bright);
+        }
+
+        /* pitch bullets */
+        .oem-pitch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .oem-pitch {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 22px 22px 20px;
+        }
+        .oem-pitch h3 {
+            color: var(--accent-bright);
+            font-size: 1.02rem;
+            margin: 0 0 10px;
+        }
+        .oem-pitch p {
+            color: var(--text-secondary);
+            font-size: 0.94rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* architecture diagram */
+        .oem-arch-wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 28px 24px;
+            overflow-x: auto;
+        }
+        .oem-arch-svg {
+            display: block;
+            margin: 0 auto;
+            width: 100%;
+            max-width: 920px;
+            height: auto;
+        }
+        .oem-arch-legend {
+            margin: 18px auto 0;
+            font-size: 0.86rem;
+            color: var(--text-secondary);
+            opacity: 0.9;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .oem-arch-legend code { font-size: 0.85em; }
+
+        /* envelope table */
+        .oem-table-wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            border: 1px solid #222244;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+            overflow-x: auto;
+        }
+        .oem-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 640px;
+            font-size: 0.93rem;
+        }
+        .oem-table th, .oem-table td {
+            padding: 13px 18px;
+            text-align: left;
+            border-bottom: 1px solid #222244;
+            vertical-align: top;
+            color: var(--text-secondary);
+        }
+        .oem-table thead th {
+            background: rgba(108, 92, 231, 0.08);
+            color: var(--accent-bright);
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.02em;
+        }
+        .oem-table tbody th {
+            color: var(--text-primary);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.015);
+            min-width: 200px;
+            text-align: left;
+        }
+        .oem-table tr:last-child th, .oem-table tr:last-child td { border-bottom: none; }
+        .oem-table strong { color: var(--text-primary); }
+
+        /* tier cards */
+        .oem-tier-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .oem-tier {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px 22px;
+            display: flex;
+            flex-direction: column;
+        }
+        .oem-tier.tier-1 { border-color: rgba(0, 206, 201, 0.35); }
+        .oem-tier.tier-2 { border-color: rgba(163, 136, 255, 0.45); }
+        .oem-tier.tier-3 { border-color: rgba(253, 203, 110, 0.45); }
+        .oem-tier .tier-label {
+            font-size: 0.74rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.8;
+            margin-bottom: 6px;
+        }
+        .oem-tier h3 {
+            font-size: 1.08rem;
+            color: var(--text-primary);
+            margin: 0 0 10px;
+        }
+        .oem-tier .tier-body {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin-bottom: 14px;
+        }
+        .oem-tier .tier-meta {
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px dashed #222244;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            opacity: 0.92;
+        }
+        .oem-tier .tier-meta strong { color: var(--text-primary); }
+        .tier-1 .tier-label { color: var(--success); }
+        .tier-2 .tier-label { color: var(--accent-bright); }
+        .tier-3 .tier-label { color: #fdcb6e; }
+
+        /* MCP tool-surface grid */
+        .oem-mcp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .oem-mcp-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 16px 18px;
+        }
+        .oem-mcp-card h3 {
+            color: var(--accent-bright);
+            font-size: 0.95rem;
+            margin: 0 0 8px;
+        }
+        .oem-mcp-card p {
+            color: var(--text-secondary);
+            font-size: 0.86rem;
+            line-height: 1.55;
+            margin: 0;
+        }
+        .oem-mcp-foot {
+            max-width: 1080px;
+            margin: 18px auto 0;
+            color: var(--text-secondary);
+            font-size: 0.86rem;
+            opacity: 0.9;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* licensing tier list */
+        .oem-license-wrap {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+        .oem-license-banner {
+            background: rgba(253, 203, 110, 0.08);
+            border: 1px solid rgba(253, 203, 110, 0.4);
+            color: #fdcb6e;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 22px;
+            text-align: center;
+        }
+        .oem-license-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .oem-license-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 22px;
+        }
+        .oem-license-card h3 {
+            color: var(--accent-bright);
+            font-size: 1rem;
+            margin: 0 0 10px;
+        }
+        .oem-license-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* effort table reuses oem-table */
+
+        /* honest disclosure block */
+        .oem-disclose {
+            max-width: 880px;
+            margin: 0 auto;
+            background: rgba(108, 92, 231, 0.05);
+            border: 1px solid rgba(108, 92, 231, 0.35);
+            border-radius: 12px;
+            padding: 22px 26px;
+            color: var(--text-secondary);
+            font-size: 0.96rem;
+            line-height: 1.7;
+        }
+        .oem-disclose ul {
+            margin: 8px 0 0;
+            padding-left: 22px;
+        }
+        .oem-disclose li { margin-bottom: 8px; }
+        .oem-disclose strong { color: var(--text-primary); }
+
+        /* CTA cards */
+        .oem-cta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .oem-cta-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 22px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+            display: block;
+        }
+        .oem-cta-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-bright);
+        }
+        .oem-cta-card h3 {
+            color: var(--accent-bright);
+            font-size: 1rem;
+            margin: 0 0 8px;
+        }
+        .oem-cta-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        @media (max-width: 720px) {
+            .oem-hero { padding: 64px 0 40px; }
+            .oem-section { padding: 48px 0; }
+            .oem-arch-wrap { padding: 18px 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    5 Patents | 9,500+ API Endpoints | 18 Native DLLs | The AI-Native Spatial Game Engine - Now in Early Access
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading" role="presentation">By audience</div>
+                        <div class="col-heading" role="presentation">Platform</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="../smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="../llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="../enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="../creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="../compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="../capture.html">Raku Capture<span class="item-desc">Scan a space, then talk to it</span></a></li>
+                            <li role="none"><a role="menuitem" href="../spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li>
+                            <li role="none"><a role="menuitem" href="../ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="../xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
+                        <li role="none"><a role="menuitem" href="../docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="../mcp.html">MCP Server</a></li>
+                        <li role="none"><a role="menuitem" href="../sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API Reference</a></li>
+                        <li role="none"><a role="menuitem" href="../templates.html">Templates</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/">Developer Portal</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop guide</a></li>
+                        <li role="none"><a role="menuitem" href="../developer-guide.html">Developer Guide</a></li>
+                        <li role="none"><a role="menuitem" href="../llm-guide.html">LLM Integration Guide</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="../why-rakuai.html">Why RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="../press.html">Press Kit</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">Discover</a></li>
+                        <li role="none"><a role="menuitem" href="../content-packs.html">Content Packs</a></li>
+                        <li role="none"><a role="menuitem" href="../docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="../contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../pricing.html">Pricing</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">Blog</a>
+                </li>
+            </ul>
+            <a href="../developers/login.html" class="nav-signin">Sign In</a>
+            <a href="../ja/index.html" class="lang-toggle">&#x697D;AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="oem-hero">
+    <div class="container">
+        <span class="eyebrow">OEM Integration Spec - smart glasses</span>
+        <h1>OEM Integration Spec - RakuAI for Smart Glasses</h1>
+        <p class="lede">
+            This is the engineering brief for smart-glasses OEM tech leads evaluating RakuAI as a runtime partner. It covers architecture, hardware envelope, three integration tiers, the MCP tool surface your users' LLMs will see, preliminary licensing, and how much engineering effort each path actually takes. Where something hasn't shipped yet, we say so.
+        </p>
+        <div style="display: flex; justify-content: center; margin: 22px 0 4px;">
+            <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Member of NVIDIA Inception - scroll to details">
+                <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Member of</span>
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+                <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">Read more &darr;</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Why integrate -->
+<section class="oem-section" id="why">
+    <div class="container">
+        <h2>Why integrate with RakuAI</h2>
+        <p class="sub">Three reasons we're worth a half-day evaluation, written for a tech lead.</p>
+        <div class="oem-pitch-grid">
+            <div class="oem-pitch">
+                <h3>Any LLM your user prefers, spatially aware in ~5 lines</h3>
+                <p>Claude, ChatGPT, Gemini, Copilot - whichever the user has signed into - connects to RakuAI's MCP server and immediately gets tools to query the scene, capture a space, and drive an XR session. You don't pick a model for them.</p>
+            </div>
+            <div class="oem-pitch">
+                <h3>MCP-first means no model lock-in</h3>
+                <p>The tool surface is Model Context Protocol, the same standard Anthropic, OpenAI, Google, and Cursor are converging on. If you ship glasses on top of RakuAI, you inherit a runtime that any future LLM can drive without you re-integrating.</p>
+            </div>
+            <div class="oem-pitch">
+                <h3>Phone-as-compute keeps glasses thermals manageable</h3>
+                <p>The heavy work - reconstruction, semantic indexing, LLM tool dispatch - runs on the paired phone (PWA) and on our Azure backend. The glasses do display, IMU, and a thin client. Your TDP budget stays inside the envelope.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Architecture diagram -->
+<section class="oem-section" id="architecture">
+    <div class="container">
+        <h2>Architecture</h2>
+        <p class="sub">A 4-node topology: glasses (thin display + IMU), paired phone (PWA + heavy compute), RakuAI MCP relay (Azure), and the user's chosen LLM.</p>
+        <div class="oem-arch-wrap">
+            <svg class="oem-arch-svg" viewBox="0 0 920 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Architecture diagram: glasses talk to phone over Bluetooth, phone talks to RakuAI MCP relay over HTTPS, MCP relay talks to user LLM over HTTPS.">
+                <defs>
+                    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                        <path d="M0,0 L10,5 L0,10 z" fill="#a388ff"/>
+                    </marker>
+                </defs>
+                <!-- Glasses -->
+                <rect x="20" y="120" width="180" height="120" rx="12" fill="#191932" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="110" y="150" text-anchor="middle" fill="#a388ff" font-size="14" font-weight="700" font-family="system-ui, sans-serif">Smart Glasses</text>
+                <text x="110" y="172" text-anchor="middle" fill="#bdbdd6" font-size="11" font-family="system-ui, sans-serif">display, IMU, camera</text>
+                <text x="110" y="190" text-anchor="middle" fill="#bdbdd6" font-size="11" font-family="system-ui, sans-serif">~5-15W TDP</text>
+                <text x="110" y="208" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">low compute</text>
+                <text x="110" y="226" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">90Hz, 4-8 hr battery</text>
+
+                <!-- Phone -->
+                <rect x="260" y="120" width="180" height="120" rx="12" fill="#191932" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="350" y="150" text-anchor="middle" fill="#a388ff" font-size="14" font-weight="700" font-family="system-ui, sans-serif">Paired Phone</text>
+                <text x="350" y="172" text-anchor="middle" fill="#bdbdd6" font-size="11" font-family="system-ui, sans-serif">Raku Capture PWA</text>
+                <text x="350" y="190" text-anchor="middle" fill="#bdbdd6" font-size="11" font-family="system-ui, sans-serif">WebGPU compute</text>
+                <text x="350" y="208" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">SfM, splat training,</text>
+                <text x="350" y="222" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">scene index, MCP client</text>
+
+                <!-- MCP relay -->
+                <rect x="500" y="120" width="180" height="120" rx="12" fill="#191932" stroke="#00cec9" stroke-width="1.5"/>
+                <text x="590" y="150" text-anchor="middle" fill="#00cec9" font-size="14" font-weight="700" font-family="system-ui, sans-serif">RakuAI MCP</text>
+                <text x="590" y="170" text-anchor="middle" fill="#00cec9" font-size="14" font-weight="700" font-family="system-ui, sans-serif">Relay</text>
+                <text x="590" y="190" text-anchor="middle" fill="#bdbdd6" font-size="11" font-family="system-ui, sans-serif">raku-api on Azure</text>
+                <text x="590" y="208" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">tools, sessions,</text>
+                <text x="590" y="222" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">capture artifacts, auth</text>
+
+                <!-- User LLM -->
+                <rect x="740" y="120" width="160" height="120" rx="12" fill="#191932" stroke="#fdcb6e" stroke-width="1.5"/>
+                <text x="820" y="150" text-anchor="middle" fill="#fdcb6e" font-size="14" font-weight="700" font-family="system-ui, sans-serif">User's LLM</text>
+                <text x="820" y="172" text-anchor="middle" fill="#bdbdd6" font-size="11" font-family="system-ui, sans-serif">Claude / ChatGPT /</text>
+                <text x="820" y="187" text-anchor="middle" fill="#bdbdd6" font-size="11" font-family="system-ui, sans-serif">Gemini / Copilot</text>
+                <text x="820" y="208" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">user supplies key /</text>
+                <text x="820" y="222" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">subscription</text>
+
+                <!-- Arrows -->
+                <line x1="200" y1="180" x2="258" y2="180" stroke="#a388ff" stroke-width="2" marker-end="url(#arr)" marker-start="url(#arr)"/>
+                <line x1="440" y1="180" x2="498" y2="180" stroke="#a388ff" stroke-width="2" marker-end="url(#arr)" marker-start="url(#arr)"/>
+                <line x1="680" y1="180" x2="738" y2="180" stroke="#a388ff" stroke-width="2" marker-end="url(#arr)" marker-start="url(#arr)"/>
+
+                <!-- Labels above arrows -->
+                <text x="229" y="100" text-anchor="middle" fill="#a388ff" font-size="11" font-weight="600" font-family="system-ui, sans-serif">Bluetooth 5.0</text>
+                <text x="229" y="115" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">delta updates (low BW)</text>
+                <text x="229" y="265" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">+ USB-C for bulk upload</text>
+
+                <text x="469" y="100" text-anchor="middle" fill="#a388ff" font-size="11" font-weight="600" font-family="system-ui, sans-serif">HTTPS / MCP</text>
+                <text x="469" y="115" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">capture artifacts</text>
+                <text x="469" y="265" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">tool dispatch (JSON-RPC)</text>
+
+                <text x="709" y="100" text-anchor="middle" fill="#a388ff" font-size="11" font-weight="600" font-family="system-ui, sans-serif">HTTPS</text>
+                <text x="709" y="115" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">user's own API key</text>
+                <text x="709" y="265" text-anchor="middle" fill="#7a7a9a" font-size="10" font-family="system-ui, sans-serif">no model lock-in</text>
+
+                <!-- Bottom budget bar -->
+                <text x="460" y="320" text-anchor="middle" fill="#7a7a9a" font-size="11" font-family="system-ui, sans-serif" font-style="italic">Heavy compute lives in the phone + MCP relay. Glasses stay thin.</text>
+            </svg>
+            <p class="oem-arch-legend">
+                Glasses talk only to the paired phone (Bluetooth for low-bandwidth deltas, USB-C for bulk capture upload). The phone runs the Raku Capture PWA and is the only node that holds a session with the MCP relay - which in turn forwards tool calls to whichever LLM the <em>user</em> has configured. RakuAI never sits between the user and their model.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Hardware envelope -->
+<section class="oem-section" id="envelope">
+    <div class="container">
+        <h2>Hardware envelope</h2>
+        <p class="sub">What RakuAI assumes about the devices in the loop - and, just as important, what we deliberately do <em>not</em> require.</p>
+        <div class="oem-table-wrap">
+            <table class="oem-table">
+                <thead>
+                    <tr><th>Component</th><th>What we assume</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">Glasses</th>
+                        <td>90Hz display, IMU, optional RGB camera, 4-8 hr battery, ~5-15W TDP. Single embedded browser (for Tier 1) or a thin native client (Tier 2). No dedicated AI accelerator required.</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Paired phone</th>
+                        <td>WebGPU-capable handset - iPhone 14 or newer, Pixel 7 or newer, recent Galaxy. 6+ GB RAM. Dual rear cameras preferred for capture quality. PWA install path.</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Connectivity</th>
+                        <td>Bluetooth 5.0+ for delta updates and control envelope (low bandwidth). USB-C or fast Wi-Fi to the phone for bulk capture upload. Phone needs network (LTE/5G/Wi-Fi) to reach the MCP relay.</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">What we <em>don't</em> require</th>
+                        <td>No dedicated on-glasses AI chip. No always-on compute. No custom OS - we run on any system that can host an embedded browser (Tier 1) or load native libraries (Tier 2). No proprietary anchor format.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Integration paths -->
+<section class="oem-section" id="paths">
+    <div class="container">
+        <h2>Integration paths - three tiers</h2>
+        <p class="sub">Pick the depth that fits your timeline. Most partners start at Tier 1 to validate the experience, then graduate to Tier 2 for shipped product.</p>
+        <div class="oem-tier-grid">
+            <div class="oem-tier tier-1">
+                <div class="tier-label">Tier 1</div>
+                <h3>Web-app integration</h3>
+                <p class="tier-body">
+                    Your glasses' embedded browser opens the Raku Capture PWA at a known URL. The user signs in with whichever LLM account they prefer; the PWA negotiates the MCP session. Zero SDK install on the glasses. This is the Meta Ray-Ban Display-style path.
+                </p>
+                <div class="tier-meta">
+                    <strong>Status:</strong> Q3 2026 target, no pilot shipped yet.<br>
+                    <strong>Cost to integrate:</strong> 1-2 dev-weeks on your side.
+                </div>
+            </div>
+            <div class="oem-tier tier-2">
+                <div class="tier-label">Tier 2</div>
+                <h3>Native SDK</h3>
+                <p class="tier-body">
+                    <code>raku-runtime</code> ships as 18 native DLLs (~30,738 C++ exports) with an OpenXR-compatible session layer. For OEMs who want the runtime threaded directly into their compositor, hand-tracking pipeline, or display driver. Includes the MCP server.
+                </p>
+                <div class="tier-meta">
+                    <strong>Status:</strong> Engine is real and CI-green; partner-grade SDK docs land Q4 2026.<br>
+                    <strong>Cost to integrate:</strong> 8-12 dev-weeks.
+                </div>
+            </div>
+            <div class="oem-tier tier-3">
+                <div class="tier-label">Tier 3</div>
+                <h3>Custom partnership</h3>
+                <p class="tier-body">
+                    Bespoke pilot for marquee partners. Co-engineering, exclusive features (custom MCP tools, branded capture flow, joint go-to-market). Reserved for OEMs committing to launch-partner status on a flagship product.
+                </p>
+                <div class="tier-meta">
+                    <strong>Status:</strong> Discussions open.<br>
+                    <strong>Cost to integrate:</strong> 6+ months, jointly staffed.
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MCP tool surface -->
+<section class="oem-section" id="mcp-surface">
+    <div class="container">
+        <h2>The MCP tool surface (what the user's LLM gets)</h2>
+        <p class="sub">When the user's LLM connects through the MCP relay, it sees a stable set of tools organized into these categories. The authoritative list is the tool schema file checked into the runtime repo.</p>
+        <div class="oem-mcp-grid">
+            <div class="oem-mcp-card">
+                <h3>Capture</h3>
+                <p>Drive a capture session, observe progress, ingest world-model frames, set render targets. The "scan a space" surface.</p>
+            </div>
+            <div class="oem-mcp-card">
+                <h3>Scene query</h3>
+                <p>Read-only inspection of the scene graph - what objects are present, where, with what properties. Used by the LLM to answer "what's in the room?"</p>
+            </div>
+            <div class="oem-mcp-card">
+                <h3>Spatial reasoning</h3>
+                <p>Higher-level questions: distance between two anchors, occlusion, reachability, "is the user looking at X?" Mutations to the scene graph live here too.</p>
+            </div>
+            <div class="oem-mcp-card">
+                <h3>XR session</h3>
+                <p>Headset / glasses session lifecycle, head pose, controllers, anchors. The bridge between the LLM and what the user actually sees through the display.</p>
+            </div>
+            <div class="oem-mcp-card">
+                <h3>Telemetry</h3>
+                <p>Frame time, memory, draw calls, tool-call latency. Lets the LLM (or your engineering team) reason about perf without leaving the session.</p>
+            </div>
+            <div class="oem-mcp-card" style="border-color: rgba(0, 206, 201, 0.35);">
+                <h3 style="color: var(--success);">Universal passthrough</h3>
+                <p><code>api_call</code> / <code>engine_call</code> expose any of the ~9,500 REST endpoints and ~10,328 engine functions. Power-user escape hatch when a native tool doesn't exist yet.</p>
+            </div>
+        </div>
+        <p class="oem-mcp-foot">
+            The authoritative tool list lives in <code>src/mcp/tool_schemas.json</code> in <a href="https://github.com/RakuXR" style="color: var(--accent-bright);">github.com/RakuXR</a>. As of Wave 7Z (May 2026) the production server ships 17 native tools plus 6 universal passthrough tools - see the <a href="../engine/" style="color: var(--accent-bright);">engine page</a> for the full breakdown. Counts evolve with the runtime; don't pin your integration to a static number, point at the schema file.
+        </p>
+    </div>
+</section>
+
+<!-- Licensing -->
+<section class="oem-section" id="licensing">
+    <div class="container">
+        <h2>Licensing model</h2>
+        <p class="sub">Three tiers, with the same caveat upfront: pricing is preliminary until we sign an LOI together.</p>
+        <div class="oem-license-wrap">
+            <div class="oem-license-banner">
+                Terms preliminary - final pricing is negotiated at letter-of-intent stage and varies by tier, volume, and partnership scope.
+            </div>
+            <div class="oem-license-list">
+                <div class="oem-license-card">
+                    <h3>Pilot</h3>
+                    <p>Free during the partner-pilot phase. 90 days, capped at 10,000 monthly active devices. Designed for evaluating fit before either side commits to revenue terms.</p>
+                </div>
+                <div class="oem-license-card">
+                    <h3>Standard</h3>
+                    <p>Per-device royalty model once you ship. Specifics negotiated per deal; volume curves and feature tiers are part of the conversation. Typical structure: a base per-device fee plus optional capability add-ons (e.g., GPU reconstruction credits, premium MCP tools).</p>
+                </div>
+                <div class="oem-license-card">
+                    <h3>Strategic</h3>
+                    <p>Volume and exclusivity discounts for OEMs committing to launch-partner status on a flagship product. Co-marketing, joint roadmap, and (where it makes sense) features held exclusive to the launch window.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Engineering effort -->
+<section class="oem-section" id="effort">
+    <div class="container">
+        <h2>Engineering effort estimate</h2>
+        <p class="sub">Honest ranges, assuming you have an engineer who has shipped XR or PWA work before. Numbers are dev-weeks of focused effort, not calendar time.</p>
+        <div class="oem-table-wrap">
+            <table class="oem-table">
+                <thead>
+                    <tr><th>Tier</th><th>What you build</th><th>Estimated effort</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">Tier 1 - Web-app</th>
+                        <td>Launcher entry on the glasses, connect flow to the Raku Capture PWA, Bluetooth delta channel for IMU+pose, USB-C/Wi-Fi handoff for bulk upload.</td>
+                        <td><strong>1-2 dev-weeks</strong></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Tier 2 - Native SDK</th>
+                        <td>Link <code>raku-runtime</code> DLLs into your compositor; wire the MCP server into your existing session manager; expose your capture and display surface to the runtime; QA + integration tests.</td>
+                        <td><strong>8-12 dev-weeks</strong></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Tier 3 - Custom partnership</th>
+                        <td>Whatever the partnership needs - custom MCP tools, branded capture flow, joint hardware tuning, co-marketing assets, exclusive features. Jointly staffed.</td>
+                        <td><strong>6+ months</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Honest disclosures -->
+<section class="oem-section" id="not-in-spec">
+    <div class="container">
+        <h2>What's <em>not</em> in this spec yet</h2>
+        <p class="sub">Honest disclosure before you take this to your VP. None of this is hidden - we just call it out so you don't get surprised by it three weeks into evaluation.</p>
+        <div class="oem-disclose">
+            <ul>
+                <li><strong>No Tier 1 pilot has shipped to a partner yet.</strong> Q3 2026 is the target window, with Meta Ray-Ban Display as the natural fit; no signed launch commitment exists at the time of writing.</li>
+                <li><strong>The native SDK (Tier 2) is in alpha.</strong> The runtime is real - 18 DLLs, CI-green on Windows / Linux / macOS - but partner-grade documentation, samples, and a stable C ABI surface are being assembled through Q4 2026.</li>
+                <li><strong>Pricing is preliminary.</strong> Every number in the licensing section is a starting point; final terms come out of an LOI conversation, not a price sheet.</li>
+                <li><strong>The MCP tool surface evolves.</strong> The count and names you see today (17 native + 6 universal) will grow. Integrate against the schema file, not against a memorized list.</li>
+                <li><strong>Real GPU reconstruction is gated on cloud credits.</strong> Production splat training currently lives in the Phase F2 program (Azure A10 + AWS G5 + Nebius H100); local CPU SfM and fallback paths ship today.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- Next steps -->
+<section class="oem-section" id="next-steps">
+    <div class="container">
+        <h2>Next steps</h2>
+        <p class="sub">Four ways to take this further. The first one is the right one for almost everybody.</p>
+        <div class="oem-cta-grid">
+            <a class="oem-cta-card" href="mailto:partnerships@rakuai.com?subject=RakuAI%20OEM%20Tier%201%2F2%2F3%20-%20%5BYour%20Company%5D">
+                <h3>Engineering inquiry &rarr;</h3>
+                <p>Email partnerships@rakuai.com with your tier interest and a short paragraph on your hardware. We reply within a business day.</p>
+            </a>
+            <a class="oem-cta-card" href="mailto:partnerships@rakuai.com?subject=Technical%20deep-dive%20-%20RakuAI%20OEM%20integration&body=I'd%20like%20to%20schedule%20a%2045-minute%20technical%20deep-dive.%20My%20availability%3A%20%5Bdates%5D">
+                <h3>Schedule a deep-dive &rarr;</h3>
+                <p>45-minute technical session with our runtime lead. Bring your hardware spec, your timeline, and the questions this page didn't answer.</p>
+            </a>
+            <a class="oem-cta-card" href="../deck.pdf">
+                <h3>Download the pitch deck &rarr;</h3>
+                <p>The public investor + partner deck. Architecture, market view, NVIDIA Inception context, roadmap. PDF.</p>
+            </a>
+            <a class="oem-cta-card" href="https://github.com/RakuXR" target="_blank" rel="noopener">
+                <h3>Browse the code &rarr;</h3>
+                <p>github.com/RakuXR. The runtime, the API, the website - all in the open. Verify what we claim before you bet on us.</p>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- NVIDIA Inception validation strip (member chip + recognition card) -->
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 32px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="../press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception Member - read more on the press page">
+            <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <p style="max-width: 640px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            RakuAI is an <strong>NVIDIA Inception</strong> member. The NVIDIA-accelerated 3D Gaussian splatting stack that powers <a href="../capture.html" style="color: var(--accent-bright);">Raku Capture</a> is the same stack OEM partners inherit through this integration. <a href="../press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">Read more &rarr;</a>
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 14px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        NVIDIA Inception is a free program for AI startups; RakuAI's membership does not imply that NVIDIA endorses RakuAI's products. Learn more at <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color: var(--text-secondary);">nvidia.com/startups</a>.
+    </p>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Solutions</h4>
+                <ul>
+                    <li><a href="../capture.html">Raku Capture</a></li>
+                    <li><a href="../smart-glasses.html">Smart-Glasses Manufacturers</a></li>
+                    <li><a href="../llm-makers.html">AI Labs</a></li>
+                    <li><a href="../enterprise.html">Enterprise</a></li>
+                    <li><a href="../creator.html">Creators</a></li>
+                    <li><a href="../compare.html">Compare vs Unity / Unreal</a></li>
+                    <li><a href="../spatial-engine.html">Spatial Engine</a></li>
+                    <li><a href="../ai-systems.html">AI Systems</a></li>
+                    <li><a href="../xr-features.html">XR Features</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="../docs.html">Documentation</a></li>
+                    <li><a href="../mcp.html">MCP Server</a></li>
+                    <li><a href="../sdk.html">SDK</a></li>
+                    <li><a href="../api/">API Reference</a></li>
+                    <li><a href="../templates.html">Templates</a></li>
+                    <li><a href="../developers/">Developer Portal</a></li>
+                    <li><a href="../developers/claude-desktop.html">Claude Desktop guide</a></li>
+                    <li><a href="../developer-guide.html">Developer Guide</a></li>
+                    <li><a href="../llm-guide.html">LLM Integration Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="../blog/">Blog</a></li>
+                    <li><a href="../why-rakuai.html">Why RakuAI</a></li>
+                    <li><a href="../press.html">Press Kit</a></li>
+                    <li><a href="../discover.html">Discover</a></li>
+                    <li><a href="../content-packs.html">Content Packs</a></li>
+                    <li><a href="../docs.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="../why-rakuai.html">About</a></li>
+                    <li><a href="../pricing.html">Pricing</a></li>
+                    <li><a href="../contact.html">Contact</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">Partners</a></li>
+                    <li><a href="../privacy.html">Privacy</a></li>
+                    <li><a href="../terms.html">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
+            <a href="../press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script src="../js/public-config.js"></script>
+<script src="../js/api-client.js"></script>
+<script src="../js/auth-nav.js" defer></script>
+<script src="../js/lang-selector.js" defer></script>
+<script src="../js/nav-dropdown.js" defer></script>
+<script src="../js/section-nav.js" defer></script>
+
+</body>
+</html>
