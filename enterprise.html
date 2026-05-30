@@ -712,6 +712,14 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'Submitting...';
 
+        // Honeypot check - bots fill _gotcha; quietly succeed if they do.
+        var gotcha = (form.querySelector('input[name="_gotcha"]') || {}).value;
+        if (gotcha) {
+            form.style.display = 'none';
+            if (successMsg) successMsg.style.display = 'block';
+            return;
+        }
+
         var formData = new FormData(form);
 
         var metadata = {};
