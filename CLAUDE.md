@@ -110,4 +110,4 @@ This is a static site — no build step. All HTML/CSS/JS files deploy as-is.
 
 ---
 
-Last canonical sync: 2026-05-30 (Lane B, task #237). For cross-repo KT, see raku-api docs/knowledge-transfer/ (private).
+Last canonical sync: 2026-05-30 (Lane B, task #237). For cross-repo knowledge-transfer (KT), see raku-api docs/knowledge-transfer/ (private).
