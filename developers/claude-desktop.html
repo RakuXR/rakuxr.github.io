@@ -12,7 +12,7 @@
     <meta property="og:url" content="https://rakuai.com/developers/claude-desktop.html">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:description" content="Supercharge your AI in the real world. Wire the six-tool RakuAI MCP surface into Claude Desktop. Multi-vendor by design.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://raku-api.fly.dev https://raku-api-staging.fly.dev https://api.rakuai.com; base-uri 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.rakuai.com; base-uri 'self'; object-src 'none';">
     <link rel="stylesheet" href="/style.css">
     <link rel="stylesheet" href="/blog/blog.css">
     <link rel="stylesheet" href="/blog/syntax.css">
@@ -133,7 +133,7 @@
     <p class="lede">
         The six MCP tools (<code>load_world_model</code>, <code>ingest_frame</code>, <code>get_scene_state</code>,
         <code>set_render_target</code>, <code>start_simulation</code>, <code>get_metrics</code>) appear natively
-        in Claude Desktop as soon as you add <code>raku-mcp.fly.dev/mcp/</code> as an MCP server.
+        in Claude Desktop as soon as you add <code>api.rakuai.com/mcp/</code> as an MCP server.
         Two paths below &mdash; PowerShell auto-config, or manual JSON edit. Same six-tool surface drives ChatGPT custom GPTs, Gemini, Copilot, and in-house agents &mdash; multi-vendor by design.
     </p>
 
@@ -173,7 +173,7 @@
 
     <div class="callout">
         <strong>Long-term:</strong> we'll either bump the JWT TTL or accept the raw API key directly on
-        <code>raku-mcp.fly.dev</code> so this refresh step goes away. Until then, the script is the path.
+        <code>api.rakuai.com</code> so this refresh step goes away. Until then, the script is the path.
     </div>
 
     <h2>Path B &mdash; manual JSON edit</h2>
@@ -187,7 +187,7 @@
   "mcpServers": {
     "raku": {
       "type": "http",
-      "url": "https://raku-mcp.fly.dev/mcp/",
+      "url": "https://api.rakuai.com/mcp/",
       "headers": {
         "Authorization": "Bearer &lt;your-24h-developer-JWT&gt;"
       }
@@ -211,7 +211,7 @@
   "loaded_adapters": 0,
   "status": "ok"
 }</code></pre>
-    <p>If you don't see the tools, double-check (1) the JWT hasn't expired, (2) the path is exactly <code>https://raku-mcp.fly.dev/mcp/</code> (trailing slash), (3) Claude Desktop was restarted after the config change.</p>
+    <p>If you don't see the tools, double-check (1) the JWT hasn't expired, (2) the path is exactly <code>https://api.rakuai.com/mcp/</code> (trailing slash), (3) Claude Desktop was restarted after the config change.</p>
 
     <h2>The six tools</h2>
     <table style="width:100%; border-collapse:collapse; margin-top:8px;">
@@ -236,11 +236,11 @@
     </ul>
     <h3>The MCP server says &ldquo;Authentication failed&rdquo;</h3>
     <ul>
-        <li>JWT format issue. Test it with curl: <code>curl -s https://raku-mcp.fly.dev/mcp/ -H "Authorization: Bearer $JWT" -X POST -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"x","version":"x"}}}'</code> &mdash; you should get a 200 with <code>serverInfo</code>.</li>
+        <li>JWT format issue. Test it with curl: <code>curl -s https://api.rakuai.com/mcp/ -H "Authorization: Bearer $JWT" -X POST -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"x","version":"x"}}}'</code> &mdash; you should get a 200 with <code>serverInfo</code>.</li>
         <li>Your developer account isn't approved yet. Check <code>/developer/profile</code> &mdash; <code>approved</code> must be <code>true</code>.</li>
     </ul>
     <h3>&ldquo;start_simulation is blocked in production mode&rdquo;</h3>
-    <p>That's correct. <code>raku-mcp.fly.dev</code> runs in production mode and refuses mutating tools by design. Read-only tools (<code>get_metrics</code>, <code>get_scene_state</code>) work; mutations need a sandbox or dev deployment. We'll publish a local-dev path shortly.</p>
+    <p>That's correct. <code>api.rakuai.com</code> runs in production mode and refuses mutating tools by design. Read-only tools (<code>get_metrics</code>, <code>get_scene_state</code>) work; mutations need a sandbox or dev deployment. We'll publish a local-dev path shortly.</p>
 
     <h2>Related</h2>
     <ul>
@@ -318,7 +318,7 @@
         <!-- nv-inception:start -->
         <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
             <a href="../press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
-                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="40" style="height: 40px; width: auto; display: block;">
             </a>
         </div>
         <!-- nv-inception:end -->

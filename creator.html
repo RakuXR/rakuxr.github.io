@@ -14,49 +14,6 @@
     <meta property="og:type" content="profile">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="style.css">
-    <script>
-    (function setPerIdSeo() {
-        try {
-            var params = new URLSearchParams(window.location.search);
-            var raw = params.get('id');
-            if (!raw) return;
-            var safe = String(raw).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
-            if (!safe) return;
-            var canonicalUrl = 'https://rakuai.com/creator.html?id=' + encodeURIComponent(safe);
-            var pageTitle = safe + ' - RakuAI Creator';
-            var pageDesc = "Games published by creator {safe} on RakuAI.".replace('{safe}', safe);
-            // canonical
-            var canon = document.querySelector('link[rel="canonical"]');
-            if (!canon) {
-                canon = document.createElement('link');
-                canon.setAttribute('rel', 'canonical');
-                document.head.appendChild(canon);
-            }
-            canon.setAttribute('href', canonicalUrl);
-            // title
-            document.title = pageTitle;
-            // helper to set or create a meta tag
-            function setMeta(attr, key, content) {
-                var el = document.querySelector('meta[' + attr + '="' + key + '"]');
-                if (!el) {
-                    el = document.createElement('meta');
-                    el.setAttribute(attr, key);
-                    document.head.appendChild(el);
-                }
-                el.setAttribute('content', content);
-            }
-            setMeta('property', 'og:title', pageTitle);
-            setMeta('property', 'og:url', canonicalUrl);
-            setMeta('property', 'og:description', pageDesc);
-            setMeta('name', 'description', pageDesc);
-            setMeta('name', 'twitter:title', pageTitle);
-            setMeta('name', 'twitter:description', pageDesc);
-        } catch (e) {
-            // Best-effort SEO; never block page render.
-            if (window.console && console.warn) console.warn('per-id SEO setup failed', e);
-        }
-    })();
-    </script>
 </head>
 <body>
 
@@ -151,14 +108,6 @@
         <div id="creator-empty" class="mygames-empty" hidden>
             <h3>Fresh worlds in the making</h3>
             <p style="color:var(--text-secondary);">This creator hasn't published yet &mdash; new spatial games drop here all the time, so check back soon. Want to build your own? <a href="/" style="color:var(--accent-bright);">Start creating with RakuAI</a>.</p>
-
-<div style="display: flex; justify-content: center; margin: 12px 0 4px;">
-    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Member of NVIDIA Inception - scroll to details">
-        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Member of</span>
-        <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
-        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">Read more &darr;</span>
-    </a>
-</div>
         </div>
 
         <!-- Loading -->
@@ -166,18 +115,6 @@
             <div class="spinner" style="width:32px;height:32px;margin:0 auto 16px;"></div>
             <p style="color:var(--text-secondary);">Loading profile...</p>
         </div>
-    </div>
-</section>
-
-<!-- NVIDIA Inception validation strip -->
-<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 28px 0; scroll-margin-top: 80px;">
-    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
-        <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception Member - read more on the press page">
-            <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="200" height="86" style="height: 50px; width: auto;">
-        </a>
-        <p style="max-width: 600px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
-            RakuAI is an NVIDIA Inception member. The creator tools share the NVIDIA-accelerated spatial pipeline we use for room reconstruction in Raku Capture. <a href="press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">Read more &rarr;</a>
-        </p>
     </div>
 </section>
 
@@ -249,7 +186,7 @@
         <!-- nv-inception:start -->
         <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
             <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
-                <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
+                <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="40" style="height: 40px; width: auto; display: block;">
             </a>
         </div>
         <!-- nv-inception:end -->
@@ -259,7 +196,7 @@
 <script>
 (function() {
     // Backend base from shared /js/api-config.js: prod -> api.rakuai.com,
-    // staging.rakuai.com -> raku-api-staging.fly.dev, localhost -> :8000.
+    // staging.rakuai.com -> api.rakuai.com, localhost -> :8000.
     // ?api_base= still honored on localhost for dev.
     var params = new URLSearchParams(window.location.search);
     var __overrideAllowed = ['localhost', '127.0.0.1', ''].indexOf(window.location.hostname) !== -1;

@@ -46,7 +46,7 @@
         the iframe-embedding risk and ensure no destructive action is
         possible without user interaction we can re-verify.
     -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="stylesheet" href="../style.css">
     <script src="https://js.hcaptcha.com/1/api.js?render=explicit" async defer crossorigin="anonymous"
             referrerpolicy="no-referrer"></script>
@@ -180,19 +180,6 @@
                 <div style="color: #9090b0; font-size: 0.85rem; line-height: 1.5;">9,500+ REST 엔드포인트를 인터랙티브하게 테스트해 보세요. 월드를 만들고, 엔티티를 추가하고, 물리를 스텝하고, NPC와 대화해 보세요.</div>
             </a>
         </div>
-    </div>
-</section>
-
-<!-- Recognition row -->
-<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 28px 0; scroll-margin-top: 80px;">
-    <div class="container" style="display: flex; align-items: center; gap: 24px; justify-content: center; flex-wrap: wrap;">
-        <a href="press.html#nvidia-inception" style="display: inline-block; line-height: 0;" aria-label="RakuAI는 NVIDIA Inception 회원입니다. 자세히 보기.">
-            <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="200" height="86" style="height: 50px; width: auto; opacity: 0.95;">
-        </a>
-        <p style="color: var(--text-secondary); margin: 0; max-width: 520px; font-size: 0.95rem;">
-            RakuAI는 <strong>NVIDIA Inception</strong> 회원입니다. <a href="../capture.html" style="color: var(--accent-bright);">Raku Capture</a>에 NVIDIA 가속 3D Gaussian Splatting을 적용하고 있습니다.
-            <a href="press.html" style="color: var(--accent-bright); white-space: nowrap;">자세히 보기 &rarr;</a>
-        </p>
     </div>
 </section>
 
@@ -935,10 +922,10 @@
 
 <!-- Upgrade Banner (shown when approaching daily limit) -->
 <div id="upgrade-banner-slot" class="container" style="padding-top: 0;"></div>
-<script src="../js/api-client.js"></script>
+<script src="/js/api-client.js"></script>
 <!-- raku-bridge.js (retired prompt-to-game WASM runtime) removed: it was never referenced (no RakuBridge usage) and depends on the retired generate/iterate endpoints. -->
-<script src="../js/share-flow.js"></script>
-<script src="../js/upgrade-flow.js"></script>
+<script src="/js/share-flow.js"></script>
+<script src="/js/upgrade-flow.js"></script>
 <script>
     // Check usage and show upgrade banner if near limit
     if (window.RakuUpgrade) {
@@ -980,7 +967,7 @@
         <!-- nv-inception:start -->
         <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
             <a href="../press.html#nvidia-inception" aria-label="NVIDIA Inception 회원 - read more on the press page" style="line-height: 0;">
-                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 회원" width="160" height="69" style="height: 40px; width: auto; display: block;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 회원" width="160" height="40" style="height: 40px; width: auto; display: block;">
             </a>
         </div>
         <!-- nv-inception:end -->
@@ -1071,8 +1058,8 @@
 /**
  * RakuAI Configuration (J.2)
  * Set RAKU_API_BASE to point to the backend API.
- * - Production: https://raku-backend.fly.dev
- * - Staging: https://raku-backend-staging.fly.dev
+ * - Production: https://api.rakuai.com
+ * - Staging: https://api.rakuai.com
  * - Local dev: http://localhost:8000
  * - Same-origin (default): '' (empty string)
  *
@@ -1097,8 +1084,8 @@ var RAKU_API_BASE = (function() {
     if (meta && meta.content) return meta.content;
     // Priority 4: detect environment from hostname
     if (localHost) return 'http://localhost:8000';
-    if (host === 'staging.rakuai.com') return 'https://raku-backend-staging.fly.dev';
-    if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://raku-backend.fly.dev';
+    if (host === 'staging.rakuai.com') return 'https://api.rakuai.com';
+    if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://api.rakuai.com';
     // Default: same-origin (relative URLs)
     return '';
 })();
@@ -1116,7 +1103,7 @@ var RAKU_API_BASE = (function() {
     var __qsApiBase = __qs.get('api_base');
     var API_BASE = (__overrideAllowed && __qsApiBase)
         ? __qsApiBase
-        : 'https://raku-api-staging.fly.dev';
+        : 'https://api.rakuai.com';
 
     var textarea = document.getElementById('prompt-input');
     var charCount = document.getElementById('char-count');
@@ -2255,9 +2242,9 @@ var RAKU_API_BASE = (function() {
     }
 })();
 </script>
-<script src="../js/auth-nav.js" defer></script>
-<script src="../js/lang-selector.js" defer></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
 <script src="../js/nav-dropdown.js" defer></script>
-    <script src="../js/section-nav.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
 </body>
 </html>

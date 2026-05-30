@@ -18,7 +18,7 @@ Use it to answer questions like:
 2. The page automatically runs one pass of the test suite ~500&nbsp;ms after
    load.
 3. Click **Run Tests** at the top to re-run at any time.
-4. The base URL defaults to `https://raku-api-staging.fly.dev/api` and is
+4. The base URL defaults to `https://api.rakuai.com/api` and is
    remembered in `localStorage`. Change it to point at a different
    environment (e.g. `http://localhost:8080/api`).
 
@@ -42,7 +42,7 @@ GET {base}/rakudiag/run
 Example:
 
 ```bash
-curl -s https://raku-api-staging.fly.dev/api/rakudiag/run | jq
+curl -s https://api.rakuai.com/api/rakudiag/run | jq
 ```
 
 Response shape (abbreviated):

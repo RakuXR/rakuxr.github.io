@@ -3,7 +3,7 @@
     Refresh the raku-mcp developer JWT and write it into Claude Desktop's MCP config.
 
 .DESCRIPTION
-    The developer JWT used to authenticate against https://raku-mcp.fly.dev/mcp/
+    The developer JWT used to authenticate against https://api.rakuai.com/mcp/
     expires every 24 hours. This script exchanges your long-lived raku_ API key
     for a fresh JWT and patches it into your Claude Desktop config so the MCP
     connector keeps working without manual edits.
@@ -15,7 +15,7 @@
     Your raku_ API key. If omitted, reads $env:RAKU_API_KEY.
 
 .PARAMETER ApiBase
-    raku-api base URL. Default: https://raku-api.fly.dev (production).
+    raku-api base URL. Default: https://api.rakuai.com (production).
 
 .PARAMETER ConfigPath
     Claude Desktop config path. Defaults to
@@ -29,7 +29,7 @@
 [CmdletBinding()]
 param(
     [string]$ApiKey   = $env:RAKU_API_KEY,
-    [string]$ApiBase  = "https://raku-api.fly.dev",
+    [string]$ApiBase  = "https://api.rakuai.com",
     [string]$ConfigPath = (Join-Path $env:APPDATA "Claude\claude_desktop_config.json")
 )
 
@@ -72,7 +72,7 @@ if (Test-Path $ConfigPath) {
 if (-not $cfg.ContainsKey("mcpServers")) { $cfg.mcpServers = @{} }
 $cfg.mcpServers.raku = @{
     type    = "http"
-    url     = "https://raku-mcp.fly.dev/mcp/"
+    url     = "https://api.rakuai.com/mcp/"
     headers = @{ Authorization = "Bearer $jwt" }
 }
 
