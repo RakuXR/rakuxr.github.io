@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talk to a Room — RakuAI Demo</title>
+<meta name="description" content="See it in 60 seconds: explore a real 3D Gaussian splat of a room, then drive it from Claude, ChatGPT, or Gemini over MCP. No signup. Pre-baked sample scans.">
+<meta property="og:title" content="Talk to a Room — RakuAI">
+<meta property="og:description" content="Explore a 3D-scanned room and ask any AI assistant about it — what's in it, how big things are, whether there's a clear path. Powered by the RakuAI MCP runtime.">
+<!-- CSP: Spark + three from jsDelivr; sample splats fetched from the splat CDNs. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://cdn.jsdelivr.net https://cdn.raku.games https://storage.googleapis.com https://sparkjs.dev https://api.rakuai.com; frame-ancestors 'none'">
+<style>
+  :root{
+    --bg:#0e0e16; --bg2:#16161f; --fg:#ececf4; --muted:#9090b0;
+    --accent:#6c5ce7; --accent2:#4f46e5; --line:rgba(108,92,231,.25); --nv:#76b900;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  a{color:var(--accent)}
+  header{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .brand{font-weight:800;letter-spacing:.2px}
+  .brand .kanji{color:var(--accent)}
+  header .sep{flex:1}
+  .chip{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
+  .chip b{color:var(--nv)}
+  .banner{background:rgba(108,92,231,.08);border-bottom:1px solid var(--line);padding:9px 18px;font-size:13px;color:var(--muted);text-align:center}
+  .banner a{font-weight:600}
+  main{display:grid;grid-template-columns:1.5fr 1fr;gap:0;height:calc(100% - 120px);min-height:480px}
+  @media (max-width:860px){main{grid-template-columns:1fr;height:auto}}
+  .viewer{position:relative;background:#000;min-height:380px}
+  .viewer canvas{display:block;width:100%;height:100%}
+  .viewer-status{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted);background:rgba(0,0,0,.45);padding:4px 9px;border-radius:6px}
+  .samples{position:absolute;left:12px;top:12px;display:flex;gap:6px;flex-wrap:wrap}
+  .samples button{font-size:12px;background:rgba(22,22,31,.85);color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:6px 10px;cursor:pointer}
+  .samples button[aria-pressed=true]{border-color:var(--accent);background:rgba(108,92,231,.25)}
+  .panel{border-left:1px solid var(--line);background:var(--bg2);display:flex;flex-direction:column;min-height:380px}
+  @media (max-width:860px){.panel{border-left:none;border-top:1px solid var(--line)}}
+  .panel h2{font-size:16px;margin:0;padding:16px 16px 4px}
+  .panel .sub{font-size:13px;color:var(--muted);padding:0 16px 12px}
+  .connect{display:flex;gap:8px;padding:0 16px 12px;flex-wrap:wrap}
+  .connect button{flex:1;min-width:120px;font-size:13px;font-weight:600;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));border:0;border-radius:9px;padding:10px;cursor:pointer}
+  .connect button.secondary{background:transparent;color:var(--fg);border:1px solid var(--line)}
+  .relaynote{font-size:12px;color:var(--muted);padding:0 16px 10px}
+  .relaynote code{background:#0e0e16;padding:1px 5px;border-radius:4px;border:1px solid var(--line);font-size:11px}
+  .qhead{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:8px 16px 4px}
+  .queries{display:flex;flex-direction:column;gap:7px;padding:0 16px}
+  .queries button{text-align:left;font-size:13px;color:var(--fg);background:#0e0e16;border:1px solid var(--line);border-radius:8px;padding:9px 11px;cursor:pointer}
+  .queries button:hover{border-color:var(--accent)}
+  .transcript{flex:1;overflow:auto;padding:12px 16px;border-top:1px solid var(--line);margin-top:10px;font-size:14px}
+  .msg{margin:0 0 10px}
+  .msg .who{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+  .msg.a .body{background:rgba(108,92,231,.08);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:3px}
+  .msg .ex{font-size:11px;color:var(--muted)}
+  footer{padding:12px 18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <span class="brand"><span class="kanji">楽</span>AI</span>
+  <span style="color:var(--muted);font-size:14px">Talk to a Room — demo</span>
+  <span class="sep"></span>
+  <a href="/" style="font-size:13px;text-decoration:none">← rakuai.com</a>
+  <span class="chip"><b>NVIDIA</b> Inception member</span>
+</header>
+
+<div class="banner">
+  This demo uses <strong>pre-baked sample splats</strong>. To scan your own room, open
+  <a href="/capture.html">Raku Capture</a> (free, no signup).
+</div>
+
+<main>
+  <section class="viewer">
+    <div class="samples" id="samples"></div>
+    <canvas id="splat" aria-label="3D room viewer"></canvas>
+    <div class="viewer-status" id="status">Loading splat…</div>
+  </section>
+
+  <aside class="panel">
+    <h2>Drive this room from any AI assistant</h2>
+    <div class="sub">RakuAI exposes the scene as tools over the Model Context Protocol — so the
+      assistant you already use can query it. Multi-vendor by design.</div>
+    <div class="connect">
+      <button data-assistant="claude">Open in Claude</button>
+      <button data-assistant="chatgpt" class="secondary">ChatGPT</button>
+      <button data-assistant="gemini" class="secondary">Gemini</button>
+    </div>
+    <div class="relaynote" id="relaynote"></div>
+
+    <div class="qhead">Try asking</div>
+    <div class="queries" id="queries"></div>
+
+    <div class="transcript" id="transcript">
+      <p class="msg"><span class="who">Tip</span><br>
+        Pick a question above to preview what the assistant can reason about this scene.
+        Connect an assistant for live answers once the MCP relay is online.</p>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  RakuAI™ and RakuXR™ are trademarks of RakuAI, LLC. ·
+  Sample splats courtesy of public Spark / Forge scenes. ·
+  NVIDIA Inception is a free program for AI startups; membership does not imply NVIDIA endorses
+  RakuAI's products. © 2025 NVIDIA Corporation.
+</footer>
+
+<script type="module">
+  // Pinned to match the capture-app viewer: Spark 0.1.10 needs three 0.169.0.
+  const THREE_CDN = 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
+  const SPARK_CDN = 'https://cdn.jsdelivr.net/npm/@sparkjsdev/spark@0.1.10/dist/spark.module.js';
+
+  // Sample splats. Primary points at our CDN (cdn.raku.games/capture-samples/, asset drop
+  // pending — see capture-app/samples/manifest.json); fallbackUrl is a verified public scene.
+  const SAMPLES = [
+    {id:'greyscale-room', label:'Greyscale room',
+     url:'https://cdn.raku.games/capture-samples/greyscale-room.spz',
+     fallbackUrl:'https://storage.googleapis.com/forge-dev-public/marble-scenes/greyscale-room.spz'},
+    {id:'painted-bedroom', label:'Painted bedroom',
+     url:'https://cdn.raku.games/capture-samples/painted-bedroom.spz',
+     fallbackUrl:'https://storage.googleapis.com/forge-dev-public/painted_bedroom.spz'},
+    {id:'fireplace', label:'Fireplace nook',
+     url:'https://cdn.raku.games/capture-samples/fireplace.spz',
+     fallbackUrl:'https://sparkjs.dev/assets/splats/fireplace.spz'},
+  ];
+
+  // Hosted MCP relay (the raku-mcp Container App). Gated: not live until the Azure
+  // Container App + deploy land (Phase G2 / #255 + deploy-mcp). Shown for transparency.
+  const MCP_RELAY = 'https://api.rakuai.com/mcp';
+  const MCP_LIVE = false; // flip true once the relay responds at MCP_RELAY
+
+  // Example queries + illustrative (NOT live) answers, clearly labelled.
+  const QUERIES = [
+    {q:"What's in this room?",
+     a:"From the splat's segmentation pass: walls, floor, a window, and the main furniture cluster. " +
+       "(Example — connect an assistant for a live, scene-specific answer.)"},
+    {q:"How big is the bookshelf?",
+     a:"scene.measure returns object dimensions from the metric-scaled splat (e.g. ~1.8 m tall × 0.9 m wide). " +
+       "(Example — live answer depends on the connected scene.)"},
+    {q:"Is there a clear path from the door to the window?",
+     a:"scene.path plans a route and reports clearance/obstacles between two points. " +
+       "(Example — connect an assistant to run it live.)"},
+  ];
+
+  const $ = (id)=>document.getElementById(id);
+  const statusEl=$('status');
+
+  // ---- assistant connect (honest: gated on the relay being live) ----
+  const ASSISTANTS = {
+    claude:{name:'Claude', home:'https://claude.ai/'},
+    chatgpt:{name:'ChatGPT', home:'https://chatgpt.com/'},
+    gemini:{name:'Gemini', home:'https://gemini.google.com/'},
+  };
+  $('relaynote').innerHTML = MCP_LIVE
+    ? `MCP relay: <code>${MCP_RELAY}</code> — add it as a custom connector in your assistant.`
+    : `MCP relay <code>${MCP_RELAY}</code> is coming online. The buttons open each assistant; ` +
+      `connector auto-prefill ships when the relay is live.`;
+  document.querySelectorAll('.connect button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const a=ASSISTANTS[b.dataset.assistant];
+      // Each vendor has a different custom-connector flow; until prefill deeplinks are
+      // stable we open the assistant and surface the relay URL to paste as a connector.
+      try{navigator.clipboard&&navigator.clipboard.writeText(MCP_RELAY);}catch(e){}
+      window.open(a.home,'_blank','noopener');
+      addMsg('you',`Opening ${a.name} — MCP relay URL copied to clipboard${MCP_LIVE?'':' (relay not live yet)'}.`);
+    });
+  });
+
+  // ---- example queries ----
+  const qWrap=$('queries');
+  QUERIES.forEach(item=>{
+    const btn=document.createElement('button');
+    btn.textContent=item.q; btn.addEventListener('click',()=>{
+      addMsg('you',item.q);
+      addMsg('a',item.a,true);
+    });
+    qWrap.appendChild(btn);
+  });
+  function addMsg(who,text,example){
+    const t=$('transcript');
+    const d=document.createElement('div'); d.className='msg'+(who==='a'?' a':'');
+    d.innerHTML=`<span class="who">${who==='you'?'You':'Assistant'}</span>`+
+      `<div class="body">${text}</div>`+(example?'<div class="ex">illustrative example, not a live response</div>':'');
+    t.appendChild(d); t.scrollTop=t.scrollHeight;
+  }
+
+  // ---- splat viewer (mirrors capture-app/capture_app.js loadSplatViewer) ----
+  const canvas=$('splat');
+  let teardown=null;
+  function resize(renderer){
+    const w=canvas.clientWidth||1,h=canvas.clientHeight||1;
+    if(canvas.width!==w||canvas.height!==h) renderer.setSize(w,h,false);
+  }
+  async function resolveUrl(s){
+    // Try our CDN first; fall back to the verified public URL if it 404s/errors.
+    try{
+      const r=await fetch(s.url,{method:'HEAD',mode:'cors'});
+      if(r.ok) return s.url;
+    }catch(e){}
+    return s.fallbackUrl;
+  }
+  async function loadSplat(sample){
+    if(teardown){teardown();teardown=null;}
+    statusEl.textContent='Loading splat…';
+    const cam={theta:0.6,phi:1.3,radius:2.8,autoRotate:true};
+    try{
+      const THREE=await import(THREE_CDN);
+      const {SplatMesh}=await import(SPARK_CDN);
+      const url=await resolveUrl(sample);
+      const renderer=new THREE.WebGLRenderer({canvas,antialias:false});
+      renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+      resize(renderer);
+      const scene=new THREE.Scene();
+      const camera=new THREE.PerspectiveCamera(60,1,0.1,1000);
+      const splats=new SplatMesh({url}); scene.add(splats);
+      const onResize=()=>resize(renderer); window.addEventListener('resize',onResize);
+      const detach=attachControls(canvas,cam);
+      let running=true;
+      (function frame(){
+        if(!running) return;
+        if(cam.autoRotate) cam.theta+=0.0016;
+        cam.phi=Math.max(0.18,Math.min(Math.PI-0.18,cam.phi));
+        cam.radius=Math.max(0.7,Math.min(8,cam.radius));
+        const sp=Math.sin(cam.phi);
+        camera.aspect=(canvas.clientWidth||1)/(canvas.clientHeight||1);
+        camera.position.set(cam.radius*sp*Math.sin(cam.theta),cam.radius*Math.cos(cam.phi),cam.radius*sp*Math.cos(cam.theta));
+        camera.lookAt(0,0,0); camera.updateProjectionMatrix();
+        renderer.render(scene,camera); requestAnimationFrame(frame);
+      })();
+      statusEl.textContent='Drag to orbit · scroll to zoom';
+      teardown=()=>{running=false;window.removeEventListener('resize',onResize);detach();renderer.dispose();};
+    }catch(err){
+      statusEl.textContent='Viewer unavailable (CDN/WebGL). The MCP runtime works without the viewer.';
+      console.warn('[talk-to-a-room] viewer failed:',err);
+    }
+  }
+  function attachControls(el,cam){
+    let drag=false,lx=0,ly=0;
+    const down=e=>{drag=true;cam.autoRotate=false;lx=(e.touches?e.touches[0]:e).clientX;ly=(e.touches?e.touches[0]:e).clientY;};
+    const move=e=>{if(!drag)return;const p=e.touches?e.touches[0]:e;cam.theta-=(p.clientX-lx)*0.005;cam.phi-=(p.clientY-ly)*0.005;lx=p.clientX;ly=p.clientY;};
+    const up=()=>{drag=false;};
+    const wheel=e=>{e.preventDefault();cam.radius*=(1+Math.sign(e.deltaY)*0.1);};
+    el.addEventListener('pointerdown',down);window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);
+    el.addEventListener('wheel',wheel,{passive:false});
+    return ()=>{el.removeEventListener('pointerdown',down);window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);el.removeEventListener('wheel',wheel);};
+  }
+
+  // sample selector
+  const sWrap=$('samples');
+  SAMPLES.forEach((s,i)=>{
+    const b=document.createElement('button'); b.textContent=s.label; b.setAttribute('aria-pressed',i===0);
+    b.addEventListener('click',()=>{document.querySelectorAll('#samples button').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');loadSplat(s);});
+    sWrap.appendChild(b);
+  });
+  loadSplat(SAMPLES[0]);
+</script>
+</body>
+</html>
