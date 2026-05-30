@@ -23,9 +23,9 @@
     <link rel="alternate" hreflang="zh-TW" href="https://rakuai.com/zh-TW/contact.html">
     <link rel="alternate" hreflang="es" href="https://rakuai.com/es/contact.html">
     <link rel="alternate" hreflang="x-default" href="https://rakuai.com/contact.html">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
     <link rel="stylesheet" href="../style.css">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
     <style>
         .contact-form {
             max-width: 600px;
@@ -260,7 +260,7 @@
             <p style="color: var(--text-secondary);">Gracias por contactarnos. Te responderemos lo antes posible.</p>
         </div>
 
-        <form class="contact-form" id="contact-form" action="https://formspree.io/f/xaqpnyng" method="POST">
+        <form class="contact-form" id="contact-form" action="https://api.rakuai.com/api/v1/leads" method="POST">
             <div class="form-group">
                 <label for="name">Nombre</label>
                 <input type="text" id="name" name="name" required autocomplete="name" placeholder="Tu nombre" aria-label="Nombre">
@@ -382,13 +382,33 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'Enviando...';
 
+        // Honeypot check - bots fill _gotcha; quietly succeed if they do.
+        var gotcha = (form.querySelector('input[name="_gotcha"]') || {}).value;
+        if (gotcha) {
+            form.style.display = 'none';
+            if (successMsg) successMsg.style.display = 'block';
+            return;
+        }
+
         var formData = new FormData(form);
         formData.delete('captcha_answer');
 
-        fetch(form.action, {
+        var payload = {
+            name: (formData.get('name') || '').toString(),
+            email: (formData.get('email') || '').toString(),
+            message: (formData.get('message') || '').toString(),
+            source: 'contact',
+            subject: (formData.get('subject') || formData.get('_subject') || '').toString() || null,
+            _gotcha: (formData.get('_gotcha') || '').toString(),
+            metadata: {
+                _subject: (formData.get('_subject') || '').toString() || undefined
+            }
+        };
+
+        fetch('https://api.rakuai.com/api/v1/leads', {
             method: 'POST',
-            body: formData,
-            headers: { 'Accept': 'application/json' }
+            body: JSON.stringify(payload),
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
         }).then(function(response) {
             return response.json().then(function(data) {
                 if (response.ok) {

@@ -19,7 +19,7 @@
       Date: 2026-05-17
       Language: ko (Korean)
     -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
     <style>
         .enterprise-hero {
             padding: 80px 0 60px;
@@ -466,7 +466,7 @@
             <p style="margin-top: 16px; font-size: 0.9rem;">다음 단계 안내 이메일을 확인해 주세요.</p>
         </div>
 
-        <form class="enterprise-form" id="enterprise-form" action="https://formspree.io/f/xaqpnyng" method="POST">
+        <form class="enterprise-form" id="enterprise-form" action="https://api.rakuai.com/api/v1/leads" method="POST">
             <input type="hidden" name="_subject" value="Enterprise Licensing Inquiry">
             <input type="hidden" name="inquiry_type" value="enterprise_licensing">
             <input type="hidden" id="selected-tier-input" name="licensing_tier" value="">
@@ -645,10 +645,26 @@
 
         var formData = new FormData(form);
 
-        fetch(form.action, {
+        var metadata = {};
+        ['title', 'tier_selection', 'team_size', 'target_platforms', 'timeline', 'nda_required', '_subject'].forEach(function(k) {
+            var v = formData.get(k);
+            if (v) metadata[k] = v.toString();
+        });
+        var payload = {
+            name: (formData.get('name') || '').toString(),
+            email: (formData.get('email') || '').toString(),
+            company: (formData.get('company') || '').toString() || null,
+            message: (formData.get('project_details') || formData.get('message') || '').toString(),
+            source: 'enterprise',
+            inquiry_type: (formData.get('inquiry_type') || 'enterprise_licensing').toString(),
+            _gotcha: (formData.get('_gotcha') || '').toString(),
+            metadata: metadata
+        };
+
+        fetch('https://api.rakuai.com/api/v1/leads', {
             method: 'POST',
-            body: formData,
-            headers: { 'Accept': 'application/json' }
+            body: JSON.stringify(payload),
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
         }).then(function(response) {
             return response.json().then(function(data) {
                 if (response.ok) {
