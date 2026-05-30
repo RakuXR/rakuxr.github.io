@@ -3,310 +3,154 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RakuAI Engine Dashboard — 18 DLLs, 10,328 Functions, 9,500+ Endpoints</title>
+<title>RakuAI Engine - 18 DLLs, 30,738 Native Exports, MCP-Native C++ Spatial Runtime</title>
 <link rel="icon" type="image/svg+xml" href="../favicon.svg">
-<meta name="description" content="Explore the RakuAI spatial game engine: 18 native DLLs, 10,328 engine functions, 9,500+ REST endpoints covering physics, rendering, XR, AI, and more.">
+<meta name="description" content="The RakuAI engine: 18 native DLLs, 30,738 C++ exports, an MCP server with 17 native tools plus universal api_call / engine_call passthrough to ~9,500 REST endpoints. CI-green on Windows, Linux, and macOS. Multi-vendor LLM ready.">
+<meta property="og:title" content="RakuAI Engine - 18 DLLs, 30,738 exports, MCP-native">
+<meta property="og:description" content="C++ spatial runtime. 18 DLLs. 30,738 native exports. 17 MCP tools + universal API passthrough. CI-green on Windows / Linux / macOS. Bring your own LLM.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://rakuai.com/engine/">
+<link rel="canonical" href="https://rakuai.com/engine/">
 <link rel="stylesheet" href="../style.css">
 <style>
-:root { --bg: #0a0a1a; --bg2: #111128; --bg3: #1a1a3a; --text: #e8e8f0; --dim: #7a7a9a; --accent: #6c5ce7; --bright: #a388ff; --success: #00cec9; --warn: #fdcb6e; --danger: #ff6b6b; }
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
-.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
-a { color: var(--bright); text-decoration: none; } a:hover { text-decoration: underline; }
-
-header { background: var(--bg2); border-bottom: 1px solid #222; padding: 20px 0; text-align: center; }
-header h1 { font-size: 1.8rem; background: linear-gradient(135deg, var(--bright), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-header h1 .kanji { font-family: 'Noto Sans JP', 'Hiragino Sans', sans-serif; margin-right: 4px; }
-header p { color: var(--dim); margin-top: 4px; }
-nav { display: flex; gap: 16px; justify-content: center; margin-top: 12px; font-size: 0.85rem; flex-wrap: wrap; }
-
-.stats-bar { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; padding: 20px; }
-.stat-card { background: var(--bg2); border: 1px solid #222; border-radius: 10px; padding: 16px 24px; text-align: center; min-width: 140px; }
-.stat-num { font-size: 2rem; font-weight: 700; color: var(--bright); }
-.stat-label { color: var(--dim); font-size: 0.8rem; }
-.stat-card.active .stat-num { color: var(--success); }
-
-.section { padding: 24px 0; }
-.section h2 { font-size: 1.3rem; margin-bottom: 16px; color: var(--bright); }
-
-.dll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
-.dll-card { background: var(--bg2); border: 1px solid #222; border-radius: 8px; padding: 16px; transition: all 0.3s; cursor: pointer; }
-.dll-card:hover { border-color: var(--accent); }
-.dll-card.active { border-color: var(--success); box-shadow: 0 0 12px rgba(0,206,201,0.15); }
-.dll-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.dll-dot { width: 10px; height: 10px; border-radius: 50%; background: #333; transition: all 0.5s; }
-.dll-card.active .dll-dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
-.dll-name { font-weight: 700; font-size: 0.95rem; }
-.dll-fns { color: var(--dim); font-size: 0.75rem; margin-left: auto; }
-.dll-desc { color: var(--dim); font-size: 0.8rem; line-height: 1.4; }
-.dll-bar { height: 3px; background: #222; border-radius: 2px; margin-top: 10px; overflow: hidden; }
-.dll-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 1s ease; }
-.dll-card.active .dll-bar-fill { background: var(--success); }
-
-.test-btn { background: rgba(108,92,231,0.2); border: 1px solid var(--accent); color: var(--bright); padding: 8px 20px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; margin-top: 12px; }
-.test-btn:hover { background: rgba(108,92,231,0.4); }
-
-.try-section { background: var(--bg2); border: 1px solid #222; border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center; }
-.try-section h3 { color: var(--bright); margin-bottom: 8px; }
-.try-section p { color: var(--dim); margin-bottom: 16px; font-size: 0.9rem; }
-.try-links { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.try-link { background: var(--accent); color: white; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: inline-block; } .try-link:hover { background: var(--bright); text-decoration: none; }
-
-.log-area { background: #050510; border: 1px solid #222; border-radius: 8px; padding: 12px; max-height: 300px; overflow-y: auto; font-family: 'SF Mono', Monaco, monospace; font-size: 0.75rem; color: var(--dim); }
-.log-entry { padding: 2px 0; border-bottom: 1px solid #111; }
-.log-method { font-weight: 700; }
-.log-method.POST { color: var(--bright); } .log-method.GET { color: var(--success); } .log-method.DELETE { color: var(--danger); }
-.log-status { color: var(--success); } .log-latency { color: var(--warn); }
-
-footer { text-align: center; padding: 32px; color: #444; font-size: 0.75rem; border-top: 1px solid #151530; }
+:root{--bg:#0a0a1a;--bg2:#111128;--text:#e8e8f0;--dim:#9090b0;--muted:#7a7a9a;--accent:#6c5ce7;--bright:#a388ff;--success:#00cec9;--warn:#fdcb6e;--border:#222}
+.engine-page{background:var(--bg);color:var(--text)}
+.engine-page .container{max-width:1160px;margin:0 auto;padding:0 24px}
+.engine-page a{color:var(--bright);text-decoration:none}
+.engine-page a:hover{text-decoration:underline}
+.eng-hero{padding:72px 0 40px;text-align:center;background:radial-gradient(1200px 600px at 50% -100px,rgba(108,92,231,.25),transparent 60%)}
+.eng-hero .eyebrow{display:inline-block;font-size:.78rem;letter-spacing:2px;text-transform:uppercase;color:var(--bright);padding:6px 14px;border:1px solid rgba(108,92,231,.45);border-radius:999px;margin-bottom:18px}
+.eng-hero h1{font-size:clamp(2rem,4.6vw,3.2rem);line-height:1.12;margin-bottom:16px;background:linear-gradient(135deg,#fff 20%,var(--bright) 60%,var(--success));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.eng-hero p.lede{color:var(--dim);max-width:780px;margin:0 auto 24px;font-size:1.1rem}
+.audience-pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:20px 0 8px}
+.audience-pill{font-size:.78rem;padding:6px 12px;border:1px solid #2a2a4a;border-radius:999px;color:var(--dim);background:rgba(17,17,40,.6)}
+.nv-fold-chip{display:inline-flex;align-items:center;gap:8px;margin-top:16px;padding:6px 12px;border-radius:999px;border:1px solid #2a2a4a;background:rgba(17,17,40,.6);color:var(--dim);font-size:.78rem}
+.nv-fold-chip a{color:var(--dim)}
+.stats-bar{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;padding:12px 0 32px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 22px;text-align:center;min-width:140px}
+.stat-num{font-size:1.9rem;font-weight:700;color:var(--bright)}
+.stat-label{color:var(--dim);font-size:.78rem;margin-top:2px}
+.stat-foot{color:var(--muted);font-size:.72rem;margin-top:4px}
+.section{padding:40px 0;border-top:1px solid #15152a}
+.section h2{font-size:1.5rem;margin-bottom:8px;color:var(--bright)}
+.section .sub{color:var(--dim);max-width:720px;margin-bottom:22px;font-size:.95rem}
+.dll-table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+.dll-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.dll-table th,.dll-table td{padding:10px 14px;text-align:left;border-bottom:1px solid #1a1a30}
+.dll-table thead th{background:var(--bg2);color:var(--bright);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:1px}
+.dll-table tbody tr:hover{background:rgba(108,92,231,.06)}
+.dll-table td.fns{color:var(--success);font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.dll-table td.name{font-family:'SF Mono',Monaco,monospace;color:var(--text);font-weight:600}
+.dll-table tfoot td{background:var(--bg2);color:var(--bright);font-weight:700}
+.dll-table tfoot td.fns{color:var(--bright)}
+.mcp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.mcp-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.mcp-card h3{color:var(--bright);font-size:.95rem;margin-bottom:10px;display:flex;justify-content:space-between}
+.mcp-card h3 .count{color:var(--muted);font-size:.78rem;font-weight:400}
+.mcp-card ul{list-style:none;padding:0;margin:0}
+.mcp-card li{padding:4px 0;font-family:'SF Mono',Monaco,monospace;font-size:.82rem}
+.mcp-card li .desc{display:block;color:var(--muted);font-family:-apple-system,sans-serif;font-size:.78rem;margin-top:2px}
+.mcp-card.universal{border-color:rgba(0,206,201,.35)}
+.mcp-card.universal h3{color:var(--success)}
+.platform-table{width:100%;border-collapse:collapse;font-size:.9rem;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.platform-table th,.platform-table td{padding:10px 14px;text-align:left;border-bottom:1px solid #1a1a30}
+.platform-table thead th{background:var(--bg2);color:var(--bright);font-size:.78rem;text-transform:uppercase;letter-spacing:1px}
+.pf-status{font-weight:700}
+.pf-status.ship{color:var(--success)}
+.pf-status.beta{color:var(--warn)}
+.pf-status.plan{color:var(--muted)}
+.perf-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px 22px}
+.perf-card h3{color:var(--bright);margin-bottom:10px}
+.perf-card .meas{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:12px}
+.perf-card .meas div{background:var(--bg);border:1px solid #1a1a30;border-radius:8px;padding:12px 14px}
+.perf-card .meas .num{color:var(--success);font-weight:700;font-size:1.05rem}
+.perf-card .meas .num.todo{color:var(--warn)}
+.perf-card .meas .src{color:var(--muted);font-size:.74rem;margin-top:4px}
+.patents-card{background:linear-gradient(135deg,rgba(108,92,231,.1),rgba(0,206,201,.06));border:1px solid #2a2a4a;border-radius:12px;padding:22px 24px}
+.patents-card h3{color:var(--bright);margin-bottom:6px;font-size:1.1rem}
+.patents-card p{color:var(--dim);font-size:.92rem}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.related-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;transition:border-color .2s}
+.related-card:hover{border-color:var(--accent)}
+.related-card a{display:block;color:var(--text);text-decoration:none}
+.related-card .label{color:var(--bright);font-size:.78rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.related-card .title{font-size:1rem;font-weight:700;margin-bottom:4px}
+.related-card .desc{color:var(--dim);font-size:.82rem}
+.blog-list{list-style:none;padding:0;margin:16px 0 0}
+.blog-list li{padding:8px 0;border-bottom:1px solid #1a1a30}
+.blog-list .note{color:var(--dim);font-size:.85rem;margin-left:6px}
+#nvidia-inception.nv-strip{background:var(--bg2);border:1px solid #2a2a4a;border-radius:12px;padding:22px 24px;scroll-margin-top:80px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+#nvidia-inception .nv-img img{height:56px;width:auto;display:block}
+#nvidia-inception .nv-copy{flex:1;min-width:260px}
+#nvidia-inception .nv-copy h3{color:var(--bright);margin-bottom:4px;font-size:1rem}
+#nvidia-inception .nv-copy p{color:var(--dim);font-size:.88rem}
+footer.engine-footer{text-align:center;padding:32px 24px;color:#444;font-size:.75rem;border-top:1px solid #151530}
+@media(max-width:720px){.eng-hero{padding:48px 0 28px}.stat-card{padding:12px 16px;min-width:110px}.stat-num{font-size:1.5rem}.dll-table th,.dll-table td{padding:8px 10px;font-size:.82rem}}
 </style>
 </head>
-<body>
-
-<div class="beta-announcement-bar">
-    5 Patents | 9,500+ API Endpoints | 18 Native DLLs | The AI-Native Spatial Game Engine — Now in Early Access
-</div>
-
-<nav role="navigation" aria-label="Primary">
-    <div class="container">
-        <a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
-        <button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary">
-            <span></span><span></span><span></span>
-        </button>
-        <div class="nav-links" id="nav-primary">
-            <ul class="nav-primary" role="menubar">
-                <li class="nav-item has-dropdown" role="none">
-                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
-                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
-                        <div class="col-heading" role="presentation">By audience</div>
-                        <div class="col-heading" role="presentation">Platform</div>
-                        <ul class="col" role="group">
-                            <li role="none"><a role="menuitem" href="../smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
-                            <li role="none"><a role="menuitem" href="../llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
-                            <li role="none"><a role="menuitem" href="../enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
-                            <li role="none"><a role="menuitem" href="../creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
-                            <li role="none"><a role="menuitem" href="../compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
-                        </ul>
-                        <ul class="col" role="group">
-                            <li role="none"><a role="menuitem" href="../spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li>
-                            <li role="none"><a role="menuitem" href="../ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li>
-                            <li role="none"><a role="menuitem" href="../xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="nav-item has-dropdown" role="none">
-                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button>
-                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
-                        <li role="none"><a role="menuitem" href="../docs.html">Documentation</a></li>
-                        <li role="none"><a role="menuitem" href="../mcp.html">MCP Server</a></li>
-                        <li role="none"><a role="menuitem" href="../sdk.html">SDK</a></li>
-                        <li role="none"><a role="menuitem" href="../api/">API Reference</a></li>
-                        <li role="none"><a role="menuitem" href="../templates.html">Templates</a></li>
-                        <li role="none"><a role="menuitem" href="../developers/">Developer Portal</a></li>
-                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop guide</a></li>
-                        <li role="none"><a role="menuitem" href="../developer-guide.html">Developer Guide</a></li>
-                        <li role="none"><a role="menuitem" href="../llm-guide.html">LLM Integration Guide</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item has-dropdown" role="none">
-                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button>
-                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
-                        <li role="none"><a role="menuitem" href="../blog/">Blog</a></li>
-                        <li role="none"><a role="menuitem" href="../why-rakuai.html">Why RakuAI</a></li>
-                        <li role="none"><a role="menuitem" href="../press.html">Press Kit</a></li>
-                        <li role="none"><a role="menuitem" href="../discover.html">Discover</a></li>
-                        <li role="none"><a role="menuitem" href="../content-packs.html">Content Packs</a></li>
-                        <li role="none"><a role="menuitem" href="../docs.html">Documentation</a></li>
-                        <li role="none"><a role="menuitem" href="../contact.html">Contact</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item" role="none">
-                    <a role="menuitem" href="../pricing.html">Pricing</a>
-                </li>
-                <li class="nav-item" role="none">
-                    <a role="menuitem" href="../blog/">Blog</a>
-                </li>
-            </ul>
-            <a href="../developers/login.html" class="nav-signin">Sign In</a>
-            <a href="../ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
-        </div>
-    </div>
-</nav>
-
-<header>
-  <h1><span class="kanji">楽</span>AI Engine Dashboard</h1>
-  <p>18 Native DLLs &bull; 10,328 Engine Functions &bull; 9,500+ REST Endpoints &bull; Running in Your Browser</p>
-</header>
-
+<body class="engine-page">
+<div class="beta-announcement-bar">5 Patents | 18 Native DLLs | 30,738 C++ Exports | MCP-Native - Bring Your Own LLM</div>
+<nav role="navigation" aria-label="Primary"><div class="container"><a href="../index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a><button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary"><span></span><span></span><span></span></button><div class="nav-links" id="nav-primary"><ul class="nav-primary" role="menubar"><li class="nav-item has-dropdown" role="none"><button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button><div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden><div class="col-heading" role="presentation">By audience</div><div class="col-heading" role="presentation">Platform</div><ul class="col" role="group"><li role="none"><a role="menuitem" href="../smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li><li role="none"><a role="menuitem" href="../llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li><li role="none"><a role="menuitem" href="../enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li><li role="none"><a role="menuitem" href="../creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li><li role="none"><a role="menuitem" href="../compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li></ul><ul class="col" role="group"><li role="none"><a role="menuitem" href="../spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li><li role="none"><a role="menuitem" href="../ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li><li role="none"><a role="menuitem" href="../xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li></ul></div></li><li class="nav-item has-dropdown" role="none"><button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button><ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden><li role="none"><a role="menuitem" href="../docs.html">Documentation</a></li><li role="none"><a role="menuitem" href="../mcp.html">MCP Server</a></li><li role="none"><a role="menuitem" href="../sdk.html">SDK</a></li><li role="none"><a role="menuitem" href="../api/">API Reference</a></li><li role="none"><a role="menuitem" href="../templates.html">Templates</a></li><li role="none"><a role="menuitem" href="../developers/">Developer Portal</a></li><li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop guide</a></li><li role="none"><a role="menuitem" href="../developer-guide.html">Developer Guide</a></li><li role="none"><a role="menuitem" href="../llm-guide.html">LLM Integration Guide</a></li></ul></li><li class="nav-item has-dropdown" role="none"><button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button><ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden><li role="none"><a role="menuitem" href="../blog/">Blog</a></li><li role="none"><a role="menuitem" href="../why-rakuai.html">Why RakuAI</a></li><li role="none"><a role="menuitem" href="../press.html">Press Kit</a></li><li role="none"><a role="menuitem" href="../discover.html">Discover</a></li><li role="none"><a role="menuitem" href="../content-packs.html">Content Packs</a></li><li role="none"><a role="menuitem" href="../docs.html">Documentation</a></li><li role="none"><a role="menuitem" href="../contact.html">Contact</a></li></ul></li><li class="nav-item" role="none"><a role="menuitem" href="../pricing.html">Pricing</a></li><li class="nav-item" role="none"><a role="menuitem" href="../blog/">Blog</a></li></ul><a href="../developers/login.html" class="nav-signin">Sign In</a><a href="../ja/index.html" class="lang-toggle">RakuAI<sup class="tm">&trade;</sup></a></div></div></nav>
+<header class="eng-hero"><div class="container"><span class="eyebrow">The Engine</span><h1>RakuAI - a C++ spatial runtime, MCP-native, multi-vendor LLM ready</h1><p class="lede">Built for game developers, AR creators, and smart-glasses OEM tech leads who want a real spatial runtime under their stack - not a black box. 18 native DLLs. 30,738 exported C++ functions. An MCP server that lets any LLM drive the scene. Five granted US patents going back to 2012.</p><div class="audience-pills"><span class="audience-pill">For game developers</span><span class="audience-pill">For AR creators</span><span class="audience-pill">For smart-glasses OEM tech leads</span></div><div class="nv-fold-chip"><span>Member</span><a href="#nvidia-inception">NVIDIA Inception &rarr;</a></div></div></header>
 <div class="container">
-
-  <div class="stats-bar">
-    <div class="stat-card"><div class="stat-num">18</div><div class="stat-label">Native DLLs</div></div>
-    <div class="stat-card"><div class="stat-num" id="total-fns">10,328</div><div class="stat-label">Engine Functions</div></div>
-    <div class="stat-card"><div class="stat-num">9,500+</div><div class="stat-label">REST Endpoints</div></div>
-    <div class="stat-card active" id="active-card"><div class="stat-num" id="active-count">0</div><div class="stat-label">Active in Browser</div></div>
-    <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">US Patents</div></div>
-  </div>
-
-  <div class="try-section">
-    <h3>Activate the Engine</h3>
-    <p>Click "Run All Tests" to activate all 18 subsystems, or explore them individually below. Each test exercises real engine logic running as JavaScript in your browser — the same algorithms that power the native C++ runtime.</p>
-    <button class="test-btn" id="run-all-btn" onclick="runAllTests()" style="font-size:1rem; padding:12px 32px;">Run All Tests</button>
-  </div>
-
-  <div class="section">
-    <h2>Engine Subsystems</h2>
-    <div class="dll-grid" id="dll-grid"></div>
-  </div>
-
-  <div class="section">
-    <h2>API Activity Log</h2>
-    <div class="log-area" id="log-area">
-      <div style="color:#444;">Run tests or interact with the engine to see API calls...</div>
-    </div>
-  </div>
-
-  <div class="try-section">
-    <h3>Experience the Engine</h3>
-    <p>See these 10,328 functions in action across different experiences:</p>
-    <div class="try-links">
-      <a href="../worlds/" class="try-link">Play RakuAI Worlds</a>
-      <a href="../api/" class="try-link" style="background:var(--bright);">API Docs</a>
-      <a href="../explorer/" class="try-link" style="background:var(--success);">API Explorer</a>
-      <a href="../demo/" class="try-link" style="background:#e17055;">TimeLens Tour</a>
-    </div>
-  </div>
-
+<div class="stats-bar"><div class="stat-card"><div class="stat-num">18</div><div class="stat-label">Native DLLs</div><div class="stat-foot">all CI-green</div></div><div class="stat-card"><div class="stat-num">30,738</div><div class="stat-label">C++ Exports</div><div class="stat-foot">summed from dumpbin</div></div><div class="stat-card"><div class="stat-num">17</div><div class="stat-label">Native MCP Tools</div><div class="stat-foot">+ universal passthrough</div></div><div class="stat-card"><div class="stat-num">~9,500</div><div class="stat-label">REST Endpoints</div><div class="stat-foot">surfaced via <code>api_call</code></div></div><div class="stat-card"><div class="stat-num">5</div><div class="stat-label">US Patents</div><div class="stat-foot">priority 2012</div></div></div>
+<section class="section" id="dlls"><h2>The 18 DLLs</h2><p class="sub">Every native subsystem the runtime exposes. Function counts come from <code>dumpbin /exports</code> on the Release build, checked into the repo at <code>raku-runtime/dll_exports/</code>. As of April 2026 every DLL builds and tests clean on Linux as well.</p><div class="dll-table-wrap"><table class="dll-table"><thead><tr><th>DLL</th><th>Role</th><th style="text-align:right">Exports</th></tr></thead><tbody>
+<tr><td class="name">RakuCore</td><td>Runtime lifecycle, ECS, logging, telemetry, job system, memory pools</td><td class="fns">3,860</td></tr>
+<tr><td class="name">RakuRenderer</td><td>PBR materials, dynamic lighting, shadows, particles, post-FX, LOD</td><td class="fns">3,675</td></tr>
+<tr><td class="name">RakuScripting</td><td>Lua VM, events, quests, dialogue trees, visual scripting</td><td class="fns">3,649</td></tr>
+<tr><td class="name">RakuXR</td><td>OpenXR 1.1, hand &amp; eye tracking, spatial anchors, foveated rendering</td><td class="fns">2,672</td></tr>
+<tr><td class="name">RakuScene</td><td>Scene graph, prefabs, GridMap, terrain, streaming</td><td class="fns">2,530</td></tr>
+<tr><td class="name">RakuGameplay</td><td>Game state machines, save/load, inventory, quests, achievements</td><td class="fns">2,012</td></tr>
+<tr><td class="name">RakuAnimation</td><td>Skeletal animation, blend trees, IK, root motion, state machines</td><td class="fns">1,895</td></tr>
+<tr><td class="name">RakuAudio</td><td>Spatial 3D audio, HRTF, propagation, adaptive music, bus mixing</td><td class="fns">1,653</td></tr>
+<tr><td class="name">RakuAssets</td><td>Mesh import, texture compression, audio codecs, hot reload</td><td class="fns">1,565</td></tr>
+<tr><td class="name">RakuNetwork</td><td>Sessions, state sync, WebRTC, matchmaking, NAT traversal</td><td class="fns">1,359</td></tr>
+<tr><td class="name">RakuPhysics</td><td>Rigid bodies, joints, raycasting, ragdolls, vehicles</td><td class="fns">1,269</td></tr>
+<tr><td class="name">RakuUI</td><td>Canvas, widgets, layouts, accessibility, HUD overlay</td><td class="fns">1,147</td></tr>
+<tr><td class="name">RakuEditor</td><td>Gizmos, inspector, profiler, debug draw, scene tools</td><td class="fns">1,141</td></tr>
+<tr><td class="name">RakuAI</td><td>Navmesh, behavior trees, NPC dialogue, utility AI, GOAP, crowd sim</td><td class="fns">740</td></tr>
+<tr><td class="name">RakuSLM</td><td>On-device LLM inference, emotion recognition, gesture detection</td><td class="fns">666</td></tr>
+<tr><td class="name">RakuInput</td><td>Actions, gamepad, XR controllers, gestures, haptic feedback</td><td class="fns">586</td></tr>
+<tr><td class="name">RakuVoice</td><td>STT, TTS, VAD, Opus codec, noise suppression</td><td class="fns">258</td></tr>
+<tr><td class="name">RakuCSG</td><td>Boolean geometry: union, subtract, intersect</td><td class="fns">61</td></tr>
+</tbody><tfoot><tr><td colspan="2">Total exported C++ functions across all 18 DLLs</td><td class="fns">30,738</td></tr></tfoot></table></div></section>
+<section class="section" id="mcp"><h2>The MCP tool surface</h2><p class="sub">RakuAI ships a Model Context Protocol server (<code>raku-mcp</code>) that any MCP-compatible LLM client can connect to - Claude Desktop, Cursor, custom agents. There are <strong>17 native tools</strong> in the production server (Wave 7Z, May 2026), plus six universal passthrough tools.</p><div class="mcp-grid">
+<div class="mcp-card"><h3>Scene state <span class="count">2 tools</span></h3><ul><li>get_scene_state<span class="desc">Snapshot the current scene graph.</span></li><li>capture_scene<span class="desc">Capture a render-time observation (color, depth, segmentation).</span></li></ul></div>
+<div class="mcp-card"><h3>Scene mutation <span class="count">4 tools</span></h3><ul><li>add_scene_node<span class="desc">Insert an entity into the scene graph.</span></li><li>update_scene_node<span class="desc">Change properties on an existing node.</span></li><li>set_node_transform<span class="desc">Position / rotation / scale.</span></li><li>remove_scene_node<span class="desc">Delete a node.</span></li></ul></div>
+<div class="mcp-card"><h3>World-model adapters <span class="count">3 tools</span></h3><ul><li>load_world_model<span class="desc">Bind an adapter (Runway, Veo, Marble, Genie, content-pack).</span></li><li>ingest_frame<span class="desc">Feed a world-model output frame into the runtime.</span></li><li>set_render_target<span class="desc">Choose where rendered frames go.</span></li></ul></div>
+<div class="mcp-card"><h3>XR session <span class="count">6 tools</span></h3><ul><li>xr_get_session<span class="desc">Inspect headset / glasses session state.</span></li><li>xr_set_head_pose<span class="desc">Drive head pose (sim, recording, or remote).</span></li><li>xr_simulate_input<span class="desc">Inject controller / hand-tracking events.</span></li><li>xr_list_anchors<span class="desc">List spatial anchors in the session.</span></li><li>xr_create_anchor<span class="desc">Anchor a node to world coordinates.</span></li><li>xr_remove_anchor<span class="desc">Release an anchor.</span></li></ul></div>
+<div class="mcp-card"><h3>Telemetry &amp; sim <span class="count">2 tools</span></h3><ul><li>get_metrics<span class="desc">Frame time, draw calls, memory, tool-call latency.</span></li><li>start_simulation<span class="desc">Step physics + world model under sandbox mode.</span></li></ul></div>
+<div class="mcp-card universal"><h3>Universal passthrough <span class="count">6 tools</span></h3><ul><li>api_search / api_describe / api_call<span class="desc">Discover and invoke any of ~9,500 raku-api REST endpoints.</span></li><li>engine_search / engine_describe / engine_call<span class="desc">Discover and invoke any callable engine function (~10,328).</span></li></ul></div>
+</div><p style="color:var(--dim);font-size:.88rem;margin-top:16px">Source: <code>raku-runtime/src/mcp/raku_mcp_server.py</code> (READ_ONLY_TOOLS + MUTATION_TOOLS = 17 unique) and <code>raku-runtime/src/mcp/tools/_catalog.py</code>.</p></section>
+<section class="section" id="perf"><h2>Performance</h2><p class="sub">Honest disclosure: the engine has not yet been pinned to a published microbenchmark suite. What we measure today is build health and tool-call dispatch. Real per-subsystem perf numbers land in the Phase F2 GPU-validation wave once Azure A10 + AWS G5 + Nebius H100 quota lands.</p><div class="perf-card"><h3>What we measure today</h3><div class="meas"><div><div class="num">3 OS &times; 2 build</div><div class="src">CI matrix: Windows / Linux / macOS &times; Debug / Release. See <code>raku-runtime/.github/workflows/ci.yml</code>.</div></div><div><div class="num">100% green</div><div class="src">Native test suite, post-Wave 4U (was 54/100 in early Apr 2026).</div></div><div><div class="num">17/17 MCP tools</div><div class="src">Production server, post-Wave 7Z. Dispatch covered by <code>tests/mcp/</code>.</div></div><div><div class="num todo">[TODO] FPS / phys-step / anchor-write</div><div class="src">Real GPU benchmarks gated on Phase F2. We will publish numbers, not adjectives.</div></div></div></div></section>
+<section class="section" id="platforms"><h2>Platform matrix</h2><p class="sub">What ships today vs what's on the roadmap. We won't claim a platform until it builds in CI and runs a non-trivial scene end-to-end.</p><table class="platform-table"><thead><tr><th>Platform</th><th>Status</th><th>Notes</th></tr></thead><tbody>
+<tr><td><strong>Windows</strong> (x64)</td><td class="pf-status ship">Shipping</td><td>Primary dev target. Release + Debug in <code>ci.yml</code>, signed installer.</td></tr>
+<tr><td><strong>Linux</strong> (Ubuntu 24.04)</td><td class="pf-status ship">Shipping</td><td>All 18 DLLs green since Apr 2026. Container builds for Azure / AWS.</td></tr>
+<tr><td><strong>macOS</strong> (Apple Silicon)</td><td class="pf-status ship">Shipping</td><td>macos-14 runner in CI. Native arm64.</td></tr>
+<tr><td><strong>Web / WASM</strong></td><td class="pf-status beta">Beta</td><td>Browser engine + WebGPU splat rendering via <code>wasm-build.yml</code>. Phase I8 (iPhone WebGPU client-side training) in progress.</td></tr>
+<tr><td><strong>Meta Ray-Ban Display</strong></td><td class="pf-status beta">Partner preview</td><td>Smart-glasses OEM programme. <a href="../smart-glasses.html">Partner page.</a></td></tr>
+<tr><td><strong>Android XR</strong></td><td class="pf-status plan">Planned</td><td>OpenXR 1.1 backend exists in <code>RakuXR</code>; Android packaging on the roadmap.</td></tr>
+<tr><td><strong>Apple Vision Pro</strong></td><td class="pf-status plan">Planned</td><td>Native arm64 + OpenXR foundation in place; visionOS shell pending.</td></tr>
+</tbody></table></section>
+<section class="section" id="patents"><h2>The IP foundation</h2><div class="patents-card"><h3>Five granted US patents covering the spatial runtime + AI-driven content pipeline (2012-2024).</h3><p>Earliest priority July 2012. Numbers and assignment details are in the <a href="../press.html">press kit</a>. We don't publish claim text here so partners and licensees can frame their own filings cleanly.</p></div></section>
+<section class="section"><div id="nvidia-inception" class="nv-strip"><div class="nv-img"><img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="180" height="56"></div><div class="nv-copy"><h3>NVIDIA Inception Member</h3><p>RakuAI was accepted to NVIDIA Inception in May 2026 for our work on AI-driven spatial runtimes and Gaussian-splat reconstruction. <a href="../press.html#nvidia-inception">Read more on the press page.</a></p></div></div></section>
+<section class="section" id="reading"><h2>How we got here</h2><p class="sub">Engineering posts behind the numbers above:</p><ul class="blog-list">
+<li><a href="../blog/all-eighteen-dlls-green-on-linux/"><strong>All eighteen DLLs green on Linux</strong></a><span class="note">- the day the platform matrix grew a column.</span></li>
+<li><a href="../blog/the-week-the-build-stopped-arguing/"><strong>The week the build stopped arguing</strong></a><span class="note">- build discipline.</span></li>
+<li><a href="../blog/six-mcp-tools-and-what-the-adapters-unlock/"><strong>Six MCP tools and what the adapters unlock</strong></a><span class="note">- positioning post; the native tool count is now 17 after Wave 7Z.</span></li>
+<li><a href="../blog/ai-as-interface-not-ai-as-dependency/"><strong>AI as interface, not AI as dependency</strong></a><span class="note">- why MCP, and why we're multi-vendor.</span></li>
+<li><a href="../blog/from-54-to-100-tests-passing/"><strong>From 54 to 100 tests passing</strong></a><span class="note">- how the green CI matrix got green.</span></li>
+</ul></section>
+<section class="section" id="related"><h2>Where this connects</h2><div class="related-grid">
+<div class="related-card"><a href="../smart-glasses.html"><div class="label">For OEMs</div><div class="title">Smart-glasses programme</div><div class="desc">Hardware partnership, reference integrations, certification.</div></a></div>
+<div class="related-card"><a href="../mcp.html"><div class="label">MCP server</div><div class="title">Connect a model</div><div class="desc">Endpoint, auth, tool catalog. Works with Claude Desktop, Cursor.</div></a></div>
+<div class="related-card"><a href="../capture.html"><div class="label">Raku Capture</div><div class="title">Reality &rarr; splat</div><div class="desc">Phone capture &rarr; GLOMAP + Brush &rarr; SPZ output.</div></a></div>
+<div class="related-card"><a href="../sdk.html"><div class="label">SDK</div><div class="title">Native bindings</div><div class="desc">C / C++ / Python bindings over the C-ABI.</div></a></div>
+<div class="related-card"><a href="../why-rakuai.html"><div class="label">Positioning</div><div class="title">Why RakuAI</div><div class="desc">The honest pitch.</div></a></div>
+<div class="related-card"><a href="../api/"><div class="label">API reference</div><div class="title">Browse ~9,500 endpoints</div><div class="desc">Drivable from any agent via <code>api_call</code>.</div></a></div>
+</div></section>
 </div>
-
-<footer>
-  <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
-  <p style="margin-top: 6px;">
-    <a href="../engine/">Engine</a> &bull;
-    <a href="../api/">API</a> &bull;
-    <a href="../docs.html">Docs</a> &bull;
-    <a href="../games/">Arcade</a> &bull;
-    <a href="../press.html">Press</a> &bull;
-    <a href="../developers/">Developers</a> &bull;
-    <a href="../privacy.html">Privacy</a> &bull;
-    <a href="../terms.html">Terms</a> &bull;
-    <a href="../contact.html">Contact</a> &bull;
-    <a href="https://github.com/RakuXR">GitHub</a>
-  </p>
-  <p class="trademark-notice">
-    RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
-    <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
-    5 Granted US Patents (Priority: July 2012).
-  </p>
-        <!-- nv-inception:start -->
-        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
-            <a href="../press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
-                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
-            </a>
-        </div>
-        <!-- nv-inception:end -->
-</footer>
-
-<script type="module">
-import { RakuEngine, DLLS, TOTAL_API_FUNCTIONS } from './raku-engine.js';
-
-const engine = new RakuEngine();
-const logArea = document.getElementById('log-area');
-
-// Build DLL cards
-const grid = document.getElementById('dll-grid');
-const maxFns = Math.max(...DLLS.map(d => d.fns));
-let gridHTML = '';
-DLLS.forEach((dll, i) => {
-  const pct = (dll.fns / maxFns * 100).toFixed(0); // relative to largest
-  gridHTML += `
-    <div class="dll-card" id="card-${dll.name}" onclick="testDLL(${i})">
-      <div class="dll-header">
-        <div class="dll-dot" id="dot-${dll.name}"></div>
-        <span class="dll-name">${dll.name}</span>
-        <span class="dll-fns">${dll.fns} functions</span>
-      </div>
-      <div class="dll-desc">${dll.desc}</div>
-      <div class="dll-bar"><div class="dll-bar-fill" style="width:${pct}%"></div></div>
-    </div>`;
-});
-grid.innerHTML = gridHTML;
-
-// Listen for engine events
-engine.on('dll', ({ name, total }) => {
-  const card = document.getElementById('card-' + name);
-  if (card) card.classList.add('active');
-  document.getElementById('active-count').textContent = total;
-});
-
-engine.on('api', (entry) => {
-  if (logArea.querySelector('div[style]')) logArea.innerHTML = '';
-  const div = document.createElement('div');
-  div.className = 'log-entry';
-  div.innerHTML = `<span class="log-method ${entry.method}">${entry.method}</span> <span>${entry.path}</span> <span class="log-status">${entry.status}</span> <span class="log-latency">${entry.latency}ms</span>`;
-  logArea.prepend(div);
-});
-
-// Test individual DLL
-window.testDLL = async function(index) {
-  const dll = DLLS[index];
-  const worldData = engine.createWorld('test_' + dll.name, { lat: 39.9496, lng: -75.1503, alt: 12 });
-  const wid = worldData.world_id;
-
-  // Each DLL gets a specific test
-  switch(dll.name) {
-    case 'RakuCore': case 'RakuScene': case 'RakuGameplay':
-      engine.createEntity(wid, { type: 'cube', position: [0, 2, 0] });
-      engine.saveWorld(wid); engine.loadWorld(wid);
-      break;
-    case 'RakuRenderer': case 'RakuEditor':
-      for (let i = 0; i < 5; i++) engine.createEntity(wid, { type: 'sphere', position: [Math.random()*10-5, 5, Math.random()*10-5] });
-      engine.captureFrame(wid);
-      break;
-    case 'RakuPhysics':
-      const e = engine.createEntity(wid, { type: 'cube', position: [0, 10, 0] });
-      engine.addPhysicsBody(wid, e.entity_id, { mass: 1, restitution: 0.7 });
-      for (let i = 0; i < 30; i++) engine.stepPhysics(wid, 0.016);
-      break;
-    case 'RakuAudio': case 'RakuVoice':
-      engine.createEntity(wid, { type: 'npc', position: [5, 0, 0] });
-      engine.observeWorld(wid);
-      break;
-    case 'RakuAI': case 'RakuSLM': case 'RakuScripting':
-      const ag = engine.createAgent(wid, { type: 'guide', name: 'Franklin' });
-      await engine.agentAct(wid, ag.agent_id, { playerAction: 'Hello!' });
-      engine.agentReward(wid, ag.agent_id, 1.0);
-      break;
-    case 'RakuAnimation': case 'RakuCSG':
-      for (let i = 0; i < 3; i++) engine.createEntity(wid, { type: 'npc', position: [i*3, 0, 0] });
-      break;
-    case 'RakuNetwork':
-      engine.startRecording(wid); engine.stopRecording(wid);
-      break;
-    case 'RakuInput': case 'RakuUI':
-      engine.contentFilter('This is a safe test message');
-      engine.observeJSON(wid);
-      break;
-    case 'RakuAssets': case 'RakuXR':
-      engine.createEntity(wid, { type: 'cube', gps: { lat: 39.9498, lng: -75.1501, alt: 13 } });
-      engine.observeWorld(wid);
-      break;
-    default:
-      engine.createEntity(wid, { type: 'cube' }); engine.observeWorld(wid);
-  }
-};
-
-// Run all tests sequentially with visual effect
-window.runAllTests = async function() {
-  const btn = document.getElementById('run-all-btn');
-  btn.textContent = 'Running...'; btn.disabled = true;
-  for (let i = 0; i < DLLS.length; i++) {
-    await testDLL(i);
-    await new Promise(r => setTimeout(r, 150));
-  }
-  btn.textContent = 'All 18 Active!'; btn.style.background = 'var(--success)'; btn.style.borderColor = 'var(--success)';
-};
-</script>
+<footer class="engine-footer"><p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012)</p><p style="margin-top:6px"><a href="../engine/">Engine</a> &bull; <a href="../api/">API</a> &bull; <a href="../docs.html">Docs</a> &bull; <a href="../games/">Arcade</a> &bull; <a href="../press.html">Press</a> &bull; <a href="../developers/">Developers</a> &bull; <a href="../privacy.html">Privacy</a> &bull; <a href="../terms.html">Terms</a> &bull; <a href="../contact.html">Contact</a> &bull; <a href="https://github.com/RakuXR">GitHub</a></p><p class="trademark-notice">RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC. 5 Granted US Patents (Priority: July 2012).</p><!-- nv-inception:start --><div class="footer-recognition" style="display:flex;align-items:center;justify-content:center;gap:14px;margin:20px 0 8px;opacity:.9"><a href="../press.html#nvidia-inception" aria-label="NVIDIA Inception Member" style="line-height:0"><img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="40" style="height:40px;width:auto;display:block"></a></div><!-- nv-inception:end --></footer>
 <script src="/js/auth-nav.js" defer></script>
 <script src="/js/lang-selector.js" defer></script>
 <script src="/js/nav-dropdown.js" defer></script>
