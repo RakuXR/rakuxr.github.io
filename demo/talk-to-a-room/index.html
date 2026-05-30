@@ -29,7 +29,7 @@
   main{display:grid;grid-template-columns:1.5fr 1fr;gap:0;height:calc(100% - 120px);min-height:480px}
   @media (max-width:860px){main{grid-template-columns:1fr;height:auto}}
   .viewer{position:relative;background:#000;min-height:380px}
-  .viewer canvas{display:block;width:100%;height:100%}
+  .viewer canvas{display:block;width:100%;height:100%;touch-action:none}
   .viewer-status{position:absolute;left:12px;bottom:10px;font-size:12px;color:var(--muted);background:rgba(0,0,0,.45);padding:4px 9px;border-radius:6px}
   .samples{position:absolute;left:12px;top:12px;display:flex;gap:6px;flex-wrap:wrap}
   .samples button{font-size:12px;background:rgba(22,22,31,.85);color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:6px 10px;cursor:pointer}
@@ -60,13 +60,13 @@
   <span class="brand"><span class="kanji">楽</span>AI</span>
   <span style="color:var(--muted);font-size:14px">Talk to a Room — demo</span>
   <span class="sep"></span>
-  <a href="/" style="font-size:13px;text-decoration:none">← rakuai.com</a>
+  <a href="../../" style="font-size:13px;text-decoration:none">← rakuai.com</a>
   <span class="chip"><b>NVIDIA</b> Inception member</span>
 </header>
 
 <div class="banner">
   This demo uses <strong>pre-baked sample splats</strong>. To scan your own room, open
-  <a href="/capture.html">Raku Capture</a> (free, no signup).
+  <a href="../../capture.html">Raku Capture</a> (free, no signup).
 </div>
 
 <main>
@@ -160,7 +160,7 @@
       const a=ASSISTANTS[b.dataset.assistant];
       // Each vendor has a different custom-connector flow; until prefill deeplinks are
       // stable we open the assistant and surface the relay URL to paste as a connector.
-      try{navigator.clipboard&&navigator.clipboard.writeText(MCP_RELAY);}catch(e){}
+      try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(MCP_RELAY).catch(()=>{});}}catch(e){}
       window.open(a.home,'_blank','noopener');
       addMsg('you',`Opening ${a.name} — MCP relay URL copied to clipboard${MCP_LIVE?'':' (relay not live yet)'}.`);
     });
@@ -194,8 +194,8 @@
   async function resolveUrl(s){
     // Try our CDN first; fall back to the verified public URL if it 404s/errors.
     try{
-      const r=await fetch(s.url,{method:'HEAD',mode:'cors'});
-      if(r.ok) return s.url;
+      const r=await fetch(s.url,{method:'GET',mode:'cors',headers:{'Range':'bytes=0-0'}});
+      if(r.status===200||r.status===206) return s.url;
     }catch(e){}
     return s.fallbackUrl;
   }
