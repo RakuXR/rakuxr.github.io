@@ -8,6 +8,9 @@
     --accent: #6c5ce7;
     --accent-bright: #a388ff;
     --success: #00cec9;
+    /* Height of the fixed announcement bar; shared by body padding-top and the
+       sticky nav offset so they never drift apart. */
+    --banner-h: 36px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,7 +26,7 @@ body {
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
-    padding-top: 36px;
+    padding-top: var(--banner-h);
 }
 
 /* Beta Announcement Bar */
@@ -119,9 +122,9 @@ nav {
     border-bottom: 1px solid #222244;
     padding: 16px 0;
     position: sticky;
-    /* Stick below the fixed announcement bar (body has matching padding-top),
-       otherwise the nav slides up underneath the banner on scroll. */
-    top: 36px;
+    /* Stick below the fixed announcement bar (shares --banner-h with body's
+       padding-top), otherwise the nav slides up underneath the banner on scroll. */
+    top: var(--banner-h);
     z-index: 100;
 }
 
