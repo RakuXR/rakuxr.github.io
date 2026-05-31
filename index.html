@@ -93,7 +93,11 @@
         margin: 6px 0 0;
         text-align: left;
       }
-      /* The first content section sits comfortably close under the hero. */
+      /* The first content section sits comfortably close under the hero.
+         The hero-platform is followed by a second hero (#create), then the
+         first real .section — tighten the top of whichever sits under a hero. */
+      .hero-platform.hero-split + .hero,
+      .hero + .section,
       .hero-platform.hero-split + .section { padding-top: 44px; }
 
       /* --- Task 1: hero figure --- */
@@ -151,7 +155,9 @@
         margin: 0 0 6px;
       }
       .raku-slide h3 { margin: 0 0 10px; font-size: 1.35rem; }
-      .raku-slide p { color: var(--text-secondary); margin: 0; line-height: 1.55; }
+      /* Scope to :not(.rs-step) so the later, equal-specificity p rule doesn't
+         clobber the step label's bottom margin. */
+      .raku-slide p:not(.rs-step) { color: var(--text-secondary); margin: 0; line-height: 1.55; }
       .raku-slide .rs-icon { width: 120px; height: 120px; display: block; }
       .raku-carousel-controls {
         display: flex; align-items: center; justify-content: center;
@@ -502,10 +508,10 @@
             <div class="raku-carousel-controls">
                 <button type="button" class="raku-carousel-btn" data-carousel-prev aria-label="Previous step">&#8249;</button>
                 <div class="raku-carousel-dots" role="tablist" aria-label="Choose step">
-                    <button type="button" class="raku-carousel-dot" role="tab" aria-current="true" aria-label="Step 1"></button>
-                    <button type="button" class="raku-carousel-dot" role="tab" aria-label="Step 2"></button>
-                    <button type="button" class="raku-carousel-dot" role="tab" aria-label="Step 3"></button>
-                    <button type="button" class="raku-carousel-dot" role="tab" aria-label="Step 4"></button>
+                    <button type="button" class="raku-carousel-dot" aria-current="true" aria-label="Go to step 1"></button>
+                    <button type="button" class="raku-carousel-dot" aria-label="Go to step 2"></button>
+                    <button type="button" class="raku-carousel-dot" aria-label="Go to step 3"></button>
+                    <button type="button" class="raku-carousel-dot" aria-label="Go to step 4"></button>
                 </div>
                 <button type="button" class="raku-carousel-btn" data-carousel-next aria-label="Next step">&#8250;</button>
             </div>
@@ -827,7 +833,7 @@
     </div>
 </section>
 
-<!-- ============================================================
+<!-- ============================================================ DISABLED: Engine Capabilities (parked)
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container">
         <h2>Engine Capabilities</h2>
@@ -853,6 +859,7 @@
         </div>
     </div>
 </section>
+============================================================ -->
 
 <!-- ============================================================
      B2B SECTIONS — For Studios & Developers
@@ -2684,12 +2691,14 @@ var RAKU_API_BASE = (function() {
 
     var current = 0;
 
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function goTo(i) {
         current = Math.max(0, Math.min(slides.length - 1, i));
         var slide = slides[current];
-        // scrollIntoView would scroll the page vertically too; scroll the
-        // viewport horizontally by the slide's offset instead.
-        viewport.scrollTo({ left: slide.offsetLeft - viewport.offsetLeft, behavior: 'smooth' });
+        // Scroll the viewport horizontally to the slide. offsetLeft is already
+        // relative to the scroll container (the viewport is the offsetParent),
+        // so use it directly. Honor reduced-motion.
+        viewport.scrollTo({ left: slide.offsetLeft, behavior: reduceMotion ? 'auto' : 'smooth' });
         setActive(current);
     }
 
