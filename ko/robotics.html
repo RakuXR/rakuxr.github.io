@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>로보틱스를 위한 RakuAI — 로봇이 평이한 언어로 질의하는 영속적 공간 메모리 레이어</title>
+    <meta name="description" content="로보틱스 CTO와 인식(perception) 리드를 위한 파트너용 브리프. RakuAI는 여러분의 스택에 연결되는 영속적이고 LLM으로 질의 가능한 공간 메모리 레이어입니다(시설별 Gaussian splat + 17개 네이티브 MCP 도구). 우리는 로봇, SLAM, 모션 플래닝을 만들지 않습니다. 90일 무료 파일럿 제공.">
+    <meta name="keywords" content="로보틱스 공간 메모리, 로봇 장면 메모리, 로봇용 MCP, Gaussian splat 시설 맵, 창고 로보틱스 AI, 휴머노이드 로봇 인식, NVIDIA Isaac 보완, 멀티 LLM 로보틱스, 영속적 공간 AI">
+    <meta property="og:title" content="로보틱스를 위한 RakuAI — 로봇이 평이한 언어로 질의하는 영속적 공간 메모리 레이어">
+    <meta property="og:description" content="시설별 splat + 모든 LLM이 질의할 수 있는 멀티 벤더 MCP API. 인식 위, 작업 플래닝 아래에 위치합니다. NVIDIA Isaac 및 AWS RoboMaker와 상호 보완적. 90일 무료 파일럿.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ko/robotics.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="로보틱스를 위한 RakuAI — 로봇이 평이한 언어로 질의하는 영속적 공간 메모리 레이어">
+    <meta name="twitter:description" content="시설별 splat + 모든 LLM이 질의할 수 있는 멀티 벤더 MCP API. NVIDIA Isaac 및 AWS RoboMaker와 상호 보완적. 90일 무료 파일럿.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/ko/robotics.html">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/robotics.html">
+    <link rel="alternate" hreflang="ko" href="https://rakuai.com/ko/robotics.html">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/robotics.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .sg-section {
+            padding: 72px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .sg-section:last-of-type {
+            border-bottom: none;
+        }
+        .sg-hero {
+            padding: 96px 0 72px;
+            text-align: center;
+        }
+        .sg-hero .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            padding: 6px 14px;
+            border: 1px solid rgba(108, 92, 231, 0.45);
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+        .sg-hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .sg-hero .subhead {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            line-height: 1.65;
+            max-width: 820px;
+            margin: 0 auto 32px;
+        }
+        .sg-hero .audience-line {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 720px;
+            margin: 18px auto 0;
+            opacity: 0.85;
+            font-style: italic;
+        }
+        .sg-cta-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+        .sg-btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .sg-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
+        }
+        .sg-btn-secondary {
+            display: inline-block;
+            background: transparent;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.15s ease;
+        }
+        .sg-btn-secondary:hover {
+            background: rgba(163, 136, 255, 0.1);
+        }
+        .sg-section h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .sg-section .sg-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 760px;
+            margin: 0 auto 40px;
+        }
+
+        /* Stack-position split: what we build vs don't */
+        .rb-stack {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+        .rb-stack-col {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 28px;
+        }
+        .rb-stack-col.build { border-top: 4px solid var(--success); }
+        .rb-stack-col.dont { border-top: 4px solid #ff6b6b; }
+        .rb-stack-col h3 {
+            color: var(--accent-bright);
+            font-size: 1.15rem;
+            margin-bottom: 14px;
+        }
+        .rb-stack-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .rb-stack-col li {
+            padding: 9px 0;
+            color: var(--text-secondary);
+            line-height: 1.55;
+            font-size: 0.95rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .rb-stack-col li:first-child { border-top: none; }
+        .rb-stack-col.build li:before {
+            content: "\2713 ";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .rb-stack-col.dont li:before {
+            content: "\2715 ";
+            color: #ff6b6b;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        /* MCP-from-robot diagram block */
+        .sg-mcp-arch {
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        .sg-mcp-arch .sg-mcp-note {
+            max-width: 820px;
+            margin: 20px auto 0;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        /* Segment / target cards */
+        .rb-segments {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .rb-segment {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px 24px;
+            transition: border-color 0.15s ease;
+        }
+        .rb-segment:hover { border-color: var(--accent-bright); }
+        .rb-segment h3 {
+            color: var(--accent-bright);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        .rb-segment .rb-seg-pain {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.55;
+            margin: 0 0 12px;
+        }
+        .rb-segment .rb-seg-targets {
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        .rb-segment .rb-seg-targets strong {
+            color: var(--text-secondary);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 0.72rem;
+        }
+
+        /* Partner resources */
+        .rb-partners {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .rb-partner-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px 26px;
+        }
+        .rb-partner-card h3 {
+            color: var(--accent-bright);
+            font-size: 1.05rem;
+            margin-bottom: 6px;
+        }
+        .rb-partner-card .rb-partner-vendor {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            margin-bottom: 12px;
+        }
+        .rb-partner-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .rb-partner-card li {
+            padding: 7px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .rb-partner-card li:first-child { border-top: none; }
+        .rb-partner-card li strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* ROI math */
+        .rb-roi {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+        .rb-roi-col {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 28px;
+        }
+        .rb-roi-col.status { border-top: 4px solid #fdcb6e; }
+        .rb-roi-col.raku { border-top: 4px solid var(--success); }
+        .rb-roi-col h3 {
+            color: var(--accent-bright);
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+        .rb-roi-col ul { list-style: none; padding: 0; margin: 0; }
+        .rb-roi-col li {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 0.93rem;
+            line-height: 1.55;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .rb-roi-col li:first-child { border-top: none; }
+        .rb-roi-net {
+            max-width: 820px;
+            margin: 24px auto 0;
+            padding: 18px 22px;
+            background: rgba(0, 206, 201, 0.08);
+            border-left: 3px solid var(--success);
+            border-radius: 6px;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Pilot timeline */
+        .rb-pilot {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .rb-pilot-col {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            border-top: 4px solid var(--accent-bright);
+            padding: 24px 26px;
+        }
+        .rb-pilot-col h3 {
+            color: var(--accent-bright);
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+        }
+        .rb-pilot-col .when {
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 12px;
+        }
+        .rb-pilot-col p {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .rb-roadmap-note {
+            max-width: 820px;
+            margin: 24px auto 0;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            text-align: center;
+            opacity: 0.85;
+            line-height: 1.6;
+        }
+
+        /* Honest framing note */
+        .sg-prior-art-note {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 16px 20px;
+            background: rgba(0, 206, 201, 0.08);
+            border-left: 3px solid var(--success);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        /* Cross-links */
+        .sg-crosslinks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .sg-crosslink {
+            display: block;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px 22px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: border-color 0.15s ease, transform 0.15s ease;
+        }
+        .sg-crosslink:hover {
+            border-color: var(--accent-bright);
+            transform: translateY(-2px);
+        }
+        .sg-crosslink .label {
+            color: var(--accent-bright);
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        .sg-crosslink .desc {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .sg-hero { padding: 64px 0 48px; }
+            .sg-section { padding: 56px 0; }
+            .rb-stack { grid-template-columns: 1fr; }
+            .rb-roi { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .sg-cta-row { flex-direction: column; align-items: stretch; }
+            .sg-btn-primary, .sg-btn-secondary { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    특허 5건 | 9,500개 이상의 API 엔드포인트 | 18개의 네이티브 DLL | AI 네이티브 공간 게임 엔진 — 지금 얼리 액세스 진행 중
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">솔루션</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="솔루션" hidden>
+                        <div class="col-heading" role="presentation">대상별</div>
+                        <div class="col-heading" role="presentation">플랫폼</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">스마트 글래스 제조사용<span class="item-desc">하드웨어 OEM 파트너 프로그램</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI 연구소용<span class="item-desc">파운데이션 모델용 MCP 런타임</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">엔터프라이즈용<span class="item-desc">공간 AI를 대규모로 배포</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">크리에이터용<span class="item-desc">공간 월드 제작 및 공개</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">로보틱스<span class="item-desc">로봇을 위한 영속적 공간 메모리</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">보험<span class="item-desc">휴대폰 스캔으로 내용물 목록 작성</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Unity / Unreal 비교<span class="item-desc">정직한 비교</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">공간을 스캔하고 말을 거세요</span></a></li>
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">공간 엔진<span class="item-desc">런타임의 기둥</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI 시스템<span class="item-desc">오케스트레이션 및 권한</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR 기능<span class="item-desc">디스플레이, 트래킹, 앵커링</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">개발자</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="개발자" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">문서</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP 서버</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API 레퍼런스</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">템플릿</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">개발자 포털</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop 가이드</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">개발자 가이드</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM 통합 가이드</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">리소스</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="리소스" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">블로그</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">RakuAI를 선택하는 이유</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">보도 자료</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">디스커버</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">콘텐츠 팩</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">문서</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">문의하기</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">요금제</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">블로그</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">로그인</a>
+            <a href="../robotics.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="sg-hero">
+    <div class="container">
+        <span class="eyebrow">로보틱스 CTO 및 인식 리드를 위한 페이지</span>
+        <h1>로봇이 평이한 언어로 질의하는 공간 메모리.</h1>
+        <p class="subhead">
+            모든 모바일 로봇 &mdash; 휴머노이드, AMR, 4족 로봇, 드론 &mdash; 에게는 핵심 팀의 누구도 직접 만들고 싶어 하지 않는 두 가지가 필요합니다: 재부팅, 교대 근무 전환, 소프트웨어 업데이트를 견디고 살아남는 <strong>영속적 공간 메모리</strong>, 그리고 <strong>그것을 평이한 언어로 추론할 수 있는 LLM</strong>입니다. RakuAI는 이 두 가지를 서비스로 제공합니다: 한 번만 캡처하면 되는 시설별 Gaussian splat을 우리가 호스팅하고, 여러분이 선택한 어떤 LLM이든 17개의 네이티브 MCP 도구를 통해 질의할 수 있습니다. 우리는 로봇, SLAM, 모션 플래닝을 만들지 않습니다 &mdash; 그 옆에서 함께 동작합니다.
+        </p>
+        <p class="audience-line">
+            이 페이지는 창고 자동화, 휴머노이드, 배송, 점검 로보틱스 기업의 엔지니어와 파트너십 리드를 위해 작성되었습니다. 우리가 스택의 어디에 위치하는지, 무엇을 만들고 무엇을 만들지 않는지, 그리고 파운데이션 모델 로보틱스 기업들이 경쟁자가 아니라 고객인 지점이 어디인지에 대해 정직하려고 노력합니다.
+        </p>
+
+<div style="display: flex; justify-content: center; margin: 22px 0 4px;">
+    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="NVIDIA Inception 멤버 - 자세한 내용으로 스크롤">
+        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">멤버:</span>
+        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">자세히 보기 &darr;</span>
+    </a>
+</div>
+        <div class="sg-cta-row">
+            <a href="mailto:partnerships@rakuai.com?subject=Robotics%2090-day%20pilot%20inquiry" class="sg-btn-primary">90일 무료 파일럿 시작하기 &rarr;</a>
+            <a href="#stack-position" class="sg-btn-secondary">우리가 스택의 어디에 위치하는가 &darr;</a>
+        </div>
+    </div>
+</section>
+
+<!-- Where we sit in the stack: what we build vs don't -->
+<section class="sg-section" id="stack-position">
+    <div class="container">
+        <h2>우리가 스택의 어디에 위치하는가.</h2>
+        <p class="sg-subtitle">
+            인식(perception) 위(우리는 이미지, 깊이, 포즈를 소비합니다), 상위 수준 작업 플래닝 아래(우리는 여러분 플래너의 LLM에 쿼리를 제공합니다)에 위치합니다. 우리는 <strong>장면 메모리 + 장면 QA 레이어</strong>입니다 &mdash; 그 이상도 이하도 아닙니다. 그 집중이 곧 우리의 제안입니다.
+        </p>
+
+        <div class="rb-stack">
+            <div class="rb-stack-col build">
+                <h3>RakuAI가 제공하는 것</h3>
+                <ul>
+                    <li>한 번 캡처해 영구히 호스팅되는 시설별 Gaussian splat</li>
+                    <li>어떤 LLM이든 호출할 수 있는 17개의 네이티브 MCP 도구 &mdash; "7번 통로를 막고 있는 게 뭐죠?", "화요일 이후 팔레트가 움직였나요?"</li>
+                    <li>재구성된 장면 위의 평이한 언어 장면 QA</li>
+                    <li>멀티 벤더 LLM: Claude, GPT, Gemini, 또는 NVIDIA NIM으로 호스팅된 오픈 웨이트 &mdash; 워크로드별로 여러분이 선택</li>
+                    <li>호스팅 재구성 + 쿼리 인프라, 여러분에게는 인프라 부담 제로</li>
+                </ul>
+            </div>
+            <div class="rb-stack-col dont">
+                <h3>우리가 명시적으로 만들지 않는 것</h3>
+                <ul>
+                    <li>SLAM &mdash; Cartographer, RTAB-Map, ORB-SLAM3, NVIDIA cuVSLAM가 이미 존재하며 훌륭합니다</li>
+                    <li>모션 플래닝 &mdash; MoveIt, OMPL, Nav2는 이미 해결된 문제입니다</li>
+                    <li>로봇 하드웨어 또는 구동(actuation) &mdash; 우리는 소프트웨어 전용입니다</li>
+                    <li>시뮬레이션 엔진 &mdash; Isaac Sim, Gazebo, MuJoCo, AWS RoboMaker; 우리는 맞서는 게 아니라 그 옆에서 함께 동작합니다</li>
+                    <li>액션 폴리시 파운데이션 모델 &mdash; Skild, Physical Intelligence, Covariant가 그 레이어를 소유합니다</li>
+                </ul>
+            </div>
+        </div>
+
+        <p class="sg-prior-art-note" style="margin-top:36px;">
+            한 문장으로 정리한 우리의 진입점: 영구히 존재하는 시설별 splat + 어떤 LLM이든 질의할 수 있는 MCP API &mdash; 캡처당 및 쿼리당 과금, 호스팅 제공, 고객에게는 인프라 부담 없음. 우리의 해자(moat)는 splat이 아니라, LLM이 벤더에 <strong>고정되지 않는다</strong>는 점입니다. 이미 LLM 관계를 맺고 있고 어떤 LLM을 써야 하는지 강요받고 싶지 않은 로봇 CTO에게 이는 중요합니다.
+        </p>
+    </div>
+</section>
+
+<!-- MCP-from-robot architecture -->
+<section class="sg-section">
+    <div class="container">
+        <h2>다이어그램 하나로 보는 로봇의 시설 질의.</h2>
+        <p class="sg-subtitle">
+            여러분 로봇의 플래너(또는 그 LLM)는 HTTPS를 통해 <a href="mcp.html" style="color: var(--accent-bright);">RakuAI의 MCP 표면</a>과 통신합니다 &mdash; 또는 로봇에 탑재된 Jetson Orin 클라이언트에서 stdio 브리지를 통해서입니다. 런타임은 공간 프리미티브로 답합니다: 앵커, 포즈, 장면 쿼리, splat 핸들, 오브젝트 델타.
+        </p>
+
+        <div class="sg-mcp-arch">
+        <svg viewBox="0 0 1040 420" width="100%" style="max-width:1040px; height:auto; display:block;" role="img" aria-labelledby="rbmcp-title rbmcp-desc" xmlns="http://www.w3.org/2000/svg">
+            <title id="rbmcp-title">로봇에서의 MCP 아키텍처 다이어그램</title>
+            <desc id="rbmcp-desc">로봇의 플래너가 온로봇 클라이언트 또는 클라우드 릴레이를 통해 RakuAI 런타임으로 MCP 요청을 보냅니다. 런타임은 17개의 네이티브 MCP 도구(읽기 전용 5개 + 변경 12개)를 노출하며, 그중 장면 메모리 도구가 로보틱스에 중요합니다. 시설별로 캡처된 장면 위에서 공간 추론을 수행하고, 플래너가 실행에 옮기는 구조화된 답변을 반환합니다.</desc>
+            <defs>
+                <linearGradient id="rbmcp-grad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <marker id="rbmcp-arr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#a388ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+                <marker id="rbmcp-arr-back" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+
+            <!-- Column 1: Robot -->
+            <rect x="30" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+            <text x="140" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">로봇 + 플래너</text>
+            <g stroke="#a388ff" stroke-width="1.6" fill="none">
+                <rect x="116" y="116" width="48" height="36" rx="6"/>
+                <line x1="140" y1="116" x2="140" y2="104"/>
+                <circle cx="140" cy="100" r="4"/>
+                <line x1="128" y1="152" x2="128" y2="168"/>
+                <line x1="152" y1="152" x2="152" y2="168"/>
+            </g>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
+                <text x="140" y="196" text-anchor="middle">여러분의 인식 +</text>
+                <text x="140" y="212" text-anchor="middle">작업 플래너 LLM</text>
+                <text x="140" y="244" text-anchor="middle" fill="#a388ff" font-weight="600">&quot;7번 통로를</text>
+                <text x="140" y="260" text-anchor="middle" fill="#a388ff" font-weight="600">막고 있는 게 뭐죠?&quot;</text>
+                <text x="140" y="298" text-anchor="middle" fill="#00cec9" font-weight="600">&quot;팔레트와 사람,</text>
+                <text x="140" y="314" text-anchor="middle" fill="#00cec9" font-weight="600">최근 4시간 내 이동.&quot;</text>
+            </g>
+
+            <!-- Column 2: Client -->
+            <rect x="290" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+            <text x="400" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">MCP 클라이언트</text>
+            <text x="400" y="112" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">온로봇 (Jetson Orin) 또는 클라우드</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
+                <text x="400" y="148" text-anchor="middle">ROS 2 / 플릿 매니저 후크</text>
+                <text x="400" y="170" text-anchor="middle">stdio MCP 브리지</text>
+                <text x="400" y="192" text-anchor="middle">JWT &rarr; 호스팅 MCP</text>
+                <text x="400" y="214" text-anchor="middle">오프라인 / 엣지 모드</text>
+            </g>
+            <rect x="316" y="240" width="168" height="92" rx="8" fill="#0d0d20" stroke="#222244" stroke-width="1"/>
+            <text x="400" y="262" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="11" font-weight="600">stdio | https</text>
+            <text x="400" y="282" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">요청 / 응답</text>
+            <text x="400" y="304" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">스트리밍 이벤트</text>
+            <text x="400" y="324" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">연결 토큰 플로우</text>
+
+            <!-- Column 3: MCP surface -->
+            <rect x="550" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="660" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">RakuAI MCP</text>
+            <text x="660" y="105" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">장면 메모리 도구</text><text x="660" y="120" text-anchor="middle" fill="#7070a0" font-family="system-ui,sans-serif" font-size="10">(17개 네이티브 MCP 도구 중)</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="11.5">
+                <text x="572" y="138">&middot; capture_create</text>
+                <text x="572" y="156">&middot; capture_status</text>
+                <text x="572" y="174">&middot; scene_query</text>
+                <text x="572" y="192">&middot; scene_describe</text>
+                <text x="572" y="210">&middot; capture_list</text>
+                <text x="572" y="228">&middot; capture_open</text>
+            </g>
+            <line x1="572" y1="244" x2="748" y2="244" stroke="#222244" stroke-width="1" stroke-dasharray="3,3"/>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="11.5">
+                <text x="572" y="264">&middot; xr_get_session</text>
+                <text x="572" y="282">&middot; xr_set_head_pose</text>
+                <text x="572" y="300">&middot; xr_simulate_input</text>
+                <text x="572" y="318">&middot; xr_create_anchor</text>
+                <text x="572" y="336">&middot; xr_list_anchors</text>
+                <text x="572" y="354">&middot; xr_remove_anchor</text>
+            </g>
+
+            <!-- Column 4: Runtime + reasoning -->
+            <rect x="810" y="60" width="200" height="300" rx="14" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="910" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">raku-runtime</text>
+            <text x="910" y="110" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">C++ 엔진</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
+                <text x="910" y="146" text-anchor="middle">공간 추론</text>
+                <text x="910" y="166" text-anchor="middle">시설별 스플랫 저장소</text>
+                <text x="910" y="186" text-anchor="middle">앵커 + 포즈</text>
+                <text x="910" y="206" text-anchor="middle">장면 델타 이력</text>
+                <text x="910" y="226" text-anchor="middle">약 9,500개 API 엔드포인트</text>
+                <text x="910" y="246" text-anchor="middle">18개 네이티브 DLL</text>
+            </g>
+            <text x="910" y="288" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="11" font-weight="600">구조화된 답변</text>
+            <text x="910" y="306" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">{ object_id, pose,</text>
+            <text x="910" y="322" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">&nbsp;&nbsp;changed_at, confidence }</text>
+
+            <!-- Forward arrows (top, purple) -->
+            <line x1="250" y1="200" x2="287" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
+            <line x1="510" y1="200" x2="547" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
+            <line x1="770" y1="200" x2="807" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
+
+            <!-- Reverse arrows (bottom, teal) -->
+            <line x1="287" y1="290" x2="250" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
+            <line x1="547" y1="290" x2="510" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
+            <line x1="807" y1="290" x2="770" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
+
+            <!-- Bottom legend bar -->
+            <text x="520" y="400" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">MCP 요청 플로우 &mdash; LLM이 클라우드의 Claude/GPT/Gemini든, 온프레미스에 NIM으로 호스팅된 오픈 웨이트든 동일하게 동작합니다.</text>
+        </svg>
+        </div>
+
+        <p class="sg-mcp-note">
+            양쪽 절반 모두 실제이며 출시되어 있습니다. 프로덕션 MCP 서버는 <strong>17개의 네이티브 도구</strong>(읽기 전용 5개 + 변경 12개)를 노출합니다 &mdash; 전체 목록은 <a href="../engine/" style="color: var(--accent-bright);">engine.html</a>을, 문서화된 장면 도구는 <a href="mcp.html" style="color: var(--accent-bright);">mcp.html</a>을 참고하세요. 호스팅 MCP는 East US의 Azure Container Apps에서 실행됩니다. LLM은 여러분이 직접 고릅니다 &mdash; 그 벤더 중립성이 곧 해자입니다.
+        </p>
+    </div>
+</section>
+
+<!-- Target segments -->
+<section class="sg-section">
+    <div class="container">
+        <h2>이 페이지가 향하는 대상.</h2>
+        <p class="sg-subtitle">
+            네 개의 세그먼트, 하나의 공통된 고충: 로봇은 테라바이트 규모의 공간 데이터를 수집하지만, 그 데이터는 스토리지에 쌓인 채 다시는 질의되지 않습니다. 매출 안정성을 위해 창고를, 가시성을 위해 휴머노이드를 앞세웁니다.
+        </p>
+
+        <div class="rb-segments">
+            <div class="rb-segment">
+                <h3>창고 자동화</h3>
+                <p class="rb-seg-pain">로봇에는 이미 SLAM이 있습니다. 부족한 것은 별도의 분석 파이프라인을 작성하지 않고도 "지난 교대 이후 B 구역에서 무엇이 바뀌었나요?"에 깔끔하게 답하는 방법입니다. 현장별 splat은 플릿 전반의 QA를 통합합니다.</p>
+                <p class="rb-seg-targets"><strong>예시 대상</strong>Symbotic, Locus Robotics, Fetch / Zebra, GreyOrange, Geek+</p>
+            </div>
+            <div class="rb-segment">
+                <h3>휴머노이드 로봇</h3>
+                <p class="rb-seg-pain">6~9개월 안에 Fortune 500 파일럿을 출시하려 경쟁하는 시리즈 B~D 스타트업입니다. 특정 벤더의 LLM 스택에 고정되지 않으면서 6개월짜리 엔지니어링 항목을 없애주는 것이라면 무엇이든 도입합니다.</p>
+                <p class="rb-seg-targets"><strong>예시 대상</strong>Figure, 1X Technologies, Apptronik, Agility Robotics, Unitree</p>
+            </div>
+            <div class="rb-segment">
+                <h3>배송 로봇</h3>
+                <p class="rb-seg-pain">보도 및 라스트 마일 플릿은 끊임없이 변하는 도시 환경에서 운행합니다. 경로, 하차 지점, 장애물에 대한 영속적 장면 메모리는 로봇을 다시 계측하지 않고도 기존 내비게이션을 보완합니다.</p>
+                <p class="rb-seg-targets"><strong>예시 대상</strong>Starship Technologies, Serve Robotics</p>
+            </div>
+            <div class="rb-segment">
+                <h3>점검 로봇</h3>
+                <p class="rb-seg-pain">Spot 및 4족 로봇 플릿은 방대한 데이터셋을 생성하지만 그대로 스토리지에 쌓인 채 한 번도 열리지 않습니다. 고객은 감사 가능하고, 타임스탬프가 찍히며, 질의 가능한 자산에 현장별로 비용을 지불합니다: "3분기에 빨간색으로 표시된 모든 밸브를 보여줘."</p>
+                <p class="rb-seg-targets"><strong>예시 대상</strong>Boston Dynamics Spot 생태계, ANYbotics, Cognite</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Partner-resource leverage -->
+<section class="sg-section">
+    <div class="container">
+        <h2>파일럿을 뒷받침하는 파트너 리소스 스택.</h2>
+        <p class="sg-subtitle">
+            RakuAI의 NVIDIA Inception 멤버십(2026년 5월 승인)과 진행 중인 스타트업 크레딧 프로그램이 여기서 시너지를 냅니다. 각 항목은 상태에 따라 정직하게 표기되어 있습니다 &mdash; 우리는 받지 않은 승인을 주장하지 않습니다.
+        </p>
+
+        <div class="rb-partners">
+            <div class="rb-partner-card">
+                <h3>NVIDIA Isaac 플랫폼</h3>
+                <p class="rb-partner-vendor">Sim &middot; Lab &middot; Perceptor &middot; Manipulator &middot; ROS</p>
+                <ul>
+                    <li><strong>경쟁이 아니라 상호 보완적입니다.</strong> Isaac은 여러분의 로봇이 이 순간 보는 것이고, RakuAI는 여러분의 로봇이 이 시설에 대해 기억하는 것입니다.</li>
+                    <li>Inception 채널을 통한 공동 포지셔닝은 "이거 NVIDIA가 이미 하는 거 아닌가요?"라는 반론을 없애줍니다.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>NVIDIA Cosmos</h3>
+                <p class="rb-partner-vendor">World Foundation Models</p>
+                <ul>
+                    <li>RakuAI로 실제 시설을 캡처 &rarr; Cosmos로 도메인 변형 생성 &rarr; Isaac Lab에서 인식 학습 &rarr; 영속적 RakuAI 메모리와 함께 배포.</li>
+                    <li><strong>1단계와 4단계는 우리가, 2단계와 3단계는 NVIDIA가 담당합니다</strong> &mdash; 여러분이 직접 이어 붙일 필요가 없습니다.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>NVIDIA Omniverse</h3>
+                <p class="rb-partner-vendor">USD 디지털 트윈 시뮬레이션</p>
+                <ul>
+                    <li>RakuAI splat은 디지털 트윈 시나리오를 위해 Omniverse로 내보낼 수 있습니다.</li>
+                    <li><strong>여러분의 splat 캡처가 곧 디지털 트윈입니다</strong> &mdash; 별도의 CAD 모델링 스프린트가 필요 없습니다. USD 내보내기는 근시일 내 제공 예정입니다.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>NVIDIA NIM</h3>
+                <p class="rb-partner-vendor">Inference Microservices</p>
+                <ul>
+                    <li>여러분 로봇의 LLM은 NIM으로 호스팅된 Llama / Mistral / Mixtral <strong>또는</strong> Claude / GPT / Gemini를 직접 쓸 수 있습니다.</li>
+                    <li>MCP가 추상화 레이어입니다 &mdash; 프라이버시가 민감하면 온프레미스 NIM, 높은 추론 성능이 필요하면 클라우드 Claude로, 워크로드별로 여러분이 선택합니다.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>NVIDIA Brev &amp; Jetson Orin</h3>
+                <p class="rb-partner-vendor">Inception 혜택</p>
+                <ul>
+                    <li><strong>Brev</strong> AWS G5 / Nebius H100이 포화 상태일 때 세 번째 동시 학습 풀로 활용하는 GPU 클라우드.</li>
+                    <li><strong>Jetson Orin</strong> Inception 하드웨어 할인으로 파일럿 기간 동안 온로봇 MCP 클라이언트 평가용 하드웨어를 저렴하게 조달할 수 있습니다.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>NVIDIA DLI &amp; Innovation Lab</h3>
+                <p class="rb-partner-vendor">교육 &amp; 엔지니어링 오피스 아워</p>
+                <ul>
+                    <li><strong>DLI</strong> Inception 코드로 50% 할인 &mdash; Isaac + RakuAI 통합을 여러분 팀과 함께 학습합니다.</li>
+                    <li><strong>Innovation Lab</strong> 공동 개발 리소스로서의 공간 AI 오피스 아워. <em>신청 상태: 신청 중 &mdash; 아직 승인되지 않음.</em></li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>AWS RoboMaker &amp; GPU</h3>
+                <p class="rb-partner-vendor">클라우드 sim &middot; G5 / G6e &middot; Greengrass</p>
+                <ul>
+                    <li><strong>RoboMaker</strong> 여러분의 sim 환경이 곧 스캔된 시설입니다 &mdash; 동일한 자산으로 sim-to-real 격차를 좁힙니다.</li>
+                    <li><strong>G5 / G6e</strong> 백엔드 재구성 + 인식 추론용 (AWS Activate 크레딧 심사 중).</li>
+                    <li><strong>Greengrass</strong> 우리의 MCP 클라이언트는 플릿 배포를 위한 컴포넌트로 제공될 수 있습니다.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>정직한 크레딧 현황</h3>
+                <p class="rb-partner-vendor">실제 진행 상황</p>
+                <ul>
+                    <li><strong>NVIDIA Inception</strong> 2026년 5월 승인.</li>
+                    <li><strong>AWS Activate</strong> 1만 달러, 5~7일 심사 중.</li>
+                    <li><strong>Nebius H100</strong> (15만 달러 절감) 제출 완료. v1에는 불필요.</li>
+                    <li><strong>Anthropic Claude Startups</strong> 제출 완료, <em>미승인</em> &mdash; Claude는 오늘 기준 가장 품질 높은 선택지일 뿐, 공동 마케팅 주장은 아닙니다.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ROI math -->
+<section class="sg-section">
+    <div class="container">
+        <h2>ROI 계산.</h2>
+        <p class="sg-subtitle">
+            우리는 여러분의 인식 스택을 대체하지 않습니다. 우리는 아무도 떠맡고 싶어 하지 않는 <strong>영속적 메모리 서브시스템</strong>과, 영원히 "다음 분기"로 밀려나는 <strong>장면 QA LLM 브리지</strong>를 대체합니다.
+        </p>
+
+        <div class="rb-roi">
+            <div class="rb-roi-col status">
+                <h3>현 상태 &mdash; 직접 구축</h3>
+                <ul>
+                    <li>인식 엔지니어 1~2명이 영속적 장면 메모리를 구축하는 데 6~18개월 소요.</li>
+                    <li>총비용(loaded cost): 엔지니어 1인 연간 25만~40만 달러.</li>
+                    <li>엔지니어 1명, 6개월: 약 12만 5천~20만 달러. 엔지니어 2명, 18개월: 약 75만~120만 달러.</li>
+                    <li>그리고 영원히 유지보수 &mdash; 연간 최초 노력의 약 20~30%.</li>
+                    <li>여기에 메모리를 질의 가능한 API로 노출하기 위한 LLM 팀과의 협업까지.</li>
+                </ul>
+            </div>
+            <div class="rb-roi-col raku">
+                <h3>RakuAI 사용 시</h3>
+                <ul>
+                    <li>엔지니어 투입 0개월.</li>
+                    <li>캡처당 과금: splat 재구성당 0.50~2.00달러 목표.</li>
+                    <li>MCP 쿼리당 과금: 쿼리당 몇 센트 (LLM 패스스루 + 소액 마진).</li>
+                    <li>호스팅 포함.</li>
+                    <li>대신 여러분의 인식 팀은 더 가치 있는 작업을 출시합니다.</li>
+                </ul>
+            </div>
+        </div>
+
+        <p class="rb-roi-net">
+            <strong>1년 차 순절감: 엔지니어링 비용 25만~100만 달러</strong> 대체. 정직한 단서: 잠재 고객이 이미 만족스러운 영속적 메모리 + LLM 브리지 스택을 갖추고 있다면, 우리에게 판매 기회는 없으며 &mdash; 그렇지 않은 척하지도 않습니다.
+        </p>
+    </div>
+</section>
+
+<!-- 90-day pilot -->
+<section class="sg-section">
+    <div class="container">
+        <h2>90일 무료 파일럿.</h2>
+        <p class="sg-subtitle">
+            90일 전체 기간 무료. 결과물은 공개·공동 마케팅되는 사례 연구입니다 &mdash; 두 번째, 세 번째, 네 번째 파일럿을 더 쉽게 따낼 수 있게 해주는 산출물입니다.
+        </p>
+
+        <div class="rb-pilot">
+            <div class="rb-pilot-col">
+                <h3>캡처 & 연결</h3>
+                <p class="when">1~2주 차</p>
+                <p>무료 splat 캡처(우리가 스캔하거나 여러분 팀을 코칭)와 여러분 시설 5~10곳에 대한 MCP 릴레이 가동. 이 기간 동안 청구는 전혀 없습니다.</p>
+            </div>
+            <div class="rb-pilot-col">
+                <h3>통합</h3>
+                <p class="when">3~8주 차</p>
+                <p>통합 지원. NVIDIA Innovation Lab 오피스 아워(승인 시)를 여러분의 인식 엔지니어와 주간 단위로 예약합니다. 우리는 여러분의 Slack에 상주합니다.</p>
+            </div>
+            <div class="rb-pilot-col">
+                <h3>ROI 보고서 & 사례 연구</h3>
+                <p class="when">9~12주 차</p>
+                <p>어떤 쿼리가 던져졌는지, 여러분의 로봇이 장면 메모리를 어떻게 활용했는지, 절감된 엔지니어 시간, 무엇이 깨졌고 무엇이 잘 동작했는지 &mdash; 그리고 공동으로 공개하는 사례 연구.</p>
+            </div>
+        </div>
+
+        <p class="rb-roadmap-note">
+            전환 제안: 시설별 라이선스 또는 캡처당 + 쿼리당 미터링 &mdash; 어떤 가격 모델이 우세한지는 첫 3개 파일럿이 알려주도록 둡니다. 어느 쪽이든 파일럿은 무료로 유지됩니다.
+        </p>
+
+        <div class="sg-cta-row" style="margin-top:32px;">
+            <a href="mailto:partnerships@rakuai.com?subject=Robotics%2090-day%20pilot%20%E2%80%94%20%5Byour%20company%5D" class="sg-btn-primary">파일럿 슬롯 신청하기 &rarr;</a>
+            <a href="mailto:partnerships@rakuai.com?subject=Robotics%20technical%20deep-dive" class="sg-btn-secondary">기술 심층 논의 요청하기 &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<!-- Competitive honesty -->
+<section class="sg-section">
+    <div class="container">
+        <h2>우리가 나머지 업계 대비 어디에 위치하는가.</h2>
+        <p class="sg-subtitle">
+            정직한 버전. 파운데이션 모델 로보틱스 기업들은 경쟁자가 아니라 통합 파트너이자 고객입니다.
+        </p>
+        <div class="rb-partners">
+            <div class="rb-partner-card">
+                <h3>NVIDIA Isaac</h3>
+                <p class="rb-partner-vendor">경쟁이 아니라 인접</p>
+                <ul>
+                    <li>실시간 인식 대 영속적·질의 가능한 메모리. Inception 멤버십은 전략적 정합성의 증거입니다.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>Skild &middot; Physical Intelligence &middot; Covariant</h3>
+                <p class="rb-partner-vendor">경쟁자가 아니라 고객</p>
+                <ul>
+                    <li>이들은 액션 폴리시 파운데이션 모델을 만듭니다 &mdash; 표준화된 장면 표현이 필요합니다. RakuAI가 그것을 제공합니다. Skild는 유력한 통합 후보입니다.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>Matterport &middot; PolyCam &middot; Luma AI</h3>
+                <p class="rb-partner-vendor">소비자 / 부동산 캡처</p>
+                <ul>
+                    <li>로보틱스 영역이 아닙니다. 일부는 splat 내보내기를 제공하지만, MCP도, 시설별 장기 호스팅도, LLM 브리지도 없습니다.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>폐쇄형 스택 자율주행</h3>
+                <p class="rb-partner-vendor">Waymo &middot; Tesla FSD &middot; Wayve</p>
+                <ul>
+                    <li>이들은 모든 것을 스스로 합니다 &mdash; 공략 가능한 시장이 아닙니다. 우리는 그렇지 않은 척하지 않습니다.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Cross-links -->
+<section class="sg-section">
+    <div class="container">
+        <h2>작성하기 전에 더 깊이 보고 싶다면.</h2>
+        <p class="sg-subtitle">로보틱스 팀이 첫 통화 전에 가장 많이 읽는 페이지들입니다.</p>
+
+        <div class="sg-crosslinks">
+            <a href="spatial-engine.html" class="sg-crosslink">
+                <div class="label">공간 엔진 &rarr;</div>
+                <div class="desc">C++ 런타임 &mdash; 18개 네이티브 DLL, 약 9,500개 API 엔드포인트, MCP 표면이 올라가 있는 플랫폼.</div>
+            </a>
+            <a href="mcp.html" class="sg-crosslink">
+                <div class="label">MCP 서버 &rarr;</div>
+                <div class="desc">Claude, ChatGPT, Gemini, Copilot이 런타임을 구동하게 하는 MCP 표면. 2026년 3월부터 프로덕션.</div>
+            </a>
+            <a href="capture.html" class="sg-crosslink">
+                <div class="label">Raku Capture &rarr;</div>
+                <div class="desc">공간을 스캔한 뒤 말을 거세요 &mdash; 시설별 로봇 메모리를 뒷받침하는 것과 동일한 재구성 파이프라인.</div>
+            </a>
+            <a href="../blog/" class="sg-crosslink">
+                <div class="label">엔지니어링 블로그 &rarr;</div>
+                <div class="desc">MCP 어댑터 글, NVIDIA Inception 발표, Raku Capture 기록을 포함한 빌드 로그.</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- NVIDIA Inception validation strip (member chip + recognition card) -->
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 32px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception 멤버 - 프레스 페이지에서 자세히 보기">
+            <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 멤버" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <p style="max-width: 640px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            RakuAI는 <strong>NVIDIA Inception</strong> 멤버입니다. <a href="capture.html" style="color: var(--accent-bright);">Raku Capture</a>에서 제공하는 것과 동일한, NVIDIA 가속 3D 가우시안 스플래팅 스택이 위에서 설명한 시설별 장면 메모리를 구동합니다 &mdash; <strong>NVIDIA Isaac</strong>과 경쟁하는 것이 아니라 상호 보완적입니다. <a href="press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">자세히 보기 &rarr;</a>
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 14px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        NVIDIA Inception은 AI 스타트업을 위한 무료 프로그램입니다. RakuAI의 멤버십은 NVIDIA가 RakuAI의 제품을 보증함을 의미하지 않습니다. 자세한 내용은 <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color: var(--text-secondary);">nvidia.com/startups</a>에서 확인하세요.
+    </p>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>솔루션</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">스마트 글래스 제조사</a></li>
+                    <li><a href="llm-makers.html">AI 연구소</a></li>
+                    <li><a href="enterprise.html">엔터프라이즈</a></li>
+                    <li><a href="creator.html">크리에이터</a></li>
+                    <li><a href="robotics.html">로보틱스</a></li>
+                    <li><a href="insurance.html">보험</a></li>
+                    <li><a href="compare.html">Unity / Unreal 비교</a></li>
+                    <li><a href="spatial-engine.html">공간 엔진</a></li>
+                    <li><a href="ai-systems.html">AI 시스템</a></li>
+                    <li><a href="xr-features.html">XR 기능</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>개발자</h4>
+                <ul>
+                    <li><a href="docs.html">문서</a></li>
+                    <li><a href="mcp.html">MCP 서버</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="../api/">API 레퍼런스</a></li>
+                    <li><a href="templates.html">템플릿</a></li>
+                    <li><a href="developers/">개발자 포털</a></li>
+                    <li><a href="../developers/claude-desktop.html">Claude Desktop 가이드</a></li>
+                    <li><a href="developer-guide.html">개발자 가이드</a></li>
+                    <li><a href="llm-guide.html">LLM 통합 가이드</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>리소스</h4>
+                <ul>
+                    <li><a href="../blog/">블로그</a></li>
+                    <li><a href="why-rakuai.html">RakuAI를 선택하는 이유</a></li>
+                    <li><a href="press.html">보도 자료</a></li>
+                    <li><a href="../discover.html">디스커버</a></li>
+                    <li><a href="content-packs.html">콘텐츠 팩</a></li>
+                    <li><a href="docs.html">문서</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>회사</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">회사 소개</a></li>
+                    <li><a href="pricing.html">요금제</a></li>
+                    <li><a href="contact.html">문의하기</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">파트너</a></li>
+                    <li><a href="../privacy.html">개인정보처리방침</a></li>
+                    <li><a href="../terms.html">이용약관</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 미국 특허 5건 취득(우선일: 2012년 7월) &bull; RakuAI 엔진 기반</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 및 RakuXR&trade;는 RakuAI, LLC의 상표입니다.
+            <span class="kanji-logo">&#x697D;</span>AI 및 <span class="kanji-logo">&#x697D;</span>XR는 RakuAI, LLC의 스타일링된 마크입니다.
+            미국 특허 5건 취득(우선일: 2012년 7월).
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception 멤버 — 프레스 페이지에서 자세히 보기" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 멤버" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script src="/js/public-config.js"></script>
+<script src="/js/api-client.js"></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+
+
+<script src="/js/nav-dropdown.js" defer></script>
+<script src="/js/section-nav.js" defer></script>
+</body>
+</html>
