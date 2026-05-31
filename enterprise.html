@@ -24,9 +24,35 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action 'self'; connect-src 'self' https://api.raku.ai https://api.rakuai.com; frame-src https://hcaptcha.com;">
     <style>
         .enterprise-hero {
-            padding: 80px 0 60px;
+            padding: 32px 0 36px;
             text-align: center;
         }
+        .enterprise-hero-visual {
+            max-width: 640px;
+            margin: 24px auto 0;
+        }
+        .enterprise-hero-visual svg { width: 100%; height: auto; display: block; }
+        /* ---- accessible carousel (dependency-free) ---- */
+        .rk-carousel { max-width: 980px; margin: 0 auto; }
+        .rk-carousel-viewport { overflow: hidden; border: 1px solid #222244; border-radius: 14px; background: var(--bg-secondary, #111128); }
+        .rk-carousel-track { display: flex; transition: transform 0.4s ease; }
+        @media (prefers-reduced-motion: reduce) { .rk-carousel-track { transition: none; } }
+        .rk-slide { flex: 0 0 100%; box-sizing: border-box; padding: 36px 32px; }
+        .rk-slide:focus-visible { outline: 2px solid var(--accent-bright, #a388ff); outline-offset: -4px; }
+        .rk-slide-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+        .rk-slide-head svg { width: 52px; height: 52px; flex: 0 0 52px; }
+        .rk-slide-head h3 { font-size: 1.35rem; margin: 0; color: var(--accent-bright, #a388ff); }
+        .rk-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+        .rk-card { background: #0d0d1f; border: 1px solid #222244; border-radius: 10px; padding: 16px 18px; }
+        .rk-card strong { display: block; color: var(--success, #00cec9); font-size: 0.95rem; margin-bottom: 6px; }
+        .rk-card span { color: var(--text-secondary, #9090b0); font-size: 0.88rem; line-height: 1.5; }
+        .rk-carousel-controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+        .rk-carousel-btn { background: var(--bg-secondary, #111128); border: 1px solid #222244; color: var(--text-primary, #e8e8f0); width: 42px; height: 42px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; line-height: 1; transition: border-color 0.2s, background 0.2s; }
+        .rk-carousel-btn:hover, .rk-carousel-btn:focus-visible { border-color: var(--accent, #6c5ce7); background: rgba(108, 92, 231, 0.12); outline: none; }
+        .rk-carousel-dots { display: flex; gap: 10px; }
+        .rk-dot { width: 11px; height: 11px; border-radius: 50%; border: 1px solid #3a3a5c; background: transparent; padding: 0; cursor: pointer; }
+        .rk-dot[aria-selected="true"] { background: var(--accent-bright, #a388ff); border-color: var(--accent-bright, #a388ff); }
+        .rk-dot:focus-visible { outline: 2px solid var(--accent-bright, #a388ff); outline-offset: 2px; }
         .enterprise-hero h1 {
             font-size: 2.8rem;
             margin-bottom: 16px;
@@ -236,6 +262,7 @@
             .enterprise-hero h1 {
                 font-size: 2rem;
             }
+            .rk-slide { padding: 26px 20px; }
         }
     </style>
 </head>
@@ -259,12 +286,12 @@
                         <div class="col-heading" role="presentation">By audience</div>
                         <div class="col-heading" role="presentation">Platform</div>
                         <ul class="col" role="group">
-                            <li role="none"><a role="menuitem" href="smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
-                            <li role="none"><a role="menuitem" href="llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
-                            <li role="none"><a role="menuitem" href="enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
-                            <li role="none"><a role="menuitem" href="creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
-                            <li role="none"><a role="menuitem" href="robotics.html">For Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
-                            <li role="none"><a role="menuitem" href="insurance.html">For Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
                             <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
                         </ul>
                         <ul class="col" role="group">
@@ -318,9 +345,51 @@
     <div class="container">
         <h1>Enterprise &amp; Studio Licensing</h1>
         <p class="subtitle">
-            Custom licensing for game studios, console platforms, XR manufacturers, and OEM partners.
-            Patent-protected technology with dedicated engineering support.
+            Deploy spatial AI at scale &mdash; a governed fleet of edge devices, one runtime, deny-by-default across the whole estate.
         </p>
+        <div class="enterprise-hero-visual">
+        <svg viewBox="0 0 640 240" role="img" aria-labelledby="enthero-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="enthero-title">Enterprise scale visual: a fleet of edge devices fans into the RakuAI runtime, which is governed by a control plane enforcing permissions and audit across the whole estate.</title>
+            <defs>
+                <linearGradient id="enth-grad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <marker id="enth-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto-start-reverse">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+            <!-- device fleet -->
+            <text x="78" y="28" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="11" font-weight="600">EDGE FLEET</text>
+            <g font-family="system-ui,sans-serif">
+                <rect x="22" y="44" width="112" height="34" rx="8" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="78" y="65" text-anchor="middle" fill="#e8e8f0" font-size="11">Smart glasses</text>
+                <rect x="22" y="100" width="112" height="34" rx="8" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="78" y="121" text-anchor="middle" fill="#e8e8f0" font-size="11">Headsets</text>
+                <rect x="22" y="156" width="112" height="34" rx="8" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="78" y="177" text-anchor="middle" fill="#e8e8f0" font-size="11">Phone compute</text>
+            </g>
+            <line x1="134" y1="61"  x2="248" y2="116" stroke="url(#enth-grad)" stroke-width="2" marker-end="url(#enth-arrow)"/>
+            <line x1="134" y1="117" x2="248" y2="118" stroke="url(#enth-grad)" stroke-width="2" marker-end="url(#enth-arrow)"/>
+            <line x1="134" y1="173" x2="248" y2="120" stroke="url(#enth-grad)" stroke-width="2" marker-end="url(#enth-arrow)"/>
+            <!-- runtime -->
+            <rect x="250" y="80" width="150" height="80" rx="12" fill="#15152e" stroke="url(#enth-grad)" stroke-width="2"/>
+            <text x="325" y="114" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="13" font-weight="700">RakuAI Runtime</text>
+            <text x="325" y="134" text-anchor="middle" fill="#9090b0" font-family="ui-monospace,monospace" font-size="10">17 native MCP tools</text>
+            <line x1="400" y1="120" x2="486" y2="120" stroke="url(#enth-grad)" stroke-width="2" marker-start="url(#enth-arrow)" marker-end="url(#enth-arrow)"/>
+            <!-- control plane -->
+            <text x="563" y="28" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="11" font-weight="600">CONTROL PLANE</text>
+            <rect x="488" y="44" width="130" height="146" rx="12" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <g font-family="system-ui,sans-serif" font-size="11" fill="#9090b0">
+                <text x="553" y="78" text-anchor="middle">Permissions</text>
+                <text x="553" y="104" text-anchor="middle">Audit log</text>
+                <text x="553" y="130" text-anchor="middle">Fleet policy</text>
+                <text x="553" y="156" text-anchor="middle">SSO &middot; SCIM</text>
+            </g>
+            <text x="553" y="182" text-anchor="middle" fill="#00cec9" font-family="ui-monospace,monospace" font-size="10">deny-by-default</text>
+            <text x="325" y="212" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="11">18 ms motion-to-photon, across the fleet</text>
+        </svg>
+        </div>
 
 <div style="display: flex; justify-content: center; margin: 12px 0 4px;">
     <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Member of NVIDIA Inception - scroll to details">
@@ -423,6 +492,73 @@
             <text x="548" y="295" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="12">18ms motion-to-photon to fleet</text>
         </svg>
         </figure>
+    </div>
+</section>
+
+<!-- Deploy at scale carousel -->
+<section class="section">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 12px;">Deploy spatial AI at scale</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 32px; max-width: 680px; margin-left: auto; margin-right: auto;">
+            Swipe through what enterprise deployment looks like &mdash; scale, security, and governance, on one runtime.
+        </p>
+        <div class="rk-carousel" id="ent-carousel">
+            <div class="rk-carousel-viewport">
+                <div class="rk-carousel-track" role="region" aria-roledescription="carousel" aria-label="Enterprise deployment, scale and security">
+                    <div class="rk-slide" role="group" aria-roledescription="slide" aria-label="1 of 3: Deployment" tabindex="0">
+                        <div class="rk-slide-head">
+                            <svg viewBox="0 0 52 52" role="img" aria-label="Stacked deployment layers icon." xmlns="http://www.w3.org/2000/svg">
+                                <defs><linearGradient id="ents1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                                <path d="M26,8 L44,17 L26,26 L8,17 Z" fill="none" stroke="url(#ents1)" stroke-width="2.4" stroke-linejoin="round"/>
+                                <path d="M8,26 L26,35 L44,26" fill="none" stroke="#a388ff" stroke-width="2.4" stroke-linejoin="round"/>
+                                <path d="M8,35 L26,44 L44,35" fill="none" stroke="#00cec9" stroke-width="2.4" stroke-linejoin="round"/>
+                            </svg>
+                            <h3>Deployment</h3>
+                        </div>
+                        <div class="rk-card-grid">
+                            <div class="rk-card"><strong>Edge + runtime</strong><span>Devices stream into the RakuAI runtime; the control plane stays separate from the data path.</span></div>
+                            <div class="rk-card"><strong>Dual-device</strong><span>Phone-as-compute, glasses-as-display &mdash; native, not bolted on.</span></div>
+                            <div class="rk-card"><strong>OpenXR</strong><span>Standards-based rendering for broad headset compatibility.</span></div>
+                        </div>
+                    </div>
+                    <div class="rk-slide" role="group" aria-roledescription="slide" aria-label="2 of 3: Scale" tabindex="0">
+                        <div class="rk-slide-head">
+                            <svg viewBox="0 0 52 52" role="img" aria-label="Rising bar chart icon." xmlns="http://www.w3.org/2000/svg">
+                                <defs><linearGradient id="ents2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                                <g stroke="url(#ents2)" stroke-width="3" stroke-linecap="round"><line x1="13" y1="40" x2="13" y2="30"/><line x1="26" y1="40" x2="26" y2="22"/><line x1="39" y1="40" x2="39" y2="12"/></g>
+                                <line x1="8" y1="44" x2="44" y2="44" stroke="#9090b0" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <h3>Scale</h3>
+                        </div>
+                        <div class="rk-card-grid">
+                            <div class="rk-card"><strong>Fleet-wide policy</strong><span>One policy applies across the whole estate, not device by device.</span></div>
+                            <div class="rk-card"><strong>18 ms target</strong><span>Motion-to-photon target maintained across supported hardware.</span></div>
+                            <div class="rk-card"><strong>Thermal-aware</strong><span>Dynamic quality fallback keeps devices within their envelope.</span></div>
+                        </div>
+                    </div>
+                    <div class="rk-slide" role="group" aria-roledescription="slide" aria-label="3 of 3: Security and governance" tabindex="0">
+                        <div class="rk-slide-head">
+                            <svg viewBox="0 0 52 52" role="img" aria-label="Shield with checkmark icon." xmlns="http://www.w3.org/2000/svg">
+                                <defs><linearGradient id="ents3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                                <path d="M26,7 L42,13 L42,26 C42,37 35,43 26,46 C17,43 10,37 10,26 L10,13 Z" fill="#15152e" stroke="url(#ents3)" stroke-width="2.4" stroke-linejoin="round"/>
+                                <path d="M19,26 L24,31 L34,20" fill="none" stroke="#00cec9" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <h3>Security &amp; governance</h3>
+                        </div>
+                        <div class="rk-card-grid">
+                            <div class="rk-card"><strong>Deny-by-default</strong><span>Nothing runs unless a policy explicitly allows it.</span></div>
+                            <div class="rk-card"><strong>RBAC + SSO/SCIM</strong><span>Role-based access with enterprise identity integration.</span></div>
+                            <div class="rk-card"><strong>Immutable audit</strong><span>Every decision logged for compliance and incident review.</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="rk-carousel-controls">
+                <button type="button" class="rk-carousel-btn" data-dir="prev" aria-label="Previous topic">&#8249;</button>
+                <div class="rk-carousel-dots" role="tablist" aria-label="Choose topic"></div>
+                <button type="button" class="rk-carousel-btn" data-dir="next" aria-label="Next topic">&#8250;</button>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -770,6 +906,57 @@
 })();
 </script>
 
+<script>
+/* Dependency-free accessible carousel. Initializes every .rk-carousel on the page. */
+(function () {
+    function initCarousel(root) {
+        var track = root.querySelector('.rk-carousel-track');
+        var slides = Array.prototype.slice.call(root.querySelectorAll('.rk-slide'));
+        var dotsWrap = root.querySelector('.rk-carousel-dots');
+        var prevBtn = root.querySelector('[data-dir="prev"]');
+        var nextBtn = root.querySelector('[data-dir="next"]');
+        if (!track || slides.length === 0) return;
+        var index = 0;
+        var dots = slides.map(function (slide, i) {
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'rk-dot';
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            dot.addEventListener('click', function () { go(i); });
+            if (dotsWrap) dotsWrap.appendChild(dot);
+            return dot;
+        });
+        function update() {
+            track.style.transform = 'translateX(' + (-index * 100) + '%)';
+            slides.forEach(function (s, i) { s.setAttribute('aria-hidden', i === index ? 'false' : 'true'); });
+            dots.forEach(function (d, i) {
+                d.setAttribute('aria-selected', i === index ? 'true' : 'false');
+                d.tabIndex = i === index ? 0 : -1;
+            });
+        }
+        function go(i) { index = (i + slides.length) % slides.length; update(); }
+        if (prevBtn) prevBtn.addEventListener('click', function () { go(index - 1); });
+        if (nextBtn) nextBtn.addEventListener('click', function () { go(index + 1); });
+        root.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowLeft') { go(index - 1); e.preventDefault(); }
+            else if (e.key === 'ArrowRight') { go(index + 1); e.preventDefault(); }
+        });
+        var startX = null;
+        track.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+        track.addEventListener('touchend', function (e) {
+            if (startX === null) return;
+            var dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 40) { go(dx < 0 ? index + 1 : index - 1); }
+            startX = null;
+        });
+        update();
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.rk-carousel').forEach(initCarousel);
+    });
+})();
+</script>
 <script src="/js/auth-nav.js" defer></script>
 <script src="/js/lang-selector.js" defer></script>
 
