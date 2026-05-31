@@ -31,8 +31,87 @@
             border-bottom: none;
         }
         .sg-hero {
-            padding: 96px 0 72px;
+            padding: 40px 0 56px;
             text-align: center;
+        }
+        /* Hero split: copy + inline SVG figure */
+        .sg-hero-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 40px;
+            align-items: center;
+            text-align: left;
+        }
+        .sg-hero-grid .sg-hero-copy { min-width: 0; }
+        .sg-hero-figure {
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            display: block;
+            height: auto;
+        }
+        .sg-hero-figure svg { width: 100%; height: auto; display: block; }
+        @media (max-width: 860px) {
+            .sg-hero-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 28px;
+            }
+            .sg-hero-figure { max-width: 360px; order: -1; }
+        }
+        /* Infographic carousel (dependency-free) */
+        .sg-carousel { max-width: 920px; margin: 0 auto; position: relative; }
+        .sg-carousel-viewport {
+            overflow: hidden;
+            border: 1px solid #222244;
+            border-radius: 14px;
+            background: var(--bg-secondary);
+        }
+        .sg-carousel-track { display: flex; transition: transform 0.45s ease; }
+        @media (prefers-reduced-motion: reduce) {
+            .sg-carousel-track { transition: none; }
+        }
+        .sg-slide {
+            flex: 0 0 100%;
+            min-width: 100%;
+            box-sizing: border-box;
+            padding: 36px 40px;
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 28px;
+            align-items: center;
+        }
+        .sg-slide .sg-slide-art { width: 100%; height: auto; }
+        .sg-slide .sg-slide-art svg { width: 100%; height: auto; display: block; }
+        .sg-slide h3 { color: var(--accent-bright); font-size: 1.25rem; margin: 0 0 10px; }
+        .sg-slide p { color: var(--text-secondary); font-size: 0.98rem; line-height: 1.6; margin: 0; }
+        .sg-slide .sg-slide-step {
+            display: inline-block; font-size: 0.72rem; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--success); margin-bottom: 8px;
+        }
+        .sg-carousel-controls {
+            display: flex; align-items: center; justify-content: center;
+            gap: 18px; margin-top: 18px;
+        }
+        .sg-carousel-btn {
+            background: var(--bg-secondary); border: 1px solid #2c2c50;
+            color: var(--accent-bright); width: 42px; height: 42px;
+            border-radius: 999px; font-size: 1.1rem; cursor: pointer; line-height: 1;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .sg-carousel-btn:hover { border-color: var(--accent-bright); }
+        .sg-carousel-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        .sg-carousel-dots { display: flex; gap: 10px; }
+        .sg-carousel-dot {
+            width: 11px; height: 11px; border-radius: 999px;
+            border: 1px solid #3a3a66; background: transparent; padding: 0; cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .sg-carousel-dot[aria-selected="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
+        .sg-carousel-dot:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        @media (max-width: 620px) {
+            .sg-slide { grid-template-columns: 1fr; padding: 28px 22px; text-align: center; gap: 16px; }
+            .sg-slide .sg-slide-art { max-width: 130px; margin: 0 auto; }
         }
         .sg-hero .eyebrow {
             display: inline-block;
@@ -401,7 +480,7 @@
         }
 
         @media (max-width: 768px) {
-            .sg-hero { padding: 64px 0 48px; }
+            .sg-hero { padding: 28px 0 40px; }
             .sg-section { padding: 56px 0; }
             .rb-stack { grid-template-columns: 1fr; }
             .rb-roi { grid-template-columns: 1fr; }
@@ -432,10 +511,12 @@
                         <div class="col-heading" role="presentation">By audience</div>
                         <div class="col-heading" role="presentation">Platform</div>
                         <ul class="col" role="group">
-                            <li role="none"><a role="menuitem" href="smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
-                            <li role="none"><a role="menuitem" href="llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
-                            <li role="none"><a role="menuitem" href="enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
-                            <li role="none"><a role="menuitem" href="creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
                             <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
                         </ul>
                         <ul class="col" role="group">
@@ -487,25 +568,133 @@
 
 <section class="sg-hero">
     <div class="container">
-        <span class="eyebrow">For robotics CTOs &amp; perception leads</span>
-        <h1>The spatial memory your robots query in plain English.</h1>
-        <p class="subhead">
-            Every mobile robot &mdash; humanoid, AMR, quadruped, drone &mdash; needs two things nobody on its core team wants to build: <strong>persistent spatial memory</strong> that survives reboots, shift changes, and software updates, and an <strong>LLM that can reason about it in plain English</strong>. RakuAI delivers both as a service: a per-facility Gaussian splat captured once, hosted by us, queryable by any LLM you choose via 17 native MCP tools. We don't build robots, SLAM, or motion planning &mdash; we sit alongside them.
-        </p>
-        <p class="audience-line">
-            This page is written for engineers and partnerships leads at warehouse-automation, humanoid, delivery, and inspection robotics companies. It tries to be honest about where we sit in the stack, what we do and don't build, and where foundation-model robotics firms are customers, not competitors.
-        </p>
+        <div class="sg-hero-grid">
+            <div class="sg-hero-copy">
+                <span class="eyebrow">For robotics CTOs &amp; perception leads</span>
+                <h1>The spatial memory your robots query in plain English.</h1>
+                <p class="subhead">
+                    Every mobile robot &mdash; humanoid, AMR, quadruped, drone &mdash; needs two things nobody on its core team wants to build: <strong>persistent spatial memory</strong> that survives reboots, shift changes, and software updates, and an <strong>LLM that can reason about it in plain English</strong>. RakuAI delivers both as a service: a per-facility Gaussian splat captured once, hosted by us, queryable by any LLM you choose via 17 native MCP tools. We don't build robots, SLAM, or motion planning &mdash; we sit alongside them.
+                </p>
+                <p class="audience-line">
+                    This page is written for engineers and partnerships leads at warehouse-automation, humanoid, delivery, and inspection robotics companies. It tries to be honest about where we sit in the stack, what we do and don't build, and where foundation-model robotics firms are customers, not competitors.
+                </p>
+                <div style="display: flex; margin: 22px 0 4px;">
+                    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Member of NVIDIA Inception - scroll to details">
+                        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Member of</span>
+                        <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+                        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">Read more &darr;</span>
+                    </a>
+                </div>
+                <div class="sg-cta-row" style="justify-content:flex-start;">
+                    <a href="mailto:partnerships@rakuai.com?subject=Robotics%2090-day%20pilot%20inquiry" class="sg-btn-primary">Start a 90-day free pilot &rarr;</a>
+                    <a href="#stack-position" class="sg-btn-secondary">Where we sit in your stack &darr;</a>
+                </div>
+            </div>
+            <div class="sg-hero-figure" aria-hidden="true">
+                <!-- Robot + persistent facility splat memory, LLM-queryable via MCP -->
+                <svg viewBox="0 0 360 320" role="img" xmlns="http://www.w3.org/2000/svg">
+                    <title>A robot querying a persistent facility spatial-memory map through an MCP layer</title>
+                    <defs>
+                        <linearGradient id="rbMap" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#1a1a3a"/>
+                            <stop offset="1" stop-color="#11112a"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- facility map (persistent splat) -->
+                    <rect x="22" y="24" width="316" height="150" rx="12" fill="url(#rbMap)" stroke="#2c2c50"/>
+                    <!-- aisles -->
+                    <g stroke="#2c2c50" stroke-width="2">
+                        <line x1="60" y1="40" x2="60" y2="158"/><line x1="120" y1="40" x2="120" y2="158"/>
+                        <line x1="240" y1="40" x2="240" y2="158"/><line x1="300" y1="40" x2="300" y2="158"/>
+                    </g>
+                    <!-- splat points -->
+                    <g fill="#6c5ce7">
+                        <circle cx="80" cy="70" r="3"/><circle cx="96" cy="100" r="2.4" opacity="0.7"/>
+                        <circle cx="150" cy="80" r="3" opacity="0.85"/><circle cx="180" cy="120" r="2.6" opacity="0.7"/>
+                        <circle cx="210" cy="64" r="3" opacity="0.8"/><circle cx="270" cy="110" r="2.6" opacity="0.7"/>
+                        <circle cx="300" cy="70" r="2.4" opacity="0.6"/>
+                    </g>
+                    <!-- a "moved pallet" highlighted -->
+                    <rect x="156" y="96" width="26" height="20" rx="3" fill="#00cec9" opacity="0.85"/>
+                    <!-- MCP query bubble -->
+                    <g>
+                        <rect x="40" y="208" width="180" height="62" rx="10" fill="#16162e" stroke="#2c2c50"/>
+                        <rect x="54" y="222" width="120" height="7" rx="3.5" fill="#3a3a66"/>
+                        <rect x="54" y="238" width="150" height="7" rx="3.5" fill="#2c2c50"/>
+                        <rect x="54" y="252" width="90" height="7" rx="3.5" fill="#2c2c50"/>
+                        <text x="54" y="295" fill="#9090b0" font-family="monospace" font-size="11">MCP &middot; "did the pallet move?"</text>
+                    </g>
+                    <!-- robot -->
+                    <g>
+                        <rect x="262" y="214" width="68" height="58" rx="9" fill="#16162e" stroke="#a388ff" stroke-width="2"/>
+                        <circle cx="282" cy="236" r="6" fill="#00cec9"/><circle cx="310" cy="236" r="6" fill="#00cec9"/>
+                        <rect x="276" y="252" width="40" height="8" rx="4" fill="#3a3a66"/>
+                        <line x1="296" y1="214" x2="296" y2="200" stroke="#a388ff" stroke-width="2"/>
+                        <circle cx="296" cy="197" r="3.5" fill="#a388ff"/>
+                    </g>
+                    <!-- link line robot -> map -->
+                    <path d="M262 230 C 200 200, 200 190, 182 176" fill="none" stroke="#6c5ce7" stroke-width="2" stroke-dasharray="4 4" opacity="0.8"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+</section>
 
-<div style="display: flex; justify-content: center; margin: 22px 0 4px;">
-    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Member of NVIDIA Inception - scroll to details">
-        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Member of</span>
-        <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
-        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">Read more &darr;</span>
-    </a>
-</div>
-        <div class="sg-cta-row">
-            <a href="mailto:partnerships@rakuai.com?subject=Robotics%2090-day%20pilot%20inquiry" class="sg-btn-primary">Start a 90-day free pilot &rarr;</a>
-            <a href="#stack-position" class="sg-btn-secondary">Where we sit in your stack &darr;</a>
+<!-- Infographic carousel: capture -> host -> query -> reason -->
+<section class="sg-section" id="flow-carousel" style="padding-top:0;border-bottom:1px solid #222244;">
+    <div class="container">
+        <h2>Capture once. Query forever, in plain English.</h2>
+        <p class="sg-subtitle">How a facility becomes persistent, LLM-queryable spatial memory. Use the arrows, dots, or your keyboard.</p>
+        <div class="sg-carousel" data-carousel>
+            <div class="sg-carousel-viewport">
+                <div class="sg-carousel-track" data-carousel-track role="group" aria-roledescription="carousel" aria-label="How RakuAI gives robots spatial memory">
+                    <div class="sg-slide" role="group" aria-roledescription="slide" aria-label="Step 1 of 4: Capture the facility">
+                        <div class="sg-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="26" width="88" height="68" rx="9" fill="#1a1a3a" stroke="#2c2c50"/><g stroke="#2c2c50" stroke-width="2"><line x1="40" y1="34" x2="40" y2="86"/><line x1="80" y1="34" x2="80" y2="86"/></g><g fill="#6c5ce7"><circle cx="30" cy="58" r="3"/><circle cx="58" cy="64" r="3"/><circle cx="90" cy="54" r="3"/></g></svg>
+                        </div>
+                        <div>
+                            <span class="sg-slide-step">Step 1</span>
+                            <h3>Capture the facility</h3>
+                            <p>A single walk-through capture reconstructs the warehouse, lab, or site into a 3D Gaussian splat. No new robot sensors required &mdash; it consumes images, depth, and poses you may already have.</p>
+                        </div>
+                    </div>
+                    <div class="sg-slide" role="group" aria-roledescription="slide" aria-label="Step 2 of 4: We host it persistently">
+                        <div class="sg-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><ellipse cx="60" cy="34" rx="34" ry="12" fill="#16162e" stroke="#a388ff" stroke-width="2"/><path d="M26 34 V86 a34 12 0 0 0 68 0 V34" fill="none" stroke="#a388ff" stroke-width="2"/><path d="M26 60 a34 12 0 0 0 68 0" fill="none" stroke="#2c2c50" stroke-width="2"/></svg>
+                        </div>
+                        <div>
+                            <span class="sg-slide-step">Step 2</span>
+                            <h3>We host it persistently</h3>
+                            <p>The per-facility map lives on RakuAI infrastructure and survives robot reboots, shift changes, and software updates &mdash; persistent memory your robots don't have to carry or rebuild.</p>
+                        </div>
+                    </div>
+                    <div class="sg-slide" role="group" aria-roledescription="slide" aria-label="Step 3 of 4: Any LLM queries it over MCP">
+                        <div class="sg-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><circle cx="60" cy="60" r="14" fill="none" stroke="#00cec9" stroke-width="3"/><g stroke="#6c5ce7" stroke-width="2"><line x1="60" y1="46" x2="60" y2="22"/><line x1="60" y1="74" x2="60" y2="98"/><line x1="46" y1="60" x2="22" y2="60"/><line x1="74" y1="60" x2="98" y2="60"/></g><g fill="#a388ff"><circle cx="60" cy="18" r="5"/><circle cx="60" cy="102" r="5"/><circle cx="18" cy="60" r="5"/><circle cx="102" cy="60" r="5"/></g></svg>
+                        </div>
+                        <div>
+                            <span class="sg-slide-step">Step 3</span>
+                            <h3>Any LLM queries it over MCP</h3>
+                            <p>17 native MCP tools expose the scene to whichever model you choose &mdash; Claude, GPT, Gemini, or NVIDIA NIM-hosted open weights. No vendor lock-in on the model you already use.</p>
+                        </div>
+                    </div>
+                    <div class="sg-slide" role="group" aria-roledescription="slide" aria-label="Step 4 of 4: Your planner reasons in plain English">
+                        <div class="sg-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="22" y="28" width="76" height="50" rx="8" fill="#16162e" stroke="#2c2c50"/><rect x="34" y="40" width="40" height="6" rx="3" fill="#3a3a66"/><rect x="34" y="54" width="52" height="6" rx="3" fill="#2c2c50"/><path d="M40 78 l8 14 l-18 -8 z" fill="#16162e" stroke="#2c2c50"/></svg>
+                        </div>
+                        <div>
+                            <span class="sg-slide-step">Step 4</span>
+                            <h3>Your planner reasons in plain English</h3>
+                            <p>"What's blocking aisle 7?" "Did the pallet move since Tuesday?" Answers feed your task planner. We sit above perception and below planning &mdash; the scene-memory and scene-QA layer, nothing more.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sg-carousel-controls">
+                <button type="button" class="sg-carousel-btn" data-carousel-prev aria-label="Previous slide">&larr;</button>
+                <div class="sg-carousel-dots" role="tablist" aria-label="Choose slide" data-carousel-dots data-dot-class="sg-carousel-dot"></div>
+                <button type="button" class="sg-carousel-btn" data-carousel-next aria-label="Next slide">&rarr;</button>
+            </div>
         </div>
     </div>
 </section>
@@ -1009,6 +1198,55 @@
         <!-- nv-inception:end -->
 </footer>
 
+<script>
+/* Self-contained, dependency-free infographic carousel.
+   Accessible: arrow buttons, dot tablist, keyboard (Left/Right/Home/End).
+   Reduced-motion handled in CSS. */
+(function () {
+    function initCarousel(root) {
+        var track = root.querySelector('[data-carousel-track]');
+        if (!track) return;
+        var slides = Array.prototype.slice.call(track.children);
+        var dotsWrap = root.querySelector('[data-carousel-dots]');
+        var prev = root.querySelector('[data-carousel-prev]');
+        var next = root.querySelector('[data-carousel-next]');
+        if (!slides.length) return;
+        var index = 0;
+        var dots = slides.map(function (slide, i) {
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = dotsWrap.getAttribute('data-dot-class') || 'sg-carousel-dot';
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            dot.addEventListener('click', function () { go(i, true); });
+            dotsWrap.appendChild(dot);
+            return dot;
+        });
+        function go(i, focusDot) {
+            index = (i + slides.length) % slides.length;
+            track.style.transform = 'translateX(' + (-index * 100) + '%)';
+            slides.forEach(function (s, n) { s.setAttribute('aria-hidden', n === index ? 'false' : 'true'); });
+            dots.forEach(function (d, n) {
+                d.setAttribute('aria-selected', n === index ? 'true' : 'false');
+                d.tabIndex = n === index ? 0 : -1;
+            });
+            if (focusDot && dots[index]) dots[index].focus();
+        }
+        if (prev) prev.addEventListener('click', function () { go(index - 1, false); });
+        if (next) next.addEventListener('click', function () { go(index + 1, false); });
+        dotsWrap.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1, true); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1, true); }
+            else if (e.key === 'Home') { e.preventDefault(); go(0, true); }
+            else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1, true); }
+        });
+        go(0, false);
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-carousel]'), initCarousel);
+    });
+})();
+</script>
 <script src="js/public-config.js"></script>
 <script src="js/api-client.js"></script>
 <script src="js/auth-nav.js" defer></script>
