@@ -125,6 +125,28 @@
             font-size: 0.95rem;
             color: var(--text-primary);
         }
+        /* tighten top whitespace: hero sits closer to nav, content closer to hero */
+        .hero { padding: 28px 0 32px; }
+        .hero .platform-bar { margin-top: 18px; }
+        .xr-hero-visual { margin-top: 22px; }
+        .hero + .section { padding-top: 40px; }
+        /* ---- accessible carousel (dependency-free) ---- */
+        .rk-carousel { max-width: 920px; margin: 0 auto; }
+        .rk-carousel-viewport { overflow: hidden; border: 1px solid #222244; border-radius: 14px; background: var(--bg-secondary, #111128); }
+        .rk-carousel-track { display: flex; transition: transform 0.4s ease; }
+        @media (prefers-reduced-motion: reduce) { .rk-carousel-track { transition: none; } }
+        .rk-slide { flex: 0 0 100%; box-sizing: border-box; padding: 34px 30px; display: grid; grid-template-columns: 120px 1fr; gap: 24px; align-items: center; }
+        .rk-slide:focus-visible { outline: 2px solid var(--accent-bright, #a388ff); outline-offset: -4px; }
+        .rk-slide svg { width: 100%; max-width: 120px; height: auto; }
+        .rk-slide h3 { font-size: 1.3rem; margin: 0 0 8px; color: var(--accent-bright, #a388ff); }
+        .rk-slide p { color: var(--text-secondary, #9090b0); font-size: 0.98rem; line-height: 1.6; margin: 0; }
+        .rk-carousel-controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+        .rk-carousel-btn { background: var(--bg-secondary, #111128); border: 1px solid #222244; color: var(--text-primary, #e8e8f0); width: 42px; height: 42px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; line-height: 1; transition: border-color 0.2s, background 0.2s; }
+        .rk-carousel-btn:hover, .rk-carousel-btn:focus-visible { border-color: var(--accent, #6c5ce7); background: rgba(108, 92, 231, 0.12); outline: none; }
+        .rk-carousel-dots { display: flex; gap: 10px; }
+        .rk-dot { width: 11px; height: 11px; border-radius: 50%; border: 1px solid #3a3a5c; background: transparent; padding: 0; cursor: pointer; }
+        .rk-dot[aria-selected="true"] { background: var(--accent-bright, #a388ff); border-color: var(--accent-bright, #a388ff); }
+        .rk-dot:focus-visible { outline: 2px solid var(--accent-bright, #a388ff); outline-offset: 2px; }
         @media (max-width: 768px) {
             .xr-grid {
                 grid-template-columns: 1fr;
@@ -135,6 +157,8 @@
             }
             .xr-visual { order: -1; }
             .xr-visual svg { max-width: 180px; }
+            .rk-slide { grid-template-columns: 1fr; gap: 14px; text-align: center; padding: 26px 20px; }
+            .rk-slide svg { margin: 0 auto; max-width: 96px; }
         }
     </style>
 </head>
@@ -158,12 +182,12 @@
                         <div class="col-heading" role="presentation">By audience</div>
                         <div class="col-heading" role="presentation">Platform</div>
                         <ul class="col" role="group">
-                            <li role="none"><a role="menuitem" href="smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
-                            <li role="none"><a role="menuitem" href="llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
-                            <li role="none"><a role="menuitem" href="enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
-                            <li role="none"><a role="menuitem" href="creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
-                            <li role="none"><a role="menuitem" href="robotics.html">For Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
-                            <li role="none"><a role="menuitem" href="insurance.html">For Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
                             <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
                         </ul>
                         <ul class="col" role="group">
@@ -403,6 +427,86 @@
 
 
 
+<!-- Tracking & Anchoring carousel -->
+<section class="section" style="border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2 style="margin-bottom: 12px;">Tracking &amp; anchoring, concept by concept</h2>
+        <p style="color: var(--text-secondary); max-width: 680px; margin: -16px auto 32px; font-size: 1.05rem; text-align: center;">
+            Swipe through the spatial primitives RakuAI builds on &mdash; standards-based, world-locked, low-latency.
+        </p>
+        <div class="rk-carousel" id="xr-carousel">
+            <div class="rk-carousel-viewport">
+                <div class="rk-carousel-track" role="region" aria-roledescription="carousel" aria-label="XR tracking and anchoring concepts">
+                    <div class="rk-slide" role="group" aria-roledescription="slide" aria-label="1 of 4: OpenXR display" tabindex="0">
+                        <svg viewBox="0 0 120 120" role="img" aria-label="A headset display panel feeding two eye views." xmlns="http://www.w3.org/2000/svg">
+                            <defs><linearGradient id="xrc1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                            <rect x="14" y="34" width="92" height="44" rx="12" fill="#111128" stroke="url(#xrc1)" stroke-width="2.4"/>
+                            <circle cx="42" cy="56" r="11" fill="none" stroke="#a388ff" stroke-width="2.2"/>
+                            <circle cx="78" cy="56" r="11" fill="none" stroke="#00cec9" stroke-width="2.2"/>
+                            <path d="M30,86 L90,86" stroke="#3a3a66" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <div>
+                            <h3>Display &amp; OpenXR</h3>
+                            <p>RakuAI renders through OpenXR for broad headset compatibility &mdash; stereo display, foveation hints, and reprojection handled at the runtime layer so your code stays device-agnostic.</p>
+                        </div>
+                    </div>
+                    <div class="rk-slide" role="group" aria-roledescription="slide" aria-label="2 of 4: Head pose tracking" tabindex="0">
+                        <svg viewBox="0 0 120 120" role="img" aria-label="A head profile with 6-degrees-of-freedom rotation arrows." xmlns="http://www.w3.org/2000/svg">
+                            <defs><linearGradient id="xrc2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                            <circle cx="60" cy="58" r="26" fill="#15152e" stroke="url(#xrc2)" stroke-width="2.4"/>
+                            <circle cx="52" cy="54" r="3" fill="#a388ff"/>
+                            <path d="M60,20 A40,40 0 0 1 96,52" fill="none" stroke="#00cec9" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>
+                            <path d="M24,52 A40,40 0 0 1 60,20" fill="none" stroke="#00cec9" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>
+                        </svg>
+                        <div>
+                            <h3>Head pose &amp; 6DoF</h3>
+                            <p>Low-latency head and controller pose feeds the simulation, with an 18&nbsp;ms motion-to-photon target on supported smart-glasses hardware. Translation and rotation, every frame.</p>
+                        </div>
+                    </div>
+                    <div class="rk-slide" role="group" aria-roledescription="slide" aria-label="3 of 4: Hand and gaze tracking" tabindex="0">
+                        <svg viewBox="0 0 120 120" role="img" aria-label="A gaze ray and a hand converging on a target point." xmlns="http://www.w3.org/2000/svg">
+                            <defs><linearGradient id="xrc3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                            <g fill="none" stroke="url(#xrc3)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M40,96 L40,62 M52,96 L52,54 M64,96 L64,58"/>
+                                <path d="M30,96 C30,104 38,108 52,108 L70,108 C82,108 88,100 88,90 L88,72 C88,67 80,67 80,72"/>
+                            </g>
+                            <line x1="18" y1="22" x2="74" y2="60" stroke="#00cec9" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>
+                            <circle cx="18" cy="22" r="5" fill="none" stroke="#a388ff" stroke-width="2"/>
+                        </svg>
+                        <div>
+                            <h3>Hand &amp; gaze tracking</h3>
+                            <p>Unified input across hand tracking, gaze, and controllers &mdash; one abstraction, every supported headset, no per-platform input code.</p>
+                        </div>
+                    </div>
+                    <div class="rk-slide" role="group" aria-roledescription="slide" aria-label="4 of 4: Spatial anchors" tabindex="0">
+                        <svg viewBox="0 0 120 120" role="img" aria-label="A ground plane grid with two world-locked anchor pins." xmlns="http://www.w3.org/2000/svg">
+                            <defs><linearGradient id="xrc4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                            <g stroke="#3a3a66" stroke-width="1.6" fill="none">
+                                <path d="M16,92 L104,92 L86,52 L34,52 Z"/>
+                                <path d="M28,72 L92,72"/>
+                                <path d="M48,52 L36,92 M72,52 L84,92"/>
+                            </g>
+                            <path d="M44,66 L44,52 C44,44 56,44 56,52 C56,60 44,66 44,66 Z" fill="url(#xrc4)"/>
+                            <circle cx="50" cy="52" r="3" fill="#0a0a1a"/>
+                            <path d="M78,80 L78,64 C78,55 90,55 90,64 C90,73 78,80 78,80 Z" fill="url(#xrc4)"/>
+                            <circle cx="84" cy="64" r="3" fill="#0a0a1a"/>
+                        </svg>
+                        <div>
+                            <h3>Spatial anchors</h3>
+                            <p>Persistent, world-locked anchors let content survive across sessions and users &mdash; passthrough and scene understanding keep it blended with the real room.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="rk-carousel-controls">
+                <button type="button" class="rk-carousel-btn" data-dir="prev" aria-label="Previous concept">&#8249;</button>
+                <div class="rk-carousel-dots" role="tablist" aria-label="Choose concept"></div>
+                <button type="button" class="rk-carousel-btn" data-dir="next" aria-label="Next concept">&#8250;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Cross-Platform Callout -->
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container" style="text-align: center;">
@@ -509,6 +613,57 @@
         <!-- nv-inception:end -->
 </footer>
 
+<script>
+/* Dependency-free accessible carousel. Initializes every .rk-carousel on the page. */
+(function () {
+    function initCarousel(root) {
+        var track = root.querySelector('.rk-carousel-track');
+        var slides = Array.prototype.slice.call(root.querySelectorAll('.rk-slide'));
+        var dotsWrap = root.querySelector('.rk-carousel-dots');
+        var prevBtn = root.querySelector('[data-dir="prev"]');
+        var nextBtn = root.querySelector('[data-dir="next"]');
+        if (!track || slides.length === 0) return;
+        var index = 0;
+        var dots = slides.map(function (slide, i) {
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'rk-dot';
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            dot.addEventListener('click', function () { go(i); });
+            if (dotsWrap) dotsWrap.appendChild(dot);
+            return dot;
+        });
+        function update() {
+            track.style.transform = 'translateX(' + (-index * 100) + '%)';
+            slides.forEach(function (s, i) { s.setAttribute('aria-hidden', i === index ? 'false' : 'true'); });
+            dots.forEach(function (d, i) {
+                d.setAttribute('aria-selected', i === index ? 'true' : 'false');
+                d.tabIndex = i === index ? 0 : -1;
+            });
+        }
+        function go(i) { index = (i + slides.length) % slides.length; update(); }
+        if (prevBtn) prevBtn.addEventListener('click', function () { go(index - 1); });
+        if (nextBtn) nextBtn.addEventListener('click', function () { go(index + 1); });
+        root.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowLeft') { go(index - 1); e.preventDefault(); }
+            else if (e.key === 'ArrowRight') { go(index + 1); e.preventDefault(); }
+        });
+        var startX = null;
+        track.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+        track.addEventListener('touchend', function (e) {
+            if (startX === null) return;
+            var dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 40) { go(dx < 0 ? index + 1 : index - 1); }
+            startX = null;
+        });
+        update();
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.rk-carousel').forEach(initCarousel);
+    });
+})();
+</script>
 <script src="/js/auth-nav.js" defer></script>
 <script src="/js/lang-selector.js" defer></script>
 

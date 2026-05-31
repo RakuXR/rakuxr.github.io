@@ -120,6 +120,28 @@
             color: var(--text-primary);
             font-weight: 500;
         }
+        /* tighten top whitespace: hero closer to nav, content closer to hero */
+        .hero { padding: 26px 0 30px; }
+        .ai-hero-visual { max-width: 720px; margin: 22px auto 0; }
+        .ai-hero-visual svg { width: 100%; height: auto; display: block; }
+        .hero + .section { padding-top: 44px; }
+        /* ---- accessible carousel (dependency-free) ---- */
+        .rk-carousel { max-width: 920px; margin: 0 auto; }
+        .rk-carousel-viewport { overflow: hidden; border: 1px solid #222244; border-radius: 14px; background: var(--bg-secondary, #111128); }
+        .rk-carousel-track { display: flex; transition: transform 0.4s ease; }
+        @media (prefers-reduced-motion: reduce) { .rk-carousel-track { transition: none; } }
+        .rk-slide { flex: 0 0 100%; box-sizing: border-box; padding: 34px 30px; display: grid; grid-template-columns: 120px 1fr; gap: 24px; align-items: center; }
+        .rk-slide:focus-visible { outline: 2px solid var(--accent-bright, #a388ff); outline-offset: -4px; }
+        .rk-slide svg { width: 100%; max-width: 120px; height: auto; }
+        .rk-slide h3 { font-size: 1.3rem; margin: 0 0 8px; color: var(--accent-bright, #a388ff); }
+        .rk-slide p { color: var(--text-secondary, #9090b0); font-size: 0.98rem; line-height: 1.6; margin: 0; }
+        .rk-carousel-controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+        .rk-carousel-btn { background: var(--bg-secondary, #111128); border: 1px solid #222244; color: var(--text-primary, #e8e8f0); width: 42px; height: 42px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; line-height: 1; transition: border-color 0.2s, background 0.2s; }
+        .rk-carousel-btn:hover, .rk-carousel-btn:focus-visible { border-color: var(--accent, #6c5ce7); background: rgba(108, 92, 231, 0.12); outline: none; }
+        .rk-carousel-dots { display: flex; gap: 10px; }
+        .rk-dot { width: 11px; height: 11px; border-radius: 50%; border: 1px solid #3a3a5c; background: transparent; padding: 0; cursor: pointer; }
+        .rk-dot[aria-selected="true"] { background: var(--accent-bright, #a388ff); border-color: var(--accent-bright, #a388ff); }
+        .rk-dot:focus-visible { outline: 2px solid var(--accent-bright, #a388ff); outline-offset: 2px; }
         @media (max-width: 768px) {
             .ai-grid {
                 grid-template-columns: 1fr;
@@ -131,6 +153,8 @@
             .ai-callout-grid {
                 grid-template-columns: 1fr 1fr;
             }
+            .rk-slide { grid-template-columns: 1fr; gap: 14px; text-align: center; padding: 26px 20px; }
+            .rk-slide svg { margin: 0 auto; max-width: 96px; }
         }
     </style>
 </head>
@@ -154,12 +178,12 @@
                         <div class="col-heading" role="presentation">By audience</div>
                         <div class="col-heading" role="presentation">Platform</div>
                         <ul class="col" role="group">
-                            <li role="none"><a role="menuitem" href="smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
-                            <li role="none"><a role="menuitem" href="llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
-                            <li role="none"><a role="menuitem" href="enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
-                            <li role="none"><a role="menuitem" href="creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
-                            <li role="none"><a role="menuitem" href="robotics.html">For Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
-                            <li role="none"><a role="menuitem" href="insurance.html">For Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
                             <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
                         </ul>
                         <ul class="col" role="group">
@@ -221,7 +245,57 @@
     <div class="container">
         <div class="ai-badge">AI SYSTEMS</div>
         <h1>AI Systems</h1>
-        <p class="subtitle">Intelligent game AI that runs entirely on-device. No cloud dependency.</p>
+        <p class="subtitle">Orchestration &amp; permissions for your agent fleet &mdash; deny-by-default, audited, RBAC-governed.</p>
+        <div class="ai-hero-visual">
+        <svg viewBox="0 0 720 260" role="img" aria-labelledby="aihero-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="aihero-title">AI orchestration and permissions flow: a fleet of agents sends requests through a deny-by-default permission gate enforcing role-based access control; allowed requests reach the RakuAI runtime, and every decision is written to an immutable audit log.</title>
+            <defs>
+                <linearGradient id="aih-flow" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <marker id="aih-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto-start-reverse">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+
+            <!-- agent fleet -->
+            <text x="92" y="30" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="12" font-weight="600">AGENT FLEET</text>
+            <g font-family="system-ui,sans-serif">
+                <rect x="20" y="48" width="144" height="40" rx="9" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="92" y="73" text-anchor="middle" fill="#e8e8f0" font-size="12">Agent &middot; planner</text>
+                <rect x="20" y="100" width="144" height="40" rx="9" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="92" y="125" text-anchor="middle" fill="#e8e8f0" font-size="12">Agent &middot; tool-use</text>
+                <rect x="20" y="152" width="144" height="40" rx="9" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="92" y="177" text-anchor="middle" fill="#e8e8f0" font-size="12">Agent &middot; voice</text>
+            </g>
+
+            <!-- requests -> gate -->
+            <line x1="164" y1="68"  x2="300" y2="118" stroke="url(#aih-flow)" stroke-width="2" marker-end="url(#aih-arrow)"/>
+            <line x1="164" y1="120" x2="300" y2="120" stroke="url(#aih-flow)" stroke-width="2" marker-end="url(#aih-arrow)"/>
+            <line x1="164" y1="172" x2="300" y2="122" stroke="url(#aih-flow)" stroke-width="2" marker-end="url(#aih-arrow)"/>
+
+            <!-- permission gate -->
+            <rect x="302" y="70" width="150" height="100" rx="12" fill="#15152e" stroke="url(#aih-flow)" stroke-width="2"/>
+            <text x="377" y="104" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="13" font-weight="700">Permission gate</text>
+            <text x="377" y="126" text-anchor="middle" fill="#00cec9" font-family="ui-monospace,monospace" font-size="11">deny-by-default</text>
+            <text x="377" y="148" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">RBAC &middot; scopes</text>
+
+            <!-- allowed -> runtime -->
+            <line x1="452" y1="120" x2="556" y2="120" stroke="url(#aih-flow)" stroke-width="2" marker-end="url(#aih-arrow)"/>
+            <text x="504" y="110" text-anchor="middle" fill="#9090b0" font-family="ui-monospace,monospace" font-size="10">allow</text>
+
+            <!-- runtime -->
+            <rect x="558" y="80" width="142" height="80" rx="12" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="629" y="116" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="13" font-weight="600">RakuAI</text>
+            <text x="629" y="136" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">runtime core</text>
+
+            <!-- audit log -->
+            <line x1="377" y1="170" x2="377" y2="212" stroke="url(#aih-flow)" stroke-width="2" marker-end="url(#aih-arrow)"/>
+            <rect x="262" y="214" width="230" height="34" rx="9" fill="#0d0d1f" stroke="#a388ff" stroke-width="1.5"/>
+            <text x="377" y="236" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="12">Immutable audit log &mdash; every decision</text>
+        </svg>
+        </div>
     </div>
 </section>
 
@@ -365,6 +439,78 @@
 
 
 
+<!-- Orchestration & permissions carousel -->
+<section class="section" style="border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2 style="margin-bottom: 12px;">How orchestration &amp; permissions work</h2>
+        <p style="color: var(--text-secondary); max-width: 680px; margin: -16px auto 32px; font-size: 1.05rem; text-align: center;">
+            Swipe through the controls that keep an agent fleet governed &mdash; deny-by-default, scoped, and fully audited.
+        </p>
+        <div class="rk-carousel" id="ai-carousel">
+            <div class="rk-carousel-viewport">
+                <div class="rk-carousel-track" role="region" aria-roledescription="carousel" aria-label="Orchestration and permissions concepts">
+                    <div class="rk-slide" role="group" aria-roledescription="slide" aria-label="1 of 4: Agent fleet orchestration" tabindex="0">
+                        <svg viewBox="0 0 120 120" role="img" aria-label="A central hub linked to several agent nodes." xmlns="http://www.w3.org/2000/svg">
+                            <defs><linearGradient id="aic1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                            <g stroke="url(#aic1)" stroke-width="2"><line x1="60" y1="60" x2="60" y2="22"/><line x1="60" y1="60" x2="96" y2="84"/><line x1="60" y1="60" x2="24" y2="84"/></g>
+                            <circle cx="60" cy="60" r="16" fill="url(#aic1)"/>
+                            <circle cx="60" cy="22" r="9" fill="#111128" stroke="#a388ff" stroke-width="2"/>
+                            <circle cx="96" cy="84" r="9" fill="#111128" stroke="#6c5ce7" stroke-width="2"/>
+                            <circle cx="24" cy="84" r="9" fill="#111128" stroke="#00cec9" stroke-width="2"/>
+                        </svg>
+                        <div>
+                            <h3>Agent fleet orchestration</h3>
+                            <p>One runtime core coordinates every agent &mdash; planners, tool-users, and voice agents share the same scene graph and policy, with no glue code between them.</p>
+                        </div>
+                    </div>
+                    <div class="rk-slide" role="group" aria-roledescription="slide" aria-label="2 of 4: Deny-by-default" tabindex="0">
+                        <svg viewBox="0 0 120 120" role="img" aria-label="A shield with a lock, requests blocked unless allowed." xmlns="http://www.w3.org/2000/svg">
+                            <defs><linearGradient id="aic2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                            <path d="M60,18 L96,32 L96,62 C96,86 80,98 60,104 C40,98 24,86 24,62 L24,32 Z" fill="#15152e" stroke="url(#aic2)" stroke-width="2.4"/>
+                            <rect x="49" y="56" width="22" height="20" rx="3" fill="none" stroke="#00cec9" stroke-width="2.2"/>
+                            <path d="M53,56 L53,49 C53,42 67,42 67,49 L67,56" fill="none" stroke="#a388ff" stroke-width="2.2"/>
+                        </svg>
+                        <div>
+                            <h3>Deny-by-default</h3>
+                            <p>Nothing runs unless it is explicitly allowed. Every tool call and capability is closed until a policy grants it &mdash; the safe default, not an afterthought.</p>
+                        </div>
+                    </div>
+                    <div class="rk-slide" role="group" aria-roledescription="slide" aria-label="3 of 4: Role-based access control" tabindex="0">
+                        <svg viewBox="0 0 120 120" role="img" aria-label="A person icon mapped to scoped permission keys." xmlns="http://www.w3.org/2000/svg">
+                            <defs><linearGradient id="aic3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                            <circle cx="44" cy="42" r="14" fill="none" stroke="url(#aic3)" stroke-width="2.4"/>
+                            <path d="M22,92 C22,70 66,70 66,92" fill="none" stroke="url(#aic3)" stroke-width="2.4" stroke-linecap="round"/>
+                            <g stroke="#00cec9" stroke-width="2.2" fill="none"><rect x="78" y="40" width="22" height="12" rx="3"/><rect x="78" y="60" width="22" height="12" rx="3"/><rect x="78" y="80" width="22" height="12" rx="3"/></g>
+                        </svg>
+                        <div>
+                            <h3>Role-based access control</h3>
+                            <p>Permissions are granted by role and scope, not per-request guesswork. Map each agent or operator to exactly the capabilities their role needs.</p>
+                        </div>
+                    </div>
+                    <div class="rk-slide" role="group" aria-roledescription="slide" aria-label="4 of 4: Immutable audit log" tabindex="0">
+                        <svg viewBox="0 0 120 120" role="img" aria-label="A document with timestamped log entries." xmlns="http://www.w3.org/2000/svg">
+                            <defs><linearGradient id="aic4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+                            <rect x="30" y="20" width="60" height="80" rx="8" fill="#111128" stroke="url(#aic4)" stroke-width="2.4"/>
+                            <g stroke="#9090b0" stroke-width="2" stroke-linecap="round"><line x1="42" y1="40" x2="78" y2="40"/><line x1="42" y1="56" x2="78" y2="56"/><line x1="42" y1="72" x2="66" y2="72"/></g>
+                            <circle cx="84" cy="84" r="14" fill="#0d0d1f" stroke="#00cec9" stroke-width="2.2"/>
+                            <path d="M78,84 L83,89 L91,79" fill="none" stroke="#00cec9" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <div>
+                            <h3>Immutable audit log</h3>
+                            <p>Every allow and deny decision is recorded. Trace exactly which agent did what, when, and under whose authority &mdash; for compliance and incident review.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="rk-carousel-controls">
+                <button type="button" class="rk-carousel-btn" data-dir="prev" aria-label="Previous concept">&#8249;</button>
+                <div class="rk-carousel-dots" role="tablist" aria-label="Choose concept"></div>
+                <button type="button" class="rk-carousel-btn" data-dir="next" aria-label="Next concept">&#8250;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- CTA -->
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container" style="text-align: center;">
@@ -471,6 +617,57 @@
         <!-- nv-inception:end -->
 </footer>
 
+<script>
+/* Dependency-free accessible carousel. Initializes every .rk-carousel on the page. */
+(function () {
+    function initCarousel(root) {
+        var track = root.querySelector('.rk-carousel-track');
+        var slides = Array.prototype.slice.call(root.querySelectorAll('.rk-slide'));
+        var dotsWrap = root.querySelector('.rk-carousel-dots');
+        var prevBtn = root.querySelector('[data-dir="prev"]');
+        var nextBtn = root.querySelector('[data-dir="next"]');
+        if (!track || slides.length === 0) return;
+        var index = 0;
+        var dots = slides.map(function (slide, i) {
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = 'rk-dot';
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            dot.addEventListener('click', function () { go(i); });
+            if (dotsWrap) dotsWrap.appendChild(dot);
+            return dot;
+        });
+        function update() {
+            track.style.transform = 'translateX(' + (-index * 100) + '%)';
+            slides.forEach(function (s, i) { s.setAttribute('aria-hidden', i === index ? 'false' : 'true'); });
+            dots.forEach(function (d, i) {
+                d.setAttribute('aria-selected', i === index ? 'true' : 'false');
+                d.tabIndex = i === index ? 0 : -1;
+            });
+        }
+        function go(i) { index = (i + slides.length) % slides.length; update(); }
+        if (prevBtn) prevBtn.addEventListener('click', function () { go(index - 1); });
+        if (nextBtn) nextBtn.addEventListener('click', function () { go(index + 1); });
+        root.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowLeft') { go(index - 1); e.preventDefault(); }
+            else if (e.key === 'ArrowRight') { go(index + 1); e.preventDefault(); }
+        });
+        var startX = null;
+        track.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+        track.addEventListener('touchend', function (e) {
+            if (startX === null) return;
+            var dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 40) { go(dx < 0 ? index + 1 : index - 1); }
+            startX = null;
+        });
+        update();
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.rk-carousel').forEach(initCarousel);
+    });
+})();
+</script>
 <script src="/js/auth-nav.js" defer></script>
 <script src="/js/lang-selector.js" defer></script>
 
