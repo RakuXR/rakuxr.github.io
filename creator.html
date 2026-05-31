@@ -5,12 +5,12 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Creator Profile - RakuAI</title>
-    <meta name="description" content="View a creator's published games on RakuAI.">
+    <meta name="description" content="View a creator&#x2019;s published spatial captures and assets on RakuAI &#x2014; capture reality, reconstruct as a Gaussian splat, share with the world.">
     <meta property="og:title" content="Creator Profile - RakuAI">
     <meta property="og:image" content="https://rakuai.com/og-default.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:description" content="Browse games by this creator on RakuAI.">
+    <meta property="og:description" content="Browse spatial captures and assets published by this creator on RakuAI.">
     <meta property="og:type" content="profile">
     <meta name="twitter:card" content="summary">
     <link rel="stylesheet" href="style.css">
@@ -18,7 +18,7 @@
 <body>
 
 <div class="beta-announcement-bar">
-    &#x697D;AI<sup class="tm">™</sup> — The Universal Runtime for World Models &nbsp;|&nbsp; <a href="index.html#for-studios">For Studios &amp; Developers →</a> &nbsp;&nbsp; Also: <a href="index.html#quickstart">Try the Consumer Demo →</a>
+    &#x697D;AI<sup class="tm">&#x2122;</sup> &#x2014; The Universal Runtime for World Models &nbsp;|&nbsp; <a href="index.html#for-studios">For Studios &amp; Developers &#x2192;</a> &nbsp;&nbsp; Also: <a href="index.html#quickstart">Try the Consumer Demo &#x2192;</a>
 </div>
 
 <nav role="navigation" aria-label="Primary">
@@ -38,7 +38,7 @@
                             <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
                             <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
                             <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
-                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Capture spaces &amp; publish shareable splats</span></a></li>
                             <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
                             <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
                             <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
@@ -85,7 +85,7 @@
                 </li>
             </ul>
             <a href="developers/login.html" class="nav-signin">Sign In</a>
-            <a href="ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+            <a href="ja/index.html" class="lang-toggle">&#x697D;AI<sup class="tm">&trade;</sup></a>
         </div>
     </div>
 </nav>
@@ -97,19 +97,19 @@
             <div style="width:80px;height:80px;border-radius:50%;background:var(--accent-bright);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#000;font-weight:700;" id="profile-avatar">?</div>
             <h1 id="profile-name" style="margin-bottom:4px;">Loading...</h1>
             <div style="display:flex;justify-content:center;gap:24px;color:var(--text-secondary);font-size:0.95rem;">
-                <span><strong id="profile-game-count">0</strong> games</span>
-                <span><strong id="profile-play-count">0</strong> plays</span>
+                <span><strong id="profile-game-count">0</strong> captures</span>
+                <span><strong id="profile-play-count">0</strong> views</span>
             </div>
         </div>
 
-        <!-- Games grid -->
-        <h2 style="margin-bottom:16px;">Published Games</h2>
+        <!-- Captures grid -->
+        <h2 style="margin-bottom:16px;">Published Captures &amp; Assets</h2>
         <div id="creator-games" class="mygames-grid"></div>
 
         <!-- Empty state -->
         <div id="creator-empty" class="mygames-empty" hidden>
-            <h3>Fresh worlds in the making</h3>
-            <p style="color:var(--text-secondary);">This creator hasn't published yet &mdash; new spatial games drop here all the time, so check back soon. Want to build your own? <a href="/" style="color:var(--accent-bright);">Start creating with RakuAI</a>.</p>
+            <h3>First captures on the way</h3>
+            <p style="color:var(--text-secondary);">This creator hasn&#x2019;t published yet &mdash; spatial captures drop here as they&#x2019;re processed, so check back soon. Want to publish your own? <a href="capture.html" style="color:var(--accent-bright);">Start capturing with Raku Capture</a>.</p>
         </div>
 
         <!-- Loading -->
@@ -238,7 +238,7 @@
             avatar.textContent = userId.charAt(0).toUpperCase();
         });
 
-    // Fetch games
+    // Fetch captures / published assets
     fetch(API_BASE + '/api/v1/creators/' + encodeURIComponent(userId) + '/games')
         .then(function(r) { if (!r.ok) throw new Error('Not found'); return r.json(); })
         .then(function(data) {
@@ -258,11 +258,11 @@
                             '<span style="display:inline-block;background:var(--accent-bright);color:#000;padding:2px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;">' + esc(game.genre || '') + '</span>' +
                         '</div>' +
                         '<p style="color:var(--text-secondary);font-size:0.9rem;margin:0 0 8px;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;">' +
-                            esc(game.description || 'An AI-generated ' + (game.genre || '') + ' game') +
+                            esc(game.description || 'A spatial capture by this creator') +
                         '</p>' +
                         '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-                            '<span style="color:var(--text-secondary);font-size:0.8rem;">' + esc(String(game.play_count || 0)) + ' plays</span>' +
-                            '<span class="btn btn-primary" style="padding:6px 16px;font-size:0.85rem;">Play</span>' +
+                            '<span style="color:var(--text-secondary);font-size:0.8rem;">' + esc(String(game.play_count || 0)) + ' views</span>' +
+                            '<span class="btn btn-primary" style="padding:6px 16px;font-size:0.85rem;">View</span>' +
                         '</div>' +
                     '</div>';
                 card.addEventListener('click', function() {
