@@ -797,7 +797,7 @@
             </div>
             <div class="mcp-carousel-controls">
                 <button type="button" class="mcp-carousel-btn" id="mcp-carousel-prev" aria-label="Previous slide">&#8249;</button>
-                <div class="mcp-carousel-dots" id="mcp-carousel-dots" role="tablist" aria-label="Choose tool group"></div>
+                <div class="mcp-carousel-dots" id="mcp-carousel-dots" role="group" aria-label="Choose tool group"></div>
                 <button type="button" class="mcp-carousel-btn" id="mcp-carousel-next" aria-label="Next slide">&#8250;</button>
             </div>
         </div>
@@ -964,7 +964,6 @@
         var b = document.createElement('button');
         b.type = 'button';
         b.className = 'mcp-dot';
-        b.setAttribute('role', 'tab');
         b.setAttribute('aria-label', 'Go to slide ' + (i + 1));
         b.addEventListener('click', function () { go(i); });
         dotsWrap.appendChild(b);
@@ -981,7 +980,6 @@
         });
         dots.forEach(function (d, n) {
             d.setAttribute('aria-current', n === index ? 'true' : 'false');
-            d.setAttribute('aria-selected', n === index ? 'true' : 'false');
         });
     }
 
@@ -991,8 +989,8 @@
     // keyboard arrows when focus is within the carousel
     var carousel = track.closest('.mcp-carousel');
     carousel.addEventListener('keydown', function (e) {
-        if (e.key === 'ArrowLeft') { go(index - 1); prev.focus(); }
-        else if (e.key === 'ArrowRight') { go(index + 1); next.focus(); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1); }
     });
 
     // basic touch/swipe
