@@ -349,6 +349,33 @@
     }
     .progress-label { font-size: 13px; color: var(--muted); }
 
+    /* Indeterminate "working" bar — used for the reconstruction stage, whose
+       backend % is a capped time-estimate, not real completion. capture_app.js
+       adds .is-indeterminate to .progress and clears the fill width; the fill
+       becomes a sliding band so the bar reads as "working", not "stuck at 0%". */
+    .progress.is-indeterminate .progress-fill {
+      width: 35% !important;
+      transition: none;
+      background: linear-gradient(90deg,
+        transparent 0%, var(--accent) 35%, var(--accent2) 65%, transparent 100%);
+      animation: progress-indeterminate 1.3s ease-in-out infinite;
+    }
+    @keyframes progress-indeterminate {
+      0%   { transform: translateX(-120%); }
+      100% { transform: translateX(320%); }
+    }
+    /* Reduced-motion fallback: no sliding band — a static, partial "working"
+       pulse instead, so the bar still reads as active without animation. */
+    @media (prefers-reduced-motion: reduce) {
+      .progress.is-indeterminate .progress-fill {
+        width: 60% !important;
+        animation: progress-pulse 2s ease-in-out infinite;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        transform: none;
+      }
+      @keyframes progress-pulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+    }
+
     .spinner {
       width: 42px; height: 42px;
       border: 3px solid var(--border);
@@ -391,6 +418,40 @@
       color: var(--accent2);
       font-size: 14px;
     }
+
+    /* Failure diagnostics — consent-gated. Nothing is shown until the user taps
+       "What happened?" (#btn-diagnose); the technical block stays collapsed
+       until "Show technical details" is tapped. capture_app.js owns the
+       hidden state of every element here. */
+    .error-diagnosis {
+      max-width: 440px;
+      margin: 4px 0 0;
+      padding: 12px 14px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text, #e8e8f0);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .error-diagnosis[hidden] { display: none; }
+    .error-technical { width: 100%; max-width: 440px; margin: 2px 0 0; }
+    .error-technical[hidden] { display: none; }
+    .error-detail {
+      margin: 0;
+      padding: 10px 12px;
+      background: #05050a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      max-height: 160px;
+      overflow: auto;
+    }
+    #btn-diagnose[hidden], #btn-error-details[hidden] { display: none; }
 
     /* Intro live sample-splat preview (W1.4 — plan §6.1 step 1) */
     .intro-preview {
@@ -684,8 +745,11 @@
            runtime (per reconstruction stage + live %). No data-i18n: the app
            sets them via t() and re-renders them on locale change. -->
       <h2 id="processing-title">Analyzing footage</h2>
-      <div class="progress"><div class="progress-fill" id="processing-fill"></div></div>
+      <p class="processing-stage" id="processing-stage" role="status" aria-live="polite"></p>
+      <div class="progress" id="processing-track"><div class="progress-fill" id="processing-fill"></div></div>
       <p class="progress-label" id="processing-label">This usually takes a minute or two&hellip;</p>
+      <p class="processing-elapsed" id="processing-elapsed" aria-live="off"></p>
+      <p class="processing-notice" id="processing-notice" role="status" aria-live="polite" hidden></p>
       <button class="btn secondary" id="btn-cancel-processing" data-i18n="processing.cancel">Cancel</button>
     </section>
 
@@ -713,6 +777,21 @@
            specific failure text for the current error. No data-i18n: the app
            sets it via t() and re-renders the current error on locale change. -->
       <div class="error-box" id="error-message">Something went wrong.</div>
+
+      <!-- Failure diagnostics (consent-gated). All of these are owned by
+           capture_app.js (showError / applyErrorDiagnostics): the "What
+           happened?" button reveals the plain-English diagnosis; the
+           collapsible technical block holds the raw error string. They start
+           hidden and are revealed on tap — nothing is shown until the user
+           asks. No data-i18n: the app sets the labels via t() and re-renders
+           them on locale change. -->
+      <button class="btn secondary" id="btn-diagnose" hidden>What happened?</button>
+      <p class="error-diagnosis" id="error-diagnosis" role="status" aria-live="polite" hidden></p>
+      <button class="btn secondary" id="btn-error-details" hidden>Show technical details</button>
+      <div class="error-technical" id="error-technical" hidden>
+        <pre class="error-detail" id="error-detail"></pre>
+      </div>
+
       <button class="btn secondary" id="btn-retry" data-i18n="error.title">Try again</button>
       <a class="btn-link" id="btn-exit-error" href="/capture-app/" data-i18n="error.backHome">Back to start</a>
     </section>
