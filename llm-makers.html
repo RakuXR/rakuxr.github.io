@@ -24,35 +24,67 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .llm-hero {
-            padding: 96px 0 64px;
-            text-align: center;
-            background: linear-gradient(180deg, #0a0a1a, #0d0d20);
+            padding: 40px 0 36px;
+            background:
+                radial-gradient(900px 360px at 80% 6%, rgba(108, 92, 231, 0.18), transparent 60%),
+                radial-gradient(700px 320px at 10% 96%, rgba(0, 206, 201, 0.10), transparent 60%),
+                linear-gradient(180deg, #0a0a1a, #0d0d20);
         }
+        .llm-hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.05fr;
+            align-items: center;
+            gap: 40px;
+        }
+        .llm-hero-copy { text-align: left; }
         .llm-hero h1 {
-            font-size: clamp(2rem, 5vw, 3.4rem);
-            line-height: 1.15;
-            margin-bottom: 20px;
+            font-size: clamp(1.9rem, 4.4vw, 3rem);
+            line-height: 1.12;
+            margin-bottom: 18px;
             background: linear-gradient(135deg, #a388ff, #00cec9);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .llm-hero p.subhead {
             color: var(--text-secondary);
-            font-size: 1.15rem;
-            line-height: 1.65;
-            max-width: 760px;
-            margin: 0 auto 32px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 560px;
+            margin: 0 0 28px;
         }
         .llm-cta-row {
             display: flex;
             gap: 14px;
-            justify-content: center;
             flex-wrap: wrap;
+        }
+        /* Animated hero figure: a model gaining a body via MCP */
+        .llm-herofig {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45));
+        }
+        .llm-herofig .lf-orbit { transform-box: fill-box; transform-origin: 70px 92px; }
+        .llm-herofig .lf-spin { animation: lf-spin 14s linear infinite; }
+        .llm-herofig .lf-pulse {
+            stroke-dasharray: 9 11;
+            animation: lf-dash 1.5s linear infinite;
+        }
+        .llm-herofig .lf-body { animation: lf-breathe 3.6s ease-in-out infinite; }
+        @keyframes lf-spin { to { transform: rotate(360deg); } }
+        @keyframes lf-dash { to { stroke-dashoffset: -40; } }
+        @keyframes lf-breathe { 0%,100% { opacity: 0.85; } 50% { opacity: 1; } }
+        @media (prefers-reduced-motion: reduce) {
+            .llm-herofig .lf-spin,
+            .llm-herofig .lf-pulse,
+            .llm-herofig .lf-body { animation: none; }
         }
         .llm-section {
             padding: 72px 0;
             border-bottom: 1px solid #1c1c33;
         }
+        /* Pull the first content block up tight under the hero */
+        .llm-section--first { padding-top: 40px; }
         .llm-section h2 {
             font-size: clamp(1.6rem, 3.2vw, 2.2rem);
             margin-bottom: 32px;
@@ -200,6 +232,63 @@
             color: var(--text-secondary);
             font-size: 0.9rem;
         }
+        /* ---- Why MCP-native carousel (dependency-free, accessible) ---- */
+        .llm-carousel { max-width: 760px; margin: 0 auto; }
+        .llm-carousel-viewport { overflow: hidden; border-radius: 16px; }
+        .llm-carousel-track { display: flex; transition: transform 0.45s ease; }
+        @media (prefers-reduced-motion: reduce) {
+            .llm-carousel-track { transition: none; }
+        }
+        .llm-cslide {
+            min-width: 100%;
+            box-sizing: border-box;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-left: 3px solid var(--accent);
+            border-radius: 16px;
+            padding: 32px 34px;
+            text-align: left;
+        }
+        .llm-cslide .num {
+            display: inline-flex;
+            align-items: center; justify-content: center;
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff; font-weight: 700; margin-bottom: 14px;
+        }
+        .llm-cslide h3 { color: var(--accent-bright); font-size: 1.3rem; margin: 0 0 12px; }
+        .llm-cslide p { color: var(--text-secondary); font-size: 1.02rem; line-height: 1.7; margin: 0; }
+        .llm-carousel-controls {
+            display: flex; align-items: center; justify-content: center;
+            gap: 18px; margin-top: 20px;
+        }
+        .llm-carousel-btn {
+            background: var(--bg-secondary);
+            border: 1px solid #2a2a4a;
+            color: var(--accent-bright);
+            width: 42px; height: 42px; border-radius: 50%;
+            font-size: 1.2rem; cursor: pointer; line-height: 1;
+            transition: border-color 0.2s;
+        }
+        .llm-carousel-btn:hover { border-color: var(--accent); }
+        .llm-carousel-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        .llm-carousel-dots { display: flex; gap: 10px; }
+        .llm-dot {
+            width: 11px; height: 11px; border-radius: 50%;
+            border: 1px solid #3a3a5a; background: transparent;
+            padding: 0; cursor: pointer;
+        }
+        .llm-dot[aria-current="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
+        .llm-dot:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+        @media (max-width: 760px) {
+            .llm-hero-grid { grid-template-columns: 1fr; gap: 28px; }
+            .llm-hero-copy { text-align: center; }
+            .llm-hero p.subhead { margin-left: auto; margin-right: auto; }
+            .llm-cta-row { justify-content: center; }
+            .llm-hero-figure { order: -1; }
+        }
     </style>
 </head>
 <body>
@@ -222,12 +311,12 @@
                         <div class="col-heading" role="presentation">By audience</div>
                         <div class="col-heading" role="presentation">Platform</div>
                         <ul class="col" role="group">
-                            <li role="none"><a role="menuitem" href="smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
-                            <li role="none"><a role="menuitem" href="llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
-                            <li role="none"><a role="menuitem" href="enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
-                            <li role="none"><a role="menuitem" href="creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
-                            <li role="none"><a role="menuitem" href="robotics.html">For Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
-                            <li role="none"><a role="menuitem" href="insurance.html">For Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
                             <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
                         </ul>
                         <ul class="col" role="group">
@@ -279,33 +368,128 @@
 
 <section class="llm-hero">
     <div class="container">
-        <h1>Give your AI a body in the real world.</h1>
-        <p class="subhead">
-            RakuAI is the runtime your model inhabits when it needs to build, simulate, or interact with a spatial world.
-            Plug in via MCP. No custom integration. Multi-vendor by design — your model competes on quality, not on integration depth.
-        </p>
-        <div class="llm-cta-row">
-            <a href="/mcp" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">Plug in via MCP &rarr;</a>
-            <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">Read the architecture &rarr;</a>
+        <div class="llm-hero-grid">
+            <div class="llm-hero-copy">
+                <h1>Give your AI a body in the real world.</h1>
+                <p class="subhead">
+                    RakuAI is the runtime your model inhabits to build, simulate, and interact with a spatial world.
+                    Plug in via MCP — no custom integration. Multi-vendor by design: your model competes on quality, not integration depth.
+                </p>
+                <div class="llm-cta-row">
+                    <a href="/mcp" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">Plug in via MCP &rarr;</a>
+                    <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">Read the architecture &rarr;</a>
+                </div>
+            </div>
+            <div class="llm-hero-figure">
+                <svg class="llm-herofig" viewBox="0 0 520 300" width="100%" role="img" aria-labelledby="llm-herofig-title llm-herofig-desc" xmlns="http://www.w3.org/2000/svg">
+                    <title id="llm-herofig-title">Any foundation model gains a spatial body through RakuAI's MCP runtime</title>
+                    <desc id="llm-herofig-desc">Multiple AI vendors connect through a single MCP layer into the RakuAI spatial runtime, which gives the model a body that acts on smart glasses, headsets, and the browser.</desc>
+                    <defs>
+                        <linearGradient id="llmhf-h" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0" stop-color="#6c5ce7"/>
+                            <stop offset="1" stop-color="#00cec9"/>
+                        </linearGradient>
+                        <radialGradient id="llmhf-core" cx="50%" cy="40%" r="65%">
+                            <stop offset="0" stop-color="#a388ff"/>
+                            <stop offset="1" stop-color="#6c5ce7"/>
+                        </radialGradient>
+                    </defs>
+
+                    <!-- Left: the model + orbiting vendors -->
+                    <g class="lf-orbit lf-spin">
+                        <circle cx="70" cy="92" r="58" fill="none" stroke="#2a2a4a" stroke-width="1.4" stroke-dasharray="3 6"/>
+                        <circle cx="70" cy="34" r="8" fill="#111128" stroke="#6c5ce7" stroke-width="1.4"/>
+                        <circle cx="128" cy="92" r="8" fill="#111128" stroke="#00cec9" stroke-width="1.4"/>
+                        <circle cx="70" cy="150" r="8" fill="#111128" stroke="#a388ff" stroke-width="1.4"/>
+                        <circle cx="12" cy="92" r="8" fill="#111128" stroke="#6c5ce7" stroke-width="1.4"/>
+                    </g>
+                    <circle cx="70" cy="92" r="30" fill="url(#llmhf-core)"/>
+                    <text x="70" y="89" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">your</text>
+                    <text x="70" y="103" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif" font-size="11" font-weight="700">model</text>
+                    <text x="70" y="184" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="9">multi-vendor: Claude · GPT · Gemini · Grok</text>
+
+                    <!-- MCP bridge -->
+                    <line class="lf-pulse" x1="132" y1="92" x2="214" y2="92" stroke="url(#llmhf-h)" stroke-width="2.5" stroke-linecap="round"/>
+                    <g>
+                        <rect x="214" y="62" width="92" height="60" rx="13" fill="#111128" stroke="#a388ff" stroke-width="1.6"/>
+                        <text x="260" y="88" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="13" font-weight="700">MCP</text>
+                        <text x="260" y="104" text-anchor="middle" fill="#9090b0" font-family="ui-monospace,monospace" font-size="8">one contract</text>
+                        <text x="260" y="115" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="8">17 native tools</text>
+                    </g>
+                    <line class="lf-pulse" x1="306" y1="92" x2="378" y2="92" stroke="url(#llmhf-h)" stroke-width="2.5" stroke-linecap="round"/>
+
+                    <!-- Right: the body (runtime) -->
+                    <g class="lf-body">
+                        <rect x="378" y="52" width="126" height="80" rx="16" fill="#15152e" stroke="url(#llmhf-h)" stroke-width="2.2"/>
+                        <text x="441" y="84" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="12" font-weight="700">RakuAI body</text>
+                        <text x="441" y="100" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="8.5">scene graph · physics</text>
+                        <text x="441" y="113" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="8.5">acts every frame</text>
+                    </g>
+
+                    <!-- runtime to outputs -->
+                    <line x1="441" y1="132" x2="441" y2="176" stroke="url(#llmhf-h)" stroke-width="2"/>
+                    <line x1="150" y1="200" x2="441" y2="200" stroke="#222244" stroke-width="1.6"/>
+                    <line x1="441" y1="176" x2="441" y2="200" stroke="#222244" stroke-width="1.6"/>
+
+                    <g font-family="system-ui,sans-serif">
+                        <line x1="150" y1="200" x2="150" y2="222" stroke="#222244" stroke-width="1.6"/>
+                        <rect x="74" y="222" width="152" height="50" rx="11" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.4"/>
+                        <text x="150" y="243" text-anchor="middle" fill="#e8e8f0" font-size="10.5" font-weight="600">Smart glasses</text>
+                        <text x="150" y="258" text-anchor="middle" fill="#9090b0" font-size="9">real-world overlay</text>
+
+                        <line x1="296" y1="200" x2="296" y2="222" stroke="#222244" stroke-width="1.6"/>
+                        <rect x="232" y="222" width="128" height="50" rx="11" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.4"/>
+                        <text x="296" y="243" text-anchor="middle" fill="#e8e8f0" font-size="10.5" font-weight="600">Headset</text>
+                        <text x="296" y="258" text-anchor="middle" fill="#9090b0" font-size="9">VR / MR</text>
+
+                        <line x1="441" y1="200" x2="441" y2="222" stroke="#222244" stroke-width="1.6"/>
+                        <rect x="366" y="222" width="120" height="50" rx="11" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.4"/>
+                        <text x="426" y="243" text-anchor="middle" fill="#e8e8f0" font-size="10.5" font-weight="600">Browser</text>
+                        <text x="426" y="258" text-anchor="middle" fill="#9090b0" font-size="9">WebGL</text>
+                    </g>
+
+                    <!-- badge -->
+                    <g>
+                        <rect x="214" y="16" width="150" height="26" rx="13" fill="rgba(0,206,201,0.12)" stroke="rgba(0,206,201,0.4)" stroke-width="1"/>
+                        <text x="289" y="33" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="10" font-weight="600">MCP-native · multi-vendor</text>
+                    </g>
+                </svg>
+            </div>
         </div>
     </div>
 </section>
 
-<section class="llm-section">
+<section class="llm-section llm-section--first">
     <div class="container">
         <h2>Why MCP-native matters for LLM makers</h2>
-        <div class="llm-pillars">
-            <div class="llm-pillar">
-                <h3>1. Your model just works.</h3>
-                <p>If your assistant speaks MCP, it speaks RakuAI. 17 native tools. Same contract for every model. No custom integration.</p>
+        <div class="llm-carousel" role="group" aria-roledescription="carousel" aria-label="Why MCP-native matters">
+            <div class="llm-carousel-viewport">
+                <div class="llm-carousel-track" id="llm-carousel-track">
+
+                    <div class="llm-cslide" role="group" aria-roledescription="slide" aria-label="Slide 1 of 3: Your model just works">
+                        <span class="num">1</span>
+                        <h3>Your model just works.</h3>
+                        <p>If your assistant speaks MCP, it speaks RakuAI. 17 native tools (5 read-only + 12 mutation), the same contract for every model. No custom integration to write or maintain.</p>
+                    </div>
+
+                    <div class="llm-cslide" role="group" aria-roledescription="slide" aria-label="Slide 2 of 3: Multi-vendor by design">
+                        <span class="num">2</span>
+                        <h3>Multi-vendor by design.</h3>
+                        <p>Claude, ChatGPT, Gemini, Copilot — they all drive RakuAI the same way. Your model competes on quality of intent, not on how deeply it integrated. No lock-in on either side.</p>
+                    </div>
+
+                    <div class="llm-cslide" role="group" aria-roledescription="slide" aria-label="Slide 3 of 3: Production deny-by-default">
+                        <span class="num">3</span>
+                        <h3>Production deny-by-default.</h3>
+                        <p>Audit-logged and schema-validated. The 5 read-only tools work in production; the 12 mutation tools run in sandbox/dev. Nothing executes that you didn't explicitly permit.</p>
+                    </div>
+
+                </div>
             </div>
-            <div class="llm-pillar">
-                <h3>2. Multi-vendor by design.</h3>
-                <p>Claude, ChatGPT, Gemini, Copilot — they all drive RakuAI the same way. Your model competes on quality of intent.</p>
-            </div>
-            <div class="llm-pillar">
-                <h3>3. Production deny-by-default.</h3>
-                <p>Audit-logged. Schema-validated. Read-only tools work in production; mutation tools in sandbox/dev.</p>
+            <div class="llm-carousel-controls">
+                <button type="button" class="llm-carousel-btn" id="llm-carousel-prev" aria-label="Previous reason">&#8249;</button>
+                <div class="llm-carousel-dots" id="llm-carousel-dots" role="group" aria-label="Choose reason"></div>
+                <button type="button" class="llm-carousel-btn" id="llm-carousel-next" aria-label="Next reason">&#8250;</button>
             </div>
         </div>
     </div>
@@ -544,6 +728,59 @@
 <script src="/js/lang-selector.js" defer></script>
 
 
+<script>
+(function () {
+    var track = document.getElementById('llm-carousel-track');
+    if (!track) return;
+    var slides = Array.prototype.slice.call(track.children);
+    var dotsWrap = document.getElementById('llm-carousel-dots');
+    var prev = document.getElementById('llm-carousel-prev');
+    var next = document.getElementById('llm-carousel-next');
+    var index = 0;
+
+    var dots = slides.map(function (slide, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'llm-dot';
+        b.setAttribute('aria-label', 'Go to reason ' + (i + 1));
+        b.addEventListener('click', function () { go(i); });
+        dotsWrap.appendChild(b);
+        return b;
+    });
+
+    function go(i) {
+        index = (i + slides.length) % slides.length;
+        track.style.transform = 'translateX(' + (-index * 100) + '%)';
+        slides.forEach(function (s, n) {
+            s.setAttribute('aria-hidden', n === index ? 'false' : 'true');
+            s.inert = (n !== index);
+        });
+        dots.forEach(function (d, n) {
+            d.setAttribute('aria-current', n === index ? 'true' : 'false');
+        });
+    }
+
+    prev.addEventListener('click', function () { go(index - 1); });
+    next.addEventListener('click', function () { go(index + 1); });
+
+    var carousel = track.closest('.llm-carousel');
+    carousel.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1); }
+    });
+
+    var startX = null;
+    track.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', function (e) {
+        if (startX === null) return;
+        var dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 40) { go(dx < 0 ? index + 1 : index - 1); }
+        startX = null;
+    }, { passive: true });
+
+    go(0);
+})();
+</script>
 <script src="/js/nav-dropdown.js" defer></script>
     <script src="/js/section-nav.js" defer></script>
 </body>
