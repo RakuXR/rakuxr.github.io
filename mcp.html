@@ -19,15 +19,24 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .mcp-hero {
-            padding: 80px 0 56px;
-            background: linear-gradient(180deg, #0a0a1a 0%, #0d0d20 100%);
-            text-align: center;
+            padding: 40px 0 36px;
+            background:
+                radial-gradient(900px 360px at 78% 8%, rgba(108, 92, 231, 0.16), transparent 60%),
+                radial-gradient(700px 320px at 12% 95%, rgba(0, 206, 201, 0.10), transparent 60%),
+                linear-gradient(180deg, #0a0a1a 0%, #0d0d20 100%);
             border-bottom: 1px solid rgba(108, 92, 231, 0.25);
         }
+        .mcp-hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.05fr;
+            align-items: center;
+            gap: 40px;
+        }
+        .mcp-hero-copy { text-align: left; }
         .mcp-hero h1 {
-            font-size: 2.8rem;
-            line-height: 1.15;
-            margin-bottom: 20px;
+            font-size: clamp(2rem, 4.6vw, 2.9rem);
+            line-height: 1.12;
+            margin-bottom: 18px;
             background: linear-gradient(135deg, #a388ff, #00cec9);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -35,21 +44,57 @@
         }
         .mcp-hero p.subhead {
             color: var(--text-secondary);
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             line-height: 1.6;
-            max-width: 760px;
-            margin: 0 auto 32px;
+            max-width: 560px;
+            margin: 0 0 28px;
         }
         .mcp-cta-row {
             display: flex;
             gap: 14px;
-            justify-content: center;
             flex-wrap: wrap;
+        }
+        /* Animated hero figure: AI assistant -> MCP -> runtime -> output */
+        .mcp-herofig {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45));
+        }
+        .mcp-herofig .hf-node { transform-box: fill-box; transform-origin: center; }
+        .mcp-herofig .hf-pulse {
+            stroke-dasharray: 10 12;
+            animation: hf-dash 1.4s linear infinite;
+        }
+        .mcp-herofig .hf-packet {
+            animation: hf-travel 3.2s ease-in-out infinite;
+        }
+        .mcp-herofig .hf-runtime {
+            animation: hf-breathe 3.4s ease-in-out infinite;
+        }
+        @keyframes hf-dash { to { stroke-dashoffset: -44; } }
+        @keyframes hf-travel {
+            0%   { transform: translateX(0);   opacity: 0; }
+            8%   { opacity: 1; }
+            92%  { opacity: 1; }
+            100% { transform: translateX(840px); opacity: 0; }
+        }
+        @keyframes hf-breathe {
+            0%, 100% { opacity: 0.85; }
+            50%      { opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .mcp-herofig .hf-pulse,
+            .mcp-herofig .hf-packet,
+            .mcp-herofig .hf-runtime { animation: none; }
+            .mcp-herofig .hf-packet { opacity: 1; }
         }
         .mcp-section {
             padding: 64px 0;
             border-bottom: 1px solid #1f1f3a;
         }
+        /* Pull the first content block up tight under the hero */
+        .mcp-section--first { padding-top: 40px; }
         .mcp-section:last-of-type { border-bottom: none; }
         .mcp-section h2 {
             text-align: center;
@@ -216,8 +261,102 @@
             border-color: var(--accent);
             transform: translateY(-2px);
         }
+        /* ---- Tools carousel (dependency-free, accessible) ---- */
+        .mcp-carousel { max-width: 920px; margin: 0 auto; }
+        .mcp-carousel-viewport { overflow: hidden; border-radius: 16px; }
+        .mcp-carousel-track {
+            display: flex;
+            transition: transform 0.45s ease;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .mcp-carousel-track { transition: none; }
+        }
+        .mcp-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 16px;
+            padding: 28px 30px;
+        }
+        .mcp-slide-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .mcp-slide-head h3 { font-size: 1.2rem; margin: 0; color: var(--text-primary); }
+        .mcp-slide-count {
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 14px;
+        }
+        .mcp-chip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 10px;
+        }
+        .mcp-chip {
+            background: #0d0d1f;
+            border: 1px solid #2a2a4a;
+            border-radius: 9px;
+            padding: 10px 12px;
+            font-family: ui-monospace, monospace;
+            font-size: 0.85rem;
+            color: #a388ff;
+        }
+        .mcp-chip small {
+            display: block;
+            font-family: system-ui, sans-serif;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            margin-top: 3px;
+        }
+        .mcp-chip--ro { border-color: rgba(0, 206, 201, 0.45); color: #00cec9; }
+        .mcp-carousel-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin-top: 20px;
+        }
+        .mcp-carousel-btn {
+            background: var(--bg-secondary);
+            border: 1px solid #2a2a4a;
+            color: var(--accent-bright);
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .mcp-carousel-btn:hover { border-color: var(--accent); }
+        .mcp-carousel-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        .mcp-carousel-dots { display: flex; gap: 10px; }
+        .mcp-dot {
+            width: 11px; height: 11px;
+            border-radius: 50%;
+            border: 1px solid #3a3a5a;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+        }
+        .mcp-dot[aria-current="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
+        .mcp-dot:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+        @media (max-width: 760px) {
+            .mcp-hero-grid { grid-template-columns: 1fr; gap: 28px; }
+            .mcp-hero-copy { text-align: center; }
+            .mcp-hero p.subhead { margin-left: auto; margin-right: auto; }
+            .mcp-cta-row { justify-content: center; }
+            .mcp-hero-figure { order: -1; }
+        }
         @media (max-width: 700px) {
-            .mcp-hero h1 { font-size: 2.1rem; }
+            .mcp-hero h1 { font-size: 2.05rem; }
             .mcp-section h2 { font-size: 1.55rem; }
             table.mcp-tools th,
             table.mcp-tools td { padding: 10px 12px; font-size: 0.85rem; }
@@ -244,12 +383,12 @@
                         <div class="col-heading" role="presentation">By audience</div>
                         <div class="col-heading" role="presentation">Platform</div>
                         <ul class="col" role="group">
-                            <li role="none"><a role="menuitem" href="smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
-                            <li role="none"><a role="menuitem" href="llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
-                            <li role="none"><a role="menuitem" href="enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
-                            <li role="none"><a role="menuitem" href="creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
-                            <li role="none"><a role="menuitem" href="robotics.html">For Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
-                            <li role="none"><a role="menuitem" href="insurance.html">For Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
                             <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
                         </ul>
                         <ul class="col" role="group">
@@ -301,20 +440,99 @@
 
 <section class="mcp-hero">
     <div class="container">
-        <h1>Drive RakuAI from your AI assistant.</h1>
-        <p class="subhead">
-            17 native MCP tools (5 read-only + 12 mutation) plus universal <code>api_call</code>/<code>api_search</code> passthrough to ~9,500 REST endpoints. Production-deployed since March 2026. Deny-by-default permissions.
-            Full audit log. The runtime your AI talks to when it needs to build, query, or
-            simulate a spatial world.
-        </p>
-        <div class="mcp-cta-row">
-            <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">Read the build log &rarr;</a>
-            <a href="https://github.com/RakuXR/raku-runtime" target="_blank" rel="noopener" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">See it on GitHub &rarr;</a>
+        <div class="mcp-hero-grid">
+            <div class="mcp-hero-copy">
+                <h1>Drive RakuAI from your AI assistant.</h1>
+                <p class="subhead">
+                    17 native MCP tools (5 read-only + 12 mutation) plus universal <code>api_call</code>/<code>api_search</code> passthrough to ~9,500 REST endpoints. Production-deployed since March 2026. Deny-by-default, fully audit-logged.
+                </p>
+                <div class="mcp-cta-row">
+                    <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">Read the build log &rarr;</a>
+                    <a href="https://github.com/RakuXR/raku-runtime" target="_blank" rel="noopener" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">See it on GitHub &rarr;</a>
+                </div>
+            </div>
+            <div class="mcp-hero-figure">
+                <svg class="mcp-herofig" viewBox="0 0 520 300" width="100%" role="img" aria-labelledby="mcp-herofig-title mcp-herofig-desc" xmlns="http://www.w3.org/2000/svg">
+                    <title id="mcp-herofig-title">How RakuAI MCP connects an AI assistant to a spatial runtime</title>
+                    <desc id="mcp-herofig-desc">An AI assistant sends permission-gated, JSON-Schema requests over MCP to the RakuAI runtime, which steps a scene graph and physics simulation and renders to smart glasses, headsets, and the browser.</desc>
+                    <defs>
+                        <linearGradient id="mcphf-h" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0" stop-color="#6c5ce7"/>
+                            <stop offset="1" stop-color="#00cec9"/>
+                        </linearGradient>
+                        <linearGradient id="mcphf-rt" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#1a1a3a"/>
+                            <stop offset="1" stop-color="#13132c"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- connecting rails -->
+                    <line class="hf-pulse" x1="120" y1="92" x2="210" y2="92" stroke="url(#mcphf-h)" stroke-width="2.5" stroke-linecap="round"/>
+                    <line class="hf-pulse" x1="310" y1="92" x2="400" y2="92" stroke="url(#mcphf-h)" stroke-width="2.5" stroke-linecap="round"/>
+
+                    <!-- travelling intent packet -->
+                    <circle class="hf-packet" cx="120" cy="92" r="5" fill="#00cec9"/>
+
+                    <!-- Node 1: AI assistant -->
+                    <g class="hf-node">
+                        <rect x="20" y="56" width="100" height="72" rx="13" fill="#111128" stroke="#6c5ce7" stroke-width="1.6"/>
+                        <text x="70" y="86" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="12" font-weight="700">AI assistant</text>
+                        <text x="70" y="104" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="9">Claude · GPT</text>
+                        <text x="70" y="116" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="9">Gemini · Copilot</text>
+                    </g>
+
+                    <!-- Node 2: MCP -->
+                    <g class="hf-node">
+                        <rect x="210" y="56" width="100" height="72" rx="13" fill="#111128" stroke="#a388ff" stroke-width="1.6"/>
+                        <text x="260" y="84" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="13" font-weight="700">MCP</text>
+                        <text x="260" y="100" text-anchor="middle" fill="#9090b0" font-family="ui-monospace,monospace" font-size="8">stdio · JSON-Schema</text>
+                        <text x="260" y="114" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="8.5">permission-gated</text>
+                    </g>
+
+                    <!-- Node 3: RakuAI runtime -->
+                    <g class="hf-node hf-runtime">
+                        <rect x="400" y="50" width="104" height="84" rx="14" fill="url(#mcphf-rt)" stroke="url(#mcphf-h)" stroke-width="2.2"/>
+                        <text x="452" y="80" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="12" font-weight="700">RakuAI</text>
+                        <text x="452" y="95" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="12" font-weight="700">runtime</text>
+                        <text x="452" y="111" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="8.5">scene graph · physics</text>
+                    </g>
+
+                    <!-- runtime down to output rail -->
+                    <line x1="452" y1="134" x2="452" y2="176" stroke="url(#mcphf-h)" stroke-width="2"/>
+                    <line x1="120" y1="200" x2="452" y2="200" stroke="#222244" stroke-width="1.6"/>
+                    <line x1="452" y1="176" x2="452" y2="200" stroke="#222244" stroke-width="1.6"/>
+                    <text x="452" y="168" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="9" font-weight="600">renders to</text>
+
+                    <!-- Output devices -->
+                    <g font-family="system-ui,sans-serif">
+                        <line x1="120" y1="200" x2="120" y2="222" stroke="#222244" stroke-width="1.6"/>
+                        <rect x="40" y="222" width="160" height="52" rx="11" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.4"/>
+                        <text x="120" y="244" text-anchor="middle" fill="#e8e8f0" font-size="10.5" font-weight="600">Smart glasses</text>
+                        <text x="120" y="260" text-anchor="middle" fill="#9090b0" font-size="9">low-latency display</text>
+
+                        <line x1="286" y1="200" x2="286" y2="222" stroke="#222244" stroke-width="1.6"/>
+                        <rect x="206" y="222" width="160" height="52" rx="11" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.4"/>
+                        <text x="286" y="244" text-anchor="middle" fill="#e8e8f0" font-size="10.5" font-weight="600">Headset</text>
+                        <text x="286" y="260" text-anchor="middle" fill="#9090b0" font-size="9">VR / mixed reality</text>
+
+                        <line x1="452" y1="200" x2="452" y2="222" stroke="#222244" stroke-width="1.6"/>
+                        <rect x="372" y="222" width="108" height="52" rx="11" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.4"/>
+                        <text x="426" y="244" text-anchor="middle" fill="#e8e8f0" font-size="10.5" font-weight="600">Browser</text>
+                        <text x="426" y="260" text-anchor="middle" fill="#9090b0" font-size="9">WebGL</text>
+                    </g>
+
+                    <!-- tool badge -->
+                    <g>
+                        <rect x="20" y="14" width="148" height="26" rx="13" fill="rgba(0,206,201,0.12)" stroke="rgba(0,206,201,0.4)" stroke-width="1"/>
+                        <text x="94" y="31" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="10.5" font-weight="600">17 native tools · audit-logged</text>
+                    </g>
+                </svg>
+            </div>
         </div>
     </div>
 </section>
 
-<section class="mcp-section">
+<section class="mcp-section mcp-section--first">
     <div class="container">
         <h2>How it works</h2>
         <p class="section-lead">
@@ -516,6 +734,76 @@
     </div>
 </section>
 
+<section class="mcp-section">
+    <div class="container">
+        <h2>The surface at a glance</h2>
+        <p class="section-lead">
+            17 native tools, grouped by what they're allowed to do. Swipe or use the arrows.
+        </p>
+        <div class="mcp-carousel" role="group" aria-roledescription="carousel" aria-label="RakuAI MCP tool groups">
+            <div class="mcp-carousel-viewport">
+                <div class="mcp-carousel-track" id="mcp-carousel-track">
+
+                    <div class="mcp-slide" role="group" aria-roledescription="slide" aria-label="Slide 1 of 3: Read-only tools">
+                        <div class="mcp-slide-head">
+                            <h3>5 read-only tools</h3>
+                            <span class="mcp-slide-count mcp-perm mcp-perm--all">Work in all modes, including production</span>
+                        </div>
+                        <div class="mcp-chip-grid">
+                            <div class="mcp-chip mcp-chip--ro">get_scene_state<small>Scene-graph snapshot</small></div>
+                            <div class="mcp-chip mcp-chip--ro">capture_scene<small>Color · depth · segmentation</small></div>
+                            <div class="mcp-chip mcp-chip--ro">get_metrics<small>Frame time · draw calls · latency</small></div>
+                            <div class="mcp-chip mcp-chip--ro">xr_get_session<small>Headset / glasses session</small></div>
+                            <div class="mcp-chip mcp-chip--ro">xr_list_anchors<small>Spatial anchors in session</small></div>
+                        </div>
+                    </div>
+
+                    <div class="mcp-slide" role="group" aria-roledescription="slide" aria-label="Slide 2 of 3: Mutation tools">
+                        <div class="mcp-slide-head">
+                            <h3>12 mutation tools</h3>
+                            <span class="mcp-slide-count mcp-perm mcp-perm--sandbox">Deny-by-default · sandbox / dev</span>
+                        </div>
+                        <div class="mcp-chip-grid">
+                            <div class="mcp-chip">add_scene_node</div>
+                            <div class="mcp-chip">update_scene_node</div>
+                            <div class="mcp-chip">set_node_transform</div>
+                            <div class="mcp-chip">remove_scene_node</div>
+                            <div class="mcp-chip">load_world_model</div>
+                            <div class="mcp-chip">ingest_frame</div>
+                            <div class="mcp-chip">set_render_target</div>
+                            <div class="mcp-chip">start_simulation</div>
+                            <div class="mcp-chip">xr_set_head_pose</div>
+                            <div class="mcp-chip">xr_simulate_input</div>
+                            <div class="mcp-chip">xr_create_anchor</div>
+                            <div class="mcp-chip">xr_remove_anchor</div>
+                        </div>
+                    </div>
+
+                    <div class="mcp-slide" role="group" aria-roledescription="slide" aria-label="Slide 3 of 3: The pipeline">
+                        <div class="mcp-slide-head">
+                            <h3>The pipeline</h3>
+                            <span class="mcp-slide-count mcp-perm mcp-perm--all">Assistant → runtime → output</span>
+                        </div>
+                        <div class="mcp-chip-grid">
+                            <div class="mcp-chip mcp-chip--ro">1 · Assistant<small>Speaks MCP over stdio</small></div>
+                            <div class="mcp-chip mcp-chip--ro">2 · MCP layer<small>JSON-Schema · permission-gated</small></div>
+                            <div class="mcp-chip mcp-chip--ro">3 · Runtime<small>Scene graph + physics step</small></div>
+                            <div class="mcp-chip mcp-chip--ro">4 · Output<small>Glasses · headset · browser</small></div>
+                            <div class="mcp-chip mcp-chip--ro">+ Passthrough<small>api_call / api_search → ~9,500 endpoints</small></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="mcp-carousel-controls">
+                <button type="button" class="mcp-carousel-btn" id="mcp-carousel-prev" aria-label="Previous slide">&#8249;</button>
+                <div class="mcp-carousel-dots" id="mcp-carousel-dots" role="tablist" aria-label="Choose tool group"></div>
+                <button type="button" class="mcp-carousel-btn" id="mcp-carousel-next" aria-label="Next slide">&#8250;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="mcp-section" style="background: var(--bg-secondary);">
     <div class="container">
         <h2>vs Unity MCP</h2>
@@ -662,6 +950,64 @@
 </footer>
 
 
+<script>
+(function () {
+    var track = document.getElementById('mcp-carousel-track');
+    if (!track) return;
+    var slides = Array.prototype.slice.call(track.children);
+    var dotsWrap = document.getElementById('mcp-carousel-dots');
+    var prev = document.getElementById('mcp-carousel-prev');
+    var next = document.getElementById('mcp-carousel-next');
+    var index = 0;
+
+    var dots = slides.map(function (slide, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'mcp-dot';
+        b.setAttribute('role', 'tab');
+        b.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+        b.addEventListener('click', function () { go(i); });
+        dotsWrap.appendChild(b);
+        return b;
+    });
+
+    function go(i) {
+        index = (i + slides.length) % slides.length;
+        track.style.transform = 'translateX(' + (-index * 100) + '%)';
+        slides.forEach(function (s, n) {
+            s.setAttribute('aria-hidden', n === index ? 'false' : 'true');
+            // keep focusable content reachable only on the active slide
+            s.inert = (n !== index);
+        });
+        dots.forEach(function (d, n) {
+            d.setAttribute('aria-current', n === index ? 'true' : 'false');
+            d.setAttribute('aria-selected', n === index ? 'true' : 'false');
+        });
+    }
+
+    prev.addEventListener('click', function () { go(index - 1); });
+    next.addEventListener('click', function () { go(index + 1); });
+
+    // keyboard arrows when focus is within the carousel
+    var carousel = track.closest('.mcp-carousel');
+    carousel.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { go(index - 1); prev.focus(); }
+        else if (e.key === 'ArrowRight') { go(index + 1); next.focus(); }
+    });
+
+    // basic touch/swipe
+    var startX = null;
+    track.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', function (e) {
+        if (startX === null) return;
+        var dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 40) { go(dx < 0 ? index + 1 : index - 1); }
+        startX = null;
+    }, { passive: true });
+
+    go(0);
+})();
+</script>
 <script src="/js/nav-dropdown.js" defer></script>
 <script src="/js/auth-nav.js" defer></script>
 <script src="/js/lang-selector.js" defer></script>
