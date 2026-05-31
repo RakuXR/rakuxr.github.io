@@ -63,10 +63,11 @@
       // Only top-level content sections (skip sections nested inside another section).
       if (sec.parentElement && sec.parentElement.closest("section")) return;
       var heading = sec.querySelector("h2, h1");
-      if (!heading) return;
+      var customLabel = (sec.getAttribute("data-section-nav-label") || "").trim();
+      if (!heading && !customLabel) return;
       if (!isVisible(sec)) return;
 
-      var label = labelFor(heading);
+      var label = customLabel || labelFor(heading);
       if (!label) return;
 
       var id = sec.id;
