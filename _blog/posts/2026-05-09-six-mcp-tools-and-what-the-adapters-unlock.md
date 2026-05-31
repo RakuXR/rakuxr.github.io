@@ -1,12 +1,16 @@
 ---
-title: "Six MCP Tools, and What the Adapters Unlock Next"
+title: "Six MCP Tools, and What the Adapters Unlock Next (now 17)"
 date: 2026-05-09
 author: Kevin Griffin
 tags: [mcp, model-context-protocol, partners, adapters, ai-native, weekend-build]
-description: "The runtime has been speaking Model Context Protocol since late March. Six tools, stdio transport, deny-by-default permissions, full audit log. The server is the boundary any external agent uses to drive the engine. This Saturday is about what the next layer looks like: real adapters, real partner integrations, and an MCP-first developer story instead of an MCP-bolted-on one. This is the MCP runtime LLM makers build against."
+description: "The runtime has been speaking Model Context Protocol since late March. It started with six tools over stdio transport, deny-by-default permissions, full audit log -- and has since grown to 17 native MCP tools. The server is the boundary any external agent uses to drive the engine. This post is the six-tool snapshot and what the next layer of real adapters and partner integrations unlocks. This is the MCP runtime LLM makers build against."
 series: learning-to-code-with-ai
 slug: six-mcp-tools-and-what-the-adapters-unlock
 ---
+
+<aside class="post-update" style="border-left:4px solid #6c5ce7;background:rgba(108,92,231,0.08);padding:1rem 1.25rem;margin:1.25rem 0;border-radius:8px;">
+<p><strong>Update &mdash; May 30, 2026.</strong> The &ldquo;what the adapters unlock next&rdquo; bet landed. The six tools described below were the starting contract; the production MCP server now exposes <strong>17 native MCP tools</strong> (5 read-only + 12 mutation), plus a universal <code>api_call</code>/<code>api_search</code> passthrough to the rest of the runtime API. The post stands as written &mdash; it was the snapshot at six &mdash; and this is the prediction coming true. For the runtime's MCP tool breakdown, see the <a href="/smart-glasses.html">platform overview</a>.</p>
+</aside>
 
 <figure class="post-hero">
 <svg viewBox="0 0 1200 480" role="img" aria-label="Six MCP tools forming the contract any external agent uses to drive the runtime" xmlns="http://www.w3.org/2000/svg">
