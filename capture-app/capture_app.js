@@ -173,6 +173,12 @@ const state = {
   errorMessageKey: null,  // i18n key of the current error, when it came from a key
   errorMessageParams: null,// params for that key
   errorMessageText: null, // literal error text when it did NOT come from a key
+  errorRaw: null,         // raw backend/network error string -> diagnosis + technical details
+  errorStage: null,       // last-known proc stage when the failure happened
+  errorDiagShown: false,  // true once the user taps "What happened?" (consent-gated)
+  procStartedAt: null,    // performance.now() when processing (post-upload) began -> elapsed timer
+  procElapsedMs: 0,       // elapsed ms in the current processing run, snapshot for the renderer
+  procSlowHint: false,    // 10-min+ : the existing "still working" reassurance is active
   introSampleName: null,  // label of the intro preview sample, for its caption
 
   // ---- metric-scale calibration ------------------------------------------
@@ -236,15 +242,53 @@ function showError(message) {
     state.errorMessageKey = message.key || null;
     state.errorMessageParams = message.params || null;
     state.errorMessageText = null;
+    // The raw backend/network detail (when present) drives both the diagnosis
+    // rule table and the collapsible "technical details".
+    state.errorRaw = (message.params && message.params.detail) || message.raw || null;
     text = t(message.key, message.params, message.fallback);
   } else {
     state.errorMessageKey = null;
     state.errorMessageParams = null;
     state.errorMessageText = message || null;
+    state.errorRaw = message || null;
     text = message || t('error.generic', null, 'Something went wrong.');
   }
+  // Snapshot the stage we were in when it failed (drives stage-aware rules),
+  // and reset the consent-gated diagnosis + collapsible details for this error.
+  state.errorStage = state.procStage || null;
+  state.errorDiagShown = false;
+  const techWrap = $('error-technical');
+  if (techWrap) techWrap.hidden = true;
   $('error-message').textContent = text;
+  applyErrorDiagnostics();
   showPhase(Phase.ERROR);
+}
+
+/**
+ * Rule-based, client-side failure diagnosis (v1). Maps the raw error string +
+ * last-known stage to a plain-English cause + concrete next action, returned as
+ * an i18n key so it re-renders on a locale switch. Pure string matching on data
+ * the client already has — no telemetry, no network.
+ */
+function diagnoseFailureKey(rawError, lastStage) {
+  const e = String(rawError || '').toLowerCase();
+
+  // Timeout / out-of-time on current capacity. Checked first because a timeout
+  // message often also mentions "reconstruct".
+  if (/timeout|timed out|timed-out|deadline|took too long|time limit|1500|time.*exceed|exceed.*time/.test(e)) {
+    return 'error.diagTimeout';
+  }
+  // Upload / network error.
+  if (/network|upload|connection|connect|offline|disconnect|lost contact|unreachable|fetch|http 5\d\d|http 4\d\d|\(http \d/.test(e)) {
+    return 'error.diagNetwork';
+  }
+  // Too-few / low-overlap frames or COLMAP structure-from-motion failure.
+  if (/colmap|sfm|structure[- ]?from[- ]?motion|feature|match|overlap|too few|insufficient|not enough|register|frames?|reconstruct|alignment|\balign/.test(e)
+      || lastStage === 'analyzing') {
+    return 'error.diagSfm';
+  }
+  // Unknown / other.
+  return 'error.diagUnknown';
 }
 
 /** Re-render the error screen's message in the active locale. */
@@ -257,6 +301,40 @@ function applyErrorMessage() {
     el.textContent = state.errorMessageText; // literal text — not localizable
   } else {
     el.textContent = t('error.generic', null, 'Something went wrong.');
+  }
+  applyErrorDiagnostics();
+}
+
+/**
+ * Render the failure-diagnostics affordances: the "What happened?" button, the
+ * consent-gated plain-English diagnosis, and the collapsible "technical details"
+ * holding the raw error. Idempotent; safe to call on locale change.
+ */
+function applyErrorDiagnostics() {
+  const diagEl = $('error-diagnosis');
+  const diagBtn = $('btn-diagnose');
+  const detailsBtn = $('btn-error-details');
+  const techWrap = $('error-technical');
+  const detailEl = $('error-detail');
+
+  const hasRaw = !!(state.errorRaw && String(state.errorRaw).trim());
+  const diagKey = diagnoseFailureKey(state.errorRaw, state.errorStage);
+
+  if (diagEl) {
+    diagEl.textContent = t(diagKey, null, 'We hit an unexpected error.');
+    diagEl.hidden = !state.errorDiagShown;
+  }
+  if (diagBtn) {
+    diagBtn.textContent = t('error.diagnose', null, 'What happened?');
+    diagBtn.hidden = state.errorDiagShown; // offer it only while still hidden
+  }
+  if (detailEl) detailEl.textContent = hasRaw ? String(state.errorRaw) : '';
+  if (detailsBtn) {
+    detailsBtn.hidden = !hasRaw; // only when there is a raw error to show
+    const open = techWrap && !techWrap.hidden;
+    detailsBtn.textContent = open
+      ? t('error.hideDetails', null, 'Hide technical details')
+      : t('error.showDetails', null, 'Show technical details');
   }
 }
 
@@ -1395,6 +1473,9 @@ async function runPipeline() {
 
     state.procStage = null;          // no stage reported yet
     state.procPct = 0;
+    state.procStartedAt = performance.now(); // drives the elapsed timer
+    state.procElapsedMs = 0;
+    state.procSlowHint = false;
     showPhase(Phase.PROCESSING);
     applyProcessingLabels();         // default copy in the active locale
     state.splatUrl = await pollReconstruction(
@@ -1402,6 +1483,8 @@ async function runPipeline() {
       (stage, pct) => {
         state.procStage = stage;
         state.procPct = pct;
+        state.procElapsedMs = state.procStartedAt
+          ? performance.now() - state.procStartedAt : 0;
         setFill('processing-fill', pct);
         applyProcessingLabels();
       },
@@ -1471,48 +1554,143 @@ function applyUploadLabel() {
   }
 }
 
-/** PROCESSING — stage-specific title + label, or the default copy pre-stage. */
-function _appendSlowHint(text) {
-  if (state.procSlowHint) {
-    const hint = window.RakuI18n ? window.RakuI18n.t('processing.slowHint', null,
-      'Still working — slow scenes can take 20+ minutes. We will not give up while the server is making progress.')
-      : 'Still working — slow scenes can take 20+ minutes. We will not give up while the server is making progress.';
-    return text + '\n' + hint;
+// ---------------------------------------------------------------------------
+// PROCESSING — honest, named-stage display
+// ---------------------------------------------------------------------------
+// The backend reports per-stage `progress` (0..1) that RESETS between stages,
+// and for the real COLMAP backend the reconstructing-stage progress is a
+// time-elapsed/timeout estimate capped at ~0.85. Rendering either as one smooth
+// 0→100% bar lies to the user (looks like it jumps to ~99% then restarts, or
+// sits "stuck at 85%"). So: NAMED, ORDERED stages with a "Step N of M" header;
+// the bar is labelled as the current stage so a reset reads as "next step", not
+// "restarted"; and for reconstruction we drop the misleading number for an
+// indeterminate "working" indicator + honest copy. Fake progress is forbidden.
+
+// User-facing ordered stages. Backend statuses queued|analyzing|reconstructing
+// map onto the first three; 'finalizing' is shown when reconstruction hits 1.0
+// (just before 'ready').
+const PROC_STAGES = ['queued', 'analyzing', 'reconstructing', 'finalizing'];
+
+// Thresholds (ms) for honest, escalating "limited compute" messaging while in
+// the reconstructing stage. The existing 10-min slowHint is preserved and wins
+// over these when active.
+const COMPUTE_NOTICE_MS = 75 * 1000;              // ~75s -> shared-compute notice
+const COMPUTE_STILL_WORKING_MS = 5 * 60 * 1000;   // 5 min -> still-working reassurance
+
+function _formatElapsed(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+// Map a reported stage string to our ordered user-facing stage.
+function _userStage(stage) {
+  if (stage === 'queued') return 'queued';
+  if (stage === 'analyzing') return 'analyzing';
+  if (stage === 'reconstructing') {
+    return (state.procPct >= 1) ? 'finalizing' : 'reconstructing';
   }
-  return text;
+  return stage || 'queued';
 }
 
 function applyProcessingLabels() {
   const titleEl = $('processing-title');
   const labelEl = $('processing-label');
-  const stage = state.procStage;
+  const stageEl = $('processing-stage');
+  const trackEl = $('processing-track');
+  const fillEl = $('processing-fill');
+  const elapsedEl = $('processing-elapsed');
+  const noticeEl = $('processing-notice');
+  const rawStage = state.procStage;
 
+  // Pre-stage (upload just finished, nothing reported yet): default copy only.
+  if (rawStage == null) {
+    if (titleEl) titleEl.textContent = t('processing.titleDefault', null, 'Analyzing footage');
+    if (stageEl) stageEl.textContent = '';
+    if (labelEl) labelEl.textContent = t('processing.labelDefault', null, 'This usually takes a minute or two…');
+    if (trackEl) trackEl.classList.remove('is-indeterminate');
+    if (elapsedEl) elapsedEl.textContent = '';
+    if (noticeEl) { noticeEl.textContent = ''; noticeEl.hidden = true; }
+    return;
+  }
+
+  const uStage = _userStage(rawStage);
+  const idx = PROC_STAGES.indexOf(uStage);
+  const stepNo = idx >= 0 ? idx + 1 : 1;
+  const total = PROC_STAGES.length;
+  const isRecon = uStage === 'reconstructing';
+
+  // Title: the named stage.
   if (titleEl) {
-    const titleKey = stage == null
-      ? 'processing.titleDefault'
-      : stage === 'analyzing'
-        ? 'processing.titleAnalyzing'
-        : stage === 'reconstructing'
-          ? 'processing.titleReconstructing'
-          : 'processing.titleGeneric';
+    const titleKey = uStage === 'analyzing'
+      ? 'processing.titleAnalyzing'
+      : uStage === 'reconstructing'
+        ? 'processing.titleReconstructing'
+        : uStage === 'finalizing'
+          ? 'processing.titleFinalizing'
+          : uStage === 'queued'
+            ? 'processing.titleQueued'
+            : 'processing.titleGeneric';
     titleEl.textContent = t(titleKey, null, 'Processing');
   }
 
+  // "Step N of M: <stage name>" so a per-stage progress reset reads as moving
+  // to the next step, not restarting.
+  if (stageEl) {
+    const stageName = t('processing.stage_' + uStage, null,
+      uStage.charAt(0).toUpperCase() + uStage.slice(1));
+    stageEl.textContent = t('processing.stepOf', { n: stepNo, total: total, label: stageName },
+      'Step ' + stepNo + ' of ' + total + ': ' + stageName);
+  }
+
+  // The bar: indeterminate for reconstruction (its number is a capped
+  // time-estimate, not real completion); a real per-stage % otherwise.
+  if (trackEl) trackEl.classList.toggle('is-indeterminate', isRecon);
+  if (isRecon && fillEl) fillEl.style.width = ''; // let the animation own the band
+
+  // Label under the bar.
   if (labelEl) {
-    if (stage == null) {
-      labelEl.textContent =
-        t('processing.labelDefault', null, 'This usually takes a minute or two…');
+    if (isRecon) {
+      labelEl.textContent = t('processing.labelReconstructingWorking', null,
+        'Reconstructing… (this is the longest step)');
+    } else if (uStage === 'finalizing') {
+      labelEl.textContent = t('processing.labelFinalizing', null, 'Finalizing…');
+    } else if (uStage === 'queued') {
+      labelEl.textContent = t('processing.labelQueued', null, 'Waiting for a free worker…');
     } else {
       const pct = ((state.procPct || 0) * 100).toFixed(1);
-      const labelKey = stage === 'reconstructing'
-        ? 'processing.labelReconstructing'
-        : 'processing.labelAnalyzing';
-      const fallbackBase = stage === 'reconstructing'
-        ? 'Building Gaussian splats'
-        : 'Finding camera poses and features';
-      labelEl.textContent =
-        t(labelKey, { pct: pct }, fallbackBase + '… ' + pct + '%');
+      labelEl.textContent = t('processing.labelAnalyzing', { pct: pct },
+        'Finding camera poses and features… ' + pct + '%');
     }
+  }
+
+  // Elapsed timer.
+  const elapsedMs = state.procElapsedMs || 0;
+  if (elapsedEl) {
+    elapsedEl.textContent = elapsedMs > 0
+      ? t('processing.elapsed', { time: _formatElapsed(elapsedMs) }, 'Elapsed ' + _formatElapsed(elapsedMs))
+      : '';
+  }
+
+  // Honest, escalating "limited compute" notice — only during reconstruction.
+  if (noticeEl) {
+    let notice = '';
+    if (isRecon) {
+      if (state.procSlowHint) {
+        // 10-min+ : reuse the existing strongest reassurance.
+        notice = t('processing.slowHint', null,
+          'Still working — slow scenes can take 20+ minutes. We will not give up while the server is making progress.');
+      } else if (elapsedMs > COMPUTE_STILL_WORKING_MS) {
+        notice = t('processing.computeStillWorking', null,
+          'This is taking longer than usual, but your scan is still being processed. We are compute-limited right now, not broken — thanks for your patience.');
+      } else if (elapsedMs > COMPUTE_NOTICE_MS) {
+        notice = t('processing.computeNotice', null,
+          'Reconstruction runs on our shared compute and can take several minutes right now — we are scaling up GPU capacity. Your scan is still processing.');
+      }
+    }
+    noticeEl.textContent = notice;
+    noticeEl.hidden = notice === '';
   }
 }
 
@@ -1698,6 +1876,25 @@ function bindEvents() {
     resetScaleState();
     showPhase(Phase.INTRO);
   });
+
+  // Failure diagnostics. "What happened?" reveals the plain-English cause+fix
+  // (consent-gated — nothing shown or sent until the user asks).
+  const diagBtn = $('btn-diagnose');
+  if (diagBtn) {
+    diagBtn.addEventListener('click', () => {
+      state.errorDiagShown = true;
+      applyErrorDiagnostics();
+    });
+  }
+  // Collapsible "technical details" toggle (raw error string).
+  const detailsBtn = $('btn-error-details');
+  if (detailsBtn) {
+    detailsBtn.addEventListener('click', () => {
+      const wrap = $('error-technical');
+      if (wrap) wrap.hidden = !wrap.hidden;
+      applyErrorDiagnostics();
+    });
+  }
 
   // Viewer toolbar.
   $('btn-new-capture').addEventListener('click', () => {
