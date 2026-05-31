@@ -661,6 +661,7 @@
                     <label for="ent-tier">Vertical / Need *</label>
                     <select id="ent-tier" name="tier_selection" required aria-label="Vertical or need">
                         <option value="" disabled selected>Select a vertical / need</option>
+                        <option value="Capture + Query">Capture + Query &mdash; One-pass phone capture &amp; MCP query</option>
                         <option value="Insurance">Insurance &mdash; Claims &amp; contents inventory</option>
                         <option value="Retail / Facilities">Retail &amp; Facilities &mdash; Space planning, change detection</option>
                         <option value="Robotics">Robotics &mdash; Persistent spatial memory</option>
@@ -914,25 +915,27 @@
             btn.setAttribute('role', 'tab');
             btn.setAttribute('aria-label', 'Topic ' + (i + 1));
             btn.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
-            btn.addEventListener('click', function() { goTo(i); });
+            btn.addEventListener('click', function() { goTo(i, true); });
             dotsWrap.appendChild(btn);
             dots.push(btn);
         });
 
-        function goTo(idx) {
+        function goTo(idx, shouldFocus) {
             current = (idx + slides.length) % slides.length;
             track.style.transform = 'translateX(-' + (current * 100) + '%)';
             dots.forEach(function(d, i) { d.setAttribute('aria-selected', i === current ? 'true' : 'false'); });
-            slides[current].focus({ preventScroll: true });
+            if (shouldFocus) {
+                slides[current].focus({ preventScroll: true });
+            }
         }
 
         root.querySelectorAll('.rk-carousel-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {
-                goTo(current + (btn.dataset.dir === 'next' ? 1 : -1));
+                goTo(current + (btn.dataset.dir === 'next' ? 1 : -1), true);
             });
         });
 
-        goTo(0);
+        goTo(0, false);
     }
 
     document.querySelectorAll('.rk-carousel').forEach(initCarousel);
