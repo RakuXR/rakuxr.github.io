@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>RakuAI for Real Estate — Turn Any Listing Into an Explorable, Askable 3D Space</title>
+    <meta name="description" content="Scan a listing with a phone — no $300 rig — and turn it into an explorable 3D Gaussian-splat walkthrough that buyers can ask questions about via any LLM. Differentiated from Matterport: phone-only capture, LLM-queryable over MCP, multi-vendor. Honest, pre-revenue, early-access framing.">
+    <meta name="keywords" content="real estate 3D tour, phone listing scan, Gaussian splat real estate, virtual tour without Matterport, LLM queryable listing, MCP property tour, agent 3D walkthrough, no special camera 3D tour">
+    <meta property="og:title" content="RakuAI for Real Estate — Turn Any Listing Into an Explorable, Askable 3D Space">
+    <meta property="og:description" content="Phone scan → explorable 3D listing buyers can ask questions about via any LLM. Phone, not a $300 rig. LLM-queryable over MCP. Multi-vendor. Early access.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/real-estate.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RakuAI for Real Estate — Turn Any Listing Into an Explorable, Askable 3D Space">
+    <meta name="twitter:description" content="Phone scan → explorable 3D listing buyers can ask questions about via any LLM. Phone, not a $300 rig. Multi-vendor. Early access.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/real-estate.html">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .re-section {
+            padding: 72px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .re-section:last-of-type { border-bottom: none; }
+        .re-hero {
+            padding: 40px 0 56px;
+            text-align: center;
+        }
+        .re-hero .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            padding: 6px 14px;
+            border: 1px solid rgba(108, 92, 231, 0.45);
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+        .re-hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .re-hero .subhead {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            line-height: 1.65;
+            max-width: 820px;
+            margin: 0 0 24px;
+        }
+        .re-hero .audience-line {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 720px;
+            margin: 18px 0 0;
+            opacity: 0.85;
+            font-style: italic;
+        }
+        /* Hero split */
+        .re-hero-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 40px;
+            align-items: center;
+            text-align: left;
+        }
+        .re-hero-grid .re-hero-copy { min-width: 0; }
+        .re-hero-figure {
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            display: block;
+            height: auto;
+        }
+        .re-hero-figure svg { width: 100%; height: auto; display: block; }
+        .re-scan-beam {
+            transform-box: view-box;
+            transform-origin: 316px 250px;
+            animation: reScanSweep 2.8s ease-in-out infinite;
+        }
+        @keyframes reScanSweep {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(14deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .re-scan-beam { animation: none; transform: rotate(2deg); }
+        }
+        @media (max-width: 860px) {
+            .re-hero-grid { grid-template-columns: 1fr; text-align: center; gap: 28px; }
+            .re-hero-copy .subhead, .re-hero-copy .audience-line { margin-left: auto; margin-right: auto; }
+            .re-hero-figure { max-width: 360px; order: -1; }
+        }
+        .re-cta-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+        .re-btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .re-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4); }
+        .re-btn-secondary {
+            display: inline-block;
+            background: transparent;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.15s ease;
+        }
+        .re-btn-secondary:hover { background: rgba(163, 136, 255, 0.1); }
+        .re-section h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .re-section .re-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 760px;
+            margin: 0 auto 40px;
+        }
+
+        /* How it works steps */
+        .re-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .re-step {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 24px 24px;
+        }
+        .re-step .re-step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: rgba(108, 92, 231, 0.12);
+            color: var(--accent-bright);
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .re-step h4 { color: var(--text-primary); font-size: 1.05rem; margin-bottom: 6px; }
+        .re-step p { color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; margin: 0; }
+
+        /* Differentiation matrix */
+        .re-matrix-wrap {
+            max-width: 1000px;
+            margin: 0 auto;
+            overflow-x: auto;
+            border: 1px solid #222244;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+        .re-matrix { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 0.95rem; }
+        .re-matrix th, .re-matrix td {
+            padding: 14px 18px; text-align: left;
+            border-bottom: 1px solid #222244; vertical-align: top;
+        }
+        .re-matrix thead th {
+            background: rgba(108, 92, 231, 0.08);
+            color: var(--accent-bright);
+            font-weight: 700; font-size: 0.92rem; white-space: nowrap;
+        }
+        .re-matrix tbody th {
+            color: var(--text-primary); font-weight: 600;
+            background: rgba(255, 255, 255, 0.015); min-width: 200px;
+        }
+        .re-matrix td { color: var(--text-secondary); }
+        .re-matrix .yes { color: var(--success); font-weight: 600; }
+        .re-matrix tr:last-child th, .re-matrix tr:last-child td { border-bottom: none; }
+
+        /* ROI / use-case cards */
+        .re-usecases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .re-usecase {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 26px;
+        }
+        .re-usecase h3 { color: var(--accent-bright); font-size: 1.2rem; margin-bottom: 10px; }
+        .re-usecase p { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin: 0; }
+
+        /* Honest framing callout */
+        .re-honest {
+            max-width: 820px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-left: 4px solid var(--accent-bright);
+            border-radius: 8px;
+            padding: 24px 28px;
+        }
+        .re-honest h3 { color: var(--accent-bright); font-size: 1.15rem; margin-bottom: 10px; }
+        .re-honest ul { margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem; }
+        .re-honest li { margin-bottom: 8px; }
+
+        /* Cross-links */
+        .re-crosslinks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .re-crosslink {
+            display: block;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px 22px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: border-color 0.15s ease, transform 0.15s ease;
+        }
+        .re-crosslink:hover { border-color: var(--accent-bright); transform: translateY(-2px); }
+        .re-crosslink .label { color: var(--accent-bright); font-weight: 700; margin-bottom: 6px; font-size: 1rem; }
+        .re-crosslink .desc { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; }
+
+        /* Infographic carousel (dependency-free) */
+        .re-carousel { max-width: 920px; margin: 0 auto; position: relative; }
+        .re-carousel-viewport {
+            overflow: hidden;
+            border: 1px solid #222244;
+            border-radius: 14px;
+            background: var(--bg-secondary);
+        }
+        .re-carousel-track { display: flex; transition: transform 0.45s ease; }
+        @media (prefers-reduced-motion: reduce) { .re-carousel-track { transition: none; } }
+        .re-slide {
+            flex: 0 0 100%;
+            min-width: 100%;
+            box-sizing: border-box;
+            padding: 36px 40px;
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 28px;
+            align-items: center;
+        }
+        .re-slide .re-slide-art { width: 100%; height: auto; }
+        .re-slide .re-slide-art svg { width: 100%; height: auto; display: block; }
+        .re-slide h3 { color: var(--accent-bright); font-size: 1.25rem; margin: 0 0 10px; }
+        .re-slide p { color: var(--text-secondary); font-size: 0.98rem; line-height: 1.6; margin: 0; }
+        .re-slide .re-slide-step {
+            display: inline-block; font-size: 0.72rem; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--success); margin-bottom: 8px;
+        }
+        .re-carousel-controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+        .re-carousel-btn {
+            background: var(--bg-secondary); border: 1px solid #2c2c50;
+            color: var(--accent-bright); width: 42px; height: 42px;
+            border-radius: 999px; font-size: 1.1rem; cursor: pointer; line-height: 1;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .re-carousel-btn:hover { border-color: var(--accent-bright); }
+        .re-carousel-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        .re-carousel-dots { display: flex; gap: 10px; }
+        .re-carousel-dot {
+            width: 11px; height: 11px; border-radius: 999px;
+            border: 1px solid #3a3a66; background: transparent; padding: 0; cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .re-carousel-dot[aria-selected="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
+        .re-carousel-dot:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        @media (max-width: 620px) {
+            .re-slide { grid-template-columns: 1fr; padding: 28px 22px; text-align: center; gap: 16px; }
+            .re-slide .re-slide-art { max-width: 130px; margin: 0 auto; }
+        }
+
+        @media (max-width: 768px) {
+            .re-hero { padding: 28px 0 40px; }
+            .re-section { padding: 56px 0; }
+            .re-matrix th, .re-matrix td { padding: 11px 12px; font-size: 0.88rem; }
+        }
+        @media (max-width: 480px) {
+            .re-cta-row { flex-direction: column; align-items: stretch; }
+            .re-btn-primary, .re-btn-secondary { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    5 Patents | 9,500+ API Endpoints | 18 Native DLLs | The AI-Native Spatial Game Engine — Now in Early Access
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading" role="presentation">By audience</div>
+                        <div class="col-heading" role="presentation">Platform</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">Scan a space, then talk to it</span></a></li>
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP Server</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="api/">API Reference</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">Templates</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">Developer Portal</a></li>
+                        <li role="none"><a role="menuitem" href="developers/claude-desktop.html">Claude Desktop guide</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">Developer Guide</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM Integration Guide</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
+                        <li role="none"><a role="menuitem" href="blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">Why RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">Press Kit</a></li>
+                        <li role="none"><a role="menuitem" href="discover.html">Discover</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">Content Packs</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">Pricing</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="blog/">Blog</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">Sign In</a>
+            <a href="ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<section class="re-hero">
+    <div class="container">
+        <div class="re-hero-grid">
+            <div class="re-hero-copy">
+                <span class="eyebrow">For agents, brokerages &amp; listing teams</span>
+                <h1>Turn any listing into an explorable 3D space.</h1>
+                <p class="subhead">
+                    Scan a property with a phone &mdash; no $300 rig, no special camera &mdash; and RakuAI reconstructs it into an explorable 3D Gaussian-splat walkthrough. Then buyers can do something a video tour can't: <strong>ask the listing questions</strong> &mdash; "how wide is the kitchen island?", "which way does the primary bedroom face?" &mdash; answered by whichever LLM you or your portal already use, over our MCP surface.
+                </p>
+                <p class="audience-line">
+                    This is RakuAI's flagship vertical, and we're building it in the open. The page below is honest about what ships today versus what's on the roadmap. We're pre-revenue and looking for early-access agents and pilot brokerages &mdash; not claiming a finished product.
+                </p>
+                <div class="re-cta-row">
+                    <a href="mailto:partnerships@rakuai.com?subject=Real%20estate%20early%20access" class="re-btn-primary">Request early access &rarr;</a>
+                    <a href="#how-it-works" class="re-btn-secondary">See how it works &darr;</a>
+                </div>
+            </div>
+            <div class="re-hero-figure" aria-hidden="true">
+                <!-- Phone scanning a house -> explorable 3D splat -> ask-the-listing chat -->
+                <svg viewBox="0 0 360 320" role="img" xmlns="http://www.w3.org/2000/svg">
+                    <title>A phone scanning a home, turned into an explorable 3D space buyers can ask questions about</title>
+                    <defs>
+                        <linearGradient id="reSky" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#1a1a3a"/>
+                            <stop offset="1" stop-color="#11112a"/>
+                        </linearGradient>
+                        <linearGradient id="reScan" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#a388ff" stop-opacity="0.55"/>
+                            <stop offset="1" stop-color="#a388ff" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- scene frame -->
+                    <rect x="22" y="22" width="236" height="184" rx="12" fill="url(#reSky)" stroke="#2c2c50"/>
+                    <!-- house silhouette -->
+                    <polygon points="80,150 80,98 140,58 200,98 200,150" fill="#23244a" stroke="#3a3a66"/>
+                    <polygon points="72,100 140,52 208,100" fill="none" stroke="#a388ff" stroke-width="2"/>
+                    <rect x="118" y="116" width="26" height="34" fill="#16162e" stroke="#3a3a66"/>
+                    <rect x="156" y="112" width="22" height="22" fill="#16162e" stroke="#3a3a66"/>
+                    <!-- splat point cloud over the house -->
+                    <g fill="#6c5ce7">
+                        <circle cx="100" cy="110" r="3" opacity="0.85"/><circle cx="120" cy="92" r="2.5" opacity="0.7"/>
+                        <circle cx="140" cy="74" r="3" opacity="0.85"/><circle cx="166" cy="92" r="2.5" opacity="0.7"/>
+                        <circle cx="186" cy="112" r="3" opacity="0.8"/><circle cx="150" cy="132" r="2.4" opacity="0.6"/>
+                    </g>
+                    <!-- scan sweep beam from phone (CSS-animated; paused under prefers-reduced-motion) -->
+                    <polygon class="re-scan-beam" points="316,250 196,44 244,44" fill="url(#reScan)"/>
+                    <!-- phone -->
+                    <g>
+                        <rect x="292" y="196" width="48" height="92" rx="10" fill="#16162e" stroke="#a388ff" stroke-width="2"/>
+                        <rect x="298" y="206" width="36" height="60" rx="4" fill="#0a0a1a"/>
+                        <circle cx="316" cy="278" r="3.5" fill="#3a3a66"/>
+                    </g>
+                    <!-- ask-the-listing chat bubble -->
+                    <g>
+                        <rect x="40" y="232" width="170" height="74" rx="10" fill="#16162e" stroke="#2c2c50"/>
+                        <circle cx="58" cy="252" r="7" fill="#00cec9"/>
+                        <rect x="74" y="246" width="120" height="7" rx="3.5" fill="#3a3a66"/>
+                        <rect x="74" y="260" width="92" height="6" rx="3" fill="#2c2c50"/>
+                        <text x="56" y="294" fill="#9090b0" font-family="monospace" font-size="10">"How wide is the island?"</text>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Infographic carousel: scan -> splat -> explore -> ask -->
+<section class="re-section" id="flow-carousel" style="padding-top:0;border-bottom:1px solid #222244;">
+    <div class="container">
+        <h2>From a phone walk-through to a listing buyers can talk to.</h2>
+        <p class="re-subtitle">The same Raku Capture pipeline that powers the rest of the platform — one step at a time. Use the arrows, dots, or your keyboard.</p>
+        <div class="re-carousel" data-carousel>
+            <div class="re-carousel-viewport">
+                <div class="re-carousel-track" data-carousel-track role="group" aria-roledescription="carousel" aria-label="How a listing becomes an explorable, askable 3D space">
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="Step 1 of 4: Scan with a phone">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="44" y="18" width="40" height="84" rx="9" fill="#16162e" stroke="#a388ff" stroke-width="2"/><rect x="50" y="28" width="28" height="56" rx="3" fill="#0a0a1a"/><circle cx="64" cy="94" r="3.5" fill="#3a3a66"/><path d="M30 60 H14 M90 60 H106 M64 18 V6" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round" opacity="0.7"/></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">Step 1</span>
+                            <h3>Scan with a phone</h3>
+                            <p>Walk the property with the phone already in your pocket. No tripod, no $300 capture rig, no special camera, no training day.</p>
+                        </div>
+                    </div>
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="Step 2 of 4: Reconstruct into a 3D splat">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="24" width="88" height="72" rx="10" fill="#1a1a3a" stroke="#2c2c50"/><polygon points="40,80 40,54 60,42 80,54 80,80" fill="#23244a" stroke="#3a3a66"/><g fill="#6c5ce7"><circle cx="50" cy="60" r="3"/><circle cx="60" cy="48" r="2.6"/><circle cx="72" cy="60" r="3"/></g></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">Step 2</span>
+                            <h3>Reconstruct into a 3D splat</h3>
+                            <p>Frames and motion are reconstructed in the cloud into a 3D Gaussian splat &mdash; a smooth, photoreal-leaning model of the space, not a stitched panorama.</p>
+                        </div>
+                    </div>
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="Step 3 of 4: Buyers explore in the browser">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="24" width="84" height="60" rx="6" fill="#16162e" stroke="#2c2c50"/><rect x="18" y="24" width="84" height="14" rx="6" fill="#23244a"/><circle cx="28" cy="31" r="2.5" fill="#3a3a66"/><circle cx="36" cy="31" r="2.5" fill="#3a3a66"/><polygon points="42,74 42,52 60,42 78,52 78,74" fill="#23244a" stroke="#6c5ce7"/><path d="M44 96 h32 M50 96 v8 M70 96 v8" stroke="#3a3a66" stroke-width="3" stroke-linecap="round"/></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">Step 3</span>
+                            <h3>Buyers explore in the browser</h3>
+                            <p>Share one link. Buyers move through the space at their own pace, from any device &mdash; no headset, no app install, no scheduled showing.</p>
+                        </div>
+                    </div>
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="Step 4 of 4: Ask the listing anything">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="30" width="70" height="42" rx="9" fill="#16162e" stroke="#2c2c50"/><path d="M32 72 l-2 12 l16 -10 z" fill="#16162e" stroke="#2c2c50"/><circle cx="34" cy="51" r="4" fill="#00cec9"/><circle cx="52" cy="51" r="4" fill="#a388ff"/><circle cx="70" cy="51" r="4" fill="#6c5ce7"/></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">Step 4</span>
+                            <h3>Ask the listing anything</h3>
+                            <p>Over our MCP surface, an LLM answers questions grounded in the actual scan &mdash; dimensions, orientation, what's in a room. Multi-vendor: Claude, ChatGPT, Gemini, or Copilot can drive it.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="re-carousel-controls">
+                <button type="button" class="re-carousel-btn" data-carousel-prev aria-label="Previous slide">&larr;</button>
+                <div class="re-carousel-dots" role="tablist" aria-label="Choose slide" data-carousel-dots data-dot-class="re-carousel-dot"></div>
+                <button type="button" class="re-carousel-btn" data-carousel-next aria-label="Next slide">&rarr;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How it works (3-step) -->
+<section class="re-section" id="how-it-works">
+    <div class="container">
+        <h2>How it works.</h2>
+        <p class="re-subtitle">Three steps from a phone in your hand to a shareable, askable listing. It's the same Raku Capture core used across RakuAI &mdash; real estate is a wrapper on output, not a new engine.</p>
+        <div class="re-steps">
+            <div class="re-step">
+                <span class="re-step-num">1</span>
+                <h4>Scan</h4>
+                <p>Walk the home with your phone, guided on-screen. Capture takes minutes per space and needs nothing you don't already own.</p>
+            </div>
+            <div class="re-step">
+                <span class="re-step-num">2</span>
+                <h4>Reconstruct &amp; publish</h4>
+                <p>RakuAI reconstructs the scan into an explorable 3D Gaussian splat and gives you a single share link to drop into your listing, email, or portal.</p>
+            </div>
+            <div class="re-step">
+                <span class="re-step-num">3</span>
+                <h4>Explore &amp; ask</h4>
+                <p>Buyers walk the space in their browser and ask it questions in plain language &mdash; answered by any LLM over the MCP surface, grounded in the scan.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Differentiation vs Matterport -->
+<section class="re-section" id="why-rakuai">
+    <div class="container">
+        <h2>How this is different from a Matterport tour.</h2>
+        <p class="re-subtitle">3D listing tours aren't new. What's new is doing it from a phone, making the space answer questions, and never locking you to one vendor.</p>
+        <div class="re-matrix-wrap" role="region" aria-label="How RakuAI compares to a traditional 3D tour">
+            <table class="re-matrix">
+                <thead>
+                    <tr>
+                        <th scope="col"></th>
+                        <th scope="col">Typical 3D tour (e.g. Matterport)</th>
+                        <th scope="col">RakuAI for Real Estate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">Capture hardware</th>
+                        <td>Often a dedicated camera or a ~$300+ rig, or a paid scan tech visit</td>
+                        <td><span class="yes">A phone you already own</span> &mdash; no special camera</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Reconstruction</th>
+                        <td>Panorama / mesh walkthrough</td>
+                        <td>3D Gaussian splat &mdash; smoother, more photoreal-leaning navigation</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Ask the space questions</th>
+                        <td>Not natively &mdash; it's a viewer, not a Q&amp;A surface</td>
+                        <td><span class="yes">Yes</span> &mdash; LLM-queryable over MCP, grounded in the scan</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Which AI answers</th>
+                        <td>N/A or single-vendor</td>
+                        <td><span class="yes">Multi-vendor</span> &mdash; Claude, ChatGPT, Gemini, or Copilot, your choice</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Lock-in</th>
+                        <td>Tied to one platform &amp; viewer</td>
+                        <td>Neutral, standards-based MCP surface; bring your own model</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="re-subtitle" style="margin-top:18px;font-size:0.9rem;opacity:0.8;">
+            Comparison reflects publicly typical workflows, not a benchmark; capabilities and pricing of other products change. We point out the differences we're building toward, and we're honest below about what isn't finished yet.
+        </p>
+    </div>
+</section>
+
+<!-- ROI / who it's for -->
+<section class="re-section" id="for-agents">
+    <div class="container">
+        <h2>Why agents and brokerages care.</h2>
+        <p class="re-subtitle">The pitch isn't "a fancier tour." It's fewer wasted showings, listings that pre-qualify buyers, and a capture cost low enough to put on every listing &mdash; not just the luxury ones.</p>
+        <div class="re-usecases">
+            <div class="re-usecase">
+                <h3>Every listing, not just luxury</h3>
+                <p>When capture is a phone walk-through instead of a paid scan-tech visit, an immersive tour stops being a line item you reserve for high-end homes. The marginal cost drops toward zero, so it can go on the whole book.</p>
+            </div>
+            <div class="re-usecase">
+                <h3>Fewer low-intent showings</h3>
+                <p>Buyers who can explore the space and get their basic questions answered up front tend to self-select. The in-person showings you do run are with people who've already walked it virtually.</p>
+            </div>
+            <div class="re-usecase">
+                <h3>A listing that answers at 2am</h3>
+                <p>"Does the garage fit two cars?" "Which way do the bedrooms face?" The listing fields those questions itself, grounded in the scan, whenever the buyer is actually browsing &mdash; not only during office hours.</p>
+            </div>
+            <div class="re-usecase">
+                <h3>Your AI, your portal</h3>
+                <p>Because it's a neutral MCP surface, a brokerage or portal can wire the listing's Q&amp;A into whichever LLM it already pays for, under its own brand &mdash; no forced vendor switch.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Honest framing -->
+<section class="re-section" id="honest">
+    <div class="container">
+        <h2>What's real today, and what isn't.</h2>
+        <p class="re-subtitle">We'd rather under-promise. RakuAI is pre-revenue and this vertical is early. Here's the honest line between shipping and roadmap.</p>
+        <div class="re-honest">
+            <h3>Shipping today</h3>
+            <ul>
+                <li>Phone-based capture and cloud 3D Gaussian-splat reconstruction (the Raku Capture flow).</li>
+                <li>Scene query over the MCP surface &mdash; an LLM can walk a reconstructed space and answer questions about it.</li>
+                <li>Multi-LLM support: Claude, ChatGPT, Gemini, and Copilot can all drive the runtime.</li>
+            </ul>
+        </div>
+        <div class="re-honest" style="margin-top: 18px;">
+            <h3>In flight / roadmap</h3>
+            <ul>
+                <li>A polished, real-estate-specific listing viewer and one-click share link tuned for buyers, agents, and portals.</li>
+                <li>Listing-grade Q&amp;A templates (dimensions, orientation, fixtures, "what's included") and embeddable widgets for portals and MLS-adjacent sites.</li>
+                <li>Agent/brokerage accounts, per-listing organization, and analytics on what buyers ask.</li>
+            </ul>
+        </div>
+        <div class="re-honest" style="margin-top: 18px;">
+            <h3>What we don't have yet</h3>
+            <ul>
+                <li>Paying real-estate customers. We're pre-revenue and looking for early-access agents and pilot brokerages &mdash; we don't claim signed customers we don't have.</li>
+                <li>An MLS/portal integration you can switch on today; integrations are per-pilot work right now.</li>
+                <li>Measurement guarantees. Dimensions an LLM reports from a scan are estimates for buyer convenience, not a survey or appraisal.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="re-section" id="early-access">
+    <div class="container">
+        <h2>Be an early-access agent or pilot brokerage.</h2>
+        <p class="re-subtitle">This is the vertical we're betting on, and we're building it with the people who'll use it. No charge during early access &mdash; we ask for real listings to scan and honest feedback.</p>
+        <div class="re-usecases" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+            <div class="re-usecase">
+                <h3>Individual agents</h3>
+                <p>Want to try scanning a live listing and see the explorable, askable result? Tell us your market and a listing you'd start with. We'll get you into the early-access flow and tell you plainly what works today.</p>
+                <p style="margin-top:14px;"><a href="mailto:partnerships@rakuai.com?subject=Real%20estate%20early%20access%20%E2%80%94%20agent" class="re-btn-secondary" style="display:inline-block;">Request early access &rarr;</a></p>
+            </div>
+            <div class="re-usecase">
+                <h3>Brokerages &amp; portals</h3>
+                <p>Want every listing to ship with a phone-captured 3D tour wired to your own AI and brand? Let's scope a pilot &mdash; what you'd integrate, which LLM you'd point it at, and what a case study would measure.</p>
+                <p style="margin-top:14px;"><a href="mailto:partnerships@rakuai.com?subject=Real%20estate%20pilot%20%E2%80%94%20brokerage%2Fportal" class="re-btn-secondary" style="display:inline-block;">Discuss a pilot &rarr;</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Cross-links -->
+<section class="re-section">
+    <div class="container">
+        <h2>Go deeper.</h2>
+        <p class="re-subtitle">The pages most people read next.</p>
+        <div class="re-crosslinks">
+            <a href="capture.html" class="re-crosslink">
+                <div class="label">Raku Capture &rarr;</div>
+                <div class="desc">The phone scan flow this is built on &mdash; scan a space, then talk to it.</div>
+            </a>
+            <a href="mcp.html" class="re-crosslink">
+                <div class="label">MCP Server &rarr;</div>
+                <div class="desc">The neutral MCP surface that lets any LLM walk a scene and answer questions about it. Production since March 2026.</div>
+            </a>
+            <a href="compare.html" class="re-crosslink">
+                <div class="label">The honest comparison &rarr;</div>
+                <div class="desc">How RakuAI's approach lines up against the alternatives, without the spin.</div>
+            </a>
+            <a href="privacy.html" class="re-crosslink">
+                <div class="label">Privacy &rarr;</div>
+                <div class="desc">Scanning a home is sensitive. How capture data is handled, and how to delete a scan.</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- NVIDIA Inception validation strip -->
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 32px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception Member - read more on the press page">
+            <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <p style="max-width: 640px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            RakuAI is an <strong>NVIDIA Inception</strong> member. The same NVIDIA-accelerated 3D Gaussian splatting stack we ship in <a href="capture.html" style="color: var(--accent-bright);">Raku Capture</a> is what reconstructs a listing into the explorable, askable space described above. <a href="press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">Read more &rarr;</a>
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 14px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        NVIDIA Inception is a free program for AI startups; RakuAI's membership does not imply that NVIDIA endorses RakuAI's products. Learn more at <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color: var(--text-secondary);">nvidia.com/startups</a>.
+    </p>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Solutions</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">Smart-Glasses Manufacturers</a></li>
+                    <li><a href="llm-makers.html">AI Labs</a></li>
+                    <li><a href="enterprise.html">Enterprise</a></li>
+                    <li><a href="creator.html">Creators</a></li>
+                    <li><a href="compare.html">Compare vs Unity / Unreal</a></li>
+                    <li><a href="spatial-engine.html">Spatial Engine</a></li>
+                    <li><a href="ai-systems.html">AI Systems</a></li>
+                    <li><a href="xr-features.html">XR Features</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="mcp.html">MCP Server</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="api/">API Reference</a></li>
+                    <li><a href="templates.html">Templates</a></li>
+                    <li><a href="developers/">Developer Portal</a></li>
+                    <li><a href="developers/claude-desktop.html">Claude Desktop guide</a></li>
+                    <li><a href="developer-guide.html">Developer Guide</a></li>
+                    <li><a href="llm-guide.html">LLM Integration Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="blog/">Blog</a></li>
+                    <li><a href="why-rakuai.html">Why RakuAI</a></li>
+                    <li><a href="press.html">Press Kit</a></li>
+                    <li><a href="discover.html">Discover</a></li>
+                    <li><a href="content-packs.html">Content Packs</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">About</a></li>
+                    <li><a href="pricing.html">Pricing</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">Partners</a></li>
+                    <li><a href="privacy.html">Privacy</a></li>
+                    <li><a href="terms.html">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
+                <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script>
+/* Self-contained, dependency-free infographic carousel.
+   Accessible: arrow buttons, dot tablist, keyboard (Left/Right/Home/End).
+   Reduced-motion handled in CSS. */
+(function () {
+    function initCarousel(root) {
+        var track = root.querySelector('[data-carousel-track]');
+        if (!track) return;
+        var slides = Array.prototype.slice.call(track.children);
+        var dotsWrap = root.querySelector('[data-carousel-dots]');
+        var prev = root.querySelector('[data-carousel-prev]');
+        var next = root.querySelector('[data-carousel-next]');
+        if (!slides.length) return;
+        var index = 0;
+        var dots = slides.map(function (slide, i) {
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = dotsWrap.getAttribute('data-dot-class') || 're-carousel-dot';
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            dot.addEventListener('click', function () { go(i, true); });
+            dotsWrap.appendChild(dot);
+            return dot;
+        });
+        function go(i, focusDot) {
+            index = (i + slides.length) % slides.length;
+            track.style.transform = 'translateX(' + (-index * 100) + '%)';
+            slides.forEach(function (s, n) { s.setAttribute('aria-hidden', n === index ? 'false' : 'true'); });
+            dots.forEach(function (d, n) {
+                d.setAttribute('aria-selected', n === index ? 'true' : 'false');
+                d.tabIndex = n === index ? 0 : -1;
+            });
+            if (focusDot && dots[index]) dots[index].focus();
+        }
+        if (prev) prev.addEventListener('click', function () { go(index - 1, false); });
+        if (next) next.addEventListener('click', function () { go(index + 1, false); });
+        dotsWrap.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1, true); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1, true); }
+            else if (e.key === 'Home') { e.preventDefault(); go(0, true); }
+            else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1, true); }
+        });
+        go(0, false);
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-carousel]'), initCarousel);
+    });
+})();
+</script>
+<script src="js/public-config.js"></script>
+<script src="js/api-client.js"></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+
+
+<script src="/js/nav-dropdown.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>
