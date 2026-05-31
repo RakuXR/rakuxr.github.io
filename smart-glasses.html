@@ -479,12 +479,34 @@
             line-height: 1.5;
         }
 
+        /* Hero split: copy + inline SVG figure, side-by-side above the fold */
+        .sg-hero-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 44px;
+            align-items: center;
+            text-align: left;
+        }
+        .sg-hero-grid .sg-hero-copy { min-width: 0; }
+        .sg-hero-grid .subhead,
+        .sg-hero-grid .audience-line { max-width: none; margin-left: 0; margin-right: 0; }
+        .sg-hero-grid .sg-cta-row { justify-content: flex-start; }
+        .sg-hero-grid .sg-nvidia-badge { justify-content: flex-start !important; }
         /* Hero figure: glasses silhouette + MCP-driven capability HUD */
         .sg-hero-fig {
-            max-width: 720px;
-            margin: 30px auto 0;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
         }
         .sg-hero-fig svg { width: 100%; height: auto; display: block; }
+        @media (max-width: 860px) {
+            .sg-hero-grid { grid-template-columns: 1fr; text-align: center; gap: 28px; }
+            .sg-hero-grid .subhead,
+            .sg-hero-grid .audience-line { margin-left: auto; margin-right: auto; }
+            .sg-hero-grid .sg-cta-row { justify-content: center; }
+            .sg-hero-grid .sg-nvidia-badge { justify-content: center !important; }
+            .sg-hero-fig { order: -1; max-width: 380px; }
+        }
 
         /* OEM-integration carousel (dependency-free) */
         .sg-carousel { max-width: 1040px; margin: 0 auto; position: relative; }
@@ -553,7 +575,7 @@
 <body>
 
 <div class="beta-announcement-bar">
-    5 Patents | 9,500+ API Endpoints | 18 Native DLLs | The AI-Native Spatial Game Engine — Now in Early Access
+    5 Patents | 9,500+ API Endpoints | 18 Native DLLs | The AI-Native Spatial Game Engine — Now in Early Access&nbsp;&nbsp;<a href="/engine/">Explore the engine &rarr;</a>
 </div>
 
 <nav role="navigation" aria-label="Primary">
@@ -627,6 +649,8 @@
 
 <section class="sg-hero">
     <div class="container">
+      <div class="sg-hero-grid">
+        <div class="sg-hero-copy">
         <span class="eyebrow">For smart-glasses OEM tech leads</span>
         <h1>A runtime partner for the PWA era of AR glasses.</h1>
         <p class="subhead">
@@ -636,7 +660,7 @@
             This page is written for engineers and partnerships leads evaluating runtime partners at Meta, Samsung, Google, and others shipping glasses in 2026&ndash;2027. It tries to be honest about what's live, what's in flight, and what's roadmap.
         </p>
 
-<div style="display: flex; justify-content: center; margin: 22px 0 4px;">
+<div class="sg-nvidia-badge" style="display: flex; justify-content: center; margin: 22px 0 4px;">
     <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Member of NVIDIA Inception - scroll to details">
         <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Member of</span>
         <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
@@ -647,6 +671,7 @@
             <a href="mailto:partnerships@rakuai.com?subject=Smart-glasses%20OEM%20capability%20inquiry" class="sg-btn-primary">Email partnerships@rakuai.com &rarr;</a>
             <a href="#capability-matrix" class="sg-btn-secondary">Skip to the capability matrix &darr;</a>
         </div>
+        </div><!-- /sg-hero-copy -->
 
         <div class="sg-hero-fig">
         <svg viewBox="0 0 720 300" width="100%" role="img" aria-labelledby="sgh-title sgh-desc" xmlns="http://www.w3.org/2000/svg">
@@ -707,6 +732,7 @@
             </g>
         </svg>
         </div>
+      </div><!-- /sg-hero-grid -->
     </div>
 </section>
 
