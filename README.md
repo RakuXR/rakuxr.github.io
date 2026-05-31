@@ -46,3 +46,9 @@ gh workflow run deploy.yml --repo RakuXR/rakuxr.github.io
 ## License
 
 Released under the [MIT License](./LICENSE). RakuAI and RakuXR are trademarks of RakuAI, LLC.
+
+## Platform strategies
+
+End-to-end strategy + phased/tracked roadmap for every rakuai.com platform (Capture, Spatial Engine, MCP Runtime, Smart Glasses, Robotics, Insurance, Creators, Enterprise, AI Labs, Developers & SDK):
+
+**→ [raku-governance/strategy/PLATFORM-STRATEGY-INDEX.md](https://github.com/RakuXR/raku-governance/blob/main/strategy/PLATFORM-STRATEGY-INDEX.md)**
