@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>RakuAI MCP — Drive a spatial runtime from your AI assistant</title>
+    <meta name="description" content="RakuAI MCP — 17 native tools (5 read-only + 12 mutation) plus universal api_call/api_search passthrough that let Claude, ChatGPT, Gemini, and Copilot drive a real spatial runtime. Production-deployed since March 2026.">
+    <meta property="og:title" content="RakuAI MCP — Drive a spatial runtime from your AI assistant">
+    <meta property="og:description" content="RakuAI MCP — 17 native tools (5 read-only + 12 mutation) plus universal api_call/api_search passthrough that let Claude, ChatGPT, Gemini, and Copilot drive a real spatial runtime. Production-deployed since March 2026.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/mcp.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RakuAI MCP — Drive a spatial runtime from your AI assistant">
+    <meta name="twitter:description" content="RakuAI MCP — 17 native tools (5 read-only + 12 mutation) plus universal api_call/api_search passthrough that let Claude, ChatGPT, Gemini, and Copilot drive a real spatial runtime. Production-deployed since March 2026.">
+    <link rel="canonical" href="https://rakuai.com/mcp.html">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .mcp-hero {
+            padding: 40px 0 36px;
+            background:
+                radial-gradient(900px 360px at 78% 8%, rgba(108, 92, 231, 0.16), transparent 60%),
+                radial-gradient(700px 320px at 12% 95%, rgba(0, 206, 201, 0.10), transparent 60%),
+                linear-gradient(180deg, #0a0a1a 0%, #0d0d20 100%);
+            border-bottom: 1px solid rgba(108, 92, 231, 0.25);
+        }
+        .mcp-hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.05fr;
+            align-items: center;
+            gap: 40px;
+        }
+        .mcp-hero-copy { text-align: left; }
+        .mcp-hero h1 {
+            font-size: clamp(2rem, 4.6vw, 2.9rem);
+            line-height: 1.12;
+            margin-bottom: 18px;
+            background: linear-gradient(135deg, #a388ff, #00cec9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .mcp-hero p.subhead {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 560px;
+            margin: 0 0 28px;
+        }
+        .mcp-cta-row {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        /* Animated hero figure: AI assistant -> MCP -> runtime -> output */
+        .mcp-herofig {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45));
+        }
+        .mcp-herofig .hf-node { transform-box: fill-box; transform-origin: center; }
+        .mcp-herofig .hf-pulse {
+            stroke-dasharray: 10 12;
+            animation: hf-dash 1.4s linear infinite;
+        }
+        .mcp-herofig .hf-packet {
+            animation: hf-travel 3.2s ease-in-out infinite;
+        }
+        .mcp-herofig .hf-runtime {
+            animation: hf-breathe 3.4s ease-in-out infinite;
+        }
+        @keyframes hf-dash { to { stroke-dashoffset: -44; } }
+        @keyframes hf-travel {
+            0%   { transform: translateX(0);   opacity: 0; }
+            8%   { opacity: 1; }
+            92%  { opacity: 1; }
+            100% { transform: translateX(840px); opacity: 0; }
+        }
+        @keyframes hf-breathe {
+            0%, 100% { opacity: 0.85; }
+            50%      { opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .mcp-herofig .hf-pulse,
+            .mcp-herofig .hf-packet,
+            .mcp-herofig .hf-runtime { animation: none; }
+            .mcp-herofig .hf-packet { opacity: 1; }
+        }
+        .mcp-section {
+            padding: 64px 0;
+            border-bottom: 1px solid #1f1f3a;
+        }
+        /* Pull the first content block up tight under the hero */
+        .mcp-section--first { padding-top: 40px; }
+        .mcp-section:last-of-type { border-bottom: none; }
+        .mcp-section h2 {
+            text-align: center;
+            font-size: 1.9rem;
+            margin-bottom: 12px;
+        }
+        .mcp-section p.section-lead {
+            text-align: center;
+            color: var(--text-secondary);
+            max-width: 720px;
+            margin: 0 auto 32px;
+            line-height: 1.65;
+        }
+        .mcp-tools-table-wrap {
+            overflow-x: auto;
+            margin: 0 auto;
+            max-width: 1100px;
+        }
+        table.mcp-tools {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 0.95rem;
+        }
+        table.mcp-tools th,
+        table.mcp-tools td {
+            text-align: left;
+            padding: 14px 18px;
+            border-bottom: 1px solid #1f1f3a;
+            vertical-align: top;
+            color: var(--text-secondary);
+        }
+        table.mcp-tools th {
+            background: #0d0d1f;
+            color: var(--accent-bright);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        table.mcp-tools tr:last-child td { border-bottom: none; }
+        table.mcp-tools code {
+            color: #a388ff;
+            background: #0d0d1f;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .mcp-perm {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .mcp-perm--sandbox {
+            background: rgba(253, 203, 110, 0.15);
+            color: #fdcb6e;
+            border: 1px solid rgba(253, 203, 110, 0.4);
+        }
+        .mcp-perm--all {
+            background: rgba(0, 206, 201, 0.15);
+            color: #00cec9;
+            border: 1px solid rgba(0, 206, 201, 0.4);
+        }
+        .mcp-vs-card {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 16px;
+            padding: 32px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 1.02rem;
+        }
+        .mcp-vs-card strong { color: var(--accent-bright); }
+        .mcp-adapters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            max-width: 900px;
+            margin: 0 auto 24px;
+        }
+        .mcp-adapter-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 20px 22px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        .mcp-adapter-card span {
+            display: block;
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+        .mcp-adapter-footnote {
+            text-align: center;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 0.95rem;
+        }
+        .mcp-why-list {
+            max-width: 820px;
+            margin: 0 auto;
+            list-style: none;
+            padding: 0;
+            counter-reset: mcp-why;
+        }
+        .mcp-why-list li {
+            counter-increment: mcp-why;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 18px 24px 18px 64px;
+            margin-bottom: 14px;
+            position: relative;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .mcp-why-list li::before {
+            content: counter(mcp-why);
+            position: absolute;
+            left: 20px;
+            top: 18px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: white;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+        }
+        .mcp-bottom-ctas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .mcp-bottom-cta {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 22px;
+            text-decoration: none;
+            color: var(--accent-bright);
+            font-weight: 600;
+            transition: border-color 0.25s, transform 0.15s;
+            display: block;
+        }
+        .mcp-bottom-cta:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        /* ---- Tools carousel (dependency-free, accessible) ---- */
+        .mcp-carousel { max-width: 920px; margin: 0 auto; }
+        .mcp-carousel-viewport { overflow: hidden; border-radius: 16px; }
+        .mcp-carousel-track {
+            display: flex;
+            transition: transform 0.45s ease;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .mcp-carousel-track { transition: none; }
+        }
+        .mcp-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 16px;
+            padding: 28px 30px;
+        }
+        .mcp-slide-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .mcp-slide-head h3 { font-size: 1.2rem; margin: 0; color: var(--text-primary); }
+        .mcp-slide-count {
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 14px;
+        }
+        .mcp-chip-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 10px;
+        }
+        .mcp-chip {
+            background: #0d0d1f;
+            border: 1px solid #2a2a4a;
+            border-radius: 9px;
+            padding: 10px 12px;
+            font-family: ui-monospace, monospace;
+            font-size: 0.85rem;
+            color: #a388ff;
+        }
+        .mcp-chip small {
+            display: block;
+            font-family: system-ui, sans-serif;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            margin-top: 3px;
+        }
+        .mcp-chip--ro { border-color: rgba(0, 206, 201, 0.45); color: #00cec9; }
+        .mcp-carousel-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin-top: 20px;
+        }
+        .mcp-carousel-btn {
+            background: var(--bg-secondary);
+            border: 1px solid #2a2a4a;
+            color: var(--accent-bright);
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .mcp-carousel-btn:hover { border-color: var(--accent); }
+        .mcp-carousel-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        .mcp-carousel-dots { display: flex; gap: 10px; }
+        .mcp-dot {
+            width: 11px; height: 11px;
+            border-radius: 50%;
+            border: 1px solid #3a3a5a;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+        }
+        .mcp-dot[aria-current="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
+        .mcp-dot:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
+        @media (max-width: 760px) {
+            .mcp-hero-grid { grid-template-columns: 1fr; gap: 28px; }
+            .mcp-hero-copy { text-align: center; }
+            .mcp-hero p.subhead { margin-left: auto; margin-right: auto; }
+            .mcp-cta-row { justify-content: center; }
+            .mcp-hero-figure { order: -1; }
+        }
+        @media (max-width: 700px) {
+            .mcp-hero h1 { font-size: 2.05rem; }
+            .mcp-section h2 { font-size: 1.55rem; }
+            table.mcp-tools th,
+            table.mcp-tools td { padding: 10px 12px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    5 Patents | 9,500+ API Endpoints | 18 Native DLLs | The AI-Native Spatial Game Engine — Now in Early Access
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading" role="presentation">By audience</div>
+                        <div class="col-heading" role="presentation">Platform</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">Scan a space, then talk to it</span></a></li>
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP Server</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="api/">API Reference</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">Templates</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">Developer Portal</a></li>
+                        <li role="none"><a role="menuitem" href="developers/claude-desktop.html">Claude Desktop guide</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">Developer Guide</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM Integration Guide</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
+                        <li role="none"><a role="menuitem" href="blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">Why RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">Press Kit</a></li>
+                        <li role="none"><a role="menuitem" href="discover.html">Discover</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">Content Packs</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">Pricing</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="blog/">Blog</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">Sign In</a>
+            <a href="ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<section class="mcp-hero">
+    <div class="container">
+        <div class="mcp-hero-grid">
+            <div class="mcp-hero-copy">
+                <h1>Drive RakuAI from your AI assistant.</h1>
+                <p class="subhead">
+                    17 native MCP tools (5 read-only + 12 mutation) plus universal <code>api_call</code>/<code>api_search</code> passthrough to ~9,500 REST endpoints. Production-deployed since March 2026. Deny-by-default, fully audit-logged.
+                </p>
+                <div class="mcp-cta-row">
+                    <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">Read the build log &rarr;</a>
+                    <a href="https://github.com/RakuXR/raku-runtime" target="_blank" rel="noopener" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">See it on GitHub &rarr;</a>
+                </div>
+            </div>
+            <div class="mcp-hero-figure">
+                <svg class="mcp-herofig" viewBox="0 0 520 300" width="100%" role="img" aria-labelledby="mcp-herofig-title mcp-herofig-desc" xmlns="http://www.w3.org/2000/svg">
+                    <title id="mcp-herofig-title">How RakuAI MCP connects an AI assistant to a spatial runtime</title>
+                    <desc id="mcp-herofig-desc">An AI assistant sends permission-gated, JSON-Schema requests over MCP to the RakuAI runtime, which steps a scene graph and physics simulation and renders to smart glasses, headsets, and the browser.</desc>
+                    <defs>
+                        <linearGradient id="mcphf-h" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0" stop-color="#6c5ce7"/>
+                            <stop offset="1" stop-color="#00cec9"/>
+                        </linearGradient>
+                        <linearGradient id="mcphf-rt" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#1a1a3a"/>
+                            <stop offset="1" stop-color="#13132c"/>
+                        </linearGradient>
+                    </defs>
+
+                    <!-- connecting rails -->
+                    <line class="hf-pulse" x1="120" y1="92" x2="210" y2="92" stroke="url(#mcphf-h)" stroke-width="2.5" stroke-linecap="round"/>
+                    <line class="hf-pulse" x1="310" y1="92" x2="400" y2="92" stroke="url(#mcphf-h)" stroke-width="2.5" stroke-linecap="round"/>
+
+                    <!-- travelling intent packet -->
+                    <circle class="hf-packet" cx="120" cy="92" r="5" fill="#00cec9"/>
+
+                    <!-- Node 1: AI assistant -->
+                    <g class="hf-node">
+                        <rect x="20" y="56" width="100" height="72" rx="13" fill="#111128" stroke="#6c5ce7" stroke-width="1.6"/>
+                        <text x="70" y="86" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="12" font-weight="700">AI assistant</text>
+                        <text x="70" y="104" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="9">Claude · GPT</text>
+                        <text x="70" y="116" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="9">Gemini · Copilot</text>
+                    </g>
+
+                    <!-- Node 2: MCP -->
+                    <g class="hf-node">
+                        <rect x="210" y="56" width="100" height="72" rx="13" fill="#111128" stroke="#a388ff" stroke-width="1.6"/>
+                        <text x="260" y="84" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="13" font-weight="700">MCP</text>
+                        <text x="260" y="100" text-anchor="middle" fill="#9090b0" font-family="ui-monospace,monospace" font-size="8">stdio · JSON-Schema</text>
+                        <text x="260" y="114" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="8.5">permission-gated</text>
+                    </g>
+
+                    <!-- Node 3: RakuAI runtime -->
+                    <g class="hf-node hf-runtime">
+                        <rect x="400" y="50" width="104" height="84" rx="14" fill="url(#mcphf-rt)" stroke="url(#mcphf-h)" stroke-width="2.2"/>
+                        <text x="452" y="80" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="12" font-weight="700">RakuAI</text>
+                        <text x="452" y="95" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="12" font-weight="700">runtime</text>
+                        <text x="452" y="111" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="8.5">scene graph · physics</text>
+                    </g>
+
+                    <!-- runtime down to output rail -->
+                    <line x1="452" y1="134" x2="452" y2="176" stroke="url(#mcphf-h)" stroke-width="2"/>
+                    <line x1="120" y1="200" x2="452" y2="200" stroke="#222244" stroke-width="1.6"/>
+                    <line x1="452" y1="176" x2="452" y2="200" stroke="#222244" stroke-width="1.6"/>
+                    <text x="452" y="168" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="9" font-weight="600">renders to</text>
+
+                    <!-- Output devices -->
+                    <g font-family="system-ui,sans-serif">
+                        <line x1="120" y1="200" x2="120" y2="222" stroke="#222244" stroke-width="1.6"/>
+                        <rect x="40" y="222" width="160" height="52" rx="11" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.4"/>
+                        <text x="120" y="244" text-anchor="middle" fill="#e8e8f0" font-size="10.5" font-weight="600">Smart glasses</text>
+                        <text x="120" y="260" text-anchor="middle" fill="#9090b0" font-size="9">low-latency display</text>
+
+                        <line x1="286" y1="200" x2="286" y2="222" stroke="#222244" stroke-width="1.6"/>
+                        <rect x="206" y="222" width="160" height="52" rx="11" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.4"/>
+                        <text x="286" y="244" text-anchor="middle" fill="#e8e8f0" font-size="10.5" font-weight="600">Headset</text>
+                        <text x="286" y="260" text-anchor="middle" fill="#9090b0" font-size="9">VR / mixed reality</text>
+
+                        <line x1="452" y1="200" x2="452" y2="222" stroke="#222244" stroke-width="1.6"/>
+                        <rect x="372" y="222" width="108" height="52" rx="11" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.4"/>
+                        <text x="426" y="244" text-anchor="middle" fill="#e8e8f0" font-size="10.5" font-weight="600">Browser</text>
+                        <text x="426" y="260" text-anchor="middle" fill="#9090b0" font-size="9">WebGL</text>
+                    </g>
+
+                    <!-- tool badge -->
+                    <g>
+                        <rect x="20" y="14" width="148" height="26" rx="13" fill="rgba(0,206,201,0.12)" stroke="rgba(0,206,201,0.4)" stroke-width="1"/>
+                        <text x="94" y="31" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="10.5" font-weight="600">17 native tools · audit-logged</text>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mcp-section mcp-section--first">
+    <div class="container">
+        <h2>How it works</h2>
+        <p class="section-lead">
+            Your AI assistant speaks MCP. RakuAI is the runtime on the other end of that
+            connection, driving real spatial output to glasses, headsets, and the browser.
+        </p>
+        <div style="max-width: 1080px; margin: 0 auto;">
+        <svg viewBox="0 0 1080 480" width="100%" style="max-width:1080px; height:auto; display:block;" role="img" aria-labelledby="mcpflow-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="mcpflow-title">RakuAI MCP architecture: your AI assistant connects over MCP to the RakuAI runtime, which drives smart glasses, headsets and the browser, and exposes 17 native tools plus universal passthrough.</title>
+            <defs>
+                <linearGradient id="mcpflow-grad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <linearGradient id="mcpflow-grad-v" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <marker id="mcpflow-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto-start-reverse">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+
+            <!-- connectors -->
+            <line x1="232" y1="120" x2="318" y2="120" stroke="url(#mcpflow-grad)" stroke-width="2" marker-start="url(#mcpflow-arrow)" marker-end="url(#mcpflow-arrow)"/>
+            <line x1="512" y1="120" x2="598" y2="120" stroke="url(#mcpflow-grad)" stroke-width="2" marker-start="url(#mcpflow-arrow)" marker-end="url(#mcpflow-arrow)"/>
+            <line x1="792" y1="120" x2="878" y2="120" stroke="url(#mcpflow-grad)" stroke-width="2" marker-start="url(#mcpflow-arrow)" marker-end="url(#mcpflow-arrow)"/>
+
+            <!-- Node 1: AI assistant -->
+            <rect x="40" y="72" width="192" height="96" rx="12" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+            <text x="136" y="100" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="600">Your AI assistant</text>
+            <text x="136" y="124" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">Claude · ChatGPT</text>
+            <text x="136" y="142" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">Gemini · Copilot</text>
+
+            <!-- Node 2: MCP -->
+            <rect x="320" y="72" width="192" height="96" rx="12" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+            <text x="416" y="104" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="600">MCP</text>
+            <text x="416" y="126" text-anchor="middle" fill="#9090b0" font-family="ui-monospace,monospace" font-size="11">stdio · JSON-Schema</text>
+            <text x="416" y="144" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">permission-gated</text>
+
+            <!-- Node 3: Runtime -->
+            <rect x="600" y="72" width="192" height="96" rx="12" fill="#15152e" stroke="url(#mcpflow-grad)" stroke-width="2"/>
+            <text x="696" y="104" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="700">RakuAI Runtime</text>
+            <text x="696" y="126" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="11">scene graph · physics</text>
+            <text x="696" y="144" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">simulation step</text>
+
+            <!-- Node 4: Devices -->
+            <rect x="880" y="72" width="160" height="96" rx="12" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="960" y="100" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="13" font-weight="600">Output</text>
+            <text x="960" y="122" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">Smart glasses</text>
+            <text x="960" y="138" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">Headset · Browser</text>
+
+            <!-- branch: 17 native tools from runtime -->
+            <line x1="696" y1="168" x2="696" y2="210" stroke="url(#mcpflow-grad-v)" stroke-width="2"/>
+            <line x1="160" y1="210" x2="1040" y2="210" stroke="#222244" stroke-width="1.5"/>
+            <text x="696" y="200" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="11" font-weight="600">17 native MCP tools</text>
+
+            <!-- tool chips -->
+            <g font-family="ui-monospace,monospace" font-size="12">
+                <line x1="160" y1="210" x2="160" y2="244" stroke="#222244" stroke-width="1.5"/>
+                <rect x="40" y="244" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="160" y="271" text-anchor="middle" fill="#a388ff">load_world_model</text>
+
+                <line x1="430" y1="210" x2="430" y2="244" stroke="#222244" stroke-width="1.5"/>
+                <rect x="310" y="244" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="430" y="271" text-anchor="middle" fill="#a388ff">ingest_frame</text>
+
+                <line x1="700" y1="210" x2="700" y2="244" stroke="#222244" stroke-width="1.5"/>
+                <rect x="580" y="244" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.5"/>
+                <text x="700" y="271" text-anchor="middle" fill="#00cec9">get_scene_state</text>
+
+                <rect x="40" y="312" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="160" y="339" text-anchor="middle" fill="#a388ff">set_render_target</text>
+
+                <rect x="310" y="312" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="430" y="339" text-anchor="middle" fill="#a388ff">start_simulation</text>
+
+                <rect x="580" y="312" width="240" height="44" rx="9" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.5"/>
+                <text x="700" y="339" text-anchor="middle" fill="#00cec9">get_metrics</text>
+            </g>
+
+            <!-- legend -->
+            <g font-family="system-ui,sans-serif" font-size="11">
+                <rect x="860" y="248" width="14" height="14" rx="3" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1.5"/>
+                <text x="882" y="259" fill="#9090b0">Sandbox / dev</text>
+                <rect x="860" y="276" width="14" height="14" rx="3" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.5"/>
+                <text x="882" y="287" fill="#9090b0">All modes</text>
+                <text x="160" y="380" fill="#7070a0" font-family="system-ui,sans-serif" font-size="11">6 of 17 native tools shown</text>
+            </g>
+        </svg>
+        </div>
+    </div>
+</section>
+
+<section class="mcp-section">
+    <div class="container">
+        <h2>The 17 Native Tools</h2>
+        <p class="section-lead">
+            The full native MCP surface: 5 read-only + 12 mutation tools. Schema-validated, audit-logged, permission-gated. Plus universal <code>api_call</code>/<code>api_search</code> passthrough to ~9,500 raku-api REST endpoints (see <a href="engine/" style="color: var(--accent);">engine.html</a> for the full inventory).
+        </p>
+        <div class="mcp-tools-table-wrap">
+            <table class="mcp-tools">
+                <thead>
+                    <tr>
+                        <th>Tool</th>
+                        <th>What it does</th>
+                        <th>Permission</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>get_scene_state(include_physics, include_transforms)</code></td>
+                        <td>Read-only scene-graph snapshot</td>
+                        <td><span class="mcp-perm mcp-perm--all">Read-only, all modes</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>capture_scene(...)</code></td>
+                        <td>Capture a render-time observation (color, depth, segmentation)</td>
+                        <td><span class="mcp-perm mcp-perm--all">Read-only, all modes</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>get_metrics()</code></td>
+                        <td>Performance telemetry (frame time, draw calls, memory, latency)</td>
+                        <td><span class="mcp-perm mcp-perm--all">Read-only, all modes</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>xr_get_session()</code></td>
+                        <td>Inspect headset / glasses session state</td>
+                        <td><span class="mcp-perm mcp-perm--all">Read-only, all modes</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>xr_list_anchors()</code></td>
+                        <td>List spatial anchors in the session</td>
+                        <td><span class="mcp-perm mcp-perm--all">Read-only, all modes</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>add_scene_node(...)</code></td>
+                        <td>Insert an entity into the scene graph</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>update_scene_node(...)</code></td>
+                        <td>Change properties on an existing node</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>set_node_transform(...)</code></td>
+                        <td>Position / rotation / scale</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>remove_scene_node(...)</code></td>
+                        <td>Delete a node</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>load_world_model(adapter_name, config)</code></td>
+                        <td>Bind a world-model adapter (Runway, Veo, Marble, Genie, content-pack)</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>ingest_frame(adapter_name, frame_data, frame_index, timestamp)</code></td>
+                        <td>Feed a world-model output frame into the runtime</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>set_render_target(target_type, config)</code></td>
+                        <td>Configure output (WebGL/VR/native/offscreen)</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>start_simulation(tick_rate, max_duration, realtime)</code></td>
+                        <td>Step physics + world model under sandbox mode</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>xr_set_head_pose(...)</code></td>
+                        <td>Drive head pose (sim, recording, or remote)</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>xr_simulate_input(...)</code></td>
+                        <td>Inject controller / hand-tracking events</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>xr_create_anchor(...)</code></td>
+                        <td>Anchor a node to world coordinates</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                    <tr>
+                        <td><code>xr_remove_anchor(...)</code></td>
+                        <td>Release an anchor</td>
+                        <td><span class="mcp-perm mcp-perm--sandbox">Mutation, sandbox/dev</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="mcp-section">
+    <div class="container">
+        <h2>The surface at a glance</h2>
+        <p class="section-lead">
+            17 native tools, grouped by what they're allowed to do. Swipe or use the arrows.
+        </p>
+        <div class="mcp-carousel" role="group" aria-roledescription="carousel" aria-label="RakuAI MCP tool groups">
+            <div class="mcp-carousel-viewport">
+                <div class="mcp-carousel-track" id="mcp-carousel-track">
+
+                    <div class="mcp-slide" role="group" aria-roledescription="slide" aria-label="Slide 1 of 3: Read-only tools">
+                        <div class="mcp-slide-head">
+                            <h3>5 read-only tools</h3>
+                            <span class="mcp-slide-count mcp-perm mcp-perm--all">Work in all modes, including production</span>
+                        </div>
+                        <div class="mcp-chip-grid">
+                            <div class="mcp-chip mcp-chip--ro">get_scene_state<small>Scene-graph snapshot</small></div>
+                            <div class="mcp-chip mcp-chip--ro">capture_scene<small>Color · depth · segmentation</small></div>
+                            <div class="mcp-chip mcp-chip--ro">get_metrics<small>Frame time · draw calls · latency</small></div>
+                            <div class="mcp-chip mcp-chip--ro">xr_get_session<small>Headset / glasses session</small></div>
+                            <div class="mcp-chip mcp-chip--ro">xr_list_anchors<small>Spatial anchors in session</small></div>
+                        </div>
+                    </div>
+
+                    <div class="mcp-slide" role="group" aria-roledescription="slide" aria-label="Slide 2 of 3: Mutation tools">
+                        <div class="mcp-slide-head">
+                            <h3>12 mutation tools</h3>
+                            <span class="mcp-slide-count mcp-perm mcp-perm--sandbox">Deny-by-default · sandbox / dev</span>
+                        </div>
+                        <div class="mcp-chip-grid">
+                            <div class="mcp-chip">add_scene_node</div>
+                            <div class="mcp-chip">update_scene_node</div>
+                            <div class="mcp-chip">set_node_transform</div>
+                            <div class="mcp-chip">remove_scene_node</div>
+                            <div class="mcp-chip">load_world_model</div>
+                            <div class="mcp-chip">ingest_frame</div>
+                            <div class="mcp-chip">set_render_target</div>
+                            <div class="mcp-chip">start_simulation</div>
+                            <div class="mcp-chip">xr_set_head_pose</div>
+                            <div class="mcp-chip">xr_simulate_input</div>
+                            <div class="mcp-chip">xr_create_anchor</div>
+                            <div class="mcp-chip">xr_remove_anchor</div>
+                        </div>
+                    </div>
+
+                    <div class="mcp-slide" role="group" aria-roledescription="slide" aria-label="Slide 3 of 3: The pipeline">
+                        <div class="mcp-slide-head">
+                            <h3>The pipeline</h3>
+                            <span class="mcp-slide-count mcp-perm mcp-perm--all">Assistant → runtime → output</span>
+                        </div>
+                        <div class="mcp-chip-grid">
+                            <div class="mcp-chip mcp-chip--ro">1 · Assistant<small>Speaks MCP over stdio</small></div>
+                            <div class="mcp-chip mcp-chip--ro">2 · MCP layer<small>JSON-Schema · permission-gated</small></div>
+                            <div class="mcp-chip mcp-chip--ro">3 · Runtime<small>Scene graph + physics step</small></div>
+                            <div class="mcp-chip mcp-chip--ro">4 · Output<small>Glasses · headset · browser</small></div>
+                            <div class="mcp-chip mcp-chip--ro">+ Passthrough<small>api_call / api_search → ~9,500 endpoints</small></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="mcp-carousel-controls">
+                <button type="button" class="mcp-carousel-btn" id="mcp-carousel-prev" aria-label="Previous slide">&#8249;</button>
+                <div class="mcp-carousel-dots" id="mcp-carousel-dots" role="group" aria-label="Choose tool group"></div>
+                <button type="button" class="mcp-carousel-btn" id="mcp-carousel-next" aria-label="Next slide">&#8250;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mcp-section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>vs Unity MCP</h2>
+        <div class="mcp-vs-card">
+            <p>
+                <strong>Unity MCP (just released):</strong> scene manipulation, asset placement,
+                build automation — Claude Desktop generates static scenes at design time.
+            </p>
+            <p>
+                <strong>RakuAI MCP (production since March 2026):</strong> world-model orchestration —
+                any LLM streams intent into the simulation step every frame.
+            </p>
+            <p style="margin-bottom: 0;">
+                Unity is the tool your AI picks up. <strong>RakuAI is the body your AI inhabits.</strong>
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="mcp-section">
+    <div class="container">
+        <h2>Adapters</h2>
+        <p class="section-lead">
+            The contract is the 17 native tools. The adapters are how partners plug in.
+        </p>
+        <div class="mcp-adapters-grid">
+            <div class="mcp-adapter-card">
+                VeoEnvironmentAdapter
+                <span>Google's Veo</span>
+            </div>
+            <div class="mcp-adapter-card">
+                RunwayEnvironmentAdapter
+                <span>Runway</span>
+            </div>
+            <div class="mcp-adapter-card">
+                Custom adapter
+                <span>your model</span>
+            </div>
+        </div>
+        <p class="mcp-adapter-footnote">
+            Adapter contract is public. Build one, become part of the ecosystem.
+        </p>
+    </div>
+</section>
+
+<section class="mcp-section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Why MCP-native matters</h2>
+        <ol class="mcp-why-list">
+            <li><strong>No custom integration</strong> — if your model speaks MCP, it speaks RakuAI.</li>
+            <li><strong>Multi-vendor by design</strong> — Claude, ChatGPT, Gemini, Copilot all drive the same 17 native tools.</li>
+            <li><strong>Production-ready</strong> — deny-by-default, audit-logged, schema-validated.</li>
+        </ol>
+    </div>
+</section>
+
+<section class="mcp-section">
+    <div class="container">
+        <h2>Go deeper</h2>
+        <p class="section-lead">Pick a path.</p>
+        <div class="mcp-bottom-ctas">
+            <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="mcp-bottom-cta">Read the MCP write-up &rarr;</a>
+            <a href="/smart-glasses" class="mcp-bottom-cta">For smart-glasses partners &rarr;</a>
+            <a href="/llm-makers" class="mcp-bottom-cta">For LLM labs &rarr;</a>
+            <a href="/compare" class="mcp-bottom-cta">Compare vs Unity &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Solutions</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">Smart-Glasses Manufacturers</a></li>
+                    <li><a href="llm-makers.html">AI Labs</a></li>
+                    <li><a href="enterprise.html">Enterprise</a></li>
+                    <li><a href="creator.html">Creators</a></li>
+                    <li><a href="robotics.html">Robotics</a></li>
+                    <li><a href="insurance.html">Insurance</a></li>
+                    <li><a href="compare.html">Compare vs Unity / Unreal</a></li>
+                    <li><a href="spatial-engine.html">Spatial Engine</a></li>
+                    <li><a href="ai-systems.html">AI Systems</a></li>
+                    <li><a href="xr-features.html">XR Features</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="mcp.html">MCP Server</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="api/">API Reference</a></li>
+                    <li><a href="templates.html">Templates</a></li>
+                    <li><a href="developers/">Developer Portal</a></li>
+                    <li><a href="developers/claude-desktop.html">Claude Desktop guide</a></li>
+                    <li><a href="developer-guide.html">Developer Guide</a></li>
+                    <li><a href="llm-guide.html">LLM Integration Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="blog/">Blog</a></li>
+                    <li><a href="why-rakuai.html">Why RakuAI</a></li>
+                    <li><a href="press.html">Press Kit</a></li>
+                    <li><a href="discover.html">Discover</a></li>
+                    <li><a href="content-packs.html">Content Packs</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">About</a></li>
+                    <li><a href="pricing.html">Pricing</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="mailto:partners@rakuai.com">Partners</a></li>
+                    <li><a href="privacy.html">Privacy</a></li>
+                    <li><a href="terms.html">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
+                <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="40" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+
+<script>
+(function () {
+    var track = document.getElementById('mcp-carousel-track');
+    if (!track) return;
+    var slides = Array.prototype.slice.call(track.children);
+    var dotsWrap = document.getElementById('mcp-carousel-dots');
+    var prev = document.getElementById('mcp-carousel-prev');
+    var next = document.getElementById('mcp-carousel-next');
+    var index = 0;
+
+    var dots = slides.map(function (slide, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'mcp-dot';
+        b.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+        b.addEventListener('click', function () { go(i); });
+        dotsWrap.appendChild(b);
+        return b;
+    });
+
+    function go(i) {
+        index = (i + slides.length) % slides.length;
+        track.style.transform = 'translateX(' + (-index * 100) + '%)';
+        slides.forEach(function (s, n) {
+            s.setAttribute('aria-hidden', n === index ? 'false' : 'true');
+            // keep focusable content reachable only on the active slide
+            s.inert = (n !== index);
+        });
+        dots.forEach(function (d, n) {
+            d.setAttribute('aria-current', n === index ? 'true' : 'false');
+        });
+    }
+
+    prev.addEventListener('click', function () { go(index - 1); });
+    next.addEventListener('click', function () { go(index + 1); });
+
+    // keyboard arrows when focus is within the carousel
+    var carousel = track.closest('.mcp-carousel');
+    carousel.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1); }
+    });
+
+    // basic touch/swipe
+    var startX = null;
+    track.addEventListener('touchstart', function (e) { startX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', function (e) {
+        if (startX === null) return;
+        var dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 40) { go(dx < 0 ? index + 1 : index - 1); }
+        startX = null;
+    }, { passive: true });
+
+    go(0);
+})();
+</script>
+<script src="/js/nav-dropdown.js" defer></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>
