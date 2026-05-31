@@ -348,6 +348,135 @@
         .mcp-dot[aria-current="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
         .mcp-dot:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
 
+        /* ---- Connect-in-5 steps ---- */
+        .mcp-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            max-width: 1000px;
+            margin: 0 auto;
+            counter-reset: mcp-step;
+        }
+        .mcp-step {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 22px 22px 20px;
+            position: relative;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+        .mcp-step::before {
+            counter-increment: mcp-step;
+            content: counter(mcp-step);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+        .mcp-step strong { color: var(--text-primary); display: block; margin-bottom: 4px; }
+        .mcp-step code {
+            color: #a388ff;
+            background: #0d0d1f;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+        }
+        /* ---- Parity matrix ---- */
+        .mcp-parity-wrap { overflow-x: auto; margin: 0 auto; max-width: 760px; }
+        table.mcp-parity {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 0.95rem;
+        }
+        table.mcp-parity th,
+        table.mcp-parity td {
+            padding: 13px 18px;
+            border-bottom: 1px solid #1f1f3a;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+        table.mcp-parity th:first-child,
+        table.mcp-parity td:first-child { text-align: left; color: var(--text-primary); font-weight: 600; }
+        table.mcp-parity th {
+            background: #0d0d1f;
+            color: var(--accent-bright);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        table.mcp-parity tr:last-child td { border-bottom: none; }
+        .mcp-parity-status {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 11px;
+            font-size: 0.74rem;
+            font-weight: 600;
+            background: rgba(108, 92, 231, 0.16);
+            color: #a388ff;
+            border: 1px solid rgba(108, 92, 231, 0.4);
+        }
+        .mcp-parity-note {
+            text-align: center;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 18px auto 0;
+            font-size: 0.9rem;
+        }
+        /* ---- Live vs roadmap ---- */
+        .mcp-status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .mcp-status-col {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 14px;
+            padding: 24px 26px;
+        }
+        .mcp-status-col h3 {
+            font-size: 1.05rem;
+            margin: 0 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+        .mcp-status-col ul { list-style: none; padding: 0; margin: 0; }
+        .mcp-status-col li {
+            color: var(--text-secondary);
+            line-height: 1.5;
+            padding: 8px 0 8px 22px;
+            position: relative;
+            border-bottom: 1px solid #1a1a32;
+            font-size: 0.95rem;
+        }
+        .mcp-status-col li:last-child { border-bottom: none; }
+        .mcp-status-col li::before {
+            position: absolute;
+            left: 0;
+            top: 8px;
+        }
+        .mcp-status-col--live li::before { content: "\2713"; color: #00cec9; font-weight: 700; }
+        .mcp-status-col--roadmap li::before { content: "\2192"; color: #fdcb6e; font-weight: 700; }
+        .mcp-status-col--live h3 { color: #00cec9; }
+        .mcp-status-col--roadmap h3 { color: #fdcb6e; }
+        @media (max-width: 700px) {
+            .mcp-status-grid { grid-template-columns: 1fr; }
+        }
         @media (max-width: 760px) {
             .mcp-hero-grid { grid-template-columns: 1fr; gap: 28px; }
             .mcp-hero-copy { text-align: center; }
@@ -444,7 +573,7 @@
             <div class="mcp-hero-copy">
                 <h1>Drive RakuAI from your AI assistant.</h1>
                 <p class="subhead">
-                    17 native MCP tools (5 read-only + 12 mutation) plus universal <code>api_call</code>/<code>api_search</code> passthrough to ~9,500 REST endpoints. Production-deployed since March 2026. Deny-by-default, fully audit-logged.
+                    17 native MCP tools (5 read-only + 12 mutation) plus universal <code>api_call</code>/<code>api_search</code> passthrough to ~9,500 REST endpoints. Production-deployed since March 2026 — now with a versioned public tool contract, a 5-minute read-only connect path, and deny-by-default, audit-logged permissions.
                 </p>
                 <div class="mcp-cta-row">
                     <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">Read the build log &rarr;</a>
@@ -631,7 +760,7 @@
     <div class="container">
         <h2>The 17 Native Tools</h2>
         <p class="section-lead">
-            The full native MCP surface: 5 read-only + 12 mutation tools. Schema-validated, audit-logged, permission-gated. Plus universal <code>api_call</code>/<code>api_search</code> passthrough to ~9,500 raku-api REST endpoints (see <a href="engine/" style="color: var(--accent);">engine.html</a> for the full inventory).
+            The full native MCP surface: 5 read-only + 12 mutation tools. Schema-validated, audit-logged, permission-gated. Plus universal <code>api_call</code>/<code>api_search</code> passthrough to ~9,500 raku-api REST endpoints (see <a href="engine/" style="color: var(--accent);">engine.html</a> for the full inventory). The 17-tool surface is now pinned as a <a href="https://github.com/RakuXR/raku-runtime/blob/main/src/mcp/schema/tools.v1.json" target="_blank" rel="noopener" style="color: var(--accent);">versioned public contract</a> (<code>tools.v1.json</code>, <code>schema_version&nbsp;1</code>) with an anti-drift test that fails CI if the published surface diverges from the live registry.
         </p>
         <div class="mcp-tools-table-wrap">
             <table class="mcp-tools">
@@ -804,6 +933,92 @@
     </div>
 </section>
 
+<section class="mcp-section">
+    <div class="container">
+        <h2>Connect in 5 minutes — read-only</h2>
+        <p class="section-lead">
+            If your model speaks MCP, it speaks RakuAI. Point an existing MCP client at the runtime and get a working read-only session — the 5 read-only tools — on a free sandbox. No model choice, no engine SDK, no mutation risk.
+        </p>
+        <div class="mcp-steps">
+            <div class="mcp-step">
+                <strong>Add the server</strong>
+                Register <code>raku-mcp</code> in your MCP client config (Claude Desktop, or any MCP-speaking assistant).
+            </div>
+            <div class="mcp-step">
+                <strong>Start a read-only session</strong>
+                Read-only mode is the default. The 5 read-only tools run in every mode, including production.
+            </div>
+            <div class="mcp-step">
+                <strong>Read live scene state</strong>
+                Call <code>get_scene_state</code> and <code>get_metrics</code> to see the runtime respond. That is first value.
+            </div>
+            <div class="mcp-step">
+                <strong>Graduate to sandbox</strong>
+                The 12 mutation tools unlock in sandbox/dev so you can drive a scene end-to-end.
+            </div>
+        </div>
+        <p class="mcp-parity-note">
+            Step-by-step: the <a href="https://github.com/RakuXR/raku-runtime/blob/main/docs/integration/connect-readonly-quickstart.md" target="_blank" rel="noopener" style="color: var(--accent);">connect-read-only quickstart</a>, the <a href="https://github.com/RakuXR/raku-runtime/blob/main/docs/integration/llm-integration-guide.md" target="_blank" rel="noopener" style="color: var(--accent);">LLM integration guide</a>, and a <a href="https://github.com/RakuXR/raku-runtime/blob/main/docs/integration/drive-a-scene-walkthrough.md" target="_blank" rel="noopener" style="color: var(--accent);">drive-a-scene walkthrough</a>. On-site: the <a href="developers/claude-desktop.html" style="color: var(--accent);">Claude Desktop guide</a>.
+        </p>
+    </div>
+</section>
+
+<section class="mcp-section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>Multi-vendor parity</h2>
+        <p class="section-lead">
+            The contract is identical whether the caller is Claude, ChatGPT, Gemini, or Copilot — that is the wedge. We publish a <a href="https://github.com/RakuXR/raku-runtime/blob/main/docs/integration/multi-vendor-parity.md" target="_blank" rel="noopener" style="color: var(--accent);">parity matrix</a> that tracks each vendor against all 17 native tools plus passthrough. Parity holds at the <strong>protocol level</strong>; client-specific schema handling is tracked openly as a living artifact.
+        </p>
+        <div class="mcp-parity-wrap">
+            <table class="mcp-parity">
+                <thead>
+                    <tr>
+                        <th>Vendor</th>
+                        <th>17 native tools</th>
+                        <th>Passthrough</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Claude</td><td>Protocol-level</td><td>Protocol-level</td><td><span class="mcp-parity-status">Published</span></td></tr>
+                    <tr><td>ChatGPT</td><td>Protocol-level</td><td>Protocol-level</td><td><span class="mcp-parity-status">Published</span></td></tr>
+                    <tr><td>Gemini</td><td>Protocol-level</td><td>Protocol-level</td><td><span class="mcp-parity-status">Published</span></td></tr>
+                    <tr><td>Copilot</td><td>Protocol-level</td><td>Protocol-level</td><td><span class="mcp-parity-status">Published</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="mcp-parity-note">
+            Honest note: the matrix is <strong>published</strong>, not yet independently verified. No vendor has been run through a full 17-tool + passthrough conformance sweep on the record — per-client end-to-end verification is open Phase 1 work, tracked in the matrix itself.
+        </p>
+    </div>
+</section>
+
+<section class="mcp-section">
+    <div class="container">
+        <h2>The audit &amp; permission story</h2>
+        <p class="section-lead">
+            What lets a security owner approve an autonomous agent acting in space. Mutation is gated by design, every call is logged, and the relay enforces tiered limits.
+        </p>
+        <div class="mcp-adapters-grid">
+            <div class="mcp-adapter-card">
+                Deny-by-default
+                <span>All 12 mutation tools are sandbox/dev by default; only the 5 read-only tools run in every mode. Production mutation requires an explicit, audited permission grant.</span>
+            </div>
+            <div class="mcp-adapter-card">
+                Per-session audit-log export
+                <span>Every relay call is recorded; the owning account can export its per-session audit trail across the <code>/api/raku/*</code> surface, redaction-safe.</span>
+            </div>
+            <div class="mcp-adapter-card">
+                Rate limits &amp; quota
+                <span>Free vs paid relay rate-limit and quota plumbing on the relay surface, so usage is bounded and accountable per tier.</span>
+            </div>
+        </div>
+        <p class="mcp-adapter-footnote">
+            Honest note: the audit export is relay-scoped and account-wide today, not yet per-connector; quota enforcement is active where the relay's counter store is configured. Per-connector granularity and signed audit logs are roadmap.
+        </p>
+    </div>
+</section>
+
 <section class="mcp-section" style="background: var(--bg-secondary);">
     <div class="container">
         <h2>vs Unity MCP</h2>
@@ -844,7 +1059,7 @@
             </div>
         </div>
         <p class="mcp-adapter-footnote">
-            Adapter contract is public. Build one, become part of the ecosystem.
+            The adapter contract is public. Today the proven adapters are first-party / reference; a broad third-party adapter ecosystem is a roadmap goal, not current state.
         </p>
     </div>
 </section>
@@ -853,10 +1068,45 @@
     <div class="container">
         <h2>Why MCP-native matters</h2>
         <ol class="mcp-why-list">
-            <li><strong>No custom integration</strong> — if your model speaks MCP, it speaks RakuAI.</li>
-            <li><strong>Multi-vendor by design</strong> — Claude, ChatGPT, Gemini, Copilot all drive the same 17 native tools.</li>
-            <li><strong>Production-ready</strong> — deny-by-default, audit-logged, schema-validated.</li>
+            <li><strong>No custom integration</strong> — if your model speaks MCP, it speaks RakuAI. Connect read-only in about five minutes.</li>
+            <li><strong>Multi-vendor by design</strong> — Claude, ChatGPT, Gemini, and Copilot all target the same 17 native tools; parity holds at the protocol level.</li>
+            <li><strong>A versioned contract</strong> — the 17-tool surface is pinned as <code>tools.v1.json</code> with an anti-drift test, so what you integrate against won't silently change.</li>
+            <li><strong>Defensible permissions</strong> — deny-by-default, audit-logged, schema-validated, with per-session audit-log export for your security review.</li>
         </ol>
+    </div>
+</section>
+
+<section class="mcp-section" style="background: var(--bg-secondary);">
+    <div class="container">
+        <h2>What's live vs roadmap</h2>
+        <p class="section-lead">
+            We label what shipped and what hasn't — honest framing is a feature, not a footnote.
+        </p>
+        <div class="mcp-status-grid">
+            <div class="mcp-status-col mcp-status-col--live">
+                <h3>Live today</h3>
+                <ul>
+                    <li>17 native MCP tools in production since March 2026</li>
+                    <li>Versioned public tool contract (<code>tools.v1.json</code>) + anti-drift CI test</li>
+                    <li>5-minute read-only connect path + per-vendor integration guide</li>
+                    <li>Published, protocol-level multi-vendor parity matrix</li>
+                    <li>Deny-by-default mutation; per-session audit-log export</li>
+                    <li>Free vs paid relay rate-limit &amp; quota plumbing</li>
+                    <li>Universal <code>api_call</code>/<code>api_search</code> passthrough to ~9,500 endpoints</li>
+                </ul>
+            </div>
+            <div class="mcp-status-col mcp-status-col--roadmap">
+                <h3>Roadmap</h3>
+                <ul>
+                    <li>Independently verified per-vendor parity (matrix cells are published, not yet swept)</li>
+                    <li>One-click production mutation (today: explicit, audited grants)</li>
+                    <li>Per-connector audit granularity and signed audit logs</li>
+                    <li>Broad third-party adapter ecosystem (today: first-party / reference)</li>
+                    <li>In-product permission-ladder UI; scoped permission profiles</li>
+                    <li>Multi-region relay, SSO/SCIM, latency SLOs</li>
+                </ul>
+            </div>
+        </div>
     </div>
 </section>
 
