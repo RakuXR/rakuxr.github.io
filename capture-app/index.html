@@ -129,16 +129,27 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      overflow: hidden;
+      /* Scroll vertically when a screen's content is taller than the viewport
+         (e.g. the intro screen on a phone, where heading + sample preview +
+         buttons + the compute-toggle + auth row overflow). The camera/viewer
+         stages are position:absolute; inset:0 overlays, so they fill this
+         relative box without adding scroll height. */
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
     }
 
-    /* Each phase is a full-bleed screen; JS toggles [hidden]. */
+    /* Each phase is a full-bleed screen; JS toggles [hidden]. Anchor content to
+       the top so a tall screen scrolls fully — vertically centering a column
+       taller than the viewport clips its top/bottom and traps the overflow.
+       min-height keeps short screens filling the viewport. */
     .screen {
-      flex: 1;
+      flex: 1 0 auto;
+      min-height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       text-align: center;
       padding: 28px 22px;
       gap: 18px;
@@ -480,7 +491,7 @@
 
 <body>
   <header>
-    <a class="logo-link" href="https://rakuai.com/" data-i18n-attr="aria-label:header.homeAria" aria-label="Back to rakuai.com"><span class="logo">Raku Capture</span></a>
+    <a class="logo-link" href="/capture-app/" data-i18n-attr="aria-label:header.homeAria" aria-label="Back to Raku Capture"><span class="logo">Raku Capture</span></a>
     <a class="header-link" href="https://rakuai.com/capture.html" data-i18n="header.aboutCapture">About Raku Capture</a>
     <span class="tagline" data-i18n="header.tagline">Scan a room &rarr; explorable 3D</span>
     <span class="proto-badge" data-i18n="header.protoBadge" data-i18n-attr="title:header.protoBadgeTitle" title="Development prototype, not yet wired to a live backend">PROTOTYPE</span>
