@@ -53,9 +53,10 @@ The site ships **8 locales** — each in its own top-level directory:
 
 ### Vendored capture PWA — `capture-app/`
 
-`capture-app/` is a **vendored copy** of the capture web app whose
-**source of truth lives in `raku-runtime`**. **Do not edit the vendored copy
-here** — change it upstream and re-sync. See `capture-app/VENDORING.md` and the
+`capture-app/` is a **vendored, generated copy** of the Raku Capture PWA whose
+**single source of truth lives in `raku-runtime/web/capture/`**. **Do not edit
+the vendored copy here** — change it upstream and re-sync. See
+`capture-app/README.md` for the source-of-truth + sync contract, and the
 sync / verify scripts below.
 
 ---
@@ -81,18 +82,11 @@ The vendored capture-app is also kept honest by the
 Static files served by **GitHub Pages** at [rakuai.com](https://rakuai.com)
 (custom domain via the `CNAME` file; Jekyll disabled via `.nojekyll`).
 
-| Setting | Value |
-|---------|-------|
-| Production deploy | `.github/workflows/deploy-production.yml` |
-| Staging deploy | `.github/workflows/deploy-staging.yml` |
-| Promote | `.github/workflows/promote-staging-to-production.yml` |
-| Trigger | Push to `main` (or manual `workflow_dispatch`) |
-
-### How it works
-
-1. A push to `main` triggers **Deploy Production**.
-2. The workflow checks out the repo, uploads the root as a Pages artifact, and deploys it.
-3. GitHub Pages serves the static files at `rakuai.com`.
+**Single-environment deploy:** a push to `main` triggers
+`.github/workflows/deploy-production.yml`, which uploads the repo root as a Pages
+artifact and deploys it to `rakuai.com`. Feature branches PR into `main`; review
+happens before merge. (The legacy `staging` branch / `deploy-staging.yml` /
+`promote-staging-to-production.yml` are deprecated — don't use them.)
 
 ### CI gate — E2E
 
