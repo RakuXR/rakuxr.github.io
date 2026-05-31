@@ -265,14 +265,59 @@ function showError(message) {
 }
 
 /**
+ * Resolve a key's text in BOTH the English source and the active locale, so a
+ * substring test can match either. The in-code `englishFallback` is the stable
+ * English source string; `I18N.t(key)` yields what the user actually saw in the
+ * active locale (RakuI18n already falls back to English for missing keys, so
+ * the English path is always represented).
+ */
+function _localizedVariants(key, englishFallback) {
+  const out = [];
+  if (englishFallback) out.push(englishFallback);
+  if (I18N && typeof I18N.t === 'function') {
+    try { const v = I18N.t(key); if (v && v !== key) out.push(v); } catch (e) {}
+  }
+  return out;
+}
+
+/** True if `haystack` (lowercased) contains any of `key`'s localized variants. */
+function _matchesKey(haystack, key, englishFallback) {
+  return _localizedVariants(key, englishFallback).some((s) => {
+    const needle = String(s || '').toLowerCase().trim();
+    return needle.length > 0 && haystack.indexOf(needle) !== -1;
+  });
+}
+
+/**
  * Rule-based, client-side failure diagnosis (v1). Maps the raw error string +
  * last-known stage to a plain-English cause + concrete next action, returned as
  * an i18n key so it re-renders on a locale switch. Pure string matching on data
  * the client already has — no telemetry, no network.
+ *
+ * Locale-robust: it first tries to match the LOCALIZED text of the known error
+ * source keys (so a Japanese timeout/network/SfM message is classified
+ * correctly), then falls back to the English-prose heuristics below — which
+ * keeps the original English path working unchanged.
  */
 function diagnoseFailureKey(rawError, lastStage) {
   const e = String(rawError || '').toLowerCase();
 
+  // 1) Stable-signal pass: match the localized variants of known source keys.
+  //    Order mirrors the prose pass: timeout before network before SfM.
+  if (_matchesKey(e, 'error.reconstructionTimeout', 'Reconstruction timed out.')) {
+    return 'error.diagTimeout';
+  }
+  if (_matchesKey(e, 'error.uploadNetwork', 'Network error during upload.')
+      || _matchesKey(e, 'error.reconstructionLostContact', 'Lost contact with the reconstruction job.')) {
+    return 'error.diagNetwork';
+  }
+  if (_matchesKey(e, 'error.reconstructionFailed', 'Reconstruction failed.')
+      || _matchesKey(e, 'error.noFrames', 'No frames were captured — try scanning the room again.')) {
+    return 'error.diagSfm';
+  }
+
+  // 2) English-prose heuristics (unchanged). Covers raw backend `detail`
+  //    strings (English from the server) and any text not matched above.
   // Timeout / out-of-time on current capacity. Checked first because a timeout
   // message often also mentions "reconstruct".
   if (/timeout|timed out|timed-out|deadline|took too long|time limit|1500|time.*exceed|exceed.*time/.test(e)) {
@@ -940,8 +985,11 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
       if (job.status === 'cancelled') {
         return null; // user cancelled — handled quietly, not an error
       }
-      // queued | analyzing | reconstructing
-      const stage = job.status === 'queued' ? 'analyzing' : job.status;
+      // queued | analyzing | reconstructing — pass the status through verbatim
+      // so the user-facing "Queued" stage can render (applyProcessingLabels()
+      // owns the queued -> first-step mapping). Previously this collapsed
+      // 'queued' into 'analyzing' here, making the queued stage unreachable.
+      const stage = job.status;
       const elapsed = performance.now() - started;
       // The slow-hint message is set on state so the label renderer can pick
       // it up; the server's job is fine, we just want the user to know.
@@ -1773,10 +1821,18 @@ async function reopenCapture(entry) {
   try {
     state.procStage = null;
     state.procPct = 0;
+    // Reopened/deep-linked captures re-enter PROCESSING too, so start the same
+    // elapsed-timer state the main pipeline does — otherwise the elapsed time
+    // and the escalating compute-limit notices never appear on a resume.
+    state.procStartedAt = performance.now();
+    state.procElapsedMs = 0;
+    state.procSlowHint = false;
     showPhase(Phase.PROCESSING);
     state.splatUrl = await pollReconstruction(
       entry.captureId,
       (stage, pct) => { state.procStage = stage; state.procPct = pct;
+        state.procElapsedMs = state.procStartedAt
+          ? performance.now() - state.procStartedAt : 0;
         setFill('processing-fill', pct); applyProcessingLabels(); },
       () => run !== state.runToken);
     if (run !== state.runToken || !state.splatUrl) return;
