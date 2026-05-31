@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>보험을 위한 RakuAI — 휴대폰 스캔 한 번으로 보험사 제출용 내용물 목록 작성</title>
+    <meta name="description" content="휴대폰 스캔 한 번으로 방을 측정값과 추정 재구매 가치가 포함된 항목별 내용물 목록으로 바꿔줍니다 — 청구, 이사, 다운사이징을 위해 만들어졌습니다. Raku Capture와 동일한 splat + MCP 코어. 오늘 무엇이 출시되어 있는지에 대해 정직합니다.">
+    <meta name="keywords" content="보험 내용물 목록, 홈 인벤토리 앱, 청구 문서화, 재구매 가치 추정, 휴대폰 3D 스캔, 보험사 제출용 PDF, 손해사정 비용, Gaussian splatting 보험">
+    <meta property="og:title" content="보험을 위한 RakuAI — 휴대폰 스캔 한 번으로 보험사 제출용 내용물 목록 작성">
+    <meta property="og:description" content="60~90초 휴대폰 스캔 → 항목별 내용물, 측정값, 추정 재구매 가치. 청구, 이사, 다운사이징을 위해. 동일한 splat + MCP 코어, 새 엔진 없음.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ko/insurance.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="보험을 위한 RakuAI — 휴대폰 스캔 한 번으로 보험사 제출용 내용물 목록 작성">
+    <meta name="twitter:description" content="60~90초 휴대폰 스캔 → 항목별 내용물, 측정값, 추정 재구매 가치. 청구, 이사, 다운사이징을 위해.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/ko/insurance.html">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/insurance.html">
+    <link rel="alternate" hreflang="ko" href="https://rakuai.com/ko/insurance.html">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/insurance.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .ins-section {
+            padding: 72px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .ins-section:last-of-type {
+            border-bottom: none;
+        }
+        .ins-hero {
+            padding: 96px 0 72px;
+            text-align: center;
+        }
+        .ins-hero .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            padding: 6px 14px;
+            border: 1px solid rgba(108, 92, 231, 0.45);
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+        .ins-hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .ins-hero .subhead {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            line-height: 1.65;
+            max-width: 820px;
+            margin: 0 auto 32px;
+        }
+        .ins-hero .audience-line {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 720px;
+            margin: 18px auto 0;
+            opacity: 0.85;
+            font-style: italic;
+        }
+        .ins-cta-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+        .ins-btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .ins-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
+        }
+        .ins-btn-secondary {
+            display: inline-block;
+            background: transparent;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.15s ease;
+        }
+        .ins-btn-secondary:hover {
+            background: rgba(163, 136, 255, 0.1);
+        }
+        .ins-section h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .ins-section .ins-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 760px;
+            margin: 0 auto 40px;
+        }
+
+        /* Use-case cards */
+        .ins-usecases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .ins-usecase {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 26px;
+        }
+        .ins-usecase h3 {
+            color: var(--accent-bright);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .ins-usecase p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* How it works steps */
+        .ins-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .ins-step {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 22px 22px;
+            position: relative;
+        }
+        .ins-step .ins-step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: rgba(108, 92, 231, 0.12);
+            color: var(--accent-bright);
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+        .ins-step h4 {
+            color: var(--text-primary);
+            font-size: 1.02rem;
+            margin-bottom: 6px;
+        }
+        .ins-step p {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        /* Sample inventory table */
+        .ins-table-wrap {
+            max-width: 880px;
+            margin: 0 auto;
+            overflow-x: auto;
+            border: 1px solid #222244;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+        .ins-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 560px;
+            font-size: 0.95rem;
+        }
+        .ins-table th, .ins-table td {
+            padding: 13px 18px;
+            text-align: left;
+            border-bottom: 1px solid #222244;
+            vertical-align: top;
+        }
+        .ins-table thead th {
+            background: rgba(108, 92, 231, 0.08);
+            color: var(--accent-bright);
+            font-weight: 700;
+            font-size: 0.92rem;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        .ins-table td {
+            color: var(--text-secondary);
+        }
+        .ins-table td.ins-num {
+            text-align: right;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+        .ins-table tfoot td, .ins-table tr.ins-total td {
+            color: var(--text-primary);
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.015);
+        }
+        .ins-table tr:last-child th, .ins-table tr:last-child td {
+            border-bottom: none;
+        }
+        .ins-table-note {
+            max-width: 880px;
+            margin: 14px auto 0;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            opacity: 0.85;
+            padding: 0 6px;
+            line-height: 1.6;
+        }
+
+        /* Comparison matrix */
+        .ins-matrix-wrap {
+            max-width: 1000px;
+            margin: 0 auto;
+            overflow-x: auto;
+            border: 1px solid #222244;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+        .ins-matrix {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 640px;
+            font-size: 0.95rem;
+        }
+        .ins-matrix th, .ins-matrix td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid #222244;
+            vertical-align: top;
+        }
+        .ins-matrix thead th {
+            background: rgba(108, 92, 231, 0.08);
+            color: var(--accent-bright);
+            font-weight: 700;
+            font-size: 0.92rem;
+            white-space: nowrap;
+        }
+        .ins-matrix tbody th {
+            color: var(--text-primary);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.015);
+            min-width: 220px;
+        }
+        .ins-matrix td {
+            color: var(--text-secondary);
+        }
+        .ins-matrix tr:last-child th, .ins-matrix tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Honest framing callout */
+        .ins-honest {
+            max-width: 820px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-left: 4px solid var(--accent-bright);
+            border-radius: 8px;
+            padding: 24px 28px;
+        }
+        .ins-honest h3 {
+            color: var(--accent-bright);
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+        }
+        .ins-honest ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        .ins-honest li { margin-bottom: 8px; }
+
+        /* Partner cards */
+        .ins-partner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .ins-partner-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 26px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .ins-partner-card > div { flex-grow: 1; }
+        .ins-partner-card h3 {
+            color: var(--accent-bright);
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+        }
+        .ins-partner-card p {
+            color: var(--text-secondary);
+            font-size: 0.93rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Cross-links */
+        .ins-crosslinks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .ins-crosslink {
+            display: block;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px 22px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: border-color 0.15s ease, transform 0.15s ease;
+        }
+        .ins-crosslink:hover {
+            border-color: var(--accent-bright);
+            transform: translateY(-2px);
+        }
+        .ins-crosslink .label {
+            color: var(--accent-bright);
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        .ins-crosslink .desc {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .ins-hero { padding: 64px 0 48px; }
+            .ins-section { padding: 56px 0; }
+            .ins-honest { padding: 20px 20px; }
+            .ins-table th, .ins-table td,
+            .ins-matrix th, .ins-matrix td { padding: 11px 12px; font-size: 0.88rem; }
+        }
+        @media (max-width: 480px) {
+            .ins-cta-row { flex-direction: column; align-items: stretch; }
+            .ins-btn-primary, .ins-btn-secondary { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    특허 5건 | 9,500개 이상의 API 엔드포인트 | 18개의 네이티브 DLL | AI 네이티브 공간 게임 엔진 — 지금 얼리 액세스 진행 중
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">솔루션</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="솔루션" hidden>
+                        <div class="col-heading" role="presentation">대상별</div>
+                        <div class="col-heading" role="presentation">플랫폼</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">스마트 글래스 제조사용<span class="item-desc">하드웨어 OEM 파트너 프로그램</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI 연구소용<span class="item-desc">파운데이션 모델용 MCP 런타임</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">엔터프라이즈용<span class="item-desc">공간 AI를 대규모로 배포</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">크리에이터용<span class="item-desc">공간 월드 제작 및 공개</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">로보틱스<span class="item-desc">로봇을 위한 영속적 공간 메모리</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">보험<span class="item-desc">휴대폰 스캔으로 내용물 목록 작성</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Unity / Unreal 비교<span class="item-desc">정직한 비교</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">공간을 스캔하고 말을 거세요</span></a></li>
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">공간 엔진<span class="item-desc">런타임의 기둥</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI 시스템<span class="item-desc">오케스트레이션 및 권한</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR 기능<span class="item-desc">디스플레이, 트래킹, 앵커링</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">개발자</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="개발자" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">문서</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP 서버</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API 레퍼런스</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">템플릿</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/">개발자 포털</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop 가이드</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">개발자 가이드</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM 통합 가이드</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">리소스</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="리소스" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">블로그</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">RakuAI를 선택하는 이유</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">보도 자료</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">디스커버</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">콘텐츠 팩</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">문서</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">문의하기</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">요금제</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">블로그</a>
+                </li>
+            </ul>
+            <a href="../developers/login.html" class="nav-signin">로그인</a>
+            <a href="../insurance.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="ins-hero">
+    <div class="container">
+        <span class="eyebrow">주택 소유자, 세입자 및 보험사를 위한 페이지</span>
+        <h1>휴대폰 스캔 한 번. 보험사 제출용 내용물 목록.</h1>
+        <p class="subhead">
+            RakuAI Capture는 방을 60~90초간 휴대폰으로 스캔한 것을, 대략적인 측정값과 추정 재구매 가치가 포함된 항목별 내용물 목록으로 바꿔줍니다 &mdash; 보험사에 그대로 제출할 수 있습니다. 사람들이 실제로 이를 필요로 하는 세 가지 순간을 위해 만들어졌습니다: <strong>청구</strong> 접수, <strong>이사</strong> 계획, 그리고 <strong>다운사이징</strong>. RakuAI의 나머지 제품과 동일한 3D 가우시안 스플랫 재구성과 MCP 코어를 사용합니다 &mdash; 새 엔진은 없습니다.
+        </p>
+        <p class="audience-line">
+            이 페이지는 오늘 무엇이 출시되어 있고 무엇이 로드맵에 있는지에 대해 정직합니다. 우리는 공간을 문서화하고 구조화된 목록을 만듭니다. 우리는 보험사가 아니며 보험 약관을 정하거나 청구를 처리하지 않습니다.
+        </p>
+
+<div style="display: flex; justify-content: center; margin: 22px 0 4px;">
+    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="NVIDIA Inception 멤버 - 자세한 내용으로 스크롤">
+        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">멤버:</span>
+        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">자세히 보기 &darr;</span>
+    </a>
+</div>
+        <div class="ins-cta-row">
+            <a href="capture.html" class="ins-btn-primary">캡처 플로우 사용해 보기 &rarr;</a>
+            <a href="mailto:partnerships@rakuai.com?subject=Insurance%20capture%20%E2%80%94%20partnership%20inquiry" class="ins-btn-secondary">보험사 & InsurTech 파트너십 &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<!-- Three jobs people actually hire this for -->
+<section class="ins-section" id="use-cases">
+    <div class="container">
+        <h2>사람들이 이것을 필요로 하는 세 가지 순간.</h2>
+        <p class="ins-subtitle">
+            우리는 부동산 매물 캡처 시장을 기존 강자들(Matterport과 그 부류)에게 의도적으로 양보했습니다. 이것은 아무도 차지하지 않은 소비자 대상의 진입점입니다: 목록이 실제로 중요한 순간을 위해 구조화된 내용물 목록을 만들어내는 셀프 서비스 스캔입니다.
+        </p>
+        <div class="ins-usecases">
+            <div class="ins-usecase">
+                <h3>청구</h3>
+                <p>손실 이후 &mdash; 화재, 도난, 침수, 폭풍 &mdash; 자신이 무엇을 소유했는지를 기억에 의존해 재구성하는 일은 고통스럽고 분쟁도 흔합니다. 가입 또는 갱신 시점에 찍어둔 스캔은 무슨 일이 일어나기 전에 타임스탬프가 찍힌 항목별 기록을 제공합니다. 청구는 "잃어버린 모든 것을 기억해 내기"가 아니라 "목록 제출하기"가 됩니다.</p>
+            </div>
+            <div class="ins-usecase">
+                <h3>이사</h3>
+                <p>이삿짐 업체, 평가 보장, 운송 보험은 모두 내용물 목록을 원합니다. 방마다 한 번씩 스캔하면 대략적인 치수가 포함된 항목별 명세서가 만들어집니다 &mdash; 이삿짐 견적과, 트럭 운송 전후의 상태를 문서화하는 데 유용합니다.</p>
+            </div>
+            <div class="ins-usecase">
+                <h3>다운사이징</h3>
+                <p>집을 정리하는 일 &mdash; 유품 정리, 부모님의 요양 시설 입소, 자녀의 대학 진학 &mdash; 은 무엇을 보관하고, 팔고, 기부하고, 보험에 들지를 결정하는 일을 뜻합니다. 스캔은 방 안에 무엇이 있는지에 대해 온 가족이 공유하는 하나의 항목별 시각을 제공합니다.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How it works -->
+<section class="ins-section" id="how-it-works">
+    <div class="container">
+        <h2>스캔 한 번이 목록이 되는 과정.</h2>
+        <p class="ins-subtitle">제품 전반에서 쓰이는 것과 동일한 Raku Capture 파이프라인입니다 &mdash; 스캔, 재구성, 질의. 보험은 새 엔진이 아니라 출력물 위에 씌운 래퍼입니다.</p>
+        <div class="ins-steps">
+            <div class="ins-step">
+                <span class="ins-step-num">1</span>
+                <h4>방 스캔하기</h4>
+                <p>화면 안내에 따라 휴대폰으로 60~90초간 천천히 한 바퀴 도세요. 특별한 하드웨어는 필요 없습니다.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">2</span>
+                <h4>재구성</h4>
+                <p>프레임 + 모션이 클라우드에서 3D 가우시안 스플랫으로 재구성됩니다 &mdash; 탐색 가능한 공간 모델입니다.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">3</span>
+                <h4>항목화</h4>
+                <p>LLM이 MCP 표면을 통해 장면을 훑으며 보이는 물체를 항목별 대략적인 측정값과 함께 나열합니다.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">4</span>
+                <h4>검토 & 내보내기</h4>
+                <p>목록을 편집하고 가치를 확인한 뒤, 보험사에 그대로 제출할 수 있는 깔끔한 목록을 내보냅니다. 모든 가치는 추정값으로 표기됩니다.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sample output -->
+<section class="ins-section" id="sample-output">
+    <div class="container">
+        <h2>출력물은 이런 모습입니다.</h2>
+        <p class="ins-subtitle">예시로 든 단일 방 목록입니다. 실제 출력물은 여러분의 스캔에서 생성되며, 누군가에게 제출하기 전에 전부 편집할 수 있습니다.</p>
+        <div class="ins-table-wrap" role="region" aria-label="단일 방에 대한 예시 내용물 목록">
+            <table class="ins-table">
+                <thead>
+                    <tr>
+                        <th scope="col">품목</th>
+                        <th scope="col">대략 크기</th>
+                        <th scope="col">추정 재구매가</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>3인용 소파</td><td>210 &times; 90 cm</td><td class="ins-num">$1,200</td></tr>
+                    <tr><td>55&Prime; 텔레비전</td><td>123 &times; 71 cm</td><td class="ins-num">$650</td></tr>
+                    <tr><td>커피 테이블</td><td>110 &times; 60 cm</td><td class="ins-num">$240</td></tr>
+                    <tr><td>책장 (가득 참)</td><td>80 &times; 200 cm</td><td class="ins-num">$380</td></tr>
+                    <tr><td>러그</td><td>200 &times; 290 cm</td><td class="ins-num">$320</td></tr>
+                    <tr class="ins-total"><td>방 추정 합계</td><td>&mdash;</td><td class="ins-num">$2,790</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="ins-table-note">
+            위의 모든 수치는 감정평가가 아니라 <strong>추정값</strong>입니다. 물체 인식과 가치 추정은 완벽하지 않습니다 &mdash; 어디로든 전달되기 전에 여러분이 목록을 검토하고 수정합니다. RakuAI는 여러분의 보장 범위를 정하거나, 청구 지급액을 결정하거나, 재구매 비용을 보증하지 않습니다. 그것은 보험사가 합니다.
+        </p>
+    </div>
+</section>
+
+<!-- Why us vs the field -->
+<section class="ins-section" id="why-rakuai">
+    <div class="container">
+        <h2>바로 이 용도에 RakuAI를 선택하는 이유.</h2>
+        <p class="ins-subtitle">캡처 시장은 붐비지만, 소비자 셀프 서비스 스캔 &rarr; 구조화된 목록으로 이어지는 파이프라인은 활짝 열려 있습니다.</p>
+        <div class="ins-matrix-wrap" role="region" aria-label="내용물 목록 측면에서 RakuAI의 비교">
+            <table class="ins-matrix">
+                <thead>
+                    <tr>
+                        <th scope="col">접근 방식</th>
+                        <th scope="col">강점</th>
+                        <th scope="col">내용물 목록 측면의 한계</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">휴대폰 사진 목록 (직접 작성 / 이메일)</th>
+                        <td>무료, 누구나 가능</td>
+                        <td>측정값 없음, 구조 없음, 분실하기 쉬움, 손실 후 재구성이 고통스러움</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">손해사정사 방문</th>
+                        <td>공신력 있음</td>
+                        <td>방문당 총비용 약 200~500달러. 청구 접수 이후에만 진행됨</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Matterport 방식 3D 워크스루</th>
+                        <td>고충실도 캡처</td>
+                        <td>부동산 매물용으로 만들어짐 &mdash; 항목별 내용물 출력도, 보험사 친화적 내보내기도 없음</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">RakuAI Capture</th>
+                        <td>셀프 서비스 휴대폰 스캔, splat 충실도, MCP를 통한 LLM 기반 항목화</td>
+                        <td>정직한 입장: 가치는 추정값이며, 공식 보험사 내보내기 형식은 아직 개발 중</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Honest framing -->
+<section class="ins-section" id="honest">
+    <div class="container">
+        <h2>오늘 무엇이 실제이고, 무엇이 아닌가.</h2>
+        <p class="ins-subtitle">우리는 차라리 덜 약속하는 쪽을 택합니다. 다음은 현재 출시된 것과 로드맵 사이의 경계선입니다.</p>
+        <div class="ins-honest">
+            <h3>오늘 출시되어 있는 것</h3>
+            <ul>
+                <li>휴대폰 기반 캡처와 클라우드 splat 재구성 (Raku Capture 플로우).</li>
+                <li>MCP 표면을 통한 장면 질의 &mdash; LLM이 재구성된 방을 훑으며 안에 무엇이 있는지 설명할 수 있습니다.</li>
+                <li>멀티 LLM 지원: Claude, ChatGPT, Gemini, Copilot 모두 런타임을 구동할 수 있습니다.</li>
+            </ul>
+        </div>
+        <div class="ins-honest" style="margin-top: 18px;">
+            <h3>진행 중 / 로드맵</h3>
+            <ul>
+                <li>다듬어진 1페이지짜리 <strong>보험사 제출용 내보내기</strong> (방 썸네일 + 항목별 표 + 합계 + 스캔 메타데이터). 기반 데이터는 오늘 존재하며, 서식화된 문서는 개발 중입니다.</li>
+                <li>보험사별 목록 템플릿 &mdash; 단일한 업계 표준 형식이 없으므로 파일럿별 작업으로 처리됩니다.</li>
+                <li>스캔당 미터링과 소비자용 변경 추적 등급 (매년 다시 스캔해 차이를 확인).</li>
+            </ul>
+        </div>
+        <div class="ins-honest" style="margin-top: 18px;">
+            <h3>아직 갖추지 못한 것</h3>
+            <ul>
+                <li>SOC 2 인증. 대형 보험사는 조달 전에 이를 요구합니다. 우리는 그 준비 작업을 병행하면서 InsurTech와 초기 파일럿을 진행합니다.</li>
+                <li>체결된 보험사 파트너십. 우리는 어떤 보험사의 보증도 주장하지 않습니다.</li>
+                <li>감정평가 권한. 우리는 문서화하고 추정합니다. 가치를 매기거나 청구를 처리하지 않습니다.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- Partner CTA -->
+<section class="ins-section" id="partners">
+    <div class="container">
+        <h2>보험사와 InsurTech를 위한 안내.</h2>
+        <p class="ins-subtitle">보험사 입장의 핵심은 손해사정 비용과 처리 주기입니다: 가입 또는 갱신 시점의 셀프 서비스 스캔은 이후 손해사정사 접점을 줄여줍니다. 참여하는 세 가지 구체적인 방법입니다.</p>
+        <div class="ins-partner-grid">
+            <div class="ins-partner-card">
+                <div>
+                    <h3>1. 기능 문의</h3>
+                    <p>내용물 캡처 레이어를 검토 중이며, RakuAI가 여러분의 제품, 선호하는 목록 형식, 가입 플로우에 어떻게 매핑되는지에 대한 서면 답변을 원하는 경우입니다. 여러분의 제약 조건을 알려주시면, 오늘 무엇이 실제이고 파일럿을 위해 우리가 무엇을 만들지 답해 드리겠습니다.</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=Insurance%20capability%20inquiry%20%E2%80%94%20%5Byour%20company%5D" class="ins-btn-secondary" style="text-align:center;">partnerships@rakuai.com &rarr;</a>
+            </div>
+            <div class="ins-partner-card">
+                <div>
+                    <h3>2. 무료 90일 파일럿</h3>
+                    <p>분기당 한 파트너. 우리는 스캔 플로우를 여러분의 가입 과정에 통합하고(화이트라벨 또는 사이드카 웹 앱), 약 100건의 고객 스캔을 수집하며, 사례 연구를 공동으로 공개합니다. 파일럿에는 비용을 청구하지 않습니다. 대신 UX 팀 접근과 공개 허가를 요청합니다.</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=Insurance%2090-day%20pilot" class="ins-btn-secondary" style="text-align:center;">파일럿 논의하기 &rarr;</a>
+                <p class="ins-table-note" style="margin-top:0;">초기 파일럿은 SOC 2 취득 전까지 보험사 검토 포털과 함께 RakuAI 클라우드에서 실행됩니다.</p>
+            </div>
+            <div class="ins-partner-card">
+                <div>
+                    <h3>3. InsurTech 통합</h3>
+                    <p>이미 청구 오케스트레이션, 항공/외관 데이터, 또는 차량 손상 평가를 보유하고 있지만 실내 내용물에 대한 부분이 없는 경우입니다. 우리는 여러분이 API를 통해 자체 브랜드로 재판매하는 캡처·항목화 레이어가 될 수 있습니다.</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=InsurTech%20integration%20%E2%80%94%20capture%20layer" class="ins-btn-secondary" style="text-align:center;">통합 살펴보기 &rarr;</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Cross-links -->
+<section class="ins-section">
+    <div class="container">
+        <h2>스캔하거나 작성하기 전에 더 깊이 보기.</h2>
+        <p class="ins-subtitle">사람들이 그다음으로 가장 많이 읽는 페이지들입니다.</p>
+        <div class="ins-crosslinks">
+            <a href="capture.html" class="ins-crosslink">
+                <div class="label">Raku Capture &rarr;</div>
+                <div class="desc">이것이 기반으로 삼는 소비자 스캔 플로우 &mdash; 공간을 스캔한 뒤 말을 거세요.</div>
+            </a>
+            <a href="mcp.html" class="ins-crosslink">
+                <div class="label">MCP 서버 &rarr;</div>
+                <div class="desc">LLM이 장면을 훑으며 안에 무엇이 있는지 항목화하게 하는 MCP 표면. 2026년 3월부터 프로덕션.</div>
+            </a>
+            <a href="spatial-engine.html" class="ins-crosslink">
+                <div class="label">공간 엔진 &rarr;</div>
+                <div class="desc">splat 재구성을 떠받치는 C++ 런타임 &mdash; 동일한 코어, 보험을 위한 새 엔진 없음.</div>
+            </a>
+            <a href="../privacy.html" class="ins-crosslink">
+                <div class="label">개인정보처리방침 &rarr;</div>
+                <div class="desc">집을 스캔하는 일은 민감합니다. 캡처 데이터를 어떻게 처리하는지, 스캔을 삭제하는 방법.</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- NVIDIA Inception validation strip (member chip + recognition card) -->
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 32px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception 멤버 - 프레스 페이지에서 자세히 보기">
+            <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 멤버" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <p style="max-width: 640px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            RakuAI는 <strong>NVIDIA Inception</strong> 멤버입니다. <a href="capture.html" style="color: var(--accent-bright);">Raku Capture</a>에서 제공하는 것과 동일한, NVIDIA 가속 3D 가우시안 스플래팅 스택이 방을 재구성하고 위에서 설명한 내용물 항목화를 구동합니다. <a href="press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">자세히 보기 &rarr;</a>
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 14px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        NVIDIA Inception은 AI 스타트업을 위한 무료 프로그램입니다. RakuAI의 멤버십은 NVIDIA가 RakuAI의 제품을 보증함을 의미하지 않습니다. 자세한 내용은 <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color: var(--text-secondary);">nvidia.com/startups</a>에서 확인하세요.
+    </p>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>솔루션</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">스마트 글래스 제조사</a></li>
+                    <li><a href="llm-makers.html">AI 연구소</a></li>
+                    <li><a href="enterprise.html">엔터프라이즈</a></li>
+                    <li><a href="creator.html">크리에이터</a></li>
+                    <li><a href="robotics.html">로보틱스</a></li>
+                    <li><a href="insurance.html">보험</a></li>
+                    <li><a href="compare.html">Unity / Unreal 비교</a></li>
+                    <li><a href="spatial-engine.html">공간 엔진</a></li>
+                    <li><a href="ai-systems.html">AI 시스템</a></li>
+                    <li><a href="xr-features.html">XR 기능</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>개발자</h4>
+                <ul>
+                    <li><a href="docs.html">문서</a></li>
+                    <li><a href="mcp.html">MCP 서버</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="../api/">API 레퍼런스</a></li>
+                    <li><a href="templates.html">템플릿</a></li>
+                    <li><a href="../developers/">개발자 포털</a></li>
+                    <li><a href="../developers/claude-desktop.html">Claude Desktop 가이드</a></li>
+                    <li><a href="developer-guide.html">개발자 가이드</a></li>
+                    <li><a href="llm-guide.html">LLM 통합 가이드</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>리소스</h4>
+                <ul>
+                    <li><a href="../blog/">블로그</a></li>
+                    <li><a href="why-rakuai.html">RakuAI를 선택하는 이유</a></li>
+                    <li><a href="press.html">보도 자료</a></li>
+                    <li><a href="../discover.html">디스커버</a></li>
+                    <li><a href="content-packs.html">콘텐츠 팩</a></li>
+                    <li><a href="docs.html">문서</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>회사</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">회사 소개</a></li>
+                    <li><a href="pricing.html">요금제</a></li>
+                    <li><a href="contact.html">문의하기</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">파트너</a></li>
+                    <li><a href="../privacy.html">개인정보처리방침</a></li>
+                    <li><a href="../terms.html">이용약관</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 미국 특허 5건 취득(우선일: 2012년 7월) &bull; RakuAI 엔진 기반</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 및 RakuXR&trade;는 RakuAI, LLC의 상표입니다.
+            <span class="kanji-logo">&#x697D;</span>AI 및 <span class="kanji-logo">&#x697D;</span>XR는 RakuAI, LLC의 스타일링된 마크입니다.
+            미국 특허 5건 취득(우선일: 2012년 7월).
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception 멤버 — 프레스 페이지에서 자세히 보기" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 멤버" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script src="/js/public-config.js"></script>
+<script src="/js/api-client.js"></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+
+
+<script src="/js/nav-dropdown.js" defer></script>
+<script src="/js/section-nav.js" defer></script>
+</body>
+</html>

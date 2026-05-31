@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>RakuAI pour la robotique — La couche de mémoire spatiale persistante que vos robots interrogent en langage naturel</title>
+    <meta name="description" content="Un dossier à destination des partenaires, pour les CTO et responsables perception en robotique. RakuAI est la couche de mémoire spatiale persistante, interrogeable par LLM (Gaussian splat par site + 17 outils MCP natifs) qui s'intègre à votre pile. Nous ne construisons ni robots, ni SLAM, ni planification de mouvement. Pilotes gratuits de 90 jours.">
+    <meta name="keywords" content="mémoire spatiale robotique, mémoire de scène robot, MCP pour robots, carte de site Gaussian splat, IA pour robotique d'entrepôt, perception robot humanoïde, complémentaire à NVIDIA Isaac, robotique multi-LLM, IA spatiale persistante">
+    <meta property="og:title" content="RakuAI pour la robotique — La couche de mémoire spatiale persistante que vos robots interrogent en langage naturel">
+    <meta property="og:description" content="Splat par site + API MCP multi-fournisseurs que n'importe quel LLM peut interroger. Au-dessus de la perception, en dessous de la planification de tâches. Complémentaire à NVIDIA Isaac et AWS RoboMaker. Pilotes gratuits de 90 jours.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/fr/robotics.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RakuAI pour la robotique — La couche de mémoire spatiale persistante que vos robots interrogent en langage naturel">
+    <meta name="twitter:description" content="Splat par site + API MCP multi-fournisseurs que n'importe quel LLM peut interroger. Complémentaire à NVIDIA Isaac et AWS RoboMaker. Pilotes gratuits de 90 jours.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/fr/robotics.html">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/robotics.html">
+    <link rel="alternate" hreflang="fr" href="https://rakuai.com/fr/robotics.html">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/robotics.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .sg-section {
+            padding: 72px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .sg-section:last-of-type {
+            border-bottom: none;
+        }
+        .sg-hero {
+            padding: 96px 0 72px;
+            text-align: center;
+        }
+        .sg-hero .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            padding: 6px 14px;
+            border: 1px solid rgba(108, 92, 231, 0.45);
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+        .sg-hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .sg-hero .subhead {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            line-height: 1.65;
+            max-width: 820px;
+            margin: 0 auto 32px;
+        }
+        .sg-hero .audience-line {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 720px;
+            margin: 18px auto 0;
+            opacity: 0.85;
+            font-style: italic;
+        }
+        .sg-cta-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+        .sg-btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .sg-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
+        }
+        .sg-btn-secondary {
+            display: inline-block;
+            background: transparent;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.15s ease;
+        }
+        .sg-btn-secondary:hover {
+            background: rgba(163, 136, 255, 0.1);
+        }
+        .sg-section h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .sg-section .sg-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 760px;
+            margin: 0 auto 40px;
+        }
+
+        /* Stack-position split: what we build vs don't */
+        .rb-stack {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+        .rb-stack-col {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 28px;
+        }
+        .rb-stack-col.build { border-top: 4px solid var(--success); }
+        .rb-stack-col.dont { border-top: 4px solid #ff6b6b; }
+        .rb-stack-col h3 {
+            color: var(--accent-bright);
+            font-size: 1.15rem;
+            margin-bottom: 14px;
+        }
+        .rb-stack-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .rb-stack-col li {
+            padding: 9px 0;
+            color: var(--text-secondary);
+            line-height: 1.55;
+            font-size: 0.95rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .rb-stack-col li:first-child { border-top: none; }
+        .rb-stack-col.build li:before {
+            content: "\2713 ";
+            color: var(--success);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+        .rb-stack-col.dont li:before {
+            content: "\2715 ";
+            color: #ff6b6b;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        /* MCP-from-robot diagram block */
+        .sg-mcp-arch {
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        .sg-mcp-arch .sg-mcp-note {
+            max-width: 820px;
+            margin: 20px auto 0;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        /* Segment / target cards */
+        .rb-segments {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .rb-segment {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px 24px;
+            transition: border-color 0.15s ease;
+        }
+        .rb-segment:hover { border-color: var(--accent-bright); }
+        .rb-segment h3 {
+            color: var(--accent-bright);
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        .rb-segment .rb-seg-pain {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.55;
+            margin: 0 0 12px;
+        }
+        .rb-segment .rb-seg-targets {
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        .rb-segment .rb-seg-targets strong {
+            color: var(--text-secondary);
+            font-weight: 600;
+            display: block;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 0.72rem;
+        }
+
+        /* Partner resources */
+        .rb-partners {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .rb-partner-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px 26px;
+        }
+        .rb-partner-card h3 {
+            color: var(--accent-bright);
+            font-size: 1.05rem;
+            margin-bottom: 6px;
+        }
+        .rb-partner-card .rb-partner-vendor {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            margin-bottom: 12px;
+        }
+        .rb-partner-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .rb-partner-card li {
+            padding: 7px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .rb-partner-card li:first-child { border-top: none; }
+        .rb-partner-card li strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* ROI math */
+        .rb-roi {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+        .rb-roi-col {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 28px;
+        }
+        .rb-roi-col.status { border-top: 4px solid #fdcb6e; }
+        .rb-roi-col.raku { border-top: 4px solid var(--success); }
+        .rb-roi-col h3 {
+            color: var(--accent-bright);
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+        .rb-roi-col ul { list-style: none; padding: 0; margin: 0; }
+        .rb-roi-col li {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 0.93rem;
+            line-height: 1.55;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .rb-roi-col li:first-child { border-top: none; }
+        .rb-roi-net {
+            max-width: 820px;
+            margin: 24px auto 0;
+            padding: 18px 22px;
+            background: rgba(0, 206, 201, 0.08);
+            border-left: 3px solid var(--success);
+            border-radius: 6px;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Pilot timeline */
+        .rb-pilot {
+            max-width: 980px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .rb-pilot-col {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            border-top: 4px solid var(--accent-bright);
+            padding: 24px 26px;
+        }
+        .rb-pilot-col h3 {
+            color: var(--accent-bright);
+            font-size: 1.05rem;
+            margin-bottom: 4px;
+        }
+        .rb-pilot-col .when {
+            color: var(--text-secondary);
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 12px;
+        }
+        .rb-pilot-col p {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+        .rb-roadmap-note {
+            max-width: 820px;
+            margin: 24px auto 0;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            text-align: center;
+            opacity: 0.85;
+            line-height: 1.6;
+        }
+
+        /* Honest framing note */
+        .sg-prior-art-note {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 16px 20px;
+            background: rgba(0, 206, 201, 0.08);
+            border-left: 3px solid var(--success);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        /* Cross-links */
+        .sg-crosslinks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .sg-crosslink {
+            display: block;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px 22px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: border-color 0.15s ease, transform 0.15s ease;
+        }
+        .sg-crosslink:hover {
+            border-color: var(--accent-bright);
+            transform: translateY(-2px);
+        }
+        .sg-crosslink .label {
+            color: var(--accent-bright);
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        .sg-crosslink .desc {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .sg-hero { padding: 64px 0 48px; }
+            .sg-section { padding: 56px 0; }
+            .rb-stack { grid-template-columns: 1fr; }
+            .rb-roi { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .sg-cta-row { flex-direction: column; align-items: stretch; }
+            .sg-btn-primary, .sg-btn-secondary { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    5 brevets | Plus de 9 500 endpoints API | 18 DLL natives | Le moteur de jeu spatial AI-native — désormais en accès anticipé
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading" role="presentation">Par public</div>
+                        <div class="col-heading" role="presentation">Plateforme</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Pour fabricants de lunettes connectées<span class="item-desc">Programme partenaire OEM matériel</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">Pour laboratoires d'IA<span class="item-desc">Runtime MCP pour modèles de fondation</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Pour les entreprises<span class="item-desc">Déployer l'IA spatiale à l'échelle</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Pour les créateurs<span class="item-desc">Construire et publier des mondes spatiaux</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotique<span class="item-desc">Mémoire spatiale persistante pour les robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Assurance<span class="item-desc">Scan téléphone vers inventaire du contenu</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Comparaison avec Unity / Unreal<span class="item-desc">La comparaison honnête</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">Scanner un espace, puis lui parler</span></a></li>
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">Moteur spatial<span class="item-desc">Le pilier du runtime</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">Systèmes d'IA<span class="item-desc">Orchestration et permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">Fonctionnalités XR<span class="item-desc">Affichage, tracking, ancrage</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Développeurs</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">Serveur MCP</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">Référence API</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">Modèles</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/">Portail développeur</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Guide Claude Desktop</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">Guide développeur</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">Guide d'intégration LLM</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Ressources</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">Pourquoi RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">Kit presse</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">Découvrir</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">Packs de contenu</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">Tarifs</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">Blog</a>
+                </li>
+            </ul>
+            <a href="../developers/login.html" class="nav-signin">Se connecter</a>
+            <a href="../robotics.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="sg-hero">
+    <div class="container">
+        <span class="eyebrow">Pour les CTO et responsables perception en robotique</span>
+        <h1>La mémoire spatiale que vos robots interrogent en langage naturel.</h1>
+        <p class="subhead">
+            Chaque robot mobile &mdash; humanoïde, AMR, quadrupède, drone &mdash; a besoin de deux choses que personne dans son équipe principale ne veut construire : une <strong>mémoire spatiale persistante</strong> qui survit aux redémarrages, aux changements d'équipe et aux mises à jour logicielles, et un <strong>LLM capable de raisonner à son sujet en langage naturel</strong>. RakuAI fournit les deux sous forme de service : un Gaussian splat par site, capturé une seule fois, hébergé par nos soins, interrogeable par n'importe quel LLM de votre choix via 17 outils MCP natifs. Nous ne construisons ni robots, ni SLAM, ni planification de mouvement &mdash; nous nous plaçons à leurs côtés.
+        </p>
+        <p class="audience-line">
+            Cette page s'adresse aux ingénieurs et aux responsables partenariats des entreprises de robotique d'automatisation d'entrepôt, d'humanoïdes, de livraison et d'inspection. Elle s'efforce d'être honnête sur la place que nous occupons dans la pile, sur ce que nous construisons ou non, et sur le fait que les acteurs de la robotique fondée sur les modèles de fondation sont des clients, pas des concurrents.
+        </p>
+
+<div style="display: flex; justify-content: center; margin: 22px 0 4px;">
+    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Membre de NVIDIA Inception - défiler vers les détails">
+        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Membre de</span>
+        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">En savoir plus &darr;</span>
+    </a>
+</div>
+        <div class="sg-cta-row">
+            <a href="mailto:partnerships@rakuai.com?subject=Robotics%2090-day%20pilot%20inquiry" class="sg-btn-primary">Lancer un pilote gratuit de 90 jours &rarr;</a>
+            <a href="#stack-position" class="sg-btn-secondary">Notre place dans votre pile &darr;</a>
+        </div>
+    </div>
+</section>
+
+<!-- Where we sit in the stack: what we build vs don't -->
+<section class="sg-section" id="stack-position">
+    <div class="container">
+        <h2>Notre place dans votre pile.</h2>
+        <p class="sg-subtitle">
+            AU-DESSUS de la perception (nous consommons images, profondeur et poses), EN DESSOUS de la planification de tâches de haut niveau (nous servons des requêtes au LLM de votre planificateur). Nous sommes la <strong>couche de mémoire de scène + question-réponse sur la scène</strong> &mdash; rien de plus, rien de moins. Cette concentration, c'est tout l'argumentaire.
+        </p>
+
+        <div class="rb-stack">
+            <div class="rb-stack-col build">
+                <h3>Ce que RakuAI fournit</h3>
+                <ul>
+                    <li>Un Gaussian splat par site, capturé une fois et hébergé indéfiniment</li>
+                    <li>17 outils MCP natifs que n'importe quel LLM peut appeler &mdash; « qu'est-ce qui bloque l'allée 7 ? », « la palette a-t-elle bougé depuis mardi ? »</li>
+                    <li>Question-réponse en langage naturel sur la scène reconstruite</li>
+                    <li>LLM multi-fournisseurs : Claude, GPT, Gemini, ou poids ouverts hébergés sur NVIDIA NIM &mdash; votre choix, selon la charge de travail</li>
+                    <li>Infrastructure de reconstruction et de requête hébergée, sans aucune charge d'infrastructure pour vous</li>
+                </ul>
+            </div>
+            <div class="rb-stack-col dont">
+                <h3>Ce que nous ne construisons explicitement pas</h3>
+                <ul>
+                    <li>SLAM &mdash; Cartographer, RTAB-Map, ORB-SLAM3, NVIDIA cuVSLAM existent déjà et sont performants</li>
+                    <li>Planification de mouvement &mdash; MoveIt, OMPL, Nav2 sont des problèmes résolus</li>
+                    <li>Matériel ou actionnement de robots &mdash; nous sommes uniquement logiciels</li>
+                    <li>Moteurs de simulation &mdash; Isaac Sim, Gazebo, MuJoCo, AWS RoboMaker ; nous nous plaçons à leurs côtés, pas en face</li>
+                    <li>Modèles de fondation de politique d'action &mdash; Skild, Physical Intelligence, Covariant détiennent cette couche</li>
+                </ul>
+            </div>
+        </div>
+
+        <p class="sg-prior-art-note" style="margin-top:36px;">
+            Le créneau en une phrase : un splat par site qui perdure indéfiniment + une API MCP que n'importe quel LLM peut interroger &mdash; facturé à la capture et à la requête, hébergé, sans charge d'infrastructure pour le client. La barrière n'est pas le splat &mdash; c'est que le LLM n'est <strong>pas</strong> verrouillé à un fournisseur, ce qui compte pour les CTO en robotique qui ont déjà une relation avec un LLM et ne veulent pas qu'on leur impose lequel utiliser.
+        </p>
+    </div>
+</section>
+
+<!-- MCP-from-robot architecture -->
+<section class="sg-section">
+    <div class="container">
+        <h2>Un robot interroge son site, en un seul schéma.</h2>
+        <p class="sg-subtitle">
+            Le planificateur de votre robot (ou son LLM) communique avec <a href="mcp.html" style="color: var(--accent-bright);">la surface MCP de RakuAI</a> via HTTPS &mdash; ou via un pont stdio depuis un client Jetson Orin embarqué sur le robot. Le runtime répond en primitives spatiales : ancres, poses, requêtes de scène, références de splat, deltas d'objets.
+        </p>
+
+        <div class="sg-mcp-arch">
+        <svg viewBox="0 0 1040 420" width="100%" style="max-width:1040px; height:auto; display:block;" role="img" aria-labelledby="rbmcp-title rbmcp-desc" xmlns="http://www.w3.org/2000/svg">
+            <title id="rbmcp-title">Schéma d'architecture MCP-depuis-le-robot</title>
+            <desc id="rbmcp-desc">Le planificateur d'un robot envoie une requête MCP via un client embarqué sur le robot ou un relais cloud au runtime RakuAI ; le runtime expose 17 outils MCP natifs (5 en lecture seule plus 12 de mutation), parmi lesquels les outils de mémoire de scène sont pertinents pour la robotique, effectue un raisonnement spatial sur la scène capturée par site, et renvoie une réponse structurée sur laquelle le planificateur agit.</desc>
+            <defs>
+                <linearGradient id="rbmcp-grad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <marker id="rbmcp-arr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#a388ff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+                <marker id="rbmcp-arr-back" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+
+            <!-- Column 1: Robot -->
+            <rect x="30" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+            <text x="140" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">Robot + planificateur</text>
+            <g stroke="#a388ff" stroke-width="1.6" fill="none">
+                <rect x="116" y="116" width="48" height="36" rx="6"/>
+                <line x1="140" y1="116" x2="140" y2="104"/>
+                <circle cx="140" cy="100" r="4"/>
+                <line x1="128" y1="152" x2="128" y2="168"/>
+                <line x1="152" y1="152" x2="152" y2="168"/>
+            </g>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
+                <text x="140" y="196" text-anchor="middle">Votre perception</text>
+                <text x="140" y="212" text-anchor="middle">+ LLM planificateur de tâches</text>
+                <text x="140" y="244" text-anchor="middle" fill="#a388ff" font-weight="600">&quot;Qu'est-ce qui bloque</text>
+                <text x="140" y="260" text-anchor="middle" fill="#a388ff" font-weight="600">l'allée 7 ?&quot;</text>
+                <text x="140" y="298" text-anchor="middle" fill="#00cec9" font-weight="600">&quot;Une palette + une personne,</text>
+                <text x="140" y="314" text-anchor="middle" fill="#00cec9" font-weight="600">déplacées ces 4 dernières h.&quot;</text>
+            </g>
+
+            <!-- Column 2: Client -->
+            <rect x="290" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+            <text x="400" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">MCP client</text>
+            <text x="400" y="112" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">embarqué (Jetson Orin) ou cloud</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
+                <text x="400" y="148" text-anchor="middle">Point d'accroche ROS 2 / gestionnaire de flotte</text>
+                <text x="400" y="170" text-anchor="middle">pont stdio MCP</text>
+                <text x="400" y="192" text-anchor="middle">JWT &rarr; MCP hébergé</text>
+                <text x="400" y="214" text-anchor="middle">mode hors ligne / edge</text>
+            </g>
+            <rect x="316" y="240" width="168" height="92" rx="8" fill="#0d0d20" stroke="#222244" stroke-width="1"/>
+            <text x="400" y="262" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="11" font-weight="600">stdio | https</text>
+            <text x="400" y="282" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">requête / réponse</text>
+            <text x="400" y="304" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">événements en streaming</text>
+            <text x="400" y="324" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">flux de jeton de connexion</text>
+
+            <!-- Column 3: MCP surface -->
+            <rect x="550" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="660" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">RakuAI MCP</text>
+            <text x="660" y="105" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">outils de mémoire de scène</text><text x="660" y="120" text-anchor="middle" fill="#7070a0" font-family="system-ui,sans-serif" font-size="10">(sur 17 outils MCP natifs)</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="11.5">
+                <text x="572" y="138">&middot; capture_create</text>
+                <text x="572" y="156">&middot; capture_status</text>
+                <text x="572" y="174">&middot; scene_query</text>
+                <text x="572" y="192">&middot; scene_describe</text>
+                <text x="572" y="210">&middot; capture_list</text>
+                <text x="572" y="228">&middot; capture_open</text>
+            </g>
+            <line x1="572" y1="244" x2="748" y2="244" stroke="#222244" stroke-width="1" stroke-dasharray="3,3"/>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="11.5">
+                <text x="572" y="264">&middot; xr_get_session</text>
+                <text x="572" y="282">&middot; xr_set_head_pose</text>
+                <text x="572" y="300">&middot; xr_simulate_input</text>
+                <text x="572" y="318">&middot; xr_create_anchor</text>
+                <text x="572" y="336">&middot; xr_list_anchors</text>
+                <text x="572" y="354">&middot; xr_remove_anchor</text>
+            </g>
+
+            <!-- Column 4: Runtime + reasoning -->
+            <rect x="810" y="60" width="200" height="300" rx="14" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="910" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">raku-runtime</text>
+            <text x="910" y="110" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">Moteur C++</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
+                <text x="910" y="146" text-anchor="middle">Raisonnement spatial</text>
+                <text x="910" y="166" text-anchor="middle">Stockage splat par site</text>
+                <text x="910" y="186" text-anchor="middle">Ancres + poses</text>
+                <text x="910" y="206" text-anchor="middle">Historique des deltas de scène</text>
+                <text x="910" y="226" text-anchor="middle">~9 500 endpoints API</text>
+                <text x="910" y="246" text-anchor="middle">18 DLL natives</text>
+            </g>
+            <text x="910" y="288" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="11" font-weight="600">réponse structurée</text>
+            <text x="910" y="306" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">{ object_id, pose,</text>
+            <text x="910" y="322" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">&nbsp;&nbsp;changed_at, confidence }</text>
+
+            <!-- Forward arrows (top, purple) -->
+            <line x1="250" y1="200" x2="287" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
+            <line x1="510" y1="200" x2="547" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
+            <line x1="770" y1="200" x2="807" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
+
+            <!-- Reverse arrows (bottom, teal) -->
+            <line x1="287" y1="290" x2="250" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
+            <line x1="547" y1="290" x2="510" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
+            <line x1="807" y1="290" x2="770" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
+
+            <!-- Bottom legend bar -->
+            <text x="520" y="400" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">Flux de requête MCP &mdash; identique que votre LLM soit Claude/GPT/Gemini dans le cloud ou des poids ouverts hébergés sur NIM en local.</text>
+        </svg>
+        </div>
+
+        <p class="sg-mcp-note">
+            Les deux moitiés sont réelles et livrées. Le serveur MCP de production expose <strong>17 outils natifs</strong> (5 en lecture seule + 12 de mutation) &mdash; voir <a href="../engine/" style="color: var(--accent-bright);">engine.html</a> pour l'inventaire complet et <a href="mcp.html" style="color: var(--accent-bright);">mcp.html</a> pour les outils de scène documentés. Le MCP hébergé s'exécute sur Azure Container Apps en East US. Le choix du LLM vous appartient &mdash; cette neutralité vis-à-vis des fournisseurs est la barrière à l'entrée.
+        </p>
+    </div>
+</section>
+
+<!-- Target segments -->
+<section class="sg-section">
+    <div class="container">
+        <h2>À qui cela s'adresse.</h2>
+        <p class="sg-subtitle">
+            Quatre segments, une même difficulté : les robots collectent des téraoctets de données spatiales qui finissent stockées et ne sont plus jamais interrogées. Mettez l'entrepôt en avant pour la stabilité du chiffre d'affaires ; les humanoïdes pour la visibilité.
+        </p>
+
+        <div class="rb-segments">
+            <div class="rb-segment">
+                <h3>Automatisation d'entrepôt</h3>
+                <p class="rb-seg-pain">Les robots disposent déjà du SLAM. Ce qui leur manque, c'est un moyen propre de répondre à « qu'est-ce qui a changé dans la zone B depuis la dernière équipe ? » sans écrire un pipeline d'analytique sur mesure. Le splat par site unifie le contrôle qualité à l'échelle de la flotte.</p>
+                <p class="rb-seg-targets"><strong>Exemples de cibles</strong>Symbotic, Locus Robotics, Fetch / Zebra, GreyOrange, Geek+</p>
+            </div>
+            <div class="rb-segment">
+                <h3>Robots humanoïdes</h3>
+                <p class="rb-seg-pain">Des startups en série B&ndash;D qui courent pour livrer un pilote auprès d'une entreprise du Fortune 500 en 6&ndash;9 mois. Elles achètent tout ce qui supprime un poste d'ingénierie de 6 mois sans les enfermer dans la pile LLM d'un seul fournisseur.</p>
+                <p class="rb-seg-targets"><strong>Exemples de cibles</strong>Figure, 1X Technologies, Apptronik, Agility Robotics, Unitree</p>
+            </div>
+            <div class="rb-segment">
+                <h3>Robots de livraison</h3>
+                <p class="rb-seg-pain">Les flottes de trottoir et du dernier kilomètre opèrent dans des environnements urbains changeants. Une mémoire de scène persistante des itinéraires, des points de dépôt et des obstacles complète la navigation existante sans réinstrumenter le robot.</p>
+                <p class="rb-seg-targets"><strong>Exemples de cibles</strong>Starship Technologies, Serve Robotics</p>
+            </div>
+            <div class="rb-segment">
+                <h3>Robots d'inspection</h3>
+                <p class="rb-seg-pain">Les flottes de Spot et de quadrupèdes génèrent des jeux de données massifs déversés dans le stockage et jamais rouverts. Les clients paient par site pour des actifs auditables, horodatés et interrogeables : « montre-moi chaque vanne signalée en rouge au T3 ».</p>
+                <p class="rb-seg-targets"><strong>Exemples de cibles</strong>Écosystème Boston Dynamics Spot, ANYbotics, Cognite</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Partner-resource leverage -->
+<section class="sg-section">
+    <div class="container">
+        <h2>La pile de ressources partenaires derrière un pilote.</h2>
+        <p class="sg-subtitle">
+            L'adhésion de RakuAI à NVIDIA Inception (acceptée en mai 2026) et les programmes de crédits pour startups en attente se cumulent ici. Chacun est honnêtement étiqueté selon son statut &mdash; nous ne revendiquons pas d'approbations que nous n'avons pas.
+        </p>
+
+        <div class="rb-partners">
+            <div class="rb-partner-card">
+                <h3>Plateforme NVIDIA Isaac</h3>
+                <p class="rb-partner-vendor">Sim &middot; Lab &middot; Perceptor &middot; Manipulator &middot; ROS</p>
+                <ul>
+                    <li><strong>Complémentaire, pas concurrente.</strong> Isaac, c'est ce que votre robot voit à cet instant ; RakuAI, c'est ce que votre robot retient de ce site.</li>
+                    <li>Le co-positionnement via les canaux Inception lève l'objection « n'est-ce pas déjà ce que fait NVIDIA ? ».</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>NVIDIA Cosmos</h3>
+                <p class="rb-partner-vendor">World Foundation Models</p>
+                <ul>
+                    <li>Capturez un site réel avec RakuAI &rarr; générez des variations de domaine avec Cosmos &rarr; entraînez la perception dans Isaac Lab &rarr; déployez avec la mémoire persistante RakuAI.</li>
+                    <li><strong>Nous détenons les étapes 1 et 4 ; NVIDIA détient les 2 et 3</strong> &mdash; vous n'avez pas à les assembler vous-même.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>NVIDIA Omniverse</h3>
+                <p class="rb-partner-vendor">Simulation de jumeau numérique USD</p>
+                <ul>
+                    <li>Les splats RakuAI s'exportent vers Omniverse pour les scénarios de jumeau numérique.</li>
+                    <li><strong>Votre capture de splat EST votre jumeau numérique</strong> &mdash; pas de sprint de modélisation CAO distinct. L'export USD est une voie à court terme.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>NVIDIA NIM</h3>
+                <p class="rb-partner-vendor">Microservices d'inférence</p>
+                <ul>
+                    <li>Le LLM de votre robot peut être un Llama / Mistral / Mixtral hébergé sur NIM <strong>ou</strong> Claude / GPT / Gemini en direct.</li>
+                    <li>MCP est la couche d'abstraction &mdash; NIM local pour les données sensibles, Claude cloud pour le raisonnement avancé, à vous de choisir selon la charge de travail.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>NVIDIA Brev et Jetson Orin</h3>
+                <p class="rb-partner-vendor">Avantages Inception</p>
+                <ul>
+                    <li><strong>Brev</strong> cloud GPU comme troisième pool d'entraînement concurrent lorsque AWS G5 / Nebius H100 sont saturés.</li>
+                    <li><strong>Jetson Orin</strong> la remise matérielle Inception rend bon marché l'achat de matériel d'évaluation du client MCP embarqué pendant un pilote.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>NVIDIA DLI et Innovation Lab</h3>
+                <p class="rb-partner-vendor">Formation et permanences d'ingénierie</p>
+                <ul>
+                    <li><strong>DLI</strong> le code Inception débloque 50 % de réduction &mdash; formez conjointement votre équipe à l'intégration Isaac + RakuAI.</li>
+                    <li><strong>Innovation Lab</strong> permanences en IA spatiale comme ressource de co-développement. <em>Statut de la demande : en cours &mdash; pas encore accordée.</em></li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>AWS RoboMaker et GPU</h3>
+                <p class="rb-partner-vendor">Sim cloud &middot; G5 / G6e &middot; Greengrass</p>
+                <ul>
+                    <li><strong>RoboMaker</strong> Votre environnement de simulation EST votre site scanné &mdash; comblez l'écart sim-to-real avec le même actif.</li>
+                    <li><strong>G5 / G6e</strong> pour la reconstruction backend + l'inférence de perception (crédit AWS Activate en cours d'examen).</li>
+                    <li><strong>Greengrass</strong> notre client MCP peut être livré comme composant pour le déploiement de flotte.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>Statut honnête des crédits</h3>
+                <p class="rb-partner-vendor">Où en sont réellement les choses</p>
+                <ul>
+                    <li><strong>NVIDIA Inception</strong> accepté en mai 2026.</li>
+                    <li><strong>AWS Activate</strong> 10 K$ en cours d'examen sous 5&ndash;7 jours.</li>
+                    <li><strong>Nebius H100</strong> (150 K$ d'économies) soumis ; pas nécessaire pour la v1.</li>
+                    <li><strong>Anthropic Claude Startups</strong> soumis, <em>non approuvé</em> &mdash; Claude est aujourd'hui notre option de la plus haute qualité au menu, pas une revendication de co-marketing.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ROI math -->
+<section class="sg-section">
+    <div class="container">
+        <h2>Le calcul du retour sur investissement.</h2>
+        <p class="sg-subtitle">
+            Nous ne remplaçons pas votre pile de perception. Nous remplaçons le <strong>sous-système de mémoire persistante</strong> que personne ne veut prendre en charge et le <strong>pont LLM de question-réponse sur la scène</strong> qui est repoussé au « trimestre prochain » indéfiniment.
+        </p>
+
+        <div class="rb-roi">
+            <div class="rb-roi-col status">
+                <h3>Statu quo &mdash; le construire en interne</h3>
+                <ul>
+                    <li>1&ndash;2 ingénieurs perception passent 6&ndash;18 mois à construire une mémoire de scène persistante.</li>
+                    <li>Coût chargé : 250 K$&ndash;400 K$ par année-ingénieur.</li>
+                    <li>Effort de 6 mois pour un seul ingénieur : ~125 K$&ndash;200 K$. Effort de 18 mois à deux ingénieurs : ~750 K$&ndash;1,2 M$.</li>
+                    <li>Puis le maintenir indéfiniment &mdash; ~20&ndash;30 % de l'effort initial par an.</li>
+                    <li>Plus la coordination avec l'équipe LLM pour exposer la mémoire sous forme d'API interrogeable.</li>
+                </ul>
+            </div>
+            <div class="rb-roi-col raku">
+                <h3>Avec RakuAI</h3>
+                <ul>
+                    <li>0 mois-ingénieur.</li>
+                    <li>Paiement à la capture : objectif de 0,50 $&ndash;2,00 $ par reconstruction de splat.</li>
+                    <li>Paiement à la requête MCP : quelques centimes par requête (refacturation du LLM + faible marge).</li>
+                    <li>Hébergement inclus.</li>
+                    <li>Votre équipe perception livre à la place un travail à plus fort effet de levier.</li>
+                </ul>
+            </div>
+        </div>
+
+        <p class="rb-roi-net">
+            <strong>Économies nettes, année 1 : 250 K$&ndash;1 M$</strong> de coûts d'ingénierie évités. Réserve honnête : si un prospect dispose déjà d'une pile mémoire persistante + pont LLM qui le satisfait, nous n'avons pas de vente &mdash; et nous ne ferons pas semblant du contraire.
+        </p>
+    </div>
+</section>
+
+<!-- 90-day pilot -->
+<section class="sg-section">
+    <div class="container">
+        <h2>Le pilote gratuit de 90 jours.</h2>
+        <p class="sg-subtitle">
+            Gratuit pendant les 90 jours complets. Le résultat est une étude de cas publiée et co-marquée &mdash; le livrable qui facilite la signature des pilotes n° 2, n° 3 et n° 4.
+        </p>
+
+        <div class="rb-pilot">
+            <div class="rb-pilot-col">
+                <h3>Capturer et connecter</h3>
+                <p class="when">Semaines 1&ndash;2</p>
+                <p>Capture de splat gratuite (nous scannons, ou nous accompagnons votre équipe) plus relais MCP en service pour 5&ndash;10 de vos sites. Aucune facture pendant cette période.</p>
+            </div>
+            <div class="rb-pilot-col">
+                <h3>Intégrer</h3>
+                <p class="when">Semaines 3&ndash;8</p>
+                <p>Accompagnement à l'intégration. Permanences NVIDIA Innovation Lab (une fois approuvées) planifiées chaque semaine avec votre ingénieur perception. Nous sommes présents sur votre Slack.</p>
+            </div>
+            <div class="rb-pilot-col">
+                <h3>Rapport de ROI et étude de cas</h3>
+                <p class="when">Semaines 9&ndash;12</p>
+                <p>Quelles requêtes ont été posées, comment vos robots ont utilisé la mémoire de scène, les heures-ingénieur économisées, ce qui a échoué, ce qui a fonctionné &mdash; puis une étude de cas publiée conjointement.</p>
+            </div>
+        </div>
+
+        <p class="rb-roadmap-note">
+            Offre de conversion : licence par site OU facturation à la capture + à la requête &mdash; nous laissons les 3 premiers pilotes nous indiquer quel modèle tarifaire l'emporte. Le pilote reste gratuit quoi qu'il en soit.
+        </p>
+
+        <div class="sg-cta-row" style="margin-top:32px;">
+            <a href="mailto:partnerships@rakuai.com?subject=Robotics%2090-day%20pilot%20%E2%80%94%20%5Byour%20company%5D" class="sg-btn-primary">Postuler pour une place de pilote &rarr;</a>
+            <a href="mailto:partnerships@rakuai.com?subject=Robotics%20technical%20deep-dive" class="sg-btn-secondary">Demander une présentation technique approfondie &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<!-- Competitive honesty -->
+<section class="sg-section">
+    <div class="container">
+        <h2>Notre place par rapport au reste du secteur.</h2>
+        <p class="sg-subtitle">
+            La version honnête. Les entreprises de robotique fondée sur les modèles de fondation sont des partenaires d'intégration et des clients, pas des concurrents.
+        </p>
+        <div class="rb-partners">
+            <div class="rb-partner-card">
+                <h3>NVIDIA Isaac</h3>
+                <p class="rb-partner-vendor">Adjacent, pas concurrent</p>
+                <ul>
+                    <li>Perception en temps réel vs. mémoire persistante interrogeable. L'adhésion à Inception atteste d'un alignement stratégique.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>Skild &middot; Physical Intelligence &middot; Covariant</h3>
+                <p class="rb-partner-vendor">Clients, pas concurrents</p>
+                <ul>
+                    <li>Ils construisent des modèles de fondation de politique d'action &mdash; ils ont besoin d'une représentation canonique de la scène. RakuAI en fournit une. Skild est un candidat d'intégration prioritaire.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>Matterport &middot; PolyCam &middot; Luma AI</h3>
+                <p class="rb-partner-vendor">Capture grand public / immobilier</p>
+                <ul>
+                    <li>Pas dans la robotique. Certains proposent des exports de splat, mais pas de MCP, pas d'hébergement à long terme par site, pas de pont LLM.</li>
+                </ul>
+            </div>
+            <div class="rb-partner-card">
+                <h3>Autonomie en pile fermée</h3>
+                <p class="rb-partner-vendor">Waymo &middot; Tesla FSD &middot; Wayve</p>
+                <ul>
+                    <li>Ils font tout eux-mêmes &mdash; ce n'est pas un marché adressable. Nous ne prétendons pas le contraire.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Cross-links -->
+<section class="sg-section">
+    <div class="container">
+        <h2>Si vous voulez approfondir avant de nous écrire.</h2>
+        <p class="sg-subtitle">Les pages que les équipes de robotique consultent le plus avant un premier appel.</p>
+
+        <div class="sg-crosslinks">
+            <a href="spatial-engine.html" class="sg-crosslink">
+                <div class="label">Moteur spatial &rarr;</div>
+                <div class="desc">Le runtime C++ &mdash; 18 DLL natives, ~9 500 endpoints API, la plateforme sur laquelle repose la surface MCP.</div>
+            </a>
+            <a href="mcp.html" class="sg-crosslink">
+                <div class="label">Serveur MCP &rarr;</div>
+                <div class="desc">La surface MCP qui permet à Claude, ChatGPT, Gemini et Copilot de piloter le runtime. En production depuis mars 2026.</div>
+            </a>
+            <a href="capture.html" class="sg-crosslink">
+                <div class="label">Raku Capture &rarr;</div>
+                <div class="desc">Scanner un espace, puis lui parler &mdash; le même pipeline de reconstruction qui sous-tend la mémoire de robot par site.</div>
+            </a>
+            <a href="../blog/" class="sg-crosslink">
+                <div class="label">Blog d'ingénierie &rarr;</div>
+                <div class="desc">Journal de développement comprenant l'article sur l'adaptateur MCP, l'annonce NVIDIA Inception et les comptes rendus sur Raku Capture.</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- NVIDIA Inception validation strip (member chip + recognition card) -->
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 32px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception Member - en savoir plus sur la page presse">
+            <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <p style="max-width: 640px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            RakuAI est membre de <strong>NVIDIA Inception</strong>. La même pile de Gaussian Splatting 3D accélérée par NVIDIA que nous livrons dans <a href="capture.html" style="color: var(--accent-bright);">Raku Capture</a> est celle qui alimente la mémoire de scène par site décrite ci-dessus &mdash; complémentaire à <strong>NVIDIA Isaac</strong>, non concurrente. <a href="press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">En savoir plus &rarr;</a>
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 14px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        NVIDIA Inception est un programme gratuit pour les startups d'IA ; l'adhésion de RakuAI n'implique pas que NVIDIA approuve les produits de RakuAI. En savoir plus sur <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color: var(--text-secondary);">nvidia.com/startups</a>.
+    </p>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Solutions</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">Fabricants de lunettes connectées</a></li>
+                    <li><a href="llm-makers.html">Laboratoires d'IA</a></li>
+                    <li><a href="enterprise.html">Entreprises</a></li>
+                    <li><a href="creator.html">Créateurs</a></li>
+                    <li><a href="robotics.html">Robotique</a></li>
+                    <li><a href="insurance.html">Assurance</a></li>
+                    <li><a href="compare.html">Comparaison avec Unity / Unreal</a></li>
+                    <li><a href="spatial-engine.html">Moteur spatial</a></li>
+                    <li><a href="ai-systems.html">Systèmes d'IA</a></li>
+                    <li><a href="xr-features.html">Fonctionnalités XR</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Développeurs</h4>
+                <ul>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="mcp.html">Serveur MCP</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="../api/">Référence API</a></li>
+                    <li><a href="templates.html">Modèles</a></li>
+                    <li><a href="../developers/">Portail développeur</a></li>
+                    <li><a href="../developers/claude-desktop.html">Guide Claude Desktop</a></li>
+                    <li><a href="developer-guide.html">Guide développeur</a></li>
+                    <li><a href="llm-guide.html">Guide d'intégration LLM</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Ressources</h4>
+                <ul>
+                    <li><a href="../blog/">Blog</a></li>
+                    <li><a href="why-rakuai.html">Pourquoi RakuAI</a></li>
+                    <li><a href="press.html">Kit presse</a></li>
+                    <li><a href="../discover.html">Découvrir</a></li>
+                    <li><a href="content-packs.html">Packs de contenu</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Entreprise</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">À propos</a></li>
+                    <li><a href="pricing.html">Tarifs</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">Partenaires</a></li>
+                    <li><a href="../privacy.html">Confidentialité</a></li>
+                    <li><a href="../terms.html">Conditions</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 brevets US accordés (Priorité : juillet 2012) &bull; Propulsé par le moteur RakuAI</p>
+        <p class="trademark-notice">
+            RakuAI&trade; et RakuXR&trade; sont des marques de RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI et <span class="kanji-logo">&#x697D;</span>XR sont des marques stylisées de RakuAI, LLC.
+            5 brevets US accordés (Priorité : juillet 2012).
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception Member - en savoir plus sur la page presse" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script src="/js/public-config.js"></script>
+<script src="/js/api-client.js"></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+
+
+<script src="/js/nav-dropdown.js" defer></script>
+<script src="/js/section-nav.js" defer></script>
+</body>
+</html>
