@@ -802,7 +802,7 @@
                         </ul>
                     </section>
 
-                    <section class="sg-cslide" role="tabpanel" aria-roledescription="slide" aria-label="Step 2 of 5: Drive" id="sg-cslide-1" hidden>
+                    <section class="sg-cslide" role="tabpanel" aria-roledescription="slide" aria-label="Step 2 of 5: Drive" id="sg-cslide-1" aria-hidden="true">
                         <span class="sg-step-num" aria-hidden="true">2</span>
                         <h3>Drive it with any LLM over MCP</h3>
                         <p>Claude, ChatGPT, Gemini, or Copilot drive the runtime through the 17 native MCP tools &mdash; via a stdio bridge to the companion device or over HTTPS to the hosted MCP.</p>
@@ -813,7 +813,7 @@
                         </ul>
                     </section>
 
-                    <section class="sg-cslide" role="tabpanel" aria-roledescription="slide" aria-label="Step 3 of 5: Capture" id="sg-cslide-2" hidden>
+                    <section class="sg-cslide" role="tabpanel" aria-roledescription="slide" aria-label="Step 3 of 5: Capture" id="sg-cslide-2" aria-hidden="true">
                         <span class="sg-step-num" aria-hidden="true">3</span>
                         <h3>Capture the wearer's space</h3>
                         <p>Frames + IMU flow to cloud reconstruction and come back as an explorable Gaussian splat in minutes &mdash; from the companion phone today, direct from glasses when your camera API lands.</p>
@@ -824,7 +824,7 @@
                         </ul>
                     </section>
 
-                    <section class="sg-cslide" role="tabpanel" aria-roledescription="slide" aria-label="Step 4 of 5: Budget" id="sg-cslide-3" hidden>
+                    <section class="sg-cslide" role="tabpanel" aria-roledescription="slide" aria-label="Step 4 of 5: Budget" id="sg-cslide-3" aria-hidden="true">
                         <span class="sg-step-num" aria-hidden="true">4</span>
                         <h3>Fit the thermal envelope</h3>
                         <p>Phone-as-compute keeps the glasses cool: the phone runs physics and AI, the glasses render and track, the link carries scene deltas &mdash; not video. Three thermal modes adapt to the device.</p>
@@ -835,7 +835,7 @@
                         </ul>
                     </section>
 
-                    <section class="sg-cslide" role="tabpanel" aria-roledescription="slide" aria-label="Step 5 of 5: Ship" id="sg-cslide-4" hidden>
+                    <section class="sg-cslide" role="tabpanel" aria-roledescription="slide" aria-label="Step 5 of 5: Ship" id="sg-cslide-4" aria-hidden="true">
                         <span class="sg-step-num" aria-hidden="true">5</span>
                         <h3>Co-ship under NDA</h3>
                         <p>Mutual-NDA access to the <code>xr_</code> adapter tools, the capture-from-glasses preview, and the WebGPU splat pipeline &mdash; with a path to a co-marketed launch experience for your device.</p>
@@ -876,9 +876,12 @@
     function go(i) {
         current = (i + slides.length) % slides.length;
         track.style.transform = 'translateX(' + (-current * 100) + '%)';
+        // Slides are positioned by translateX inside a flex track; toggling
+        // `hidden` collapses them out of the track and blanks the viewport.
+        // Use aria-hidden + inert for a11y while keeping them laid out.
         slides.forEach(function (s, n) {
-            if (n === current) { s.removeAttribute('hidden'); }
-            else { s.setAttribute('hidden', ''); }
+            s.setAttribute('aria-hidden', n === current ? 'false' : 'true');
+            s.inert = (n !== current);
         });
         dots.forEach(function (d, n) {
             d.setAttribute('aria-selected', n === current ? 'true' : 'false');
