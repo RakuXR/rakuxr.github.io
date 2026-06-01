@@ -42,7 +42,7 @@ MCP — Model Context Protocol — is the open protocol that lets an external AI
 
 **17 native tools** — a typed contract for reading and mutating a spatial scene. The read-only tools (query object positions, measure distances, get scene metadata) work on every tier including free. Mutation tools (move objects, annotate, update scene state) require explicit permission grants and are denied by default.
 
-**~9,700 passthrough endpoints** — the full FastAPI surface of the Raku backend, exposed through the MCP relay. Capture history, job status, reconstruction quality, scene metadata — all reachable from any MCP client.
+**~9,500 passthrough endpoints** — the full FastAPI surface of the Raku backend, exposed through the MCP relay. Capture history, job status, reconstruction quality, scene metadata — all reachable from any MCP client.
 
 The MCP server runs at \`api.rakuai.com\`. It speaks stdio transport. Every call is logged to an immutable audit trail. Per-session rate limits are enforced.
 
@@ -69,8 +69,8 @@ Claude, ChatGPT, Gemini, and Copilot all work. The MCP contract is the same for 
 **Live today:**
 - Phone scan PWA — no install, QR entry, uploads to Azure Blob
 - COLMAP feature extraction and sparse point cloud
-- Backend infrastructure (FastAPI ~9,700 endpoints, Redis job store, tier-aware rate limits)
-- MCP runtime with 17 native tools + ~9,700 passthrough endpoints
+- Backend infrastructure (FastAPI ~9,500 endpoints, Redis job store, tier-aware rate limits)
+- MCP runtime with 17 native tools + ~9,500 passthrough endpoints
 - Hosted MCP relay for Claude, ChatGPT, Gemini, Copilot
 - Free tier (10 captures/day, 1 GB, 7-day retention, MCP included)
 - Pro Beta — \$0 during the beta period, will be **\$14.99/mo at GA** with at least 30 days notice before any charge
