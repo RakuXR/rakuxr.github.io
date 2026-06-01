@@ -146,10 +146,10 @@
     <text x="1095" y="218" fill="#c8c8e0">Gemini / Copilot</text>
   </g>
   <g font-family="system-ui,sans-serif" font-size="11" fill="#6868a0" text-anchor="middle">
-    <text x="120" y="258">raku-api.rakuai.com</text>
+    <text x="120" y="258">api.rakuai.com</text>
     <text x="350" y="258">recon-worker</text>
     <text x="600" y="258">GPU-gated (early access)</text>
-    <text x="860" y="272">18 DLLs / 30,784 exports</text>
+    <text x="860" y="272">18 DLLs / 30,738 exports</text>
     <text x="1095" y="258">multi-vendor MCP</text>
   </g>
   <text x="600" y="335" text-anchor="middle" fill="#e84393" font-family="system-ui,sans-serif" font-size="14" font-weight="600">Inference-only. No game engine license. No custom integration per vendor.</text>
@@ -166,17 +166,17 @@
 <p>That is the &ldquo;Scan it. Then talk to it.&rdquo; idea. Here is how each piece of that chain works.</p>
 <h2 id="step-1-capture">Step 1: Capture &mdash; phone video to raw frames</h2>
 <p>The entry point is a Progressive Web App at <a href="/capture-app/">rakuai.com/capture-app/</a>. It runs in a mobile browser with no install. The user records 30 to 60 seconds of video, walking slowly around the subject &mdash; a room, an object, a space worth preserving.</p>
-<p>The PWA bundles the video frames and uploads them to <code>POST /api/v1/capture</code> on the backend, which runs on Azure Container Apps at <code>api.rakuai.com</code>. The backend is a FastAPI service &mdash; roughly 9,700 endpoints &mdash; that authenticates the upload, records metadata (original filename, content-type, capture timestamp), and stores the raw input bundle to Azure Blob Storage.</p>
+<p>The PWA bundles the video frames and uploads them to <code>POST /api/v1/capture</code> on the backend, which runs on Azure Container Apps at <code>api.rakuai.com</code>. The backend is a FastAPI service &mdash; ~9,500 REST endpoints &mdash; that authenticates the upload, records metadata (original filename, content-type, capture timestamp), and stores the raw input bundle to Azure Blob Storage.</p>
 <p>That part is live. The upload path works today, for anyone who signs up.</p>
 <h2 id="step-2-reconstruction">Step 2: Reconstruction &mdash; COLMAP feature extraction to point cloud</h2>
 <p>The backend dispatches a reconstruction job to a Container Apps job runner called <code>recon-worker</code>. The first thing it does is run COLMAP &mdash; the Structure from Motion library &mdash; across the uploaded frames. COLMAP identifies matching features across frames and computes camera positions, producing a sparse 3D point cloud.</p>
 <p>This step is CPU-bound and does not require a GPU. It runs today.</p>
 <h2 id="step-3-splat-training">Step 3: Splat training &mdash; Brush turns a point cloud into a Gaussian splat</h2>
 <p>This is the compute-intensive step. The reconstruction worker feeds the COLMAP point cloud and the original frames into Brush v0.3.0, a 3D Gaussian Splatting trainer. Brush fits millions of small 3D Gaussians to the scene &mdash; each Gaussian is an ellipsoid in 3D space with a position, orientation, scale, opacity, and view-dependent colour. The output is a <code>.ply</code> or <code>.spz</code> file stored to Azure Blob Storage alongside the input.</p>
-<p><strong>Honest: this step requires a GPU.</strong> GPU quota on Azure A10 is in review. AWS Activate credits are pending approval (account <code>159689344731</code>, application submitted 2026-05-28). Until one of those lands, the production recon worker falls back to a simulated backend &mdash; the architecture is wired, the GPU path is not yet live. This is early access, not a finished consumer product.</p>
+<p><strong>Honest: this step requires a GPU.</strong> GPU quota on Azure A10 is in review. AWS Activate credits are pending approval (applied 2026-05-28). Until one of those lands, the production recon worker falls back to a simulated backend &mdash; the architecture is wired, the GPU path is not yet live. This is early access, not a finished consumer product.</p>
 <h2 id="step-4-mcp-runtime">Step 4: The MCP runtime &mdash; 17 tools + ~9,500 passthrough endpoints</h2>
 <p>This is the part that makes the splat a live spatial object rather than a static file.</p>
-<p>The runtime is a C++ engine: 18 native DLLs, 30,784 exported functions across subsystems for physics, rendering, audio, tracking, multiplayer state, and AI orchestration. Green on Linux since April 2026. Tests pass at 100%.</p>
+<p>The runtime is a C++ engine: 18 native DLLs, 30,738 exported functions across subsystems for physics, rendering, audio, tracking, multiplayer state, and AI orchestration. CI-green on Windows, Linux, and macOS since April 2026.</p>
 <p><strong>17 native tools</strong> (5 read-only + 12 mutation) &mdash; the typed contract any external agent uses to interact with a scene. Read-only tools work in every environment. Mutation tools require explicit permission grants and are denied by default in production.</p>
 <p><strong>~9,500 passthrough endpoints</strong> &mdash; the full FastAPI surface of raku-api, exposed through the MCP relay. Any of the backend&rsquo;s routes can be reached through the relay, giving an LLM access to capture history, job status, scene metadata, and the full query surface of the backend.</p>
 <p>The MCP server is hosted at <code>api.rakuai.com</code> on Azure Container Apps. The relay for Claude Desktop, ChatGPT, and Gemini is live. The server speaks stdio transport, logs every call to an audit trail, and enforces per-session rate limits.</p>
