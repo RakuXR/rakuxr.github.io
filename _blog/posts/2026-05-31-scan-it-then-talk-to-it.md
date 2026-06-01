@@ -3,12 +3,12 @@ title: "Scan it. Then talk to it. — RakuAI Capture for everyday spaces"
 date: 2026-05-31
 author: Kevin Griffin
 tags: [capture, gaussian-splat, mcp, consumer, ai-assistant, everyday-spaces]
-description: "Scan a real room with your phone — no rig, no markers, no install — and get a draggable 3D Gaussian splat your AI assistant can read, measure, and reason over. This is the Raku Capture story."
+description: "Scan a real room with your phone — no rig, no markers, no install — and get a 3D reconstruction your AI assistant can read, measure, and reason over via MCP. GPU splat training arriving within days. This is the Raku Capture story."
 series: learning-to-code-with-ai
 slug: scan-it-then-talk-to-it
 ---
 
-You pull out your phone, walk around your living room for thirty seconds, and tap upload. A few minutes later you have a draggable 3D Gaussian splat of that room — a photorealistic, measurable reconstruction made of millions of tiny transparent ellipsoids — sitting at a URL you can share. Then you open Claude, or ChatGPT, or Gemini, point it at your Raku MCP server, and ask: "Will this couch fit along the far wall?" The assistant reads the scene, measures the gap, and tells you.
+You pull out your phone, walk around your living room for thirty seconds, and tap upload. A few minutes later you have a 3D reconstruction of that room — and once GPU splat training is online (arriving within days), that becomes a draggable photorealistic Gaussian splat made of millions of tiny transparent ellipsoids — sitting at a URL you can share. Then you open Claude, or ChatGPT, or Gemini, point it at your Raku MCP server, and ask: "Will this couch fit along the far wall?" The assistant reads the scene, measures the gap, and tells you.
 
 That is the Raku Capture idea. One phone. No rig, no markers, no desktop 3D software, no install. The result is not a photo — it is a *talkable scene*: a living spatial object your AI assistant can query, measure, and reason about.
 
