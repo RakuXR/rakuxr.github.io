@@ -107,3 +107,7 @@ gh workflow run deploy-production.yml --repo RakuXR/rakuxr.github.io
 
 Released under the [MIT License](./LICENSE). RakuAI and RakuXR are trademarks of
 RakuAI, LLC.
+
+## End-to-end architecture
+
+For how the whole system works — platforms, pipeline, MCP runtime, engine, infrastructure, build/deploy, and the fleet — see the **[RakuAI Architecture](https://github.com/RakuXR/raku-governance/blob/main/architecture/README.md)** doc set (raku-governance `architecture/`, README + 8 pages).
