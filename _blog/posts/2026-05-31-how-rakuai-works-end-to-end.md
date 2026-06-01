@@ -22,7 +22,7 @@ That is the "Scan it. Then talk to it." idea. Here is how each piece of that cha
 
 The entry point is a Progressive Web App at [rakuai.com/capture-app/](/capture-app/). It runs in a mobile browser with no install. The user records 30 to 60 seconds of video, walking slowly around the subject — a room, an object, a space worth preserving.
 
-The PWA bundles the video frames and uploads them to `POST /api/v1/capture` on the backend, which runs on Azure Container Apps at `api.rakuai.com`. The backend is a FastAPI service — roughly 9,700 endpoints — that authenticates the upload, records metadata (original filename, content-type, capture timestamp), and stores the raw input bundle to Azure Blob Storage.
+The PWA bundles the video frames and uploads them to `POST /api/v1/capture` on the backend, which runs on Azure Container Apps at `api.rakuai.com`. The backend is a FastAPI service — ~9,500 REST endpoints — that authenticates the upload, records metadata (original filename, content-type, capture timestamp), and stores the raw input bundle to Azure Blob Storage.
 
 That part is live. The upload path works today, for anyone who signs up.
 
@@ -36,13 +36,13 @@ This step is CPU-bound and does not require a GPU. It runs today.
 
 This is the compute-intensive step. The reconstruction worker feeds the COLMAP point cloud and the original frames into Brush v0.3.0, a 3D Gaussian Splatting trainer. Brush fits millions of small 3D Gaussians to the scene — each Gaussian is an ellipsoid in 3D space with a position, orientation, scale, opacity, and view-dependent colour. The output is a `.ply` or `.spz` file stored to Azure Blob Storage alongside the input.
 
-**Honest: this step requires a GPU.** GPU quota on Azure A10 is in review. AWS Activate credits are pending approval (account `159689344731`, application submitted 2026-05-28). Until one of those lands, the production recon worker falls back to a simulated backend — the architecture is wired, the GPU path is not yet live. This is early access, not a finished consumer product.
+**Honest: this step requires a GPU.** GPU quota on Azure A10 is in review. AWS Activate credits are pending approval (applied 2026-05-28). Until one of those lands, the production recon worker falls back to a simulated backend — the architecture is wired, the GPU path is not yet live. This is early access, not a finished consumer product.
 
 ## Step 4: The MCP runtime — 17 tools + ~9,500 passthrough endpoints
 
 This is the part that makes the splat a live spatial object rather than a static file.
 
-The runtime is a C++ engine: 18 native DLLs, 30,784 exported functions across subsystems for physics, rendering, audio, tracking, multiplayer state, and AI orchestration. Green on Linux since April 2026. Tests pass at 100%.
+The runtime is a C++ engine: 18 native DLLs, 30,738 exported functions across subsystems for physics, rendering, audio, tracking, multiplayer state, and AI orchestration. CI-green on Windows, Linux, and macOS since April 2026.
 
 On top of the engine, the MCP server exposes two surfaces:
 
@@ -67,7 +67,7 @@ This is the moat: honest capture of the physical world, stored as a lossless 3D 
 **Live today:**
 - Phone capture PWA, upload to Azure Blob
 - COLMAP feature extraction and point cloud
-- Backend infrastructure (FastAPI ~9,700 endpoints, Redis job store, tier-aware rate limits)
+- Backend infrastructure (FastAPI ~9,500 REST endpoints, Redis job store, tier-aware rate limits)
 - MCP runtime with 17 native tools + ~9,500 passthrough endpoints
 - Hosted MCP relay for Claude, ChatGPT, Gemini
 - Multi-vendor tool contract (stdio, deny-by-default, full audit log)
