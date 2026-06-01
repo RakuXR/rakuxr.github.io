@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>Connect Your AI Assistant to RakuAI — MCP Setup Guide</title>
+    <meta name="description" content="How to point Claude, ChatGPT, Gemini, and GitHub Copilot at the RakuAI MCP runtime. 17 native tools, universal API passthrough, audited authority model. Turn a Raku Capture scan into a scene your AI assistant can reason about.">
+    <meta name="keywords" content="RakuAI MCP, connect Claude to RakuAI, MCP server setup, spatial AI assistant, Claude Desktop MCP, ChatGPT MCP plugin, Gemini MCP, GitHub Copilot MCP, talk to your scene">
+    <meta property="og:title" content="Connect Your AI Assistant to RakuAI — MCP Setup Guide">
+    <meta property="og:description" content="Point Claude, ChatGPT, Gemini, or GitHub Copilot at the RakuAI MCP runtime in minutes. 17 native spatial tools. Audited. Vendor-neutral.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/connect.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Connect Your AI Assistant to RakuAI — MCP Setup Guide">
+    <meta name="twitter:description" content="Point Claude, ChatGPT, Gemini, or GitHub Copilot at the RakuAI MCP runtime in minutes.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/connect.html">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Page-local styles — scoped to .cn- prefix */
+        .cn-hero {
+            padding: 96px 0 72px;
+            text-align: center;
+        }
+        .cn-hero .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            padding: 6px 14px;
+            border: 1px solid rgba(108, 92, 231, 0.45);
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+        .cn-hero h1 {
+            font-size: clamp(2rem, 5vw, 3.4rem);
+            line-height: 1.12;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .cn-hero .subhead {
+            color: var(--text-secondary);
+            font-size: 1.12rem;
+            line-height: 1.65;
+            max-width: 780px;
+            margin: 0 auto 32px;
+        }
+        .cn-cta-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .cn-btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .cn-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
+            text-decoration: none;
+        }
+        .cn-btn-secondary {
+            display: inline-block;
+            background: transparent;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.15s ease;
+        }
+        .cn-btn-secondary:hover {
+            background: rgba(163, 136, 255, 0.1);
+            text-decoration: none;
+        }
+
+        /* Section chrome */
+        .cn-section {
+            padding: 72px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .cn-section:last-of-type { border-bottom: none; }
+        .cn-section h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .cn-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 760px;
+            margin: 0 auto 40px;
+            line-height: 1.65;
+        }
+
+        /* Status / honest-status banner */
+        .cn-status-banner {
+            max-width: 920px;
+            margin: 0 auto 48px;
+            background: rgba(108, 92, 231, 0.06);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            border-radius: 12px;
+            padding: 22px 28px;
+        }
+        .cn-status-banner h3 {
+            color: var(--accent-bright);
+            font-size: 1.05rem;
+            margin-bottom: 12px;
+        }
+        .cn-status-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .cn-status-table th {
+            text-align: left;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 6px 10px 6px 0;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .cn-status-table td {
+            padding: 9px 10px 9px 0;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            vertical-align: top;
+        }
+        .cn-status-table td:first-child {
+            color: var(--text-primary);
+            font-weight: 500;
+            width: 30%;
+        }
+        .cn-status-table tr:last-child td { border-bottom: none; }
+        .badge-prod {
+            display: inline-block;
+            background: rgba(0, 206, 201, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(0, 206, 201, 0.35);
+            border-radius: 4px;
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+        .badge-wip {
+            display: inline-block;
+            background: rgba(253, 203, 110, 0.12);
+            color: #fdcb6e;
+            border: 1px solid rgba(253, 203, 110, 0.35);
+            border-radius: 4px;
+            font-size: 0.72rem;
+            padding: 2px 7px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+
+        /* Tool inventory */
+        .cn-tool-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        .cn-tool-col {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 28px;
+        }
+        .cn-tool-col.reads  { border-top: 4px solid var(--success); }
+        .cn-tool-col.writes { border-top: 4px solid #fdcb6e; }
+        .cn-tool-col h3 {
+            color: var(--accent-bright);
+            font-size: 1.05rem;
+            margin-bottom: 14px;
+        }
+        .cn-tool-col ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .cn-tool-col li {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.5;
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+        .cn-tool-col li:first-child { border-top: none; }
+        .cn-tool-col li code {
+            color: var(--accent-bright);
+            font-family: 'ui-monospace','Cascadia Code','Consolas',monospace;
+            font-size: 0.88em;
+        }
+        .cn-passthrough-note {
+            max-width: 1040px;
+            margin: 20px auto 0;
+            padding: 16px 20px;
+            background: rgba(0, 206, 201, 0.06);
+            border-left: 3px solid var(--success);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.93rem;
+            line-height: 1.65;
+        }
+
+        /* Per-vendor connect steps */
+        .cn-vendor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+            gap: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .cn-vendor-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 14px;
+            padding: 28px 30px;
+            transition: border-color 0.15s ease;
+        }
+        .cn-vendor-card:hover { border-color: rgba(108,92,231,0.5); }
+        .cn-vendor-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .cn-vendor-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .cn-vendor-icon.claude  { background: rgba(163,136,255,0.15); }
+        .cn-vendor-icon.chatgpt { background: rgba(16,163,127,0.15); }
+        .cn-vendor-icon.gemini  { background: rgba(66,133,244,0.15); }
+        .cn-vendor-icon.copilot { background: rgba(34,197,94,0.15); }
+        .cn-vendor-card h3 {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        .cn-vendor-card .cn-vendor-status {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .cn-vendor-card p {
+            color: var(--text-secondary);
+            font-size: 0.93rem;
+            line-height: 1.6;
+            margin: 0 0 14px;
+        }
+        .cn-vendor-card ol {
+            padding-left: 20px;
+            margin: 0 0 16px;
+        }
+        .cn-vendor-card ol li {
+            color: var(--text-secondary);
+            font-size: 0.93rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        .cn-vendor-card code, .cn-vendor-card pre {
+            font-family: 'ui-monospace','Cascadia Code','Consolas',monospace;
+        }
+        .cn-code-block {
+            background: #0d0d1f;
+            border: 1px solid #222244;
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 0.82rem;
+            line-height: 1.65;
+            overflow-x: auto;
+            color: var(--text-primary);
+            margin: 12px 0;
+            white-space: pre;
+        }
+        .cn-code-block .key  { color: var(--accent-bright); }
+        .cn-code-block .val  { color: #50fa7b; }
+        .cn-code-block .cmt  { color: #6272a4; font-style: italic; }
+
+        /* Example prompts */
+        .cn-prompt-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+            max-width: 1100px;
+            margin: 0 auto 32px;
+        }
+        .cn-prompt-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-left: 3px solid var(--accent-bright);
+            border-radius: 10px;
+            padding: 18px 20px;
+        }
+        .cn-prompt-card .ask {
+            color: var(--accent-bright);
+            font-size: 0.93rem;
+            font-weight: 600;
+            line-height: 1.45;
+            margin-bottom: 8px;
+        }
+        .cn-prompt-card .context {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* Authority model */
+        .cn-authority-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .cn-authority-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 24px 26px;
+        }
+        .cn-authority-card.owns    { border-top: 4px solid var(--success); }
+        .cn-authority-card.propose { border-top: 4px solid #fdcb6e; }
+        .cn-authority-card.audit   { border-top: 4px solid var(--accent-bright); }
+        .cn-authority-card h3 {
+            color: var(--accent-bright);
+            font-size: 1.05rem;
+            margin-bottom: 10px;
+        }
+        .cn-authority-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .cn-authority-card li {
+            padding: 7px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.55;
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+        .cn-authority-card li:first-child { border-top: none; }
+
+        /* Cross-links */
+        .cn-crosslinks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .cn-crosslink {
+            display: block;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px 22px;
+            text-decoration: none;
+            transition: border-color 0.15s ease, transform 0.15s ease;
+        }
+        .cn-crosslink:hover {
+            border-color: var(--accent-bright);
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+        .cn-crosslink .label {
+            color: var(--accent-bright);
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        .cn-crosslink .desc {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .cn-hero   { padding: 64px 0 48px; }
+            .cn-section { padding: 56px 0; }
+            .cn-tool-grid   { grid-template-columns: 1fr; }
+            .cn-vendor-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .cn-cta-row { flex-direction: column; align-items: stretch; }
+            .cn-btn-primary, .cn-btn-secondary { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    5 Patents | 9,500+ API Endpoints | 18 Native DLLs | The AI-Native Spatial Game Engine — Now in Early Access
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading" role="presentation">By audience</div>
+                        <div class="col-heading" role="presentation">Platform</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">Scan a space, then talk to it</span></a></li>
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP Server</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="api/">API Reference</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">Templates</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">Developer Portal</a></li>
+                        <li role="none"><a role="menuitem" href="developers/claude-desktop.html">Claude Desktop guide</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">Developer Guide</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM Integration Guide</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
+                        <li role="none"><a role="menuitem" href="blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">Why RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">Press Kit</a></li>
+                        <li role="none"><a role="menuitem" href="discover.html">Discover</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">Content Packs</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">Pricing</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="blog/">Blog</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">Sign In</a>
+            <a href="ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<section class="cn-hero">
+    <div class="container">
+        <span class="eyebrow">For AI assistant users</span>
+        <h1>Connect your AI assistant to RakuAI.</h1>
+        <p class="subhead">
+            MCP (Model Context Protocol) is the open standard that lets AI assistants call external tools.
+            RakuAI exposes its spatial runtime over MCP &mdash; 17 native tools covering scene queries,
+            anchors, and captures, plus a universal passthrough surface that reaches the full ~9,500-endpoint
+            API. Once connected, your assistant can reason about a real space: measure distances, list objects,
+            query what changed, and drive the world model through natural language.
+        </p>
+        <div class="cn-cta-row">
+            <a href="#connect-steps" class="cn-btn-primary">Get connected &darr;</a>
+            <a href="mcp.html" class="cn-btn-secondary">MCP Server reference &rarr;</a>
+        </div>
+    </div>
+</section>
+
+<!-- Honest status banner -->
+<section class="cn-section" style="padding: 48px 0;">
+    <div class="container">
+        <div class="cn-status-banner">
+            <h3>Honest status (as of May 2026)</h3>
+            <table class="cn-status-table">
+                <thead>
+                    <tr>
+                        <th>Surface</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>MCP server (17 native tools + passthrough)</td>
+                        <td><span class="badge-prod">Production</span></td>
+                        <td>Running on Azure Container Apps (East US). Available to connect now.</td>
+                    </tr>
+                    <tr>
+                        <td>Local stdio transport (Claude Code, Cursor, VS Code)</td>
+                        <td><span class="badge-prod">Production</span></td>
+                        <td>Verified end-to-end. Clone raku-runtime, add the JSON block, restart &mdash; tools appear.</td>
+                    </tr>
+                    <tr>
+                        <td>Claude Desktop (macOS / Windows)</td>
+                        <td><span class="badge-wip">Connect via MCP</span></td>
+                        <td>Same config block as Claude Code. Client-level e2e verification still in progress; connection method is standard and expected to work.</td>
+                    </tr>
+                    <tr>
+                        <td>ChatGPT (OpenAI)</td>
+                        <td><span class="badge-wip">Connect via MCP</span></td>
+                        <td>ChatGPT MCP plugin connector available in ChatGPT Plus / Team. Point it at the hosted MCP URL + your bearer token. Client-level e2e verification in progress.</td>
+                    </tr>
+                    <tr>
+                        <td>Gemini / Google AI Studio</td>
+                        <td><span class="badge-wip">Connect via MCP</span></td>
+                        <td>MCP tooling available via Google AI Studio extensions. Client-level e2e verification in progress.</td>
+                    </tr>
+                    <tr>
+                        <td>GitHub Copilot (VS Code)</td>
+                        <td><span class="badge-wip">Connect via MCP</span></td>
+                        <td>VS Code MCP support added in VS Code 1.99+. Config block documented below. End-to-end verification in progress.</td>
+                    </tr>
+                    <tr>
+                        <td>Raku Capture live viewer</td>
+                        <td><span class="badge-wip">Early access</span></td>
+                        <td>Splat reconstruction pipeline gated on GPU credit approvals (Azure A10, AWS G5). The scene query tools work against existing captures now.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- What MCP is + tool inventory -->
+<section class="cn-section" id="tool-inventory">
+    <div class="container">
+        <h2>What your assistant gets access to.</h2>
+        <p class="cn-subtitle">
+            The headline contract is <strong>17 native tools</strong> &mdash; a versioned, stable API surface integrators can pin to.
+            A tool picker may show many more (147 is expected, not a bug): the registry also carries 7 universal passthrough tools
+            and 123 subsystem-catalog wrappers. The 17 native tools are the ones to build on.
+        </p>
+
+        <div class="cn-tool-grid">
+            <div class="cn-tool-col reads">
+                <h3>5 read-only tools &mdash; zero mutation risk</h3>
+                <ul>
+                    <li><code>scene_query</code> &mdash; spatial distance, occupancy, free-space extents</li>
+                    <li><code>scene_describe</code> &mdash; object list, pose deltas, area summaries</li>
+                    <li><code>capture_list</code> &mdash; enumerate captures attached to your account</li>
+                    <li><code>capture_status</code> &mdash; check reconstruction progress</li>
+                    <li><code>capture_open</code> &mdash; load a capture into the session context</li>
+                </ul>
+            </div>
+            <div class="cn-tool-col writes">
+                <h3>12 mutation tools &mdash; audited, validated</h3>
+                <ul>
+                    <li><code>capture_create</code> &mdash; start a new capture session</li>
+                    <li><code>xr_create_anchor</code> &mdash; place a named spatial anchor</li>
+                    <li><code>xr_list_anchors</code> &mdash; enumerate anchors in the scene</li>
+                    <li><code>xr_remove_anchor</code> &mdash; remove an anchor by ID</li>
+                    <li><code>xr_get_session</code> &mdash; inspect the active XR session</li>
+                    <li><code>load_world_model</code> &mdash; attach an adapter to the runtime</li>
+                    <li><code>ingest_frame</code> &mdash; feed a world-model frame</li>
+                    <li><code>set_render_target</code> &mdash; configure the output surface</li>
+                    <li><code>start_simulation</code> &mdash; begin the simulation loop (sandbox / dev only)</li>
+                    <li><code>get_scene_state</code> &mdash; full scene-graph snapshot</li>
+                    <li><code>get_metrics</code> &mdash; runtime performance snapshot</li>
+                    <li>+ 1 additional (see <a href="mcp.html" style="color: var(--accent-bright);">mcp.html</a> for the full list)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="cn-passthrough-note">
+            <strong>Universal passthrough:</strong> <code>api_call</code> / <code>api_search</code> reach the full
+            ~9,500-endpoint raku-api surface; <code>engine_call</code> / <code>engine_search</code> reach the C++ engine API.
+            These passthrough tools are available on every tier and let your assistant reach anything in the platform
+            that isn&rsquo;t yet wrapped as a native tool. They are the &ldquo;escape hatch&rdquo; &mdash; use the 17 native tools
+            first for stability.
+        </div>
+    </div>
+</section>
+
+<!-- Per-vendor connect steps -->
+<section class="cn-section" id="connect-steps">
+    <div class="container">
+        <h2>Connect your assistant.</h2>
+        <p class="cn-subtitle">
+            All four clients connect over MCP. The two transports are <strong>stdio</strong> (local &mdash; your editor spawns the server as a child process)
+            and <strong>Streamable HTTP</strong> (remote &mdash; point at the hosted endpoint with a bearer token).
+            The steps below use stdio for local clients and HTTP for hosted ones.
+        </p>
+
+        <div class="cn-vendor-grid">
+
+            <!-- Claude Desktop + Claude Code -->
+            <div class="cn-vendor-card">
+                <div class="cn-vendor-header">
+                    <div class="cn-vendor-icon claude">&#x25C4;</div>
+                    <div>
+                        <h3>Claude (Desktop &amp; Code)</h3>
+                        <div class="cn-vendor-status"><span class="badge-prod">Verified (Code)</span> &nbsp; <span class="badge-wip">Connect via MCP (Desktop)</span></div>
+                    </div>
+                </div>
+                <p>Both clients use the same <code>mcpServers</code> JSON block. Claude Code reads <code>~/.claude.json</code>; Claude Desktop reads <code>claude_desktop_config.json</code>.</p>
+                <ol>
+                    <li>Clone <code>raku-runtime</code>: <code>git clone https://github.com/RakuXR/raku-runtime.git</code></li>
+                    <li>Install dependencies: <code>pip install 'mcp&gt;=1.2.0' fastapi pydantic jsonschema requests httpx</code></li>
+                    <li>Add this block to <code>~/.claude.json</code> (Claude Code) or <code>claude_desktop_config.json</code> (Claude Desktop &mdash; macOS: <code>~/Library/Application Support/Claude/</code>, Windows: <code>%APPDATA%\Claude\</code>):</li>
+                </ol>
+<div class="cn-code-block"><span class="cmt">// ~/.claude.json or claude_desktop_config.json</span>
+{
+  <span class="key">"mcpServers"</span>: {
+    <span class="key">"raku"</span>: {
+      <span class="key">"command"</span>: <span class="val">"python"</span>,
+      <span class="key">"args"</span>: [<span class="val">"-m"</span>, <span class="val">"src.mcp.stdio_server"</span>],
+      <span class="key">"cwd"</span>: <span class="val">"/absolute/path/to/raku-runtime"</span>,
+      <span class="key">"env"</span>: {
+        <span class="key">"PYTHONPATH"</span>: <span class="val">"/absolute/path/to/raku-runtime"</span>,
+        <span class="key">"RAKU_MCP_MODE"</span>: <span class="val">"sandbox"</span>,
+        <span class="key">"RAKU_API_BASE"</span>: <span class="val">"https://api.rakuai.com"</span>
+      }
+    }
+  }
+}</div>
+                <p style="margin-top:12px;">Restart the client. The Raku tools appear in the tool picker. Verify with: <em>"Use raku get_metrics to show me what&rsquo;s running."</em></p>
+            </div>
+
+            <!-- ChatGPT -->
+            <div class="cn-vendor-card">
+                <div class="cn-vendor-header">
+                    <div class="cn-vendor-icon chatgpt">&#x25CF;</div>
+                    <div>
+                        <h3>ChatGPT</h3>
+                        <div class="cn-vendor-status"><span class="badge-wip">Connect via MCP &mdash; e2e verification in progress</span></div>
+                    </div>
+                </div>
+                <p>ChatGPT Plus and Team support MCP server connectors. You&rsquo;ll need a bearer token from your RakuAI account and the hosted MCP endpoint.</p>
+                <ol>
+                    <li>Log in to <a href="https://chatgpt.com" target="_blank" rel="noopener" style="color:var(--accent-bright);">chatgpt.com</a> (Plus or Team plan required for MCP).</li>
+                    <li>Open <strong>Settings &rarr; Connected apps / MCP</strong>.</li>
+                    <li>Add a new MCP server: URL <code>https://mcp.rakuai.com</code>, transport <em>Streamable HTTP</em>.</li>
+                    <li>Paste your RakuAI bearer token when prompted.</li>
+                    <li>Save and confirm. The Raku tools appear in the tool selection panel.</li>
+                </ol>
+                <p>
+                    <strong>Note:</strong> ChatGPT&rsquo;s MCP UI is evolving. If the UI has changed since this was written,
+                    the underlying protocol is stable &mdash; point any Streamable HTTP MCP client at
+                    <code>https://mcp.rakuai.com</code> with your bearer token.
+                </p>
+            </div>
+
+            <!-- Gemini -->
+            <div class="cn-vendor-card">
+                <div class="cn-vendor-header">
+                    <div class="cn-vendor-icon gemini">&#x25B2;</div>
+                    <div>
+                        <h3>Gemini / Google AI Studio</h3>
+                        <div class="cn-vendor-status"><span class="badge-wip">Connect via MCP &mdash; e2e verification in progress</span></div>
+                    </div>
+                </div>
+                <p>Google AI Studio supports MCP tool servers via its extensions / function-calling surface. Gemini Advanced in Google Workspace also supports MCP.</p>
+                <ol>
+                    <li>Open <a href="https://aistudio.google.com" target="_blank" rel="noopener" style="color:var(--accent-bright);">aistudio.google.com</a>.</li>
+                    <li>In the model settings panel, find <strong>Tools &rarr; Add MCP server</strong> (or equivalent in your Gemini client).</li>
+                    <li>Enter the hosted endpoint: <code>https://mcp.rakuai.com</code>, transport <em>Streamable HTTP</em>.</li>
+                    <li>Authenticate with your RakuAI bearer token.</li>
+                    <li>Enable the server. The 17 native tools appear as callable functions in your session.</li>
+                </ol>
+                <p>
+                    <strong>Note:</strong> Gemini&rsquo;s MCP client is under active development. The hosted endpoint
+                    (<code>https://mcp.rakuai.com</code>) is a standard Streamable HTTP MCP server and will work
+                    with any conformant Gemini MCP client.
+                </p>
+            </div>
+
+            <!-- GitHub Copilot -->
+            <div class="cn-vendor-card">
+                <div class="cn-vendor-header">
+                    <div class="cn-vendor-icon copilot">&#x2B22;</div>
+                    <div>
+                        <h3>GitHub Copilot (VS Code)</h3>
+                        <div class="cn-vendor-status"><span class="badge-wip">Connect via MCP (VS Code 1.99+)</span></div>
+                    </div>
+                </div>
+                <p>VS Code 1.99+ added MCP server support in Copilot Chat (Agent mode). Add a workspace or global MCP config file:</p>
+                <ol>
+                    <li>Clone <code>raku-runtime</code> and install dependencies (same as Claude above).</li>
+                    <li>Create or edit <code>.vscode/mcp.json</code> in your project:</li>
+                </ol>
+<div class="cn-code-block"><span class="cmt">// .vscode/mcp.json</span>
+{
+  <span class="key">"servers"</span>: {
+    <span class="key">"raku"</span>: {
+      <span class="key">"type"</span>: <span class="val">"stdio"</span>,
+      <span class="key">"command"</span>: <span class="val">"python"</span>,
+      <span class="key">"args"</span>: [<span class="val">"-m"</span>, <span class="val">"src.mcp.stdio_server"</span>],
+      <span class="key">"cwd"</span>: <span class="val">"/absolute/path/to/raku-runtime"</span>,
+      <span class="key">"env"</span>: {
+        <span class="key">"PYTHONPATH"</span>: <span class="val">"/absolute/path/to/raku-runtime"</span>,
+        <span class="key">"RAKU_MCP_MODE"</span>: <span class="val">"sandbox"</span>
+      }
+    }
+  }
+}</div>
+                <p style="margin-top:12px;">Open Copilot Chat in Agent mode. The Raku tools are available for selection. Ask: <em>"Use the raku get_scene_state tool and tell me how many nodes are in the scene."</em></p>
+            </div>
+
+        </div><!-- end vendor-grid -->
+
+        <!-- Troubleshooting -->
+        <div style="max-width: 1100px; margin: 32px auto 0; padding: 20px 24px; background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px;">
+            <h3 style="color: var(--accent-bright); font-size: 1.05rem; margin-bottom: 14px;">Common troubleshooting</h3>
+            <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                <thead>
+                    <tr>
+                        <th style="text-align:left; color:var(--text-secondary); font-weight:600; padding:6px 10px 6px 0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid rgba(255,255,255,0.07);">Symptom</th>
+                        <th style="text-align:left; color:var(--text-secondary); font-weight:600; padding:6px 0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid rgba(255,255,255,0.07);">Cause / fix</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding:9px 10px 9px 0; color:var(--text-primary); font-weight:500; border-bottom:1px solid rgba(255,255,255,0.04);">No Raku tools appear</td>
+                        <td style="padding:9px 0; color:var(--text-secondary); border-bottom:1px solid rgba(255,255,255,0.04);">Check <code>cwd</code> and <code>PYTHONPATH</code> point at the repo root. Run <code>python -m src.mcp.stdio_server</code> by hand &mdash; it should log <code>tools registered (stdio): 147</code>.</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:9px 10px 9px 0; color:var(--text-primary); font-weight:500; border-bottom:1px solid rgba(255,255,255,0.04);">Client shows ~147 tools, not 17</td>
+                        <td style="padding:9px 0; color:var(--text-secondary); border-bottom:1px solid rgba(255,255,255,0.04);">Expected, not a bug. The 17 native tools are the stable contract; the registry also carries 7 universal passthrough + 123 subsystem-catalog wrappers.</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:9px 10px 9px 0; color:var(--text-primary); font-weight:500; border-bottom:1px solid rgba(255,255,255,0.04);">Tool calls return <code>{"status": "denied"}</code></td>
+                        <td style="padding:9px 0; color:var(--text-secondary); border-bottom:1px solid rgba(255,255,255,0.04);">Server is in <code>production</code> mode (read-only). Set <code>RAKU_MCP_MODE=sandbox</code> in the <code>env</code> block to enable mutation tools for local dev.</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:9px 10px 9px 0; color:var(--text-primary); font-weight:500; border-bottom:1px solid rgba(255,255,255,0.04);"><code>ModuleNotFoundError: src</code></td>
+                        <td style="padding:9px 0; color:var(--text-secondary); border-bottom:1px solid rgba(255,255,255,0.04);"><code>cwd</code> / <code>PYTHONPATH</code> not set to the repo root. Both must point at the directory containing the <code>src/</code> package.</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:9px 10px 9px 0; color:var(--text-primary); font-weight:500;">Garbled or no responses (stdio)</td>
+                        <td style="padding:9px 0; color:var(--text-secondary);">Something is writing to stdout and corrupting the JSON-RPC stream. The server keeps stdout clean (all logs go to stderr). Check for any debug <code>print()</code> calls in local code.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</section>
+
+<!-- Example prompts -->
+<section class="cn-section" id="what-to-ask">
+    <div class="container">
+        <h2>What you can ask once connected.</h2>
+        <p class="cn-subtitle">
+            These prompts work against any Raku capture once the MCP connection is live. Start with the read-only tools &mdash;
+            they carry zero mutation risk and return structured spatial data your assistant can reason about directly.
+        </p>
+
+        <div class="cn-prompt-grid">
+            <div class="cn-prompt-card">
+                <div class="ask">"What objects are within 2 metres of the front door?"</div>
+                <div class="context">Uses <code>scene_query</code>. Returns a list of objects with distances and confidence scores. Good first test after connecting.</div>
+            </div>
+            <div class="cn-prompt-card">
+                <div class="ask">"Measure the distance between the sofa and the TV."</div>
+                <div class="context">Uses <code>scene_query</code> with two anchor targets. Returns distance in metres as structured data, not a prose estimate.</div>
+            </div>
+            <div class="cn-prompt-card">
+                <div class="ask">"What&rsquo;s in this room? Give me a count by category."</div>
+                <div class="context">Uses <code>scene_describe</code>. Returns object inventory grouped by type &mdash; furniture, fixtures, equipment.</div>
+            </div>
+            <div class="cn-prompt-card">
+                <div class="ask">"List all my captures and tell me which ones are fully processed."</div>
+                <div class="context">Uses <code>capture_list</code> + <code>capture_status</code>. No mutation &mdash; pure inventory query.</div>
+            </div>
+            <div class="cn-prompt-card">
+                <div class="ask">"What changed in this space since last Tuesday?"</div>
+                <div class="context">Uses <code>scene_describe</code> with a time filter. Returns a delta record: moved, added, and removed objects since the reference timestamp.</div>
+            </div>
+            <div class="cn-prompt-card">
+                <div class="ask">"Place a named anchor at the kitchen counter and tell me its pose."</div>
+                <div class="context">Uses <code>xr_create_anchor</code> (mutation tool). The runtime validates the pose against physics before applying. The anchor persists in the scene.</div>
+            </div>
+        </div>
+
+        <p style="text-align:center; color:var(--text-secondary); font-size:0.93rem; max-width:720px; margin:0 auto;">
+            These are illustrative. The 17 native tools + passthrough surface cover the full scene management lifecycle.
+            For the complete tool reference and JSON schema, see <a href="mcp.html" style="color:var(--accent-bright);">mcp.html</a>.
+        </p>
+    </div>
+</section>
+
+<!-- Authority and safety model -->
+<section class="cn-section" id="authority-model">
+    <div class="container">
+        <h2>Authority model: assistants propose, the runtime decides.</h2>
+        <p class="cn-subtitle">
+            Nothing silently rewrites your scene. The RakuAI runtime is the authority over physics, collision volumes,
+            transforms, and canonical scene state. An AI assistant&rsquo;s mutation tool calls are <strong>proposals</strong>;
+            the runtime validates every one before applying it.
+        </p>
+
+        <div class="cn-authority-grid">
+            <div class="cn-authority-card owns">
+                <h3>What the runtime owns (non-negotiable)</h3>
+                <ul>
+                    <li>Physics simulation and collision geometry &mdash; no caller bypasses the collision system without an explicit override flag</li>
+                    <li>The canonical scene-state record &mdash; all queries answer against this; only the runtime writes to it</li>
+                    <li>Anchor lifecycle and pose authority &mdash; created, updated, and removed only through audited MCP calls</li>
+                    <li>Session permissions &mdash; what an MCP client can read vs. mutate is set at session creation, not by the caller</li>
+                </ul>
+            </div>
+            <div class="cn-authority-card propose">
+                <h3>What an AI assistant proposes</h3>
+                <ul>
+                    <li>Mutation tool calls are proposals; the runtime validates against physics and permissions before applying</li>
+                    <li>If a proposed transform collides, the runtime rejects it and returns an error &mdash; no silent success</li>
+                    <li>The 5 read-only tools carry zero mutation risk by construction</li>
+                    <li>Multi-step action sequences are validated step by step, not batched</li>
+                </ul>
+            </div>
+            <div class="cn-authority-card audit">
+                <h3>What is audited</h3>
+                <ul>
+                    <li>Every MCP tool call is logged: caller identity, timestamp, input payload, outcome</li>
+                    <li>Scene-state changes carry a delta record: what changed, when, which session</li>
+                    <li>Logging happens at the runtime layer &mdash; it cannot be suppressed by any LLM adapter or passthrough path</li>
+                    <li>The audit log is accessible to account holders for their captures</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="max-width:840px; margin:28px auto 0; padding:18px 22px; background:rgba(0,206,201,0.06); border-left:3px solid var(--success); border-radius:6px; color:var(--text-secondary); font-size:0.95rem; line-height:1.65;">
+            <strong style="color:var(--text-primary);">Practical note:</strong> start with the 5 read-only tools. Your assistant asks questions; the runtime answers with structured data; nothing in your scene changes. When you&rsquo;re ready to test mutation (anchors, session control), those calls go through the same validated, audited path.
+        </div>
+    </div>
+</section>
+
+<!-- Cross-links -->
+<section class="cn-section">
+    <div class="container">
+        <h2>Go deeper.</h2>
+        <p class="cn-subtitle">The pages developers read most before writing their first MCP call.</p>
+
+        <div class="cn-crosslinks">
+            <a href="mcp.html" class="cn-crosslink">
+                <div class="label">MCP Server reference &rarr;</div>
+                <div class="desc">Full tool schema, JSON-RPC wire format, auth, rate limits, and the complete 17-tool inventory.</div>
+            </a>
+            <a href="capture.html" class="cn-crosslink">
+                <div class="label">Raku Capture &rarr;</div>
+                <div class="desc">Scan a space with your phone, get a Gaussian-splat scene your assistant can query. Early access.</div>
+            </a>
+            <a href="spatial-engine.html" class="cn-crosslink">
+                <div class="label">Spatial Engine &rarr;</div>
+                <div class="desc">The C++ runtime the MCP surface sits on &mdash; 18 native DLLs, ~9,500 API endpoints.</div>
+            </a>
+            <a href="developers/claude-desktop.html" class="cn-crosslink">
+                <div class="label">Claude Desktop guide &rarr;</div>
+                <div class="desc">Detailed walkthrough for Claude Desktop users including screenshot annotations.</div>
+            </a>
+            <a href="developer-guide.html" class="cn-crosslink">
+                <div class="label">Developer guide &rarr;</div>
+                <div class="desc">Full SDK and API developer documentation, authentication, and environment setup.</div>
+            </a>
+            <a href="contact.html" class="cn-crosslink">
+                <div class="label">Get help &rarr;</div>
+                <div class="desc">Contact the team if you hit an integration issue not covered above.</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- NVIDIA Inception -->
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 32px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception Member - read more on the press page">
+            <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <p style="max-width: 640px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            RakuAI is an <strong>NVIDIA Inception</strong> member (accepted May 2026). The NVIDIA-accelerated 3D Gaussian splatting stack in <a href="capture.html" style="color: var(--accent-bright);">Raku Capture</a> is the same technology behind the scene queries you&rsquo;re connecting to here. <a href="press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">Read more &rarr;</a>
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 14px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        NVIDIA Inception is a free program for AI startups; RakuAI&rsquo;s membership does not imply that NVIDIA endorses RakuAI&rsquo;s products. Learn more at <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color: var(--text-secondary);">nvidia.com/startups</a>.
+    </p>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Solutions</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">Smart-Glasses Manufacturers</a></li>
+                    <li><a href="llm-makers.html">AI Labs</a></li>
+                    <li><a href="enterprise.html">Enterprise</a></li>
+                    <li><a href="creator.html">Creators</a></li>
+                    <li><a href="compare.html">Compare vs Unity / Unreal</a></li>
+                    <li><a href="spatial-engine.html">Spatial Engine</a></li>
+                    <li><a href="ai-systems.html">AI Systems</a></li>
+                    <li><a href="xr-features.html">XR Features</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="mcp.html">MCP Server</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="api/">API Reference</a></li>
+                    <li><a href="templates.html">Templates</a></li>
+                    <li><a href="developers/">Developer Portal</a></li>
+                    <li><a href="developers/claude-desktop.html">Claude Desktop guide</a></li>
+                    <li><a href="developer-guide.html">Developer Guide</a></li>
+                    <li><a href="llm-guide.html">LLM Integration Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="blog/">Blog</a></li>
+                    <li><a href="why-rakuai.html">Why RakuAI</a></li>
+                    <li><a href="press.html">Press Kit</a></li>
+                    <li><a href="discover.html">Discover</a></li>
+                    <li><a href="content-packs.html">Content Packs</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">About</a></li>
+                    <li><a href="pricing.html">Pricing</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">Partners</a></li>
+                    <li><a href="privacy.html">Privacy</a></li>
+                    <li><a href="terms.html">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
+                <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script src="js/public-config.js"></script>
+<script src="js/api-client.js"></script>
+<script src="js/auth-nav.js" defer></script>
+<script src="js/lang-selector.js" defer></script>
+<script src="js/nav-dropdown.js" defer></script>
+<script src="js/section-nav.js" defer></script>
+</body>
+</html>
