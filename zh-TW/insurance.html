@@ -384,12 +384,89 @@
             .ins-cta-row { flex-direction: column; align-items: stretch; }
             .ins-btn-primary, .ins-btn-secondary { text-align: center; }
         }
+        /* Hero split grid */
+        .ins-hero-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 40px;
+            align-items: center;
+            text-align: left;
+        }
+        .ins-hero-grid .ins-hero-copy { min-width: 0; }
+        .ins-hero-figure {
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            display: block;
+            height: auto;
+        }
+        .ins-hero-figure svg { width: 100%; height: auto; display: block; }
+        .ins-scan-beam {
+            transform-box: view-box;
+            transform-origin: 320px 250px;
+            animation: insScanSweep 2.8s ease-in-out infinite;
+        }
+        @keyframes insScanSweep {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(14deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .ins-scan-beam { animation: none; transform: rotate(2deg); }
+        }
+        @media (max-width: 860px) {
+            .ins-hero-grid { grid-template-columns: 1fr; text-align: center; gap: 28px; }
+            .ins-hero-figure { max-width: 360px; order: -1; }
+        }
+        /* Carousel */
+        .ins-carousel { max-width: 920px; margin: 0 auto; }
+        .ins-carousel-viewport { overflow: hidden; border-radius: 16px; }
+        .ins-carousel-track { display: flex; transition: transform 0.45s ease; }
+        @media (prefers-reduced-motion: reduce) { .ins-carousel-track { transition: none; } }
+        .ins-slide {
+            min-width: 100%;
+            box-sizing: border-box;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 16px;
+            padding: 28px 30px;
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 24px;
+            align-items: center;
+        }
+        @media (max-width: 600px) { .ins-slide { grid-template-columns: 1fr; } }
+        .ins-slide-art svg { width: 100%; height: auto; display: block; }
+        .ins-slide-step {
+            display: block;
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .ins-slide h3 { color: var(--accent-bright); font-size: 1.25rem; margin: 0 0 10px; }
+        .ins-slide p { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin: 0; }
+        .ins-carousel-controls {
+            display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 16px;
+        }
+        .ins-carousel-btn {
+            background: var(--bg-secondary); border: 1px solid #2a2a4a; color: var(--accent-bright);
+            width: 42px; height: 42px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .ins-carousel-btn:hover { border-color: var(--accent); }
+        .ins-carousel-dots { display: flex; gap: 10px; }
+        .ins-carousel-dot {
+            width: 11px; height: 11px; border-radius: 50%; border: 1px solid #3a3a5a;
+            background: transparent; padding: 0; cursor: pointer;
+        }
+        .ins-carousel-dot[aria-selected="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
     </style>
 </head>
 <body>
 
 <div class="beta-announcement-bar">
-    5 項專利 | 9,500+ 個 API 端點 | 18 個原生 DLL | AI 原生的空間遊戲引擎 — 現已開放搶先體驗
+    5 項專利 | 9,500+ 個 API 端點 | 18 個原生 DLL | AI 原生的空間引擎 — 現已開放搶先體驗
 </div>
 
 <nav role="navigation" aria-label="主導覽">
@@ -463,25 +540,165 @@
 
 <section class="ins-hero">
     <div class="container">
-        <span class="eyebrow">為屋主、租客及其保險公司而寫</span>
-        <h1>一次手機掃描，即可生成保險公司可用的物品清單。</h1>
-        <p class="subhead">
-            RakuAI Capture 將一次 60&ndash;90 秒的房間手機掃描，轉化為一份逐項列出室內物品的清單 &mdash; 附帶概略尺寸與預估重置價值 &mdash; 你可直接交給保險公司。專為人們真正需要它的三個時刻而打造：申請<strong>理賠</strong>、規劃<strong>搬家</strong>，以及<strong>縮減家當</strong>。採用與 RakuAI 其餘部分相同的 3D Gaussian splat 重建與 MCP 核心 &mdash; 並非全新引擎。
-        </p>
-        <p class="audience-line">
-            本頁誠實說明哪些已於今日交付、哪些仍列於藍圖。我們記錄一個空間並產出一份結構化清單；我們並非保險公司，不訂定保單條款，也不和解理賠。
-        </p>
+        <div class="ins-hero-grid">
+            <div class="ins-hero-copy">
+                <span class="eyebrow">為屋主、租客及其保險公司而寫</span>
+                <h1>一次手機掃描，即可生成保險公司可用的物品清單。</h1>
+                <p class="subhead">
+                    RakuAI Capture 將一次 60&ndash;90 秒的房間手機掃描，轉化為一份逐項可查詢的室內物品清單 &mdash; 附帶概略尺寸與預估重置價值。理賠查勘員的 AI 助理可透過 MCP 介面查詢清單，無需到府。採用與 RakuAI 其餘部分相同的 3D Gaussian splat 重建與 MCP 核心 &mdash; 並非全新引擎。專為三個時刻而打造：申請<strong>理賠</strong>、規劃<strong>搬家</strong>，以及<strong>縮減家當</strong>。
+                </p>
+                <p class="audience-line">
+                    第一階段／試行準備就緒 &mdash; 誠實說明今日已交付與路線圖之間的分界。我們記錄一個空間並產出一份結構化清單；我們並非保險公司，不訂定保單條款，也不和解理賠。
+                </p>
+                <div style="display: flex; margin: 22px 0 4px;">
+                    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="NVIDIA Inception 成員 - 捲動查看詳情">
+                        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">成員</span>
+                        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+                        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">閱讀更多 &darr;</span>
+                    </a>
+                </div>
+                <div class="ins-cta-row" style="justify-content:flex-start;">
+                    <a href="#request-pilot" class="ins-btn-primary">申請試行 &rarr;</a>
+                    <a href="capture.html" class="ins-btn-secondary">試用擷取流程 &rarr;</a>
+                </div>
+            </div>
+            <div class="ins-hero-figure" aria-hidden="true">
+                <!-- 手機掃描 -> 已重建房間 -> 逐項物品清單 -->
+                <svg viewBox="0 0 360 320" role="img" xmlns="http://www.w3.org/2000/svg">
+                    <title>手機掃描一個房間並產出逐項物品清單</title>
+                    <defs>
+                        <linearGradient id="insRoom" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#1a1a3a"/>
+                            <stop offset="1" stop-color="#11112a"/>
+                        </linearGradient>
+                        <linearGradient id="insScan" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#a388ff" stop-opacity="0.55"/>
+                            <stop offset="1" stop-color="#a388ff" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <g transform="translate(24,26) scale(1.18) translate(-24,-26)">
+                    <rect x="24" y="26" width="220" height="180" rx="12" fill="url(#insRoom)" stroke="#2c2c50"/>
+                    <g fill="#6c5ce7">
+                        <circle cx="70" cy="150" r="3.2" opacity="0.9"/><circle cx="86" cy="158" r="2.6" opacity="0.7"/>
+                        <circle cx="100" cy="146" r="3" opacity="0.8"/><circle cx="120" cy="160" r="2.4" opacity="0.6"/>
+                        <circle cx="150" cy="120" r="3.2" opacity="0.85"/><circle cx="168" cy="132" r="2.6" opacity="0.7"/>
+                        <circle cx="190" cy="150" r="3" opacity="0.8"/><circle cx="205" cy="160" r="2.4" opacity="0.6"/>
+                        <circle cx="64" cy="100" r="2.6" opacity="0.6"/><circle cx="200" cy="96" r="2.6" opacity="0.6"/>
+                    </g>
+                    <rect x="60" y="150" width="80" height="34" rx="6" fill="#23244a" stroke="#3a3a66"/>
+                    <rect x="172" y="112" width="48" height="72" rx="5" fill="#23244a" stroke="#3a3a66"/>
+                    </g>
+                    <polygon class="ins-scan-beam" points="320,250 200,40 248,40" fill="url(#insScan)"/>
+                    <g>
+                        <rect x="296" y="196" width="48" height="92" rx="10" fill="#16162e" stroke="#a388ff" stroke-width="2"/>
+                        <rect x="302" y="206" width="36" height="60" rx="3" fill="#0a0a1a"/>
+                        <circle cx="320" cy="278" r="3.5" fill="#3a3a66"/>
+                    </g>
+                    <g>
+                        <rect x="150" y="232" width="150" height="78" rx="9" fill="#16162e" stroke="#2c2c50"/>
+                        <rect x="162" y="244" width="14" height="14" rx="3" fill="#00cec9"/>
+                        <rect x="184" y="246" width="78" height="6" rx="3" fill="#3a3a66"/>
+                        <rect x="184" y="258" width="48" height="5" rx="2.5" fill="#2c2c50"/>
+                        <rect x="162" y="272" width="14" height="14" rx="3" fill="#00cec9"/>
+                        <rect x="184" y="274" width="66" height="6" rx="3" fill="#3a3a66"/>
+                        <rect x="184" y="286" width="40" height="5" rx="2.5" fill="#2c2c50"/>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+</section>
 
-<div style="display: flex; justify-content: center; margin: 22px 0 4px;">
-    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="NVIDIA Inception 成員 - 捲動查看詳情">
-        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">成員</span>
-        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
-        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">閱讀更多 &darr;</span>
-    </a>
-</div>
-        <div class="ins-cta-row">
-            <a href="capture.html" class="ins-btn-primary">試用擷取流程 &rarr;</a>
-            <a href="mailto:partnerships@rakuai.com?subject=Insurance%20capture%20%E2%80%94%20partnership%20inquiry" class="ins-btn-secondary">保險公司與 InsurTech 合作 &rarr;</a>
+<!-- 步驟輪播：掃描 -> splat -> 逐項 -> 審閱 -->
+<section class="ins-section" id="flow-carousel" style="padding-top:0;border-bottom:1px solid #222244;">
+    <div class="container">
+        <h2>從手中的手機到可提交的清單。</h2>
+        <p class="ins-subtitle">同一條 Raku Capture 管線，一次一個步驟。使用方向鍵、點點或鍵盤操作。</p>
+        <div class="ins-carousel" data-carousel>
+            <div class="ins-carousel-viewport">
+                <div class="ins-carousel-track" data-carousel-track role="group" aria-roledescription="carousel" aria-label="一次掃描如何變成一份清單">
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步驟 1 / 4：掃描房間">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="44" y="18" width="40" height="84" rx="9" fill="#16162e" stroke="#a388ff" stroke-width="2"/><rect x="50" y="28" width="28" height="56" rx="3" fill="#0a0a1a"/><circle cx="64" cy="94" r="3.5" fill="#3a3a66"/><path d="M30 60 H14 M90 60 H106 M64 18 V6" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round" opacity="0.7"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">步驟 1</span>
+                            <h3>掃描房間</h3>
+                            <p>拿著手機緩慢繞行一圈，約 60&ndash;90 秒，螢幕上有引導。不需要三腳架、不需要昂貴設備、不需要特殊相機。</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步驟 2 / 4：重建">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="24" width="88" height="72" rx="10" fill="#1a1a3a" stroke="#2c2c50"/><g fill="#6c5ce7"><circle cx="40" cy="70" r="4"/><circle cx="56" cy="76" r="3"/><circle cx="72" cy="62" r="4"/><circle cx="86" cy="74" r="3"/><circle cx="50" cy="50" r="3"/><circle cx="78" cy="48" r="3"/></g></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">步驟 2</span>
+                            <h3>重建</h3>
+                            <p>影格與動作在雲端重建為一個 3D Gaussian splat——一個真實空間的可探索模型。</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步驟 3 / 4：透過 LLM 逐項列出">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="22" y="20" width="76" height="80" rx="9" fill="#16162e" stroke="#2c2c50"/><rect x="34" y="34" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="37" width="38" height="6" rx="3" fill="#3a3a66"/><rect x="34" y="56" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="59" width="34" height="6" rx="3" fill="#3a3a66"/><rect x="34" y="78" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="81" width="30" height="6" rx="3" fill="#3a3a66"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">步驟 3</span>
+                            <h3>透過任何 LLM 逐項列出</h3>
+                            <p>LLM 透過 MCP 介面巡遍場景，列出可見物件並附上概略尺寸。Claude、ChatGPT、Gemini 或 Copilot——由你選擇。</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步驟 4 / 4：審閱並匯出">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="24" y="18" width="72" height="84" rx="9" fill="#16162e" stroke="#2c2c50"/><path d="M40 60 l12 12 l28 -28" fill="none" stroke="#00cec9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">步驟 4</span>
+                            <h3>審閱並匯出</h3>
+                            <p>你編輯清單、確認價值，並匯出一份可交給保險公司的乾淨清單。每個價值皆標示為預估值——你始終掌握控制權。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ins-carousel-controls">
+                <button type="button" class="ins-carousel-btn" data-carousel-prev aria-label="上一張">&larr;</button>
+                <div class="ins-carousel-dots" role="tablist" aria-label="選擇投影片" data-carousel-dots data-dot-class="ins-carousel-dot"></div>
+                <button type="button" class="ins-carousel-btn" data-carousel-next aria-label="下一張">&rarr;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 步驟輪播 -->
+<section class="ins-section" id="flow-carousel" style="padding-top:0;border-bottom:1px solid #222244;">
+    <div class="container">
+        <h2>從手中的手機到可提交的清單。</h2>
+        <p class="ins-subtitle">同一條 Raku Capture 管線，一次一個步驟。</p>
+        <div class="ins-carousel" data-carousel>
+            <div class="ins-carousel-viewport">
+                <div class="ins-carousel-track" data-carousel-track role="group" aria-roledescription="carousel" aria-label="一次掃描如何變成一份清單">
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步驟 1 / 4">
+                        <div class="ins-slide-art" aria-hidden="true"><svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="44" y="18" width="40" height="84" rx="9" fill="#16162e" stroke="#a388ff" stroke-width="2"/><rect x="50" y="28" width="28" height="56" rx="3" fill="#0a0a1a"/><circle cx="64" cy="94" r="3.5" fill="#3a3a66"/><path d="M30 60 H14 M90 60 H106 M64 18 V6" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round" opacity="0.7"/></svg></div>
+                        <div><span class="ins-slide-step">步驟 1</span><h3>掃描房間</h3><p>拿著手機緩慢繞行一圈，約 60&ndash;90 秒，螢幕上有引導。不需要三腳架、不需要昂貴設備、不需要特殊相機。</p></div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步驟 2 / 4">
+                        <div class="ins-slide-art" aria-hidden="true"><svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="24" width="88" height="72" rx="10" fill="#1a1a3a" stroke="#2c2c50"/><g fill="#6c5ce7"><circle cx="40" cy="70" r="4"/><circle cx="56" cy="76" r="3"/><circle cx="72" cy="62" r="4"/><circle cx="86" cy="74" r="3"/><circle cx="50" cy="50" r="3"/><circle cx="78" cy="48" r="3"/></g></svg></div>
+                        <div><span class="ins-slide-step">步驟 2</span><h3>重建</h3><p>影格與動作在雲端重建為一個 3D Gaussian splat——一個真實空間的可探索模型。</p></div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步驟 3 / 4">
+                        <div class="ins-slide-art" aria-hidden="true"><svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="22" y="20" width="76" height="80" rx="9" fill="#16162e" stroke="#2c2c50"/><rect x="34" y="34" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="37" width="38" height="6" rx="3" fill="#3a3a66"/><rect x="34" y="56" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="59" width="34" height="6" rx="3" fill="#3a3a66"/><rect x="34" y="78" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="81" width="30" height="6" rx="3" fill="#3a3a66"/></svg></div>
+                        <div><span class="ins-slide-step">步驟 3</span><h3>透過任何 LLM 逐項列出</h3><p>LLM 透過 MCP 介面巡遍場景，列出可見物件並附上概略尺寸。Claude、ChatGPT、Gemini 或 Copilot——由你選擇。</p></div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步驟 4 / 4">
+                        <div class="ins-slide-art" aria-hidden="true"><svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="24" y="18" width="72" height="84" rx="9" fill="#16162e" stroke="#2c2c50"/><path d="M40 60 l12 12 l28 -28" fill="none" stroke="#00cec9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                        <div><span class="ins-slide-step">步驟 4</span><h3>審閱並匯出</h3><p>你編輯清單、確認價值，並匯出一份可交給保險公司的乾淨清單。每個價值皆標示為預估值——你始終掌握控制權。</p></div>
+                    </div>
+                </div>
+            </div>
+            <div class="ins-carousel-controls">
+                <button type="button" class="ins-carousel-btn" data-carousel-prev aria-label="上一張">&larr;</button>
+                <div class="ins-carousel-dots" role="tablist" aria-label="選擇投影片" data-carousel-dots data-dot-class="ins-carousel-dot"></div>
+                <button type="button" class="ins-carousel-btn" data-carousel-next aria-label="下一張">&rarr;</button>
+            </div>
         </div>
     </div>
 </section>
@@ -496,7 +713,7 @@
         <div class="ins-usecases">
             <div class="ins-usecase">
                 <h3>理賠</h3>
-                <p>發生損失之後 &mdash; 火災、竊盜、水損、風災 &mdash; 憑記憶重建自己擁有過什麼既痛苦又容易引發爭議。在投保或續保時做一次掃描，便能在任何事發生前，留下一份附時間戳記、逐項列出的紀錄。申請理賠從「回想你損失的每一樣東西」變成「提交清單」。</p>
+                <p>發生損失之後 &mdash; 火災、竊盜、水損、風災 &mdash; 憑記憶重建自己擁有過什麼既痛苦又容易引發爭議。在投保或續保時做一次掃描，便能在任何事發生前留下紀錄。申請理賠時，理賠查勘員的 AI 助理透過 MCP 查詢已儲存的 splat——「列出這個房間的家具，並附上尺寸與估計價值」——無需到府。申請理賠從「回想你損失的每一樣東西」變成「提交清單」。</p>
             </div>
             <div class="ins-usecase">
                 <h3>搬家</h3>
@@ -528,8 +745,8 @@
             </div>
             <div class="ins-step">
                 <span class="ins-step-num">3</span>
-                <h4>逐項列出</h4>
-                <p>LLM 透過 MCP 介面巡遍場景，列出可見物件，並為每件物品附上概略尺寸。</p>
+                <h4>透過 MCP 逐項列出</h4>
+                <p>LLM（Claude、ChatGPT、Gemini 或 Copilot）連接至 17 個原生工具的 MCP 介面，巡遍已重建的房間：列出可見物件、概略尺寸與預估重置價值——無需到府。</p>
             </div>
             <div class="ins-step">
                 <span class="ins-step-num">4</span>
@@ -566,6 +783,34 @@
         </div>
         <p class="ins-table-note">
             上述每一筆數字皆為<strong>預估值</strong>，而非鑑價。物件辨識與價值估算並不完美 &mdash; 在清單送往任何地方之前，由你檢視並修正。RakuAI 不訂定你的保障範圍、不決定理賠給付、也不保證重置成本；這些由你的保險公司決定。
+        </p>
+    </div>
+</section>
+
+<!-- 保險公司付費模式 -->
+<section class="ins-section" id="carrier-economics" style="background: rgba(108,92,231,0.04);">
+    <div class="container">
+        <h2>保險公司付費模式，直白說明。</h2>
+        <p class="ins-subtitle">消費者在投保或續保時免費掃描。保險公司按掃描次數付費。保險公司的回報是降低理賠調整費用（LAE）與縮短首次損失通知到付款的週期。</p>
+        <div class="ins-steps" style="max-width:900px;">
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">$</span>
+                <h4>保險公司每次掃描付費 $5&ndash;$20</h4>
+                <p>消費者在投保或續保時掃描——保戶免費。保險公司以此作為招攬與留客的投資。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">%</span>
+                <h4>降低 LAE</h4>
+                <p>對於投保前已存有物品清單的保單，理賠查勘員的接觸點更少。試行目標指標：與對照組相比，已掃描保單的查勘員接觸點減少 &ge;10%。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">&#x2193;</span>
+                <h4>縮短 FNOL 到付款週期</h4>
+                <p>申請理賠時，查勘員的 AI 透過 MCP 查詢已儲存的 splat，在數秒內取得結構化清單——而不是等待數天排查勘員到府並手動記錄。</p>
+            </div>
+        </div>
+        <p style="text-align:center; margin:28px auto 0; font-size:0.88rem; color:var(--text-secondary); max-width:760px; opacity:0.85;">
+            每次掃描的後端成本估計為 $0.50&ndash;$2.00（保險掃描通常為單一房間、低影格數）。目前尚無簽署的保險公司合作關係；此為我們帶入第一階段試行洽談的價值模型。
         </p>
     </div>
 </section>
@@ -643,6 +888,44 @@
     </div>
 </section>
 
+<!-- 理賠查勘員 AI 工作流程 -->
+<section class="ins-section" id="adjuster-workflow">
+    <div class="container">
+        <h2>理賠查勘員 AI 工作流程如何嵌入。</h2>
+        <p class="ins-subtitle">驅動 Raku Capture 的 MCP 介面，同樣是理賠查勘員 AI 助理查詢掃描結果的方式。以下是實際運作方式——以及目前誠實的現況。</p>
+        <div class="ins-steps">
+            <div class="ins-step">
+                <span class="ins-step-num">1</span>
+                <h4>保戶在投保時掃描</h4>
+                <p>消費者以 Raku Capture 流程掃描其房間。保險公司將此嵌入為新保單投保或年度續保的免費步驟。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">2</span>
+                <h4>Splat 儲存於 RakuAI 雲端</h4>
+                <p>已重建的 3D Gaussian splat 在保戶同意下儲存於 RakuAI 雲端。原始影格在重建後預設刪除。掃描特定的資料處理聲明將在任何消費者掃描上線前加入隱私政策。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">3</span>
+                <h4>查勘員 AI 透過 MCP 查詢</h4>
+                <p>申請理賠時，查勘員的 AI 助理連接至 RakuAI 的 17 個原生工具 MCP 介面並巡遍已重建的房間。自然語言查詢——「列出此房間的物品，附概略尺寸與預估重置價值」——返回結構化清單，無需到府。查勘員審閱並編輯，而非從頭量測。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">4</span>
+                <h4>查勘員審閱並結案</h4>
+                <p>查勘員對照理賠內容編輯並確認清單。每個價值皆標示為預估值。RakuAI 不和解理賠或決定給付——這些由保險公司決定。</p>
+            </div>
+        </div>
+        <div class="ins-honest" style="margin-top:32px;">
+            <h3>此工作流程的誠實現況</h3>
+            <ul>
+                <li><strong>第一階段／試行準備就緒（現況）：</strong>MCP 查詢介面今日已可運作——LLM 可巡遍已重建的房間並返回結構化清單。保險公司入口、按掃描計費，以及正式的保險公司可用匯出（附掃描中繼資料的單頁 PDF）正在為第一次試行建構中。</li>
+                <li><strong>尚未具備：</strong>SOC 2 認證（大型保險公司要求；早期試行先以 InsurTech 為目標）。截至今日尚無簽署的保險公司合作關係。</li>
+                <li><strong>您的資料：</strong>未經明確同意，掃描結果不會與任何第三方共享。保險公司透過保險公司審閱入口僅能看到清單文件，而非原始掃描——在 SOC 2 落地之前，此為資料處理模型。</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
 <!-- Partner CTA -->
 <section class="ins-section" id="partners">
     <div class="container">
@@ -661,8 +944,8 @@
                     <h3>2. 免費 90 天試行</h3>
                     <p>每季一位合作夥伴。我們將掃描流程整合進你的投保流程（白標或附屬網頁應用程式），蒐集約 100 筆客戶掃描，並共同發表一份案例研究。試行不收費；我們僅要求 UX 團隊的存取權限與發表許可。</p>
                 </div>
-                <a href="mailto:partnerships@rakuai.com?subject=Insurance%2090-day%20pilot" class="ins-btn-secondary" style="text-align:center;">洽談試行 &rarr;</a>
-                <p class="ins-table-note" style="margin-top:0;">在 SOC 2 完成之前，早期試行於 RakuAI 雲端運行，並搭配一個保險公司檢視入口。</p>
+                <a href="#request-pilot" class="ins-btn-secondary" style="text-align:center;">洽談試行 &rarr;</a>
+                <p class="ins-table-note" style="margin-top:0;">在 SOC 2 完成之前，早期試行於 RakuAI 雲端運行，並搭配一個保險公司審閱入口。</p>
             </div>
             <div class="ins-partner-card">
                 <div>
@@ -672,6 +955,27 @@
                 <a href="mailto:partnerships@rakuai.com?subject=InsurTech%20integration%20%E2%80%94%20capture%20layer" class="ins-btn-secondary" style="text-align:center;">探索整合 &rarr;</a>
             </div>
         </div>
+    </div>
+</section>
+
+
+<!-- 專屬試行 CTA -->
+<section class="ins-section" id="request-pilot" style="background: rgba(108,92,231,0.06); scroll-margin-top:80px;">
+    <div class="container" style="text-align:center;">
+        <h2>申請免費 90 天試行。</h2>
+        <p class="ins-subtitle" style="max-width:720px;">
+            每季一位合作夥伴。我們將 Raku Capture 掃描流程整合進你的投保流程（白標或附屬網頁應用程式），執行約 100 筆客戶掃描，並共同發表成果。試行不收費。我們要求 UX 團隊的存取權限與發表案例研究的許可。
+        </p>
+        <p style="color:var(--text-secondary); font-size:0.9rem; max-width:680px; margin:0 auto 28px; line-height:1.65;">
+            <strong>試行涵蓋範圍：</strong>掃描流程整合、針對你偏好清單格式的 MCP 逐項列出、保險公司審閱入口（掃描資料存於 RakuAI 雲端），以及完成率與查勘員接觸點指標。早期試行先以 InsurTech 為目標——SOC&nbsp;2 Type&nbsp;II 正在為大型保險公司採購進行中。
+        </p>
+        <div class="ins-cta-row" style="justify-content:center;">
+            <a href="mailto:partnerships@rakuai.com?subject=Insurance%20pilot%20request%20%E2%80%94%20%5Byour%20company%5D&body=Company%3A%0APreferred%20inventory%20format%3A%0AOnboarding%20flow%20context%3A%0ATimeline%3A" class="ins-btn-primary">寄信至 partnerships@rakuai.com &rarr;</a>
+            <a href="mailto:partnerships@rakuai.com?subject=Insurance%20capability%20inquiry%20%E2%80%94%20%5Byour%20company%5D" class="ins-btn-secondary">先進行能力諮詢 &rarr;</a>
+        </div>
+        <p style="margin-top:20px; color:var(--text-secondary); font-size:0.82rem; opacity:0.8;">
+            試行在 RakuAI 雲端搭配保險公司審閱入口執行，直到 SOC&nbsp;2 落地。今日尚無 SOC&nbsp;2——先以 InsurTech 為目標。
+        </p>
     </div>
 </section>
 
@@ -792,6 +1096,46 @@
         <!-- nv-inception:end -->
 </footer>
 
+<script>
+(function () {
+    function initCarousel(root) {
+        var track = root.querySelector('[data-carousel-track]');
+        var slides = track ? Array.prototype.slice.call(track.children) : [];
+        var dotsWrap = root.querySelector('[data-carousel-dots]');
+        var prev = root.querySelector('[data-carousel-prev]');
+        var nxt = root.querySelector('[data-carousel-next]');
+        if (!track || !slides.length) return;
+        var index = 0;
+        var dots = slides.map(function (slide, i) {
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = dotsWrap.getAttribute('data-dot-class') || 'ins-carousel-dot';
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', '前往投影片 ' + (i + 1));
+            dot.addEventListener('click', function () { go(i, true); });
+            dotsWrap.appendChild(dot);
+            return dot;
+        });
+        function go(i, focusDot) {
+            index = (i + slides.length) % slides.length;
+            track.style.transform = 'translateX(' + (-index * 100) + '%)';
+            slides.forEach(function (s, n) { s.setAttribute('aria-hidden', n === index ? 'false' : 'true'); });
+            dots.forEach(function (d, n) { d.setAttribute('aria-selected', n === index ? 'true' : 'false'); d.tabIndex = n === index ? 0 : -1; });
+            if (focusDot && dots[index]) dots[index].focus();
+        }
+        if (prev) prev.addEventListener('click', function () { go(index - 1, false); });
+        if (nxt) nxt.addEventListener('click', function () { go(index + 1, false); });
+        dotsWrap.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1, true); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1, true); }
+        });
+        go(0, false);
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-carousel]'), initCarousel);
+    });
+})();
+</script>
 <script src="/js/public-config.js"></script>
 <script src="/js/api-client.js"></script>
 <script src="/js/auth-nav.js" defer></script>
