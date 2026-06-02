@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <title>Raku Capture — 掃描它。然後與它對話。</title>
     <meta name="description" content="Raku Capture 將你的相機看到的一切，化為你的 AI 助理可以走入、量測並更動的世界。掃描現實，再透過 MCP 與它對話——在你真實的空間裡看見、量測、模擬與操作。">
     <meta name="keywords" content="3D 擷取, 高斯潑濺, 掃描轉 3D, 空間 AI, MCP, AI 助理, 房間掃描, 智慧眼鏡, 數位孿生, 對房間說話">
@@ -353,7 +353,7 @@
 <body>
 
 <div class="beta-announcement-bar">
-    Raku Capture — 掃描現實。與它對話。Capture 正處於早期存取——MCP 執行階段今日已上線。
+    Raku Capture — 早期存取。掃描一個空間，取得一個可對話的場景。MCP 支援 Claude、ChatGPT、Gemini 與 Copilot——所有方案皆可，無付費牆。
 </div>
 
 <nav role="navigation" aria-label="Primary">
@@ -521,7 +521,7 @@
                 <span class="viewer-headline">拖曳以環視你掃描的世界。</span>
                 <span class="viewer-note">此處將掛載一個真正可拖曳的高斯潑濺擷取。我們不會偽造檢視器——當算繪器交付後，可用滑鼠軌道環視的互動式 .spz 將取代此佔位符。</span>
             </div>
-            <p class="cap-viewer-caption">現在的 Capture：手機掃描進，可拖曳潑濺出。AI 操控的 MCP 執行階段早已上線。</p>
+            <p class="cap-viewer-caption"><strong>今日已是真實：</strong>手機掃描進，可拖曳潑濺出，MCP 執行階段已上線。<strong>即將上線本頁：</strong>上方的互動式潑濺檢視器（誠實的佔位符——尚未交付）。</p>
         </div>
 
         <div class="cap-qr">
@@ -575,7 +575,29 @@
             <div class="cap-job">
                 <span class="step">步驟 03</span>
                 <h3>棲居</h3>
-                <p>你的 AI 助理透過引擎已公開的相同六工具 MCP 合約連線。它可以看到場景、量測距離、模擬更動並採取動作——在你設定的權限範圍內，每一次呼叫皆受稽核。</p>
+                <p>你的 AI 助理透過引擎已公開的相同 MCP 合約連線——17 個原生工具（5 個唯讀 + 12 個變更）加通用 <code>api_call</code>/<code>api_search</code> 透傳。它可以看到場景、量測距離、模擬更動並採取動作——在你設定的權限範圍內，每一次呼叫皆受稽核。<strong>MCP 所有方案皆可用——並非付費功能。</strong></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ======================= CONNECT YOUR AI ASSISTANT ======================= -->
+<section class="cap-section">
+    <div class="container">
+        <h2>2 分鐘連接你的 AI 助理</h2>
+        <p class="cap-subtitle">任何會說 <a href="mcp.html" style="color:var(--accent-bright)">Model Context Protocol</a> 的模型都可以驅動一個可對話的場景。今日支援 Claude、ChatGPT、Gemini 與 GitHub Copilot——所有方案皆可，無付費牆，貼上一段設定區塊即可完成，無需額外設定。</p>
+        <div class="cap-dev-cta" style="margin-top:0">
+            <p style="color:var(--text-secondary);line-height:1.7;max-width:680px;margin:0 auto 20px;">MCP 伺服器公開 17 個原生工具（5 個唯讀 + 12 個變更）加通用 <code>api_call</code>/<code>api_search</code> 透傳。核心場景工具包括：<code>load_world_model</code>、<code>ingest_frame</code>、<code>get_scene_state</code>、<code>set_render_target</code>、<code>start_simulation</code> 與 <code>get_metrics</code>。你的助理透過這些工具載入已擷取的場景、讀取幾何形狀與狀態、執行模擬——每次呼叫均被記錄且預設拒絕。你始終掌握控制權。</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;">
+                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(108,92,231,0.12);border:1px solid rgba(108,92,231,0.35);border-radius:8px;padding:8px 14px;font-size:0.9rem;color:var(--text-secondary)">Claude (Anthropic)</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(108,92,231,0.12);border:1px solid rgba(108,92,231,0.35);border-radius:8px;padding:8px 14px;font-size:0.9rem;color:var(--text-secondary)">ChatGPT (OpenAI)</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(108,92,231,0.12);border:1px solid rgba(108,92,231,0.35);border-radius:8px;padding:8px 14px;font-size:0.9rem;color:var(--text-secondary)">Gemini (Google)</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(108,92,231,0.12);border:1px solid rgba(108,92,231,0.35);border-radius:8px;padding:8px 14px;font-size:0.9rem;color:var(--text-secondary)">Copilot (GitHub)</span>
+            </div>
+            <div class="cap-cta-row" style="margin-top:20px;">
+                <a class="cap-btn-secondary" href="../developers/claude-desktop.html">Claude Desktop 設定指南 &rarr;</a>
+                <a class="cap-btn-secondary" href="mcp.html">MCP 伺服器文件 &rarr;</a>
             </div>
         </div>
     </div>
@@ -635,8 +657,8 @@
 <section class="cap-section">
     <div class="container">
         <div class="cap-dev-cta">
-            <h2>2 分鐘把 RakuAI 接到 Claude</h2>
-            <p>Capture 是新的。但你的 AI 操控的執行階段不是。六工具 MCP 伺服器已上線、預設拒絕、每一次呼叫皆受稽核——任何會說 Model Context Protocol 的模型都可以透過它讀取場景。把它接到 Claude Desktop，開始就一個真實的空間提問吧。</p>
+            <h2>開始掃描。開始提問。</h2>
+            <p>Capture 正處於早期存取。而你的 AI 操控的執行階段不是——MCP 伺服器今日已上線。掃描一個空間，連接任何支援 MCP 的助理（Claude、ChatGPT、Gemini 或 Copilot），開始就真實空間提出真實的問題。Pro Beta 在早期存取期間免費。</p>
             <div class="cap-cta-row">
                 <a class="cap-btn-primary" href="../capture-app/">掃描我自己的空間</a>
                 <a class="cap-btn-secondary" href="../developers/claude-desktop.html">接到 Claude &rarr;</a>
