@@ -4,15 +4,54 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moteur spatial - Physique, particules, animation &amp; audio - RakuAI</title>
-    <meta name="description" content="Moteur spatial RakuAI : physique, animation, effets visuels et audio spatial immersif.">
-    <meta property="og:title" content="Moteur spatial - Physique, particules, animation &amp; audio - RakuAI">
-    <meta property="og:description" content="Physique, animation, effets visuels et audio immersif. Le moteur spatial complet pour les jeux XR et desktop.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>Moteur spatial — Runtime C++ natif piloté par IA pour développeurs XR et jeux - RakuAI</title>
+    <meta name="description" content="RakuAI Moteur spatial : 18 DLL C++ natives, 30 738 exports, 17 outils MCP. Pilotez une scène spatiale en direct avec Claude, GPT ou n'importe quel LLM. Pas un remplacement d'Unity/Unreal — un runtime d'IA spatiale.">
+    <meta property="og:title" content="Moteur spatial — Runtime C++ natif piloté par IA - RakuAI">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:description" content="18 DLL C++ natives, 30 738 exports, 17 outils MCP. Pilotez une scène spatiale en direct avec n'importe quel LLM. Le runtime pour les développeurs de jeux et d'AR/VR qui veulent des exports natifs transparents auxquels ils peuvent réellement se lier.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rakuai.com/fr/spatial-engine.html">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://rakuai.com/fr/spatial-engine.html">
+    <meta name="twitter:title" content="Moteur spatial — Runtime C++ natif piloté par IA - RakuAI">
+    <meta name="twitter:description" content="18 DLL C++ natives, 30 738 exports, 17 outils MCP. Pilotez une scène spatiale en direct avec Claude, GPT ou n'importe quel LLM. Pas un remplacement d'Unity/Unreal — un runtime d'IA spatiale.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
     <link rel="canonical" href="https://rakuai.com/fr/spatial-engine.html">
     <link rel="stylesheet" href="../style.css">
+    <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "RakuAI",
+        "url": "https://rakuai.com",
+        "logo": "https://rakuai.com/favicon.svg",
+        "description": "RakuAI est un runtime spatial natif piloté par IA : 18 DLL C++ natives, 30 738 fonctions exportées et 17 outils MCP qui permettent à n'importe quel LLM de piloter une scène spatiale en direct. Membre de NVIDIA Inception.",
+        "memberOf": {"@type": "ProgramMembership", "programName": "NVIDIA Inception", "hostingOrganization": {"@type": "Organization", "name": "NVIDIA", "url": "https://www.nvidia.com"}}
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "applicationCategory": "DeveloperApplication",
+        "name": "RakuAI Moteur spatial",
+        "url": "https://rakuai.com/fr/spatial-engine.html",
+        "operatingSystem": "Windows, Linux",
+        "description": "Un runtime C++ natif composé de 18 DLL et 30 738 fonctions exportées. Il expose 17 outils MCP et environ 9 500 endpoints REST afin que n'importe quel LLM puisse commander une scène spatiale en direct — physique, rendu, lecture de splats gaussiens, verrouillage au monde et affichage XR. Pas un remplacement d'Unity ou d'Unreal ; un runtime d'IA spatiale aux composants internes transparents.",
+        "publisher": {"@type": "Organization", "name": "RakuAI", "url": "https://rakuai.com"}
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {"@type": "ListItem", "position": 1, "name": "RakuAI", "item": "https://rakuai.com/"},
+          {"@type": "ListItem", "position": 2, "name": "Moteur spatial", "item": "https://rakuai.com/fr/spatial-engine.html"}
+        ]
+      }
+    ]
+    </script>
     <style>
         .engine-section {
             padding: 64px 0;
@@ -112,6 +151,296 @@
             color: var(--text-secondary);
             font-size: 0.95rem;
         }
+        .hero {
+            padding: 28px 0 36px;
+        }
+        .hero + .section {
+            padding-top: 36px;
+        }
+        .se-hero-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 44px;
+            align-items: center;
+            text-align: left;
+        }
+        .se-hero-grid .se-hero-copy { min-width: 0; }
+        .se-hero-grid .subtitle { max-width: none; }
+        .se-hero-fig {
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+        .se-hero-fig svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .hero .perf-stats { margin-top: 36px; }
+        @media (max-width: 860px) {
+            .se-hero-grid { grid-template-columns: 1fr; text-align: center; gap: 28px; }
+            .se-hero-fig { order: -1; max-width: 380px; }
+        }
+
+        .se-carousel {
+            max-width: 1040px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .se-carousel-viewport {
+            overflow: hidden;
+            border: 1px solid #222244;
+            border-radius: 16px;
+            background: var(--bg-secondary);
+        }
+        .se-carousel-track {
+            display: flex;
+            transition: transform 0.4s ease;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .se-carousel-track { transition: none; }
+        }
+        .se-slide {
+            flex: 0 0 100%;
+            box-sizing: border-box;
+            padding: 36px 40px 40px;
+        }
+        .se-slide h3 {
+            color: var(--accent-bright);
+            font-size: 1.3rem;
+            margin: 0 0 6px;
+        }
+        .se-slide .se-slide-kicker {
+            display: inline-block;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--success);
+            margin-bottom: 12px;
+        }
+        .se-slide p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.98rem;
+            margin: 0 0 18px;
+        }
+        .se-dll-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .se-dll {
+            background: #0d0d1f;
+            border: 1px solid #222244;
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 10px 14px;
+        }
+        .se-dll .name {
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .se-dll .desc {
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            line-height: 1.45;
+            margin-top: 3px;
+        }
+        .se-pipe {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: stretch;
+        }
+        .se-pipe-step {
+            flex: 1 1 160px;
+            background: #0d0d1f;
+            border: 1px solid #222244;
+            border-top: 3px solid var(--accent-bright);
+            border-radius: 10px;
+            padding: 16px 18px;
+        }
+        .se-pipe-step .n {
+            color: var(--success);
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .se-pipe-step h4 {
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin: 4px 0 6px;
+        }
+        .se-pipe-step p {
+            font-size: 0.82rem;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .se-carousel-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin-top: 18px;
+        }
+        .se-carousel-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent);
+            color: var(--accent-bright);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .se-carousel-btn:hover, .se-carousel-btn:focus-visible {
+            background: rgba(108, 92, 231, 0.18);
+            outline: 2px solid var(--accent-bright);
+            outline-offset: 2px;
+        }
+        .se-carousel-dots {
+            display: flex;
+            gap: 10px;
+        }
+        .se-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            border: 1px solid var(--accent);
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+        }
+        .se-dot[aria-selected="true"] {
+            background: var(--accent-bright);
+            border-color: var(--accent-bright);
+        }
+        .se-dot:focus-visible {
+            outline: 2px solid var(--accent-bright);
+            outline-offset: 2px;
+        }
+
+        .se-qs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+            align-items: start;
+            margin-top: 32px;
+        }
+        @media (max-width: 820px) {
+            .se-qs-grid { grid-template-columns: 1fr; }
+        }
+        .se-qs-step {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+        .se-qs-num {
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            font-weight: 800;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .se-qs-body h4 {
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin: 0 0 4px;
+        }
+        .se-qs-body p {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin: 0 0 8px;
+        }
+
+        .se-vs-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.93rem;
+            margin-top: 24px;
+        }
+        .se-vs-table th {
+            text-align: left;
+            padding: 10px 14px;
+            background: #0d0d1f;
+            color: var(--text-secondary);
+            font-weight: 600;
+            border-bottom: 2px solid #222244;
+        }
+        .se-vs-table th:first-child { border-radius: 8px 0 0 0; }
+        .se-vs-table th:last-child  { border-radius: 0 8px 0 0; }
+        .se-vs-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #1a1a38;
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+        .se-vs-table tr:last-child td { border-bottom: none; }
+        .se-vs-table td:first-child { color: var(--text-primary); font-weight: 500; }
+        .se-vs-win  { color: #50fa7b; font-weight: 600; }
+        .se-vs-loss { color: #9090b0; }
+        .se-vs-fair { color: var(--accent-bright); }
+
+        .se-honest-box {
+            background: rgba(108,92,231,0.07);
+            border: 1px solid rgba(108,92,231,0.3);
+            border-left: 4px solid var(--accent);
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin-top: 32px;
+        }
+        .se-honest-box h4 {
+            color: var(--accent-bright);
+            margin: 0 0 10px;
+            font-size: 0.95rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .se-honest-box p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin: 0 0 8px;
+        }
+        .se-honest-box p:last-child { margin-bottom: 0; }
+
+        .se-mcp-tools {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 24px;
+        }
+        .se-mcp-tool {
+            background: #0d0d1f;
+            border: 1px solid #222244;
+            border-top: 2px solid var(--accent-bright);
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+        .se-mcp-tool .tool-name {
+            color: var(--accent-bright);
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .se-mcp-tool .tool-desc {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            line-height: 1.45;
+        }
+
         @media (max-width: 768px) {
             .engine-grid {
                 grid-template-columns: 1fr;
@@ -123,18 +452,19 @@
             .perf-stats {
                 grid-template-columns: 1fr 1fr;
             }
+            .se-slide { padding: 26px 22px 30px; }
         }
     </style>
 </head>
 <body>
 <!--
-  Machine-translated by Claude. Pending human review.
+  Traduit automatiquement par Claude. En attente de relecture humaine.
   Source: spatial-engine.html
-  Date: 2026-05-23
+  Date: 2026-06-01
 -->
 
 <div class="beta-announcement-bar">
-    &#x697D;AI<sup class="tm">™</sup> — Le runtime universel pour les World Models &nbsp;|&nbsp; <a href="index.html#for-studios">Pour les studios et développeurs →</a> &nbsp;&nbsp; Aussi : <a href="index.html#quickstart">Essayer la démo grand public →</a>
+    &#x697D;AI<sup class="tm">&#x2122;</sup> &#x2014; Le runtime universel pour les World Models &nbsp;|&nbsp; <a href="index.html#for-studios">Pour les studios et développeurs &#x2192;</a> &nbsp;&nbsp; Aussi : <a href="index.html#quickstart">Essayer la démo grand public &#x2192;</a>
 </div>
 
 <nav role="navigation" aria-label="Primary">
@@ -148,9 +478,9 @@
                 <li class="nav-item has-dropdown" role="none">
                     <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" aria-label="Ouvrir le menu Solutions" role="menuitem">Solutions &#x25BC;</button>
                     <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
-                        <div class="col-heading">Par public</div>
-                        <div class="col-heading">Plateforme</div>
-                        <ul class="col" role="none">
+                        <div class="col-heading" role="presentation">Par public</div>
+                        <div class="col-heading" role="presentation">Plateforme</div>
+                        <ul class="col" role="group">
                             <li role="none"><a role="menuitem" href="smart-glasses.html">Pour fabricants de lunettes connectées<span class="item-desc">Programme partenaire OEM matériel</span></a></li>
                             <li role="none"><a role="menuitem" href="llm-makers.html">Pour laboratoires d'IA<span class="item-desc">Runtime MCP pour modèles de fondation</span></a></li>
                             <li role="none"><a role="menuitem" href="enterprise.html">Pour les entreprises<span class="item-desc">Déployer l'IA spatiale à grande échelle</span></a></li>
@@ -159,7 +489,8 @@
                             <li role="none"><a role="menuitem" href="insurance.html">Assurance<span class="item-desc">Scan téléphone vers inventaire du contenu</span></a></li>
                             <li role="none"><a role="menuitem" href="compare.html">Comparaison avec Unity / Unreal<span class="item-desc">Une comparaison honnête</span></a></li>
                         </ul>
-                        <ul class="col" role="none">
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">Scanner un espace, puis lui parler</span></a></li>
                             <li role="none"><a role="menuitem" href="spatial-engine.html">Moteur spatial<span class="item-desc">Le pilier du runtime</span></a></li>
                             <li role="none"><a role="menuitem" href="ai-systems.html">Systèmes d'IA<span class="item-desc">Orchestration &amp; permissions</span></a></li>
                             <li role="none"><a role="menuitem" href="xr-features.html">Fonctionnalités XR<span class="item-desc">Affichage, suivi et ancrage</span></a></li>
@@ -195,6 +526,9 @@
                 <li class="nav-item" role="none">
                     <a role="menuitem" href="pricing.html">Tarifs</a>
                 </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">Blog</a>
+                </li>
             </ul>
             <a href="developers/login.html" class="nav-signin">Se connecter</a>
             <a href="../spatial-engine.html" class="lang-toggle">EN</a>
@@ -203,40 +537,232 @@
 </nav>
 
 <section class="hero">
+<!-- Above-fold NVIDIA Inception chip -->
+<div style="display: flex; justify-content: center; margin: 12px 0 4px;">
+    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Membre de NVIDIA Inception et participant à AWS Activate — faire défiler vers les détails">
+        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Membre de</span>
+        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+        <img src="../branding/aws/powered-by-aws-white.png" alt="Propulsé par AWS" width="80" height="28" style="height: 28px; width: auto; display: block;">
+        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">En savoir plus &#x2193;</span>
+    </a>
+</div>
     <div class="container">
+      <div class="se-hero-grid">
+        <div class="se-hero-copy">
         <div class="engine-badge">MOTEUR SPATIAL</div>
-        <h1>Moteur spatial</h1>
-        <p class="subtitle">Physique, particules, animation et audio spatial. Tout ce qu'il vous faut pour des mondes 3D immersifs, optimisés pour la XR.</p>
+        <h1>Le runtime C++ qu'un LLM peut piloter</h1>
+        <p class="subtitle">18 DLL natives, 30 738 fonctions exportées et un serveur MCP qui permet à Claude, GPT ou n'importe quel modèle de commander une scène spatiale en direct. Pas un remplacement d'Unity/Unreal &#x2014; un runtime d'IA spatiale aux composants internes transparents auxquels vous pouvez vous lier.</p>
+        <p style="margin-top: 20px;">
+            <a href="#quickstart" class="btn btn-primary">Piloter une scène en 10 min &#x2193;</a>
+            <a href="compare.html" class="btn btn-secondary" style="margin-left: 12px;">Comparaison honnête avec Unity / Unreal</a>
+        </p>
+        </div><!-- /se-hero-copy -->
+
+        <div class="se-hero-fig">
+        <svg viewBox="0 0 760 320" width="100%" role="img" aria-labelledby="se-hero-title se-hero-desc" xmlns="http://www.w3.org/2000/svg">
+            <title id="se-hero-title">RakuAI Moteur spatial : pile de runtime pilotée par LLM</title>
+            <desc id="se-hero-desc">Un schéma en couches montrant les LLM (Claude, GPT, Gemini, Copilot) en haut, connectés via 17 outils MCP et environ 9 500 endpoints REST au runtime spatial RakuAI, qui repose sur une base de 18 DLL C++ natives exposant 30 738 exports, ciblant les casques XR, les lunettes connectées et le bureau.</desc>
+            <defs>
+                <linearGradient id="se-hero-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+            </defs>
+
+            <rect x="120" y="10" width="520" height="46" rx="10" fill="#15152e" stroke="#a388ff" stroke-width="1.5"/>
+            <text x="380" y="30" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="13" font-weight="700">Votre LLM</text>
+            <text x="380" y="48" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">Claude &#xB7; ChatGPT &#xB7; Gemini &#xB7; Copilot &#xB7; local</text>
+
+            <text x="380" y="76" text-anchor="middle" fill="#50fa7b" font-family="ui-monospace,monospace" font-size="11">17 outils MCP natifs  +  ~9 500 endpoints REST via api_call</text>
+            <line x1="380" y1="56" x2="380" y2="88" stroke="url(#se-hero-grad)" stroke-width="2"/>
+
+            <rect x="60" y="90" width="640" height="86" rx="12" fill="#111128" stroke="url(#se-hero-grad)" stroke-width="2"/>
+            <text x="380" y="112" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="13" font-weight="700">Runtime spatial</text>
+            <g font-family="system-ui,sans-serif" font-size="11">
+                <rect x="80"  y="122" width="100" height="28" rx="6" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1"/>
+                <text x="130" y="141" text-anchor="middle" fill="#e8e8f0">Physique</text>
+                <rect x="192" y="122" width="110" height="28" rx="6" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1"/>
+                <text x="247" y="141" text-anchor="middle" fill="#e8e8f0">Renderer / XR</text>
+                <rect x="314" y="122" width="110" height="28" rx="6" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1"/>
+                <text x="369" y="141" text-anchor="middle" fill="#e8e8f0">Animation</text>
+                <rect x="436" y="122" width="100" height="28" rx="6" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1"/>
+                <text x="486" y="141" text-anchor="middle" fill="#e8e8f0">Audio spatial</text>
+                <rect x="548" y="122" width="130" height="28" rx="6" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1"/>
+                <text x="613" y="141" text-anchor="middle" fill="#e8e8f0">SLM / IA / Voix</text>
+            </g>
+
+            <line x1="380" y1="176" x2="380" y2="196" stroke="url(#se-hero-grad)" stroke-width="2"/>
+            <rect x="30" y="198" width="700" height="56" rx="12" fill="#15152e" stroke="#00cec9" stroke-width="2"/>
+            <text x="380" y="222" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="700">18 DLL C++ natives &#xB7; 30 738 exports</text>
+            <text x="380" y="242" text-anchor="middle" fill="#00cec9" font-family="ui-monospace,monospace" font-size="11">OpenXR 1.1 &#xB7; DirectX 12 + Vulkan &#xB7; CMake / MSVC &#xB7; 5 brevets US accordés</text>
+
+            <text x="380" y="282" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">Casques XR &#xB7; lunettes connectées &#xB7; bureau &#xB7; robotique</text>
+        </svg>
+        </div>
+      </div><!-- /se-hero-grid -->
         <div class="perf-stats">
             <div class="perf-stat">
-                <div class="number">120 Hz</div>
-                <div class="label">Rendu XR</div>
+                <div class="number">18</div>
+                <div class="label">DLL C++ natives</div>
             </div>
             <div class="perf-stat">
-                <div class="number">GPU</div>
-                <div class="label">Calcul des particules</div>
+                <div class="number">30 738</div>
+                <div class="label">Fonctions exportées</div>
             </div>
             <div class="perf-stat">
-                <div class="number">HRTF</div>
-                <div class="label">Audio spatial</div>
+                <div class="number">17</div>
+                <div class="label">Outils MCP natifs</div>
             </div>
             <div class="perf-stat">
-                <div class="number">Inf. à 1 ms</div>
-                <div class="label">Pas de physique</div>
+                <div class="number">~9 500</div>
+                <div class="label">Endpoints REST via api_call</div>
             </div>
         </div>
     </div>
 </section>
 
+<!-- Quickstart -->
+<section class="section" id="quickstart" style="border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2>Piloter une scène en 10 minutes</h2>
+        <p style="color: var(--text-secondary); max-width: 700px; margin: -16px 0 0; font-size: 1.05rem;">
+            La voie la moins contraignante : le serveur MCP face à Claude Desktop ou Cursor. Aucune installation de SDK C++ requise pour démarrer.
+        </p>
+        <div class="se-qs-grid">
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div class="se-qs-step">
+                    <div class="se-qs-num">1</div>
+                    <div class="se-qs-body">
+                        <h4>Clonez et configurez le serveur MCP</h4>
+                        <p>Le serveur MCP se trouve dans <code>src/mcp/</code> du dépôt <code>raku-runtime</code>. C'est un serveur Python &#x2014; aucune chaîne d'outils C++ nécessaire pour commencer à dialoguer avec une instance en cours d'exécution.</p>
+                        <div class="engine-code" style="font-size:0.8rem; padding:12px 16px;">
+                            <span class="cmt"># configuration unique</span><br>
+                            git clone https://github.com/RakuXR/raku-runtime<br>
+                            <span class="kw">cd</span> raku-runtime/src/mcp<br>
+                            pip install -r requirements.txt
+                        </div>
+                    </div>
+                </div>
+                <div class="se-qs-step">
+                    <div class="se-qs-num">2</div>
+                    <div class="se-qs-body">
+                        <h4>Pointez Claude Desktop vers le serveur</h4>
+                        <p>Ajoutez l'entrée du serveur MCP à votre <code>claude_desktop_config.json</code>. Claude Desktop la détecte automatiquement au redémarrage.</p>
+                        <div class="engine-code" style="font-size:0.8rem; padding:12px 16px;">
+                            {<br>
+                            &nbsp;&nbsp;<span class="str">"mcpServers"</span>: {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"raku-runtime"</span>: {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"command"</span>: <span class="str">"python"</span>,<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"args"</span>: [<span class="str">"path/to/raku-runtime/src/mcp/server.py"</span>]<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                            &nbsp;&nbsp;}<br>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div class="se-qs-step">
+                    <div class="se-qs-num">3</div>
+                    <div class="se-qs-body">
+                        <h4>Demandez à Claude de piloter votre scène</h4>
+                        <p>Claude dispose désormais de 17 outils MCP natifs et d'un passthrough vers ~9 500 endpoints REST. Générez des objets, interrogez le graphe de scène, exécutez la physique &#x2014; le tout en langage naturel.</p>
+                        <div class="engine-code" style="font-size:0.8rem; padding:12px 16px;">
+                            <span class="cmt"># exemple de prompt pour Claude</span><br>
+                            <span class="str">"Génère un cube à corps rigide à la position (0, 2, 0),</span><br>
+                            <span class="str">&nbsp;applique une impulsion ascendante de 5 N et liste</span><br>
+                            <span class="str">&nbsp;les nœuds de la scène après 1 seconde."</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="se-qs-step">
+                    <div class="se-qs-num">4</div>
+                    <div class="se-qs-body">
+                        <h4>Aller plus loin : lier une DLL directement</h4>
+                        <p>Lorsque vous dépassez MCP, liez <code>RakuXR.dll</code> ou <code>RakuRenderer.dll</code> directement. Les 30 738 exports sont des symboles publics &#x2014; <code>dumpbin /exports</code> les affiche tous, aucune boîte noire.</p>
+                        <p style="margin-top: 6px;"><a href="../developers/claude-desktop.html" style="color: var(--accent-bright);">Guide complet d'intégration Claude Desktop &#x2192;</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- MCP surface -->
+<section class="section" style="border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2>17 outils MCP natifs &#x2014; apportez votre propre modèle</h2>
+        <p style="color: var(--text-secondary); max-width: 760px; margin: -16px 0 0; font-size: 1.05rem;">
+            Le serveur MCP expose un ensemble organisé d'outils conscients de la scène ainsi qu'un passthrough universel <code>api_call</code> qui donne accès à l'API REST complète de ~9 500 endpoints. Apportez Claude, GPT, Gemini, Copilot ou un modèle local &#x2014; aucun verrouillage de modèle.
+        </p>
+        <div class="se-mcp-tools">
+            <div class="se-mcp-tool"><div class="tool-name">scene_query</div><div class="tool-desc">Lire le graphe de scène &#x2014; nœuds, transformations, propriétés</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">scene_spawn</div><div class="tool-desc">Générer des entités avec composants dans la scène en direct</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">scene_transform</div><div class="tool-desc">Lire ou définir des transformations en espace-monde sur n'importe quel nœud</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">physics_apply</div><div class="tool-desc">Appliquer des forces, impulsions ou contraintes à l'exécution</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">animation_play</div><div class="tool-desc">Déclencher ou mélanger des états d'animation sur des squelettes</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">asset_load</div><div class="tool-desc">Diffuser des assets depuis le disque ou une URL dans la scène</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">anchor_create</div><div class="tool-desc">Fixer des ancres spatiales verrouillées au monde entre les sessions</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">audio_play</div><div class="tool-desc">Déclencher de l'audio spatial à une position 3D</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">render_capture</div><div class="tool-desc">Capturer une image ou un flux depuis le renderer</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">script_run</div><div class="tool-desc">Exécuter du scripting Lua dans le contexte de la scène</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">xr_session</div><div class="tool-desc">Gérer la session OpenXR, la pose de tête et l'état de suivi</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">input_inject</div><div class="tool-desc">Injecter des événements d'entrée synthétiques pour l'automatisation des tests</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">debug_inspect</div><div class="tool-desc">Lire les diagnostics d'exécution, la mémoire et les statistiques d'images</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">ui_update</div><div class="tool-desc">Modifier les panneaux d'UI spatiale et le contenu d'overlay</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">network_sync</div><div class="tool-desc">Pousser ou interroger l'état de delta de scène multijoueur</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">splat_load</div><div class="tool-desc">Charger un splat gaussien 3D comme objet de scène de première classe</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">api_call</div><div class="tool-desc">Passthrough universel vers les ~9 500 endpoints REST</div></div>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 16px;">
+            La création (<em>authoring</em>) complète de scènes pilotée par agent (générer, animer, scripter, ancrer &#x2014; la boucle complète) est l'objectif de la feuille de route de la Phase&#xA0;2. Les 17 outils actuels couvrent l'interrogation, la génération, la transformation, la physique et les opérations sur les assets. <a href="mcp.html" style="color: var(--accent-bright);">Documentation du serveur MCP &#x2192;</a>
+        </p>
+    </div>
+</section>
+
+<!-- Splat-native -->
+<section class="section" style="border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2>Natif des splats : la réalité capturée comme objet de scène</h2>
+        <p style="color: var(--text-secondary); max-width: 760px; margin: -16px 0 24px; font-size: 1.05rem;">
+            Le moteur est le substrat de Raku Capture. Un splat gaussien 3D capturé avec l'appareil photo d'un téléphone devient un objet de scène de première classe &#x2014; positionné, ancré et adressable par n'importe quel LLM via les mêmes outils MCP que toute autre entité. Le même chemin de runtime s'exécute sur XR, bureau et lunettes.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+            <div class="engine-benefit" style="margin-top:0;">
+                <strong>Capture &#x2192; scène en une seule pipeline</strong>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 8px 0 0; line-height: 1.55;">
+                    <code>splat_load</code> diffuse un fichier .spz capturé dans la scène en direct. Le splat hérite immédiatement du graphe de scène, de la physique et des sous-systèmes d'ancrage.
+                </p>
+            </div>
+            <div class="engine-benefit" style="margin-top:0;">
+                <strong>Adressable par LLM dès le premier jour</strong>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 8px 0 0; line-height: 1.55;">
+                    Demandez à Claude de déplacer un objet capturé, d'interroger ce qui se trouve dans le splat ou de l'ancrer à une position du monde réel &#x2014; la surface MCP traite un splat comme n'importe quel autre nœud.
+                </p>
+            </div>
+            <div class="engine-benefit" style="margin-top:0;">
+                <strong>Chemin d'affichage OpenXR inclus</strong>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 8px 0 0; line-height: 1.55;">
+                    <code>RakuXR</code> rend le splat via la même pipeline fovéale capable de 120&#xA0;Hz utilisée pour tout le contenu de scène &#x2014; pas de visionneuse séparée.
+                </p>
+            </div>
+        </div>
+        <p style="margin-top: 24px;">
+            <a href="capture.html" class="btn btn-secondary">En savoir plus sur Raku Capture &#x2192;</a>
+        </p>
+    </div>
+</section>
+
+<!-- World-locked anchoring -->
 <section class="section" style="border-bottom: 1px solid #222244;">
     <div class="container" style="text-align:center;">
-        <h2>Verrouillé sur le monde, au submillimètre près</h2>
+        <h2>Verrouillé au monde, au submillimètre près</h2>
         <p style="color: var(--text-secondary); max-width: 720px; margin: -16px auto 32px; font-size: 1.05rem;">
-            La fusion de capteurs alimente la compréhension de la scène, qui fixe des ancres conservant leur place d'une session et d'un appareil à l'autre.
+            La fusion de capteurs alimente la compréhension de la scène, qui fixe des ancres conservant leur position d'une session et d'un appareil à l'autre.
         </p>
         <div style="max-width:920px; margin:0 auto;">
         <svg viewBox="0 0 920 420" width="100%" style="max-width:920px; height:auto; display:block;" role="img" aria-labelledby="se-anchor-title" xmlns="http://www.w3.org/2000/svg">
-            <title id="se-anchor-title">Ancrage spatial : un pipeline fusion de capteurs vers compr&#233;hension de sc&#232;ne vers ancres alimente une grille de pi&#232;ce en perspective o&#249; les points d&#8217;ancrage verrouill&#233;s sur le monde conservent leur position avec une pr&#233;cision submillim&#233;trique.</title>
+            <title id="se-anchor-title">Ancrage spatial : une pipeline allant de la fusion de capteurs à la compréhension de la scène puis aux ancres alimente une grille de pièce en perspective où les points d'ancrage verrouillés au monde conservent leur position avec une précision submillimétrique.</title>
             <defs>
                 <linearGradient id="se-grad" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0" stop-color="#6c5ce7"/>
@@ -251,40 +777,33 @@
                 </marker>
             </defs>
 
-            <!-- left stack: sensor fusion -> scene understanding -> anchors -->
             <g font-family="system-ui,sans-serif">
                 <rect x="32" y="80" width="220" height="58" rx="11" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
                 <text x="142" y="106" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="600">Fusion de capteurs</text>
-                <text x="142" y="125" text-anchor="middle" fill="#9090b0" font-size="11">IMU &#183; cam&#233;ras &#183; profondeur</text>
+                <text x="142" y="125" text-anchor="middle" fill="#9090b0" font-size="11">IMU &#xB7; caméras &#xB7; profondeur</text>
 
                 <rect x="32" y="178" width="220" height="58" rx="11" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
-                <text x="142" y="204" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="600">Compr&#233;hension de sc&#232;ne</text>
-                <text x="142" y="223" text-anchor="middle" fill="#9090b0" font-size="11">plans &#183; maillages &#183; s&#233;mantique</text>
+                <text x="142" y="204" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="600">Compréhension de la scène</text>
+                <text x="142" y="223" text-anchor="middle" fill="#9090b0" font-size="11">plans &#xB7; maillages &#xB7; sémantique</text>
 
                 <rect x="32" y="276" width="220" height="58" rx="11" fill="#15152e" stroke="url(#se-grad)" stroke-width="2"/>
                 <text x="142" y="302" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="700">Ancres spatiales</text>
-                <text x="142" y="321" text-anchor="middle" fill="#00cec9" font-size="11">verrouill&#233;es sur le monde &#183; persistantes</text>
+                <text x="142" y="321" text-anchor="middle" fill="#00cec9" font-size="11">verrouillées au monde &#xB7; persistantes</text>
 
                 <line x1="142" y1="138" x2="142" y2="176" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
                 <line x1="142" y1="236" x2="142" y2="274" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
             </g>
 
-            <!-- connector to room -->
             <line x1="252" y1="305" x2="330" y2="305" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
 
-            <!-- right: perspective room with anchors -->
             <g transform="translate(340,40)">
-                <!-- floor -->
                 <polygon points="60,300 520,300 430,150 150,150" fill="url(#se-floor)"/>
-                <!-- floor grid -->
                 <g stroke="#3a3a66" stroke-width="1" fill="none">
                     <path d="M150,150 L60,300 M196,150 L130,300 M242,150 L200,300 M290,150 L272,300 M338,150 L344,300 M384,150 L416,300 M430,150 L520,300"/>
                     <path d="M126,206 L454,206 M96,253 L484,253"/>
                 </g>
-                <!-- back wall edge -->
                 <polyline points="150,150 150,40 430,40 430,150" fill="none" stroke="#2c2c4e" stroke-width="1.4"/>
 
-                <!-- anchors with crosshair pins -->
                 <g>
                     <g transform="translate(210,232)">
                         <line x1="-9" y1="0" x2="9" y2="0" stroke="#00cec9" stroke-width="1.6"/>
@@ -306,70 +825,200 @@
                     </g>
                 </g>
 
-                <!-- precision callout -->
                 <line x1="210" y1="232" x2="210" y2="120" stroke="#9090b0" stroke-width="1" stroke-dasharray="3 4"/>
                 <rect x="150" y="92" width="160" height="30" rx="8" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.2"/>
-                <text x="230" y="112" text-anchor="middle" fill="#00cec9" font-family="ui-monospace,monospace" font-size="12">d&#233;rive &lt; 1 mm</text>
+                <text x="230" y="112" text-anchor="middle" fill="#00cec9" font-family="ui-monospace,monospace" font-size="12">&lt; 1 mm de dérive</text>
             </g>
         </svg>
         </div>
     </div>
 </section>
 
+<!-- Infographic carousel -->
+<section class="section" style="border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2 style="text-align:center;">À l'intérieur du runtime</h2>
+        <p style="color: var(--text-secondary); max-width: 720px; margin: -8px auto 32px; font-size: 1.05rem; text-align:center;">
+            Faites défiler la pipeline et les 18 DLL natives qui composent le moteur &#x2014; regroupées par fonction.
+        </p>
+
+        <div class="se-carousel" id="se-carousel">
+            <div class="se-carousel-viewport">
+                <div class="se-carousel-track" role="group" aria-label="Architecture du runtime, carrousel de diapositives">
+
+                    <section class="se-slide" role="tabpanel" aria-roledescription="diapositive" aria-label="1 sur 4 : Pipeline" id="se-slide-0">
+                        <span class="se-slide-kicker">La pipeline</span>
+                        <h3>Scanner &#x2192; Simuler &#x2192; Rendre &#x2192; le LLM pilote</h3>
+                        <p>Un seul runtime fait passer un espace d'une capture brute jusqu'à un rendu verrouillé au monde et simulé physiquement &#x2014; le même chemin sur XR, bureau et lunettes. Un LLM peut intervenir à chaque étape.</p>
+                        <div class="se-pipe">
+                            <div class="se-pipe-step"><div class="n">01</div><h4>Scanner</h4><p>La fusion de capteurs + reconstruction construisent une scène métrique à partir de la caméra, de la profondeur et de l'IMU.</p></div>
+                            <div class="se-pipe-step"><div class="n">02</div><h4>Simuler</h4><p>Physique déterministe, particules et animation s'exécutent sur la scène reconstruite.</p></div>
+                            <div class="se-pipe-step"><div class="n">03</div><h4>Rendre</h4><p>Rendu fovéal capable de 120&#xA0;Hz avec audio spatial HRTF, verrouillé au monde sur les ancres.</p></div>
+                            <div class="se-pipe-step"><div class="n">04</div><h4>Le LLM pilote</h4><p>17 outils MCP exposent la scène en direct à tout modèle &#x2014; générer, interroger, ancrer, modifier.</p></div>
+                        </div>
+                    </section>
+
+                    <section class="se-slide" role="tabpanel" aria-roledescription="diapositive" aria-label="2 sur 4 : DLL de simulation" id="se-slide-1" aria-hidden="true">
+                        <span class="se-slide-kicker">Simulation &amp; physique</span>
+                        <h3>Faire vivre le monde</h3>
+                        <p>Les sous-systèmes qui transforment une scène statique en quelque chose qui bouge, entre en collision et réagit.</p>
+                        <div class="se-dll-grid">
+                            <div class="se-dll"><div class="name">RakuPhysics</div><div class="desc">Corps rigides, contraintes, raycast (1 278 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuAnimation</div><div class="desc">Arbres de mélange squelettiques, IK, retargeting (1 900 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuAudio</div><div class="desc">Audio spatial binaural HRTF (1 654 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuScene</div><div class="desc">Graphe de scène, transformations, culling (2 530 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuCSG</div><div class="desc">Géométrie de construction solide (61 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuGameplay</div><div class="desc">Systèmes de gameplay &amp; état (2 012 exports)</div></div>
+                        </div>
+                    </section>
+
+                    <section class="se-slide" role="tabpanel" aria-roledescription="diapositive" aria-label="3 sur 4 : DLL spatiales" id="se-slide-2" aria-hidden="true">
+                        <span class="se-slide-kicker">Spatial &amp; XR</span>
+                        <h3>L'ancrer au monde</h3>
+                        <p>Fusion de capteurs, compréhension de la scène et la couche OpenXR qui maintient le contenu submillimétriquement précis d'une session à l'autre.</p>
+                        <div class="se-dll-grid">
+                            <div class="se-dll"><div class="name">RakuXR</div><div class="desc">Session OpenXR 1.1, ancres, pose de tête (2 704 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuRenderer</div><div class="desc">DX12 + Vulkan, pipeline de rendu fovéal (3 677 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuSLM</div><div class="desc">Inférence sur l'appareil, cible thermique des lunettes (666 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuAI</div><div class="desc">Raisonnement de scène &amp; hooks d'agent (740 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuInput</div><div class="desc">Mains, contrôleurs, regard (586 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuVoice</div><div class="desc">STT / TTS / VAD (258 exports)</div></div>
+                        </div>
+                    </section>
+
+                    <section class="se-slide" role="tabpanel" aria-roledescription="diapositive" aria-label="4 sur 4 : DLL de plateforme" id="se-slide-3" aria-hidden="true">
+                        <span class="se-slide-kicker">Plateforme &amp; interface</span>
+                        <h3>Le piloter de partout</h3>
+                        <p>Les DLL qui exposent le runtime aux applications et aux LLM &#x2014; la base de 30 738 exports répartis sur les 18 modules.</p>
+                        <div class="se-dll-grid">
+                            <div class="se-dll"><div class="name">RakuCore</div><div class="desc">Mémoire, jobs, mathématiques, shims de plateforme (3 818 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuNetwork</div><div class="desc">Synchronisation de delta de scène, état multijoueur (1 359 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuAssets</div><div class="desc">Streaming, packaging, pipeline de contenu (1 604 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuUI</div><div class="desc">UI spatiale &amp; overlays 2D (1 147 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuScripting</div><div class="desc">Scripting Lua &amp; liant de comportement (3 649 exports)</div></div>
+                            <div class="se-dll"><div class="name">RakuEditor</div><div class="desc">Outils de création &amp; d'inspection (1 141 exports)</div></div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+
+            <div class="se-carousel-controls">
+                <button type="button" class="se-carousel-btn" data-dir="-1" aria-label="Diapositive précédente" aria-controls="se-carousel">&#8249;</button>
+                <div class="se-carousel-dots" role="tablist" aria-label="Choisir une diapositive">
+                    <button type="button" class="se-dot" role="tab" aria-selected="true"  aria-controls="se-slide-0" aria-label="Diapositive 1 : Pipeline"></button>
+                    <button type="button" class="se-dot" role="tab" aria-selected="false" aria-controls="se-slide-1" aria-label="Diapositive 2 : DLL de simulation &amp; physique"></button>
+                    <button type="button" class="se-dot" role="tab" aria-selected="false" aria-controls="se-slide-2" aria-label="Diapositive 3 : DLL spatiales &amp; XR"></button>
+                    <button type="button" class="se-dot" role="tab" aria-selected="false" aria-controls="se-slide-3" aria-label="Diapositive 4 : DLL de plateforme &amp; interface"></button>
+                </div>
+                <button type="button" class="se-carousel-btn" data-dir="1" aria-label="Diapositive suivante" aria-controls="se-carousel">&#8250;</button>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+(function () {
+    var root = document.getElementById('se-carousel');
+    if (!root) return;
+    var track = root.querySelector('.se-carousel-track');
+    var slides = Array.prototype.slice.call(root.querySelectorAll('.se-slide'));
+    var dots = Array.prototype.slice.call(root.querySelectorAll('.se-dot'));
+    var arrows = Array.prototype.slice.call(root.querySelectorAll('.se-carousel-btn'));
+    var current = 0;
+
+    function go(i) {
+        current = (i + slides.length) % slides.length;
+        track.style.transform = 'translateX(' + (-current * 100) + '%)';
+        slides.forEach(function (s, n) {
+            s.setAttribute('aria-hidden', n === current ? 'false' : 'true');
+            s.inert = (n !== current);
+        });
+        dots.forEach(function (d, n) {
+            d.setAttribute('aria-selected', n === current ? 'true' : 'false');
+        });
+    }
+
+    dots.forEach(function (d, n) {
+        d.addEventListener('click', function () { go(n); });
+    });
+    arrows.forEach(function (a) {
+        a.addEventListener('click', function () { go(current + parseInt(a.getAttribute('data-dir'), 10)); });
+    });
+    root.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { go(current - 1); }
+        else if (e.key === 'ArrowRight') { go(current + 1); }
+    });
+    go(0);
+})();
+</script>
+
+<!-- Engine subsystem deep-dives -->
 <section class="section">
     <div class="container">
 
-        <!-- Physics Engine -->
         <div class="engine-section" id="physics">
             <div class="engine-grid">
                 <div class="engine-content">
-                    <div class="engine-badge">PHYSIQUE</div>
-                    <h3>Moteur physique</h3>
-                    <p>Physique 3D de qualité production avec corps rigides, contraintes, lancer de rayons et détection de collisions. Simulation déterministe avec des temps de pas submillimétriques en durée, même sur du matériel XR mobile.</p>
+                    <div class="engine-badge">PHYSIQUE &#x2014; RakuPhysics</div>
+                    <h3>Moteur de physique</h3>
+                    <p>Physique 3D de qualité production avec corps rigides, contraintes, raycasting et détection de collisions. Simulation déterministe avec des temps de pas submilliseconde, même sur du matériel XR mobile. Entièrement adressable via l'outil MCP <code>physics_apply</code> &#x2014; un LLM peut appliquer des forces, interroger l'état de collision et modifier des contraintes à partir d'un prompt en langage naturel.</p>
+                    <ul>
+                        <li>Corps rigides, articulations, contraintes, raycasting</li>
+                        <li>Pas déterministe &#x2014; rejeux reproductibles et simulation pilotée par agent</li>
+                        <li>Pas submilliseconde sur matériel XR mobile</li>
+                        <li>1 278 fonctions exportées dans <code>RakuPhysics.dll</code></li>
+                    </ul>
                     <div class="engine-benefit">
-                        <strong>Avantage clé :</strong> Une physique cohérente et fiable sur VR, desktop et mobile &mdash; sans réglage par plateforme.
+                        <strong>Avantage clé :</strong> Physique cohérente et fiable sur VR, bureau et mobile &#x2014; sans réglage spécifique à la plateforme. Le même pas qui s'exécute dans le casque s'exécute sans interface dans une évaluation d'agent.
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Particle System -->
         <div class="engine-section" id="particles">
             <div class="engine-grid">
                 <div class="engine-content">
-                    <div class="engine-badge">VFX</div>
-                    <h3>Système de particules</h3>
-                    <p>Système de particules accéléré par GPU avec des préréglages VFX par genre. Prend en charge les émetteurs, les attracteurs, la collision et la mise à l'échelle LOD. La gestion automatique du budget maintient les cadences verrouillées entre 72 et 120 Hz sur le matériel XR.</p>
+                    <div class="engine-badge">VFX &#x2014; RakuRenderer</div>
+                    <h3>Système de particules &amp; VFX</h3>
+                    <p>Système de particules accéléré par GPU avec presets VFX par genre. Prend en charge les émetteurs, attracteurs, collisions et la mise à l'échelle LOD. La gestion automatique du budget maintient les fréquences d'images verrouillées à 72&#x2013;120&#xA0;Hz sur le matériel XR. Le renderer utilise DirectX 12 avec un back-end Vulkan (<code>RakuVulkan</code>) &#x2014; les deux chemins exportent via <code>RakuRenderer.dll</code> (3 677 exports).</p>
                     <div class="engine-benefit">
-                        <strong>Avantage clé :</strong> Des VFX cinématiques qui s'adaptent au matériel &mdash; sans optimisation manuelle.
+                        <strong>Avantage clé :</strong> Des VFX cinématiques qui s'adaptent au matériel &#x2014; sans optimisation manuelle. Le même gestionnaire de budget qui régit les particules régit les mutations de scène injectées par l'agent.
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Animation System -->
         <div class="engine-section" id="animation">
             <div class="engine-grid">
                 <div class="engine-content">
-                    <div class="engine-badge">ANIMATION</div>
+                    <div class="engine-badge">ANIMATION &#x2014; RakuAnimation</div>
                     <h3>Système d'animation</h3>
-                    <p>Animation squelettique avec arbres de mélange, machines à états, IK et reciblage. Prend en charge des personnages animés simultanés avec des transitions fluides et un mélange à l'exécution.</p>
+                    <p>Animation squelettique avec arbres de mélange, machines à états, IK et retargeting. Prend en charge des personnages animés simultanés avec des transitions fluides et un mélange à l'exécution. L'outil MCP <code>animation_play</code> permet à un LLM de déclencher ou mélanger directement des états d'animation &#x2014; aucune intégration personnalisée requise.</p>
+                    <ul>
+                        <li>Arbres de mélange, machines à états, IK, retargeting</li>
+                        <li>Mélange à l'exécution &#x2014; transitions pilotées par LLM</li>
+                        <li>1 900 fonctions exportées dans <code>RakuAnimation.dll</code></li>
+                    </ul>
                     <div class="engine-benefit">
-                        <strong>Avantage clé :</strong> Une animation de personnages naturelle et réactive, sans configuration par personnage.
+                        <strong>Avantage clé :</strong> Animation de personnages naturelle et réactive sans configuration par personnage. Un agent peut diriger le comportement des personnages comme le ferait un réalisateur &#x2014; en langage naturel.
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Spatial Audio -->
         <div class="engine-section" id="audio">
             <div class="engine-grid">
                 <div class="engine-content">
-                    <div class="engine-badge">AUDIO</div>
+                    <div class="engine-badge">AUDIO &#x2014; RakuAudio</div>
                     <h3>Audio spatial</h3>
-                    <p>Audio spatial 3D basé sur HRTF avec rendu binaural, occlusion, zones de réverbération et couches musicales adaptatives. Réglé pour les haut-parleurs de casques XR et les écouteurs avec une charge CPU minimale.</p>
+                    <p>Audio spatial 3D basé sur HRTF avec rendu binaural, occlusion, zones de réverbération et couches musicales adaptatives. Réglé pour les haut-parleurs des casques XR et les écouteurs avec une charge CPU minimale. L'outil MCP <code>audio_play</code> permet à un LLM de placer des sons à n'importe quelle position 3D de la scène.</p>
+                    <ul>
+                        <li>Rendu binaural HRTF &#x2014; perception directionnelle naturelle</li>
+                        <li>Occlusion, zones de réverbération, couches musicales adaptatives</li>
+                        <li>1 654 fonctions exportées dans <code>RakuAudio.dll</code></li>
+                    </ul>
                     <div class="engine-benefit">
-                        <strong>Avantage clé :</strong> Les joueurs localisent naturellement les sons dans l'espace 3D &mdash; essentiel pour une XR immersive.
+                        <strong>Avantage clé :</strong> Les joueurs localisent naturellement les sons dans l'espace 3D &#x2014; essentiel pour une XR immersive. Les ancres audio placées par l'agent suivent le graphe de scène comme les objets visuels.
                     </div>
                 </div>
             </div>
@@ -378,33 +1027,147 @@
     </div>
 </section>
 
+<!-- Honest vs Unity / Unreal comparison -->
+<section class="section" style="background: var(--bg-secondary); border-top: 1px solid #222244;">
+    <div class="container">
+        <h2>Comparaison honnête : RakuAI vs. Unity / Unreal</h2>
+        <p style="color: var(--text-secondary); max-width: 760px; margin: -16px 0 0; font-size: 1.05rem;">
+            Nous ne sommes pas un remplacement d'Unity ni d'Unreal. Nous l'emportons là où ils sont faibles. Ce tableau reste public car la confiance des développeurs compte plus que le marketing.
+        </p>
+        <div style="overflow-x: auto; margin-top: 24px;">
+        <table class="se-vs-table" aria-label="Comparaison honnête des fonctionnalités : RakuAI Moteur spatial vs. Unity vs. Unreal Engine">
+            <thead>
+                <tr>
+                    <th>Capacité</th>
+                    <th>RakuAI</th>
+                    <th>Unity</th>
+                    <th>Unreal Engine</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Le LLM pilote la scène en direct (MCP)</td>
+                    <td class="se-vs-win">Natif &#x2014; 17 outils + passthrough vers ~9 500 endpoints</td>
+                    <td class="se-vs-loss">Non intégré ; nécessite un plugin personnalisé</td>
+                    <td class="se-vs-loss">Non intégré ; nécessite un plugin personnalisé</td>
+                </tr>
+                <tr>
+                    <td>Exports natifs transparents</td>
+                    <td class="se-vs-win">30 738 symboles publics &#x2014; liez-vous à n'importe quelle DLL directement</td>
+                    <td class="se-vs-loss">Runtime fermé ; couche IL2CPP / managée</td>
+                    <td class="se-vs-loss">Runtime fermé ; couche UObject / Blueprint</td>
+                </tr>
+                <tr>
+                    <td>Budget thermique de classe lunettes</td>
+                    <td class="se-vs-win">Inférence sur l'appareil RakuSLM ; réglée pour une enveloppe sub-5 W</td>
+                    <td class="se-vs-loss">Pas un objectif de conception</td>
+                    <td class="se-vs-loss">Pas un objectif de conception</td>
+                </tr>
+                <tr>
+                    <td>OpenXR 1.1 (suivi mains/yeux, ancres)</td>
+                    <td class="se-vs-win">RakuXR &#x2014; 2 704 exports, surface OpenXR complète</td>
+                    <td class="se-vs-fair">Pris en charge via un plugin OpenXR</td>
+                    <td class="se-vs-fair">Pris en charge via un plugin OpenXR</td>
+                </tr>
+                <tr>
+                    <td>Splat / 3DGS comme objet de scène de première classe</td>
+                    <td class="se-vs-win">Natif &#x2014; outil MCP <code>splat_load</code>, intégré au graphe de scène</td>
+                    <td class="se-vs-loss">Packages tiers ; pas natifs du graphe de scène</td>
+                    <td class="se-vs-loss">Packages tiers ; pas natifs du graphe de scène</td>
+                </tr>
+                <tr>
+                    <td>Outils d'éditeur &amp; magasin d'assets</td>
+                    <td class="se-vs-loss">Phase précoce &#x2014; DLL RakuEditor ; pas encore d'éditeur graphique</td>
+                    <td class="se-vs-win">Éditeur standard du secteur ; vaste magasin d'assets</td>
+                    <td class="se-vs-win">Éditeur standard du secteur ; place de marché Fab</td>
+                </tr>
+                <tr>
+                    <td>Pipeline console AAA</td>
+                    <td class="se-vs-loss">Pas un objectif actuel</td>
+                    <td class="se-vs-win">Support complet de certification console</td>
+                    <td class="se-vs-win">Support complet de certification console</td>
+                </tr>
+                <tr>
+                    <td>Étendue de la documentation</td>
+                    <td class="se-vs-loss">Limitée &#x2014; Phase 0 (les références par DLL sont attendues)</td>
+                    <td class="se-vs-win">Étendue</td>
+                    <td class="se-vs-win">Étendue</td>
+                </tr>
+                <tr>
+                    <td>Apportez votre propre LLM (sans verrouillage)</td>
+                    <td class="se-vs-win">Tout modèle compatible MCP &#x2014; Claude, GPT, local</td>
+                    <td class="se-vs-loss">Aucun équivalent natif</td>
+                    <td class="se-vs-loss">Aucun équivalent natif</td>
+                </tr>
+                <tr>
+                    <td>Vérifiabilité du nombre d'exports</td>
+                    <td class="se-vs-win">Sortie dumpbin versionnée dans le dépôt &#x2014; auditable</td>
+                    <td class="se-vs-loss">N/A &#x2014; runtime fermé</td>
+                    <td class="se-vs-loss">N/A &#x2014; runtime fermé</td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 16px;">
+            Comparaison honnête complète (plus de sous-systèmes, licences, tarifs) &#x2192; <a href="compare.html" style="color: var(--accent-bright);">compare.html</a>
+        </p>
+    </div>
+</section>
 
+<!-- Honest state callout -->
+<section class="section" style="border-top: 1px solid #222244; border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2>Où en est le runtime aujourd'hui</h2>
+        <p style="color: var(--text-secondary); max-width: 760px; margin: -16px 0 24px; font-size: 1.05rem;">
+            Nous publions l'état honnête pour que vous puissiez évaluer le runtime sur des faits réels, pas sur du marketing.
+        </p>
+        <div class="se-honest-box">
+            <h4>Phase 0 &#x2014; Rendre le runtime crédible &amp; consommable</h4>
+            <p><strong style="color: var(--text-primary);">Livré et crédible :</strong> 18 DLL C++ avec 30 738 fonctions exportées (vérifiées via <code>dumpbin /exports</code>, suivies dans <code>raku-runtime/dll_exports/</code> en tant qu'artefact CI). Serveur MCP dans <code>src/mcp/</code> avec 17 outils natifs en direct. Support d'OpenXR 1.1 dans <code>RakuXR</code>. Membre de NVIDIA Inception (mai 2026). 5 brevets US accordés (priorité juillet 2012).</p>
+            <p><strong style="color: var(--text-primary);">Défaut actif :</strong> <code>RakuAssets</code> fait l'objet d'un correctif d'éditeur de liens <code>LNK2001</code> en cours. Les 17 autres DLL sont au vert en CI ; une compilation propre 18/18 est imminente mais pas encore confirmée. Cet avis sera retiré une fois le correctif intégré.</p>
+            <p><strong style="color: var(--text-primary);">Encore dû (tâches de la Phase 0) :</strong> documentation de référence par DLL ; une matrice de capacités des DLL publiée ; la vidéo de démarrage rapide &#x00AB;&#xA0;pilotez votre scène en 10 minutes&#xA0;&#x00BB;. Les premiers déploiements OEM intégrés relèvent de la Phase 1.</p>
+            <p><strong style="color: var(--text-primary);">Note sur le nombre d'exports :</strong> 30 738 est la référence documentée/de main. Une compilation Release locale d'une branche WIP non fusionnée affiche +46 (30 784) &#x2014; seul le chiffre 30 738 est canonique pour un usage public.</p>
+        </div>
+    </div>
+</section>
 
 <!-- Performance Callout -->
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container" style="text-align: center;">
-        <h2>Optimisé pour la XR</h2>
+        <h2>Optimisé pour la XR &#x2014; et pour l'enveloppe thermique des lunettes</h2>
         <p style="color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.1rem;">
-            Chaque sous-système est optimisé pour les budgets d'image exigeants des casques VR et AR.
+            Chaque sous-système est optimisé pour les budgets d'images exigeants des casques VR et AR &#x2014; et pour les contraintes plus strictes du matériel de lunettes connectées que Unity et Unreal ne ciblent pas.
         </p>
         <div class="features">
             <div class="feature">
-                <h3>VFX haute performance</h3>
-                <p>Des effets visuels saisissants sans nuire aux performances du gameplay.</p>
+                <h3>Rendu XR à 120 Hz</h3>
+                <p>La pipeline de rendu fovéal avec LOD automatique respecte les budgets d'images sur chaque classe de casque.</p>
             </div>
             <div class="feature">
-                <h3>Physique fiable</h3>
-                <p>Un gameplay cohérent sur toutes les plateformes.</p>
+                <h3>Inférence SLM sur l'appareil</h3>
+                <p>RakuSLM vise l'enveloppe thermique sub-5&#xA0;W du matériel de lunettes connectées &#x2014; pas les configurations GPU filaires.</p>
             </div>
             <div class="feature">
-                <h3>Audio immersif</h3>
-                <p>Une qualité d'audio spatial irréprochable à tout moment.</p>
+                <h3>Composants internes transparents</h3>
+                <p>Les 30 738 exports sont des symboles publics. Profilez et optimisez au niveau C++ &#x2014; aucune boîte noire.</p>
             </div>
         </div>
         <p style="margin-top: 40px;">
-            <a href="sdk.html" class="btn btn-primary">Explorer le SDK</a>
+            <a href="#quickstart" class="btn btn-primary">Commencer par le démarrage rapide MCP</a>
             <a href="xr-features.html" class="btn btn-secondary" style="margin-left: 16px;">Fonctionnalités XR</a>
             <a href="ai-systems.html" class="btn btn-secondary" style="margin-left: 16px;">Systèmes d'IA</a>
+        </p>
+    </div>
+</section>
+
+<!-- NVIDIA Inception validation strip -->
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 28px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="Membre de NVIDIA Inception — en savoir plus sur la page presse">
+            <img src="../branding/nvidia-inception-member.svg" alt="Membre de NVIDIA Inception" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <p style="max-width: 600px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            Le moteur qui propulse Raku Capture est développé par un membre de NVIDIA Inception. Nous utilisons le catalogue NGC du programme, les crédits cloud des partenaires et la formation DLI pour accélérer la pipeline spatiale. <a href="press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">En savoir plus &#x2192;</a>
         </p>
     </div>
 </section>
@@ -459,7 +1222,7 @@
                     <li><a href="why-rakuai.html">À propos</a></li>
                     <li><a href="pricing.html">Tarifs</a></li>
                     <li><a href="contact.html">Contact</a></li>
-                    <li><a href="mailto:partnerships@rakuai.com">Partenaires</a></li>
+                    <li><a href="mailto:partners@rakuai.com">Partenaires</a></li>
                     <li><a href="../privacy.html">Confidentialité</a></li>
                     <li><a href="../terms.html">Conditions</a></li>
                 </ul>
@@ -471,23 +1234,30 @@
         </div>
         <p>&copy; 2026 RakuAI, LLC &bull; 5 brevets US accordés (Priorité : juillet 2012) &bull; Propulsé par le moteur RakuAI</p>
         <p class="trademark-notice">
-            RakuAI&trade; et RakuXR&trade; sont des marques de RakuAI, LLC. <span class="kanji-logo">&#x697D;</span>AI et <span class="kanji-logo">&#x697D;</span>XR sont des marques stylisées de RakuAI, LLC. 5 brevets US accordés (Priorité : juillet 2012).
+            RakuAI&trade; et RakuXR&trade; sont des marques de RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI et <span class="kanji-logo">&#x697D;</span>XR sont des marques stylisées de RakuAI, LLC.
+            5 brevets US accordés (Priorité : juillet 2012).
         </p>
     </div>
         <!-- nv-inception:start -->
         <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
-            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception Member - en savoir plus sur la page presse" style="line-height: 0;">
-                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
-            </a>
-            <a href="../press.html#aws-activate" aria-label="Propulsé par AWS — participant AWS Activate" style="line-height: 0;">
-                <img src="../branding/aws/powered-by-aws-white.png" alt="Propulsé par AWS" height="40" style="height: 40px; width: auto; display: block;">
+            <a href="press.html#nvidia-inception" aria-label="Membre de NVIDIA Inception — en savoir plus sur la page presse" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="Membre de NVIDIA Inception" width="160" height="40" style="height: 40px; width: auto; display: block;">
             </a>
         </div>
         <!-- nv-inception:end -->
+        <!-- aws-activate:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 4px 0 8px; opacity: 0.9;">
+            <a href="press.html#aws-activate" aria-label="Propulsé par AWS — participant à AWS Activate" style="line-height: 0;">
+                <img src="../branding/aws/powered-by-aws-white.png" alt="Propulsé par AWS" width="120" height="43" style="height: 36px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- aws-activate:end -->
 </footer>
 
 <script src="../js/auth-nav.js" defer></script>
 <script src="../js/lang-selector.js" defer></script>
+
 <script src="../js/nav-dropdown.js" defer></script>
     <script src="../js/section-nav.js" defer></script>
 </body>
