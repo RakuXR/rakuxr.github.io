@@ -4,140 +4,148 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>空間引擎 - 物理、粒子、動畫與音訊 - RakuAI</title>
-    <meta name="description" content="RakuAI 空間引擎：物理、動畫、視覺特效與沉浸式空間音訊。">
-    <meta property="og:title" content="空間引擎 - 物理、粒子、動畫與音訊 - RakuAI">
-    <meta property="og:description" content="物理、動畫、視覺特效與沉浸式音訊。為 XR 與桌面遊戲打造的完整空間引擎。">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>空間引擎 — 為 XR 與遊戲開發者打造的 AI 原生 C++ 執行階段 - RakuAI</title>
+    <meta name="description" content="RakuAI 空間引擎：18 個原生 C++ DLL、30,738 個匯出函式、17 個 MCP 工具。從 Claude、GPT 或任何 LLM 驅動即時空間場景。這不是 Unity/Unreal 的替代品 — 而是空間 AI 執行階段。">
+    <meta property="og:title" content="空間引擎 — AI 原生 C++ 執行階段 - RakuAI">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:description" content="18 個原生 C++ DLL、30,738 個匯出函式、17 個 MCP 工具。從任何 LLM 驅動即時空間場景。為希望取得可直接連結的透明原生匯出的遊戲與 AR/VR 開發者打造的執行階段。">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://rakuai.com/zh-TW/spatial-engine.html">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://rakuai.com/zh-TW/spatial-engine.html">
+    <meta name="twitter:title" content="空間引擎 — AI 原生 C++ 執行階段 - RakuAI">
+    <meta name="twitter:description" content="18 個原生 C++ DLL、30,738 個匯出函式、17 個 MCP 工具。從 Claude、GPT 或任何 LLM 驅動即時空間場景。這不是 Unity/Unreal 的替代品 — 而是空間 AI 執行階段。">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
     <link rel="canonical" href="https://rakuai.com/zh-TW/spatial-engine.html">
     <link rel="stylesheet" href="../style.css">
+    <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "RakuAI",
+        "url": "https://rakuai.com",
+        "logo": "https://rakuai.com/favicon.svg",
+        "description": "RakuAI is an AI-native spatial runtime: 18 native C++ DLLs, 30,738 exported functions, and 17 MCP tools that let any LLM drive a live spatial scene. NVIDIA Inception member.",
+        "memberOf": {"@type": "ProgramMembership", "programName": "NVIDIA Inception", "hostingOrganization": {"@type": "Organization", "name": "NVIDIA", "url": "https://www.nvidia.com"}}
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "applicationCategory": "DeveloperApplication",
+        "name": "RakuAI Spatial Engine",
+        "url": "https://rakuai.com/spatial-engine.html",
+        "operatingSystem": "Windows, Linux",
+        "description": "A native C++ spatial runtime comprising 18 DLLs and 30,738 exported functions. Exposes 17 MCP tools and approximately 9,500 REST endpoints so any LLM can command a live spatial scene — physics, rendering, Gaussian splat playback, world-locking, and XR display. Not a Unity or Unreal replacement; a spatial-AI runtime with transparent internals.",
+        "publisher": {"@type": "Organization", "name": "RakuAI", "url": "https://rakuai.com"}
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {"@type": "ListItem", "position": 1, "name": "RakuAI", "item": "https://rakuai.com/"},
+          {"@type": "ListItem", "position": 2, "name": "Spatial Engine", "item": "https://rakuai.com/spatial-engine.html"}
+        ]
+      }
+    ]
+    </script>
     <style>
-        .engine-section {
-            padding: 64px 0;
-            border-bottom: 1px solid #222244;
-        }
-        .engine-section:last-of-type {
-            border-bottom: none;
-        }
-        .engine-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 48px;
-            align-items: start;
-        }
-        .engine-content h3 {
-            font-size: 1.8rem;
-            color: var(--accent-bright);
-            margin-bottom: 12px;
-        }
-        .engine-content p {
-            color: var(--text-secondary);
-            font-size: 1.05rem;
-            line-height: 1.7;
-            margin-bottom: 16px;
-        }
-        .engine-content ul {
-            list-style: none;
-            margin-bottom: 20px;
-        }
-        .engine-content li {
-            padding: 6px 0;
-            color: var(--text-secondary);
-        }
-        .engine-content li:before {
-            content: "\2713 ";
-            color: var(--success);
-            font-weight: 700;
-            margin-right: 8px;
-        }
-        .engine-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
-            color: white;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            margin-bottom: 12px;
-        }
-        .engine-code {
-            background: #0d0d1f;
-            border: 1px solid #222244;
-            border-radius: 8px;
-            padding: 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            line-height: 1.7;
-            overflow-x: auto;
-            color: var(--text-primary);
-        }
+        .engine-section { padding: 64px 0; border-bottom: 1px solid #222244; }
+        .engine-section:last-of-type { border-bottom: none; }
+        .engine-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
+        .engine-content h3 { font-size: 1.8rem; color: var(--accent-bright); margin-bottom: 12px; }
+        .engine-content p { color: var(--text-secondary); font-size: 1.05rem; line-height: 1.7; margin-bottom: 16px; }
+        .engine-content ul { list-style: none; margin-bottom: 20px; }
+        .engine-content li { padding: 6px 0; color: var(--text-secondary); }
+        .engine-content li:before { content: "\2713 "; color: var(--success); font-weight: 700; margin-right: 8px; }
+        .engine-badge { display: inline-block; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 12px; }
+        .engine-code { background: #0d0d1f; border: 1px solid #222244; border-radius: 8px; padding: 20px; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.7; overflow-x: auto; color: var(--text-primary); }
         .engine-code .kw { color: #ff79c6; font-weight: 600; }
         .engine-code .fn { color: var(--accent-bright); }
         .engine-code .str { color: #50fa7b; }
         .engine-code .cmt { color: #6272a4; font-style: italic; }
         .engine-code .num { color: #bd93f9; }
-        .engine-benefit {
-            background: var(--bg-secondary);
-            border: 1px solid #222244;
-            border-radius: 10px;
-            padding: 16px 20px;
-            margin-top: 16px;
-        }
-        .engine-benefit strong {
-            color: var(--success);
-        }
-        .perf-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 24px;
-            text-align: center;
-            margin: 32px 0;
-        }
-        .perf-stat {
-            background: var(--bg-secondary);
-            border: 2px solid var(--accent);
-            border-radius: 12px;
-            padding: 32px 16px;
-        }
-        .perf-stat .number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: var(--accent-bright);
-            margin-bottom: 4px;
-        }
-        .perf-stat .label {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-        @media (max-width: 768px) {
-            .engine-grid {
-                grid-template-columns: 1fr;
-                gap: 24px;
-            }
-            .engine-content h3 {
-                font-size: 1.4rem;
-            }
-            .perf-stats {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
+        .engine-benefit { background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 16px 20px; margin-top: 16px; }
+        .engine-benefit strong { color: var(--success); }
+        .perf-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; text-align: center; margin: 32px 0; }
+        .perf-stat { background: var(--bg-secondary); border: 2px solid var(--accent); border-radius: 12px; padding: 32px 16px; }
+        .perf-stat .number { font-size: 2.5rem; font-weight: 800; color: var(--accent-bright); margin-bottom: 4px; }
+        .perf-stat .label { color: var(--text-secondary); font-size: 0.95rem; }
+        .hero { padding: 28px 0 36px; }
+        .hero + .section { padding-top: 36px; }
+        .se-hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 44px; align-items: center; text-align: left; }
+        .se-hero-grid .se-hero-copy { min-width: 0; }
+        .se-hero-grid .subtitle { max-width: none; }
+        .se-hero-fig { width: 100%; max-width: 520px; margin: 0 auto; }
+        .se-hero-fig svg { width: 100%; height: auto; display: block; }
+        .hero .perf-stats { margin-top: 36px; }
+        @media (max-width: 860px) { .se-hero-grid { grid-template-columns: 1fr; text-align: center; gap: 28px; } .se-hero-fig { order: -1; max-width: 380px; } }
+        .se-carousel { max-width: 1040px; margin: 0 auto; position: relative; }
+        .se-carousel-viewport { overflow: hidden; border: 1px solid #222244; border-radius: 16px; background: var(--bg-secondary); }
+        .se-carousel-track { display: flex; transition: transform 0.4s ease; }
+        @media (prefers-reduced-motion: reduce) { .se-carousel-track { transition: none; } }
+        .se-slide { flex: 0 0 100%; box-sizing: border-box; padding: 36px 40px 40px; }
+        .se-slide h3 { color: var(--accent-bright); font-size: 1.3rem; margin: 0 0 6px; }
+        .se-slide .se-slide-kicker { display: inline-block; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--success); margin-bottom: 12px; }
+        .se-slide p { color: var(--text-secondary); line-height: 1.6; font-size: 0.98rem; margin: 0 0 18px; }
+        .se-dll-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .se-dll { background: #0d0d1f; border: 1px solid #222244; border-left: 3px solid var(--accent); border-radius: 8px; padding: 10px 14px; }
+        .se-dll .name { color: var(--text-primary); font-family: 'Courier New', monospace; font-size: 0.9rem; font-weight: 700; }
+        .se-dll .desc { color: var(--text-secondary); font-size: 0.78rem; line-height: 1.45; margin-top: 3px; }
+        .se-pipe { display: flex; flex-wrap: wrap; gap: 12px; align-items: stretch; }
+        .se-pipe-step { flex: 1 1 160px; background: #0d0d1f; border: 1px solid #222244; border-top: 3px solid var(--accent-bright); border-radius: 10px; padding: 16px 18px; }
+        .se-pipe-step .n { color: var(--success); font-family: 'Courier New', monospace; font-size: 0.8rem; font-weight: 700; }
+        .se-pipe-step h4 { color: var(--text-primary); font-size: 1rem; margin: 4px 0 6px; }
+        .se-pipe-step p { font-size: 0.82rem; margin: 0; line-height: 1.5; }
+        .se-carousel-controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+        .se-carousel-btn { background: var(--bg-secondary); border: 1px solid var(--accent); color: var(--accent-bright); width: 40px; height: 40px; border-radius: 50%; font-size: 1.1rem; cursor: pointer; line-height: 1; transition: background 0.15s ease, border-color 0.15s ease; }
+        .se-carousel-btn:hover, .se-carousel-btn:focus-visible { background: rgba(108, 92, 231, 0.18); outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        .se-carousel-dots { display: flex; gap: 10px; }
+        .se-dot { width: 11px; height: 11px; border-radius: 50%; border: 1px solid var(--accent); background: transparent; padding: 0; cursor: pointer; }
+        .se-dot[aria-selected="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
+        .se-dot:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        .se-qs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; margin-top: 32px; }
+        @media (max-width: 820px) { .se-qs-grid { grid-template-columns: 1fr; } }
+        .se-qs-step { display: flex; gap: 16px; align-items: flex-start; }
+        .se-qs-num { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: #fff; font-weight: 800; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
+        .se-qs-body h4 { color: var(--text-primary); font-size: 1rem; margin: 0 0 4px; }
+        .se-qs-body p { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.55; margin: 0 0 8px; }
+        .se-vs-table { width: 100%; border-collapse: collapse; font-size: 0.93rem; margin-top: 24px; }
+        .se-vs-table th { text-align: left; padding: 10px 14px; background: #0d0d1f; color: var(--text-secondary); font-weight: 600; border-bottom: 2px solid #222244; }
+        .se-vs-table th:first-child { border-radius: 8px 0 0 0; }
+        .se-vs-table th:last-child  { border-radius: 0 8px 0 0; }
+        .se-vs-table td { padding: 10px 14px; border-bottom: 1px solid #1a1a38; color: var(--text-secondary); vertical-align: top; }
+        .se-vs-table tr:last-child td { border-bottom: none; }
+        .se-vs-table td:first-child { color: var(--text-primary); font-weight: 500; }
+        .se-vs-win  { color: #50fa7b; font-weight: 600; }
+        .se-vs-loss { color: #9090b0; }
+        .se-vs-fair { color: var(--accent-bright); }
+        .se-honest-box { background: rgba(108,92,231,0.07); border: 1px solid rgba(108,92,231,0.3); border-left: 4px solid var(--accent); border-radius: 10px; padding: 20px 24px; margin-top: 32px; }
+        .se-honest-box h4 { color: var(--accent-bright); margin: 0 0 10px; font-size: 0.95rem; letter-spacing: 0.04em; text-transform: uppercase; }
+        .se-honest-box p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin: 0 0 8px; }
+        .se-honest-box p:last-child { margin-bottom: 0; }
+        .se-mcp-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 24px; }
+        .se-mcp-tool { background: #0d0d1f; border: 1px solid #222244; border-top: 2px solid var(--accent-bright); border-radius: 8px; padding: 12px 16px; }
+        .se-mcp-tool .tool-name { color: var(--accent-bright); font-family: 'Courier New', monospace; font-size: 0.85rem; font-weight: 700; margin-bottom: 4px; }
+        .se-mcp-tool .tool-desc { color: var(--text-secondary); font-size: 0.8rem; line-height: 1.45; }
+        @media (max-width: 768px) { .engine-grid { grid-template-columns: 1fr; gap: 24px; } .engine-content h3 { font-size: 1.4rem; } .perf-stats { grid-template-columns: 1fr 1fr; } .se-slide { padding: 26px 22px 30px; } }
     </style>
 </head>
 <body>
 <!--
   Machine-translated by Claude. Pending human review.
   Source: spatial-engine.html
-  Date: 2026-05-23
+  Date: 2026-06-01
 -->
 
 <div class="beta-announcement-bar">
-    &#x697D;AI<sup class="tm">™</sup> — 世界模型的通用執行階段 &nbsp;|&nbsp; <a href="index.html#for-studios">給工作室與開發者 →</a> &nbsp;&nbsp; 另外：<a href="index.html#quickstart">試試消費者示範 →</a>
+    <span class="kanji-logo">&#x697D;</span>AI<sup class="tm">&#x2122;</sup> &#x2014; 為世界模型打造的通用執行階段 &nbsp;|&nbsp; <a href="index.html#for-studios">給工作室與開發者 &#x2192;</a> &nbsp;&nbsp; 此外：<a href="index.html#quickstart">體驗消費者示範 &#x2192;</a>
 </div>
 
-<nav role="navigation" aria-label="主要">
+<nav role="navigation" aria-label="Primary">
     <div class="container">
         <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
         <button type="button" class="nav-mobile-toggle" aria-label="開啟選單" aria-expanded="false" aria-controls="nav-primary">
@@ -146,20 +154,21 @@
         <div class="nav-links" id="nav-primary">
             <ul class="nav-primary" role="menubar">
                 <li class="nav-item has-dropdown" role="none">
-                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" aria-label="開啟解決方案選單" role="menuitem">解決方案 &#x25BC;</button>
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">解決方案</button>
                     <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="解決方案" hidden>
-                        <div class="col-heading">對象別</div>
-                        <div class="col-heading">平台</div>
-                        <ul class="col" role="none">
-                            <li role="none"><a role="menuitem" href="smart-glasses.html">為智慧眼鏡製造商<span class="item-desc">硬體 OEM 合作夥伴計畫</span></a></li>
-                            <li role="none"><a role="menuitem" href="llm-makers.html">為 AI 實驗室<span class="item-desc">基礎模型的 MCP 執行階段</span></a></li>
-                            <li role="none"><a role="menuitem" href="enterprise.html">為企業<span class="item-desc">大規模部署空間 AI</span></a></li>
-                            <li role="none"><a role="menuitem" href="creator.html">為創作者<span class="item-desc">建構與發佈空間世界</span></a></li>
-                            <li role="none"><a role="menuitem" href="robotics.html">機器人<span class="item-desc">為機器人提供的持久空間記憶</span></a></li>
-                            <li role="none"><a role="menuitem" href="insurance.html">保險<span class="item-desc">手機掃描生成物品清單</span></a></li>
-                            <li role="none"><a role="menuitem" href="compare.html">與 Unity / Unreal 比較<span class="item-desc">誠實的對照</span></a></li>
+                        <div class="col-heading" role="presentation">依受眾</div>
+                        <div class="col-heading" role="presentation">平台</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">智慧眼鏡製造商<span class="item-desc">硬體 OEM 合作夥伴計畫</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI 實驗室<span class="item-desc">為基礎模型打造的 MCP 執行階段</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">企業<span class="item-desc">大規模部署空間 AI</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">創作者<span class="item-desc">建構與發佈空間世界</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">機器人<span class="item-desc">為機器人提供持久空間記憶</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">保險<span class="item-desc">手機掃描產生物品清單</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">比較 Unity / Unreal<span class="item-desc">誠實的比較</span></a></li>
                         </ul>
-                        <ul class="col" role="none">
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">掃描空間，然後與它對話</span></a></li>
                             <li role="none"><a role="menuitem" href="spatial-engine.html">空間引擎<span class="item-desc">執行階段支柱</span></a></li>
                             <li role="none"><a role="menuitem" href="ai-systems.html">AI 系統<span class="item-desc">編排與權限</span></a></li>
                             <li role="none"><a role="menuitem" href="xr-features.html">XR 功能<span class="item-desc">顯示、追蹤、錨定</span></a></li>
@@ -167,7 +176,7 @@
                     </div>
                 </li>
                 <li class="nav-item has-dropdown" role="none">
-                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" aria-label="開啟開發者選單" role="menuitem">開發者 &#x25BC;</button>
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">開發者</button>
                     <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="開發者" hidden>
                         <li role="none"><a role="menuitem" href="docs.html">文件</a></li>
                         <li role="none"><a role="menuitem" href="mcp.html">MCP 伺服器</a></li>
@@ -181,19 +190,19 @@
                     </ul>
                 </li>
                 <li class="nav-item has-dropdown" role="none">
-                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" aria-label="開啟資源選單" role="menuitem">資源 &#x25BC;</button>
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">資源</button>
                     <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="資源" hidden>
                         <li role="none"><a role="menuitem" href="../blog/">部落格</a></li>
                         <li role="none"><a role="menuitem" href="why-rakuai.html">為何選擇 RakuAI</a></li>
                         <li role="none"><a role="menuitem" href="press.html">媒體資料</a></li>
                         <li role="none"><a role="menuitem" href="../discover.html">探索</a></li>
                         <li role="none"><a role="menuitem" href="content-packs.html">內容包</a></li>
-                        <li role="none"><a role="menuitem" href="docs.html">文件總覽</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">文件</a></li>
                         <li role="none"><a role="menuitem" href="contact.html">聯絡我們</a></li>
                     </ul>
                 </li>
                 <li class="nav-item" role="none">
-                    <a role="menuitem" href="pricing.html">定價</a>
+                    <a role="menuitem" href="pricing.html">價格</a>
                 </li>
                 <li class="nav-item" role="none">
                     <a role="menuitem" href="../blog/">部落格</a>
@@ -206,110 +215,230 @@
 </nav>
 
 <section class="hero">
+<div style="display: flex; justify-content: center; margin: 12px 0 4px;">
+    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="NVIDIA Inception 成員及 AWS Activate 參與者 - 查看詳情">
+        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">成員</span>
+        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+        <img src="../branding/aws/powered-by-aws-white.png" alt="基於 AWS 構建" width="80" height="28" style="height: 28px; width: auto; display: block;">
+        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">了解更多 &#x2193;</span>
+    </a>
+</div>
     <div class="container">
+      <div class="se-hero-grid">
+        <div class="se-hero-copy">
         <div class="engine-badge">空間引擎</div>
-        <h1>空間引擎</h1>
-        <p class="subtitle">物理、粒子、動畫與空間音訊。打造沉浸式 3D 世界所需的一切，為 XR 最佳化。</p>
+        <h1>LLM 可以驅動的 C++ 空間執行階段</h1>
+        <p class="subtitle">18 個原生 DLL、30,738 個匯出函式，以及一個讓 Claude、GPT 或任何模型指揮即時空間場景的 MCP 伺服器。這不是 Unity/Unreal 的替代品 — 而是擁有可供連結的透明內部結構的空間 AI 執行階段。</p>
+        <p style="margin-top: 20px;">
+            <a href="#quickstart" class="btn btn-primary">10 分鐘驅動一個場景 &#x2193;</a>
+            <a href="compare.html" class="btn btn-secondary" style="margin-left: 12px;">與 Unity / Unreal 誠實比較</a>
+        </p>
+        </div><!-- /se-hero-copy -->
+        <div class="se-hero-fig">
+        <svg viewBox="0 0 760 320" width="100%" role="img" aria-labelledby="se-hero-title se-hero-desc" xmlns="http://www.w3.org/2000/svg">
+            <title id="se-hero-title">RakuAI 空間引擎：LLM 驅動的執行階段堆疊</title>
+            <desc id="se-hero-desc">分層圖，頂部的 LLM（Claude、GPT、Gemini、Copilot）透過 17 個 MCP 工具和約 9,500 個 REST 端點連接到 RakuAI 空間執行階段，該執行階段建構於公開 30,738 個匯出的 18 個原生 C++ DLL 之上，鎖定 XR 頭戴裝置、智慧眼鏡和桌面。</desc>
+            <defs><linearGradient id="se-hero-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient></defs>
+            <rect x="120" y="10" width="520" height="46" rx="10" fill="#15152e" stroke="#a388ff" stroke-width="1.5"/>
+            <text x="380" y="30" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="13" font-weight="700">您的 LLM</text>
+            <text x="380" y="48" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">Claude &#xB7; ChatGPT &#xB7; Gemini &#xB7; Copilot &#xB7; 本機</text>
+            <text x="380" y="76" text-anchor="middle" fill="#50fa7b" font-family="ui-monospace,monospace" font-size="11">17 個原生 MCP 工具  +  透過 api_call 的 ~9,500 個 REST 端點</text>
+            <line x1="380" y1="56" x2="380" y2="88" stroke="url(#se-hero-grad)" stroke-width="2"/>
+            <rect x="60" y="90" width="640" height="86" rx="12" fill="#111128" stroke="url(#se-hero-grad)" stroke-width="2"/>
+            <text x="380" y="112" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="13" font-weight="700">空間執行階段</text>
+            <g font-family="system-ui,sans-serif" font-size="11">
+                <rect x="80"  y="122" width="100" height="28" rx="6" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1"/><text x="130" y="141" text-anchor="middle" fill="#e8e8f0">物理</text>
+                <rect x="192" y="122" width="110" height="28" rx="6" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1"/><text x="247" y="141" text-anchor="middle" fill="#e8e8f0">算繪器 / XR</text>
+                <rect x="314" y="122" width="110" height="28" rx="6" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1"/><text x="369" y="141" text-anchor="middle" fill="#e8e8f0">動畫</text>
+                <rect x="436" y="122" width="100" height="28" rx="6" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1"/><text x="486" y="141" text-anchor="middle" fill="#e8e8f0">空間音訊</text>
+                <rect x="548" y="122" width="130" height="28" rx="6" fill="#0d0d1f" stroke="#6c5ce7" stroke-width="1"/><text x="613" y="141" text-anchor="middle" fill="#e8e8f0">SLM / AI / 語音</text>
+            </g>
+            <line x1="380" y1="176" x2="380" y2="196" stroke="url(#se-hero-grad)" stroke-width="2"/>
+            <rect x="30" y="198" width="700" height="56" rx="12" fill="#15152e" stroke="#00cec9" stroke-width="2"/>
+            <text x="380" y="222" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="14" font-weight="700">18 個原生 C++ DLL &#xB7; 30,738 個匯出</text>
+            <text x="380" y="242" text-anchor="middle" fill="#00cec9" font-family="ui-monospace,monospace" font-size="11">OpenXR 1.1 &#xB7; DirectX 12 + Vulkan &#xB7; CMake / MSVC &#xB7; 5 項美國已獲核准專利</text>
+            <text x="380" y="282" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">XR 頭戴裝置 &#xB7; 智慧眼鏡 &#xB7; 桌面 &#xB7; 機器人</text>
+        </svg>
+        </div>
+      </div><!-- /se-hero-grid -->
         <div class="perf-stats">
-            <div class="perf-stat">
-                <div class="number">120 Hz</div>
-                <div class="label">XR 渲染</div>
+            <div class="perf-stat"><div class="number">18</div><div class="label">原生 C++ DLL</div></div>
+            <div class="perf-stat"><div class="number">30,738</div><div class="label">匯出函式</div></div>
+            <div class="perf-stat"><div class="number">17</div><div class="label">原生 MCP 工具</div></div>
+            <div class="perf-stat"><div class="number">~9,500</div><div class="label">經 api_call 的 REST 端點</div></div>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="quickstart" style="border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2>10 分鐘驅動一個場景</h2>
+        <p style="color: var(--text-secondary); max-width: 700px; margin: -16px 0 0; font-size: 1.05rem;">
+            阻力最小的路徑：針對 Claude Desktop 或 Cursor 執行 MCP 伺服器。無需安裝 C++ SDK 即可開始。
+        </p>
+        <div class="se-qs-grid">
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div class="se-qs-step">
+                    <div class="se-qs-num">1</div>
+                    <div class="se-qs-body">
+                        <h4>複製並設定 MCP 伺服器</h4>
+                        <p>MCP 伺服器位於 <code>raku-runtime</code> 儲存庫的 <code>src/mcp/</code>。它是一個 Python 伺服器 — 開始與執行中的執行個體對話無需 C++ 工具鏈。</p>
+                        <div class="engine-code" style="font-size:0.8rem; padding:12px 16px;">
+                            <span class="cmt"># 一次性設定</span><br>
+                            git clone https://github.com/RakuXR/raku-runtime<br>
+                            <span class="kw">cd</span> raku-runtime/src/mcp<br>
+                            pip install -r requirements.txt
+                        </div>
+                    </div>
+                </div>
+                <div class="se-qs-step">
+                    <div class="se-qs-num">2</div>
+                    <div class="se-qs-body">
+                        <h4>將 Claude Desktop 指向伺服器</h4>
+                        <p>將 MCP 伺服器項目加入您的 <code>claude_desktop_config.json</code>。Claude Desktop 會在重新啟動時自動探索它。</p>
+                        <div class="engine-code" style="font-size:0.8rem; padding:12px 16px;">
+                            {<br>
+                            &nbsp;&nbsp;<span class="str">"mcpServers"</span>: {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"raku-runtime"</span>: {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"command"</span>: <span class="str">"python"</span>,<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"args"</span>: [<span class="str">"path/to/raku-runtime/src/mcp/server.py"</span>]<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+                            &nbsp;&nbsp;}<br>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="perf-stat">
-                <div class="number">GPU</div>
-                <div class="label">粒子運算</div>
-            </div>
-            <div class="perf-stat">
-                <div class="number">HRTF</div>
-                <div class="label">空間音訊</div>
-            </div>
-            <div class="perf-stat">
-                <div class="number">亞毫秒</div>
-                <div class="label">物理步進</div>
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+                <div class="se-qs-step">
+                    <div class="se-qs-num">3</div>
+                    <div class="se-qs-body">
+                        <h4>讓 Claude 驅動您的場景</h4>
+                        <p>現在 Claude 擁有 17 個原生 MCP 工具，以及通往 ~9,500 個 REST 端點的傳遞。生成物件、查詢場景圖、執行物理 — 全部透過自然語言。</p>
+                        <div class="engine-code" style="font-size:0.8rem; padding:12px 16px;">
+                            <span class="cmt"># Claude 提示詞範例</span><br>
+                            <span class="str">"在位置 (0, 2, 0) 生成一個剛體立方體，</span><br>
+                            <span class="str">&nbsp;施加 5 N 的向上衝量，並在 1 秒後</span><br>
+                            <span class="str">&nbsp;列出場景節點。"</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="se-qs-step">
+                    <div class="se-qs-num">4</div>
+                    <div class="se-qs-body">
+                        <h4>更深入：直接連結 DLL</h4>
+                        <p>當您超越 MCP 的能力時，可直接連結 <code>RakuXR.dll</code> 或 <code>RakuRenderer.dll</code>。全部 30,738 個匯出都是公開符號 — <code>dumpbin /exports</code> 可全部列出，沒有黑盒。</p>
+                        <p style="margin-top: 6px;"><a href="../developers/claude-desktop.html" style="color: var(--accent-bright);">完整 Claude Desktop 整合指南 &#x2192;</a></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
 <section class="section" style="border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2>17 個原生 MCP 工具 &#x2014; 自帶模型</h2>
+        <p style="color: var(--text-secondary); max-width: 760px; margin: -16px 0 0; font-size: 1.05rem;">
+            MCP 伺服器公開一組精選的場景感知工具，外加一個通用的 <code>api_call</code> 傳遞，可存取完整的約 9,500 個端點的 REST API。自帶 Claude、GPT、Gemini、Copilot 或本機模型 — 沒有模型鎖定。
+        </p>
+        <div class="se-mcp-tools">
+            <div class="se-mcp-tool"><div class="tool-name">scene_query</div><div class="tool-desc">讀取場景圖 &#x2014; 節點、變換、屬性</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">scene_spawn</div><div class="tool-desc">將帶元件的實體生成到即時場景中</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">scene_transform</div><div class="tool-desc">取得或設定任意節點的世界空間變換</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">physics_apply</div><div class="tool-desc">在執行階段施加力、衝量或約束</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">animation_play</div><div class="tool-desc">在骨架繫結上觸發或混合動畫狀態</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">asset_load</div><div class="tool-desc">從磁碟或 URL 將資產串流到場景</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">anchor_create</div><div class="tool-desc">跨工作階段釘住世界鎖定的空間錨點</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">audio_play</div><div class="tool-desc">在 3D 位置觸發空間音訊</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">render_capture</div><div class="tool-desc">從算繪器擷取影格或串流</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">script_run</div><div class="tool-desc">在場景脈絡中執行 Lua 指令碼</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">xr_session</div><div class="tool-desc">管理 OpenXR 工作階段、頭部姿態、追蹤狀態</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">input_inject</div><div class="tool-desc">為測試自動化注入合成輸入事件</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">debug_inspect</div><div class="tool-desc">讀取執行階段診斷、記憶體和影格統計</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">ui_update</div><div class="tool-desc">變更空間 UI 面板和疊加內容</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">network_sync</div><div class="tool-desc">推送或查詢多人場景增量狀態</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">splat_load</div><div class="tool-desc">將 3D 高斯潑濺作為一級場景物件載入</div></div>
+            <div class="se-mcp-tool"><div class="tool-name">api_call</div><div class="tool-desc">通往全部 ~9,500 個 REST 端點的通用傳遞</div></div>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 16px;">
+            完整的代理驅動場景<em>創作</em>（生成、動畫、指令碼、錨定 &#x2014; 完整迴圈）是 Phase&#xA0;2 路線圖目標。目前的 17 個工具涵蓋查詢、生成、變換、物理和資產操作。<a href="mcp.html" style="color: var(--accent-bright);">MCP 伺服器文件 &#x2192;</a>
+        </p>
+    </div>
+</section>
+
+<section class="section" style="border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2>潑濺原生：作為場景物件的已擷取現實</h2>
+        <p style="color: var(--text-secondary); max-width: 760px; margin: -16px 0 24px; font-size: 1.05rem;">
+            該引擎是 Raku Capture 的基底。用手機相機擷取的 3D 高斯潑濺成為一級場景物件 &#x2014; 可透過與任何其他實體相同的 MCP 工具被任何 LLM 定位、錨定和定址。同一條執行階段路徑在 XR、桌面和眼鏡上執行。
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
+            <div class="engine-benefit" style="margin-top:0;">
+                <strong>一條管線從擷取到場景</strong>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 8px 0 0; line-height: 1.55;">
+                    <code>splat_load</code> 將擷取的 .spz 檔案串流到即時場景中。潑濺立即繼承場景圖、物理和錨定子系統。
+                </p>
+            </div>
+            <div class="engine-benefit" style="margin-top:0;">
+                <strong>從第一天起即可被 LLM 定址</strong>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 8px 0 0; line-height: 1.55;">
+                    請 Claude 移動一個已擷取物件、查詢潑濺中有什麼，或將其錨定到真實世界位置 &#x2014; MCP 表面將潑濺視同任何其他節點。
+                </p>
+            </div>
+            <div class="engine-benefit" style="margin-top:0;">
+                <strong>內建 OpenXR 顯示路徑</strong>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 8px 0 0; line-height: 1.55;">
+                    <code>RakuXR</code> 透過用於所有場景內容的同一條支援注視點 120&#xA0;Hz 的管線算繪潑濺 &#x2014; 無需單獨的檢視器。
+                </p>
+            </div>
+        </div>
+        <p style="margin-top: 24px;">
+            <a href="capture.html" class="btn btn-secondary">了解 Raku Capture &#x2192;</a>
+        </p>
+    </div>
+</section>
+
+<section class="section" style="border-bottom: 1px solid #222244;">
     <div class="container" style="text-align:center;">
-        <h2>世界鎖定，精確到亞毫米</h2>
+        <h2>世界鎖定，精確到次毫米</h2>
         <p style="color: var(--text-secondary); max-width: 720px; margin: -16px auto 32px; font-size: 1.05rem;">
-            感測器融合餵入場景理解，後者釘下能跨工作階段與裝置保持位置的錨點。
+            感測器融合輸入到場景理解，進而釘住跨工作階段和裝置保持位置的錨點。
         </p>
         <div style="max-width:920px; margin:0 auto;">
         <svg viewBox="0 0 920 420" width="100%" style="max-width:920px; height:auto; display:block;" role="img" aria-labelledby="se-anchor-title" xmlns="http://www.w3.org/2000/svg">
-            <title id="se-anchor-title">空間錨定：感測器融合到場景理解再到錨點的流程，餵入一個透視房間網格，其中世界鎖定的錨點以亞毫米精度保持位置。</title>
+            <title id="se-anchor-title">空間錨定：感測器融合到場景理解再到錨點的管線，輸入到一個透視房間網格，其中世界鎖定的錨點以次毫米精度保持位置。</title>
             <defs>
-                <linearGradient id="se-grad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0" stop-color="#6c5ce7"/>
-                    <stop offset="1" stop-color="#00cec9"/>
-                </linearGradient>
-                <linearGradient id="se-floor" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stop-color="#6c5ce7" stop-opacity="0.18"/>
-                    <stop offset="1" stop-color="#00cec9" stop-opacity="0.04"/>
-                </linearGradient>
-                <marker id="se-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
-                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                </marker>
+                <linearGradient id="se-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient>
+                <linearGradient id="se-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6c5ce7" stop-opacity="0.18"/><stop offset="1" stop-color="#00cec9" stop-opacity="0.04"/></linearGradient>
+                <marker id="se-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
             </defs>
-
-            <!-- left stack: sensor fusion -> scene understanding -> anchors -->
             <g font-family="system-ui,sans-serif">
                 <rect x="32" y="80" width="220" height="58" rx="11" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
                 <text x="142" y="106" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="600">感測器融合</text>
-                <text x="142" y="125" text-anchor="middle" fill="#9090b0" font-size="11">IMU &#183; 相機 &#183; 深度</text>
-
+                <text x="142" y="125" text-anchor="middle" fill="#9090b0" font-size="11">IMU &#xB7; 相機 &#xB7; 深度</text>
                 <rect x="32" y="178" width="220" height="58" rx="11" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
                 <text x="142" y="204" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="600">場景理解</text>
-                <text x="142" y="223" text-anchor="middle" fill="#9090b0" font-size="11">平面 &#183; 網格 &#183; 語意</text>
-
+                <text x="142" y="223" text-anchor="middle" fill="#9090b0" font-size="11">平面 &#xB7; 網格 &#xB7; 語意</text>
                 <rect x="32" y="276" width="220" height="58" rx="11" fill="#15152e" stroke="url(#se-grad)" stroke-width="2"/>
                 <text x="142" y="302" text-anchor="middle" fill="#e8e8f0" font-size="14" font-weight="700">空間錨點</text>
-                <text x="142" y="321" text-anchor="middle" fill="#00cec9" font-size="11">世界鎖定 &#183; 持久</text>
-
+                <text x="142" y="321" text-anchor="middle" fill="#00cec9" font-size="11">世界鎖定 &#xB7; 持久</text>
                 <line x1="142" y1="138" x2="142" y2="176" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
                 <line x1="142" y1="236" x2="142" y2="274" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
             </g>
-
-            <!-- connector to room -->
             <line x1="252" y1="305" x2="330" y2="305" stroke="url(#se-grad)" stroke-width="2" marker-end="url(#se-arrow)"/>
-
-            <!-- right: perspective room with anchors -->
             <g transform="translate(340,40)">
-                <!-- floor -->
                 <polygon points="60,300 520,300 430,150 150,150" fill="url(#se-floor)"/>
-                <!-- floor grid -->
                 <g stroke="#3a3a66" stroke-width="1" fill="none">
                     <path d="M150,150 L60,300 M196,150 L130,300 M242,150 L200,300 M290,150 L272,300 M338,150 L344,300 M384,150 L416,300 M430,150 L520,300"/>
                     <path d="M126,206 L454,206 M96,253 L484,253"/>
                 </g>
-                <!-- back wall edge -->
                 <polyline points="150,150 150,40 430,40 430,150" fill="none" stroke="#2c2c4e" stroke-width="1.4"/>
-
-                <!-- anchors with crosshair pins -->
                 <g>
-                    <g transform="translate(210,232)">
-                        <line x1="-9" y1="0" x2="9" y2="0" stroke="#00cec9" stroke-width="1.6"/>
-                        <line x1="0" y1="-9" x2="0" y2="9" stroke="#00cec9" stroke-width="1.6"/>
-                        <circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/>
-                        <circle r="2" fill="#00cec9"/>
-                    </g>
-                    <g transform="translate(360,200)">
-                        <line x1="-9" y1="0" x2="9" y2="0" stroke="#a388ff" stroke-width="1.6"/>
-                        <line x1="0" y1="-9" x2="0" y2="9" stroke="#a388ff" stroke-width="1.6"/>
-                        <circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/>
-                        <circle r="2" fill="#a388ff"/>
-                    </g>
-                    <g transform="translate(300,272)">
-                        <line x1="-9" y1="0" x2="9" y2="0" stroke="#00cec9" stroke-width="1.6"/>
-                        <line x1="0" y1="-9" x2="0" y2="9" stroke="#00cec9" stroke-width="1.6"/>
-                        <circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/>
-                        <circle r="2" fill="#00cec9"/>
-                    </g>
+                    <g transform="translate(210,232)"><line x1="-9" y1="0" x2="9" y2="0" stroke="#00cec9" stroke-width="1.6"/><line x1="0" y1="-9" x2="0" y2="9" stroke="#00cec9" stroke-width="1.6"/><circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/><circle r="2" fill="#00cec9"/></g>
+                    <g transform="translate(360,200)"><line x1="-9" y1="0" x2="9" y2="0" stroke="#a388ff" stroke-width="1.6"/><line x1="0" y1="-9" x2="0" y2="9" stroke="#a388ff" stroke-width="1.6"/><circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/><circle r="2" fill="#a388ff"/></g>
+                    <g transform="translate(300,272)"><line x1="-9" y1="0" x2="9" y2="0" stroke="#00cec9" stroke-width="1.6"/><line x1="0" y1="-9" x2="0" y2="9" stroke="#00cec9" stroke-width="1.6"/><circle r="6" fill="none" stroke="url(#se-grad)" stroke-width="2"/><circle r="2" fill="#00cec9"/></g>
                 </g>
-
-                <!-- precision callout -->
                 <line x1="210" y1="232" x2="210" y2="120" stroke="#9090b0" stroke-width="1" stroke-dasharray="3 4"/>
                 <rect x="150" y="92" width="160" height="30" rx="8" fill="#0d0d1f" stroke="#00cec9" stroke-width="1.2"/>
                 <text x="230" y="112" text-anchor="middle" fill="#00cec9" font-family="ui-monospace,monospace" font-size="12">&lt; 1 mm 漂移</text>
@@ -319,95 +448,236 @@
     </div>
 </section>
 
+<section class="section" style="border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2 style="text-align:center;">執行階段內部</h2>
+        <p style="color: var(--text-secondary); max-width: 720px; margin: -8px auto 32px; font-size: 1.05rem; text-align:center;">
+            滑動瀏覽管線，以及構成引擎的 18 個原生 DLL &#x2014; 依功能分組。
+        </p>
+        <div class="se-carousel" id="se-carousel">
+            <div class="se-carousel-viewport">
+                <div class="se-carousel-track" role="group" aria-label="執行階段架構投影片輪播">
+                    <section class="se-slide" role="tabpanel" aria-roledescription="slide" aria-label="1 / 4：管線" id="se-slide-0">
+                        <span class="se-slide-kicker">管線</span>
+                        <h3>掃描 &#x2192; 模擬 &#x2192; 算繪 &#x2192; LLM 驅動</h3>
+                        <p>一個執行階段將一個空間從原始擷取一路承載到世界鎖定、物理模擬的算繪 &#x2014; 在 XR、桌面和眼鏡上是同一條路徑。LLM 可在每個階段注入。</p>
+                        <div class="se-pipe">
+                            <div class="se-pipe-step"><div class="n">01</div><h4>掃描</h4><p>感測器融合 + 重建從相機、深度和 IMU 構建度量場景。</p></div>
+                            <div class="se-pipe-step"><div class="n">02</div><h4>模擬</h4><p>確定性物理、粒子和動畫在重建的場景上執行。</p></div>
+                            <div class="se-pipe-step"><div class="n">03</div><h4>算繪</h4><p>支援注視點算繪、120&#xA0;Hz、帶 HRTF 空間音訊，世界鎖定到錨點。</p></div>
+                            <div class="se-pipe-step"><div class="n">04</div><h4>LLM 驅動</h4><p>17 個 MCP 工具向任何模型公開即時場景 &#x2014; 生成、查詢、錨定、變更。</p></div>
+                        </div>
+                    </section>
+                    <section class="se-slide" role="tabpanel" aria-roledescription="slide" aria-label="2 / 4：模擬 DLL" id="se-slide-1" aria-hidden="true">
+                        <span class="se-slide-kicker">模擬與物理</span>
+                        <h3>讓世界動起來</h3>
+                        <p>將靜態場景變為會移動、碰撞和反應之物的子系統。</p>
+                        <div class="se-dll-grid">
+                            <div class="se-dll"><div class="name">RakuPhysics</div><div class="desc">剛體、約束、射線投射（1,278 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuAnimation</div><div class="desc">骨架混合樹、IK、重定向（1,900 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuAudio</div><div class="desc">HRTF 雙耳空間音訊（1,654 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuScene</div><div class="desc">場景圖、變換、剔除（2,530 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuCSG</div><div class="desc">建構實體幾何（61 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuGameplay</div><div class="desc">玩法系統與狀態（2,012 個匯出）</div></div>
+                        </div>
+                    </section>
+                    <section class="se-slide" role="tabpanel" aria-roledescription="slide" aria-label="3 / 4：空間 DLL" id="se-slide-2" aria-hidden="true">
+                        <span class="se-slide-kicker">空間與 XR</span>
+                        <h3>將其鎖定到世界</h3>
+                        <p>感測器融合、場景理解，以及讓內容跨工作階段保持次毫米精度的 OpenXR 層。</p>
+                        <div class="se-dll-grid">
+                            <div class="se-dll"><div class="name">RakuXR</div><div class="desc">OpenXR 1.1 工作階段、錨點、頭部姿態（2,704 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuRenderer</div><div class="desc">DX12 + Vulkan、注視點算繪管線（3,677 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuSLM</div><div class="desc">裝置端推論、眼鏡散熱目標（666 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuAI</div><div class="desc">場景推理與代理掛鉤（740 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuInput</div><div class="desc">手勢、控制器、注視（586 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuVoice</div><div class="desc">STT / TTS / VAD（258 個匯出）</div></div>
+                        </div>
+                    </section>
+                    <section class="se-slide" role="tabpanel" aria-roledescription="slide" aria-label="4 / 4：平台 DLL" id="se-slide-3" aria-hidden="true">
+                        <span class="se-slide-kicker">平台與介面</span>
+                        <h3>從任何地方驅動它</h3>
+                        <p>將執行階段公開給應用程式和 LLM 的 DLL &#x2014; 全部 18 個模組共 30,738 個匯出的基礎。</p>
+                        <div class="se-dll-grid">
+                            <div class="se-dll"><div class="name">RakuCore</div><div class="desc">記憶體、工作、數學、平台墊片（3,818 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuNetwork</div><div class="desc">場景增量同步、多人狀態（1,359 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuAssets</div><div class="desc">串流、封裝、內容管線（1,604 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuUI</div><div class="desc">空間 UI 與 2D 疊加（1,147 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuScripting</div><div class="desc">Lua 指令碼與行為黏合（3,649 個匯出）</div></div>
+                            <div class="se-dll"><div class="name">RakuEditor</div><div class="desc">創作與檢查工具（1,141 個匯出）</div></div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div class="se-carousel-controls">
+                <button type="button" class="se-carousel-btn" data-dir="-1" aria-label="上一張投影片" aria-controls="se-carousel">&#8249;</button>
+                <div class="se-carousel-dots" role="tablist" aria-label="選擇投影片">
+                    <button type="button" class="se-dot" role="tab" aria-selected="true"  aria-controls="se-slide-0" aria-label="投影片 1：管線"></button>
+                    <button type="button" class="se-dot" role="tab" aria-selected="false" aria-controls="se-slide-1" aria-label="投影片 2：模擬與物理 DLL"></button>
+                    <button type="button" class="se-dot" role="tab" aria-selected="false" aria-controls="se-slide-2" aria-label="投影片 3：空間與 XR DLL"></button>
+                    <button type="button" class="se-dot" role="tab" aria-selected="false" aria-controls="se-slide-3" aria-label="投影片 4：平台與介面 DLL"></button>
+                </div>
+                <button type="button" class="se-carousel-btn" data-dir="1" aria-label="下一張投影片" aria-controls="se-carousel">&#8250;</button>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+(function () {
+    var root = document.getElementById('se-carousel');
+    if (!root) return;
+    var track = root.querySelector('.se-carousel-track');
+    var slides = Array.prototype.slice.call(root.querySelectorAll('.se-slide'));
+    var dots = Array.prototype.slice.call(root.querySelectorAll('.se-dot'));
+    var arrows = Array.prototype.slice.call(root.querySelectorAll('.se-carousel-btn'));
+    var current = 0;
+    function go(i) {
+        current = (i + slides.length) % slides.length;
+        track.style.transform = 'translateX(' + (-current * 100) + '%)';
+        slides.forEach(function (s, n) { s.setAttribute('aria-hidden', n === current ? 'false' : 'true'); s.inert = (n !== current); });
+        dots.forEach(function (d, n) { d.setAttribute('aria-selected', n === current ? 'true' : 'false'); });
+    }
+    dots.forEach(function (d, n) { d.addEventListener('click', function () { go(n); }); });
+    arrows.forEach(function (a) { a.addEventListener('click', function () { go(current + parseInt(a.getAttribute('data-dir'), 10)); }); });
+    root.addEventListener('keydown', function (e) { if (e.key === 'ArrowLeft') { go(current - 1); } else if (e.key === 'ArrowRight') { go(current + 1); } });
+    go(0);
+})();
+</script>
+
 <section class="section">
     <div class="container">
-
-        <!-- Physics Engine -->
         <div class="engine-section" id="physics">
             <div class="engine-grid">
                 <div class="engine-content">
-                    <div class="engine-badge">物理</div>
+                    <div class="engine-badge">物理 &#x2014; RakuPhysics</div>
                     <h3>物理引擎</h3>
-                    <p>生產級的 3D 物理，具備剛體、約束、射線投射與碰撞偵測。即使在行動 XR 硬體上也能達成亞毫秒步進時間的確定性模擬。</p>
-                    <div class="engine-benefit">
-                        <strong>關鍵效益：</strong>在 VR、桌面與行動裝置上皆有一致、可靠的物理 &mdash; 無需逐平台調校。
-                    </div>
+                    <p>具備剛體、約束、射線投射和碰撞偵測的生產級 3D 物理。即便在行動 XR 硬體上也能達成次毫秒步進時間的確定性模擬。可透過 <code>physics_apply</code> MCP 工具完全定址 &#x2014; LLM 可透過自然語言提示施加力、查詢碰撞狀態並變更約束。</p>
+                    <ul>
+                        <li>剛體、關節、約束、射線投射</li>
+                        <li>確定性步進 &#x2014; 可重現的重播及代理驅動模擬</li>
+                        <li>行動 XR 硬體上的次毫秒步進</li>
+                        <li><code>RakuPhysics.dll</code> 中的 1,278 個匯出函式</li>
+                    </ul>
+                    <div class="engine-benefit"><strong>核心優勢：</strong>跨 VR、桌面和行動端一致可靠的物理 &#x2014; 無需逐平台調校。在頭戴裝置中執行的同一步進，也可在代理評估中以無頭方式執行。</div>
                 </div>
             </div>
         </div>
-
-        <!-- Particle System -->
         <div class="engine-section" id="particles">
             <div class="engine-grid">
                 <div class="engine-content">
-                    <div class="engine-badge">VFX</div>
-                    <h3>粒子系統</h3>
-                    <p>GPU 加速的粒子系統，附各類型 VFX 預設集。支援發射器、吸引子、碰撞與 LOD 縮放。自動預算管理讓影格率在 XR 硬體上鎖定於 72-120 Hz。</p>
-                    <div class="engine-benefit">
-                        <strong>關鍵效益：</strong>能依硬體縮放的電影級 VFX &mdash; 無需手動最佳化。
-                    </div>
+                    <div class="engine-badge">VFX &#x2014; RakuRenderer</div>
+                    <h3>粒子系統與 VFX</h3>
+                    <p>具備依類型 VFX 預設的 GPU 加速粒子系統。支援發射器、吸引子、碰撞和 LOD 縮放。自動預算管理在 XR 硬體上將影格率鎖定在 72&#x2013;120&#xA0;Hz。算繪器使用帶 Vulkan 後端（<code>RakuVulkan</code>）的 DirectX 12 &#x2014; 兩條路徑均透過 <code>RakuRenderer.dll</code>（3,677 個匯出）匯出。</p>
+                    <div class="engine-benefit"><strong>核心優勢：</strong>隨硬體縮放的電影級 VFX &#x2014; 無需手動最佳化。管理粒子的同一預算管理器也管理代理注入的場景變更。</div>
                 </div>
             </div>
         </div>
-
-        <!-- Animation System -->
         <div class="engine-section" id="animation">
             <div class="engine-grid">
                 <div class="engine-content">
-                    <div class="engine-badge">動畫</div>
+                    <div class="engine-badge">動畫 &#x2014; RakuAnimation</div>
                     <h3>動畫系統</h3>
-                    <p>具備混合樹、狀態機、IK 與重定向的骨架動畫。支援多個同時動畫的角色，並具備流暢轉場與執行階段混合。</p>
-                    <div class="engine-benefit">
-                        <strong>關鍵效益：</strong>自然、即時反應的角色動畫，且每個角色零設定。
-                    </div>
+                    <p>具備混合樹、狀態機、IK 和重定向的骨架動畫。支援具有平滑轉場和執行階段混合的並行動畫角色。<code>animation_play</code> MCP 工具讓 LLM 直接觸發或混合動畫狀態 &#x2014; 無需自訂整合。</p>
+                    <ul>
+                        <li>混合樹、狀態機、IK、重定向</li>
+                        <li>執行階段混合 &#x2014; LLM 驅動的轉場</li>
+                        <li><code>RakuAnimation.dll</code> 中的 1,900 個匯出函式</li>
+                    </ul>
+                    <div class="engine-benefit"><strong>核心優勢：</strong>自然、回應靈敏的角色動畫，無需逐角色設定。代理可像導演一樣用自然語言指導角色行為。</div>
                 </div>
             </div>
         </div>
-
-        <!-- Spatial Audio -->
         <div class="engine-section" id="audio">
             <div class="engine-grid">
                 <div class="engine-content">
-                    <div class="engine-badge">音訊</div>
+                    <div class="engine-badge">音訊 &#x2014; RakuAudio</div>
                     <h3>空間音訊</h3>
-                    <p>基於 HRTF 的 3D 空間音訊，具備雙耳渲染、遮蔽、殘響區與自適應音樂層。針對 XR 頭戴裝置喇叭與耳機調校，CPU 開銷極低。</p>
-                    <div class="engine-benefit">
-                        <strong>關鍵效益：</strong>玩家能自然地在 3D 空間中定位聲音 &mdash; 對沉浸式 XR 至關重要。
-                    </div>
+                    <p>基於 HRTF 的 3D 空間音訊，具備雙耳算繪、遮蔽、混響區和自適應音樂層。針對 XR 頭戴裝置喇叭和耳機調校，CPU 額外負荷極小。<code>audio_play</code> MCP 工具允許 LLM 在場景中任意 3D 位置放置聲音。</p>
+                    <ul>
+                        <li>HRTF 雙耳算繪 &#x2014; 自然的方向感知</li>
+                        <li>遮蔽、混響區、自適應音樂層</li>
+                        <li><code>RakuAudio.dll</code> 中的 1,654 個匯出函式</li>
+                    </ul>
+                    <div class="engine-benefit"><strong>核心優勢：</strong>玩家可在 3D 空間中自然定位聲音 &#x2014; 對沉浸式 XR 至關重要。代理放置的音訊錨點像視覺物件一樣跟隨場景圖。</div>
                 </div>
             </div>
         </div>
-
     </div>
 </section>
 
+<section class="section" style="background: var(--bg-secondary); border-top: 1px solid #222244;">
+    <div class="container">
+        <h2>誠實比較：RakuAI vs Unity / Unreal</h2>
+        <p style="color: var(--text-secondary); max-width: 760px; margin: -16px 0 0; font-size: 1.05rem;">
+            我們不是 Unity 或 Unreal 的替代品。我們在它們薄弱之處取勝。這張表保持公開，因為開發者的信任比行銷話術更重要。
+        </p>
+        <div style="overflow-x: auto; margin-top: 24px;">
+        <table class="se-vs-table" aria-label="誠實功能比較：RakuAI 空間引擎 vs Unity vs Unreal Engine">
+            <thead>
+                <tr><th>能力</th><th>RakuAI</th><th>Unity</th><th>Unreal Engine</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>LLM 驅動即時場景（MCP）</td><td class="se-vs-win">原生 &#x2014; 17 個工具 + ~9,500 端點傳遞</td><td class="se-vs-loss">非內建；需自訂外掛</td><td class="se-vs-loss">非內建；需自訂外掛</td></tr>
+                <tr><td>透明的原生匯出</td><td class="se-vs-win">30,738 個公開符號 &#x2014; 可直接連結任意 DLL</td><td class="se-vs-loss">封閉執行階段；IL2CPP / 受管層</td><td class="se-vs-loss">封閉執行階段；UObject / 藍圖層</td></tr>
+                <tr><td>眼鏡級散熱預算</td><td class="se-vs-win">RakuSLM 裝置端推論；針對低於 5W 範圍調校</td><td class="se-vs-loss">非設計目標</td><td class="se-vs-loss">非設計目標</td></tr>
+                <tr><td>OpenXR 1.1（手/眼追蹤、錨點）</td><td class="se-vs-win">RakuXR &#x2014; 2,704 個匯出，完整 OpenXR 面</td><td class="se-vs-fair">透過 OpenXR 外掛支援</td><td class="se-vs-fair">透過 OpenXR 外掛支援</td></tr>
+                <tr><td>潑濺 / 3DGS 作為一級場景物件</td><td class="se-vs-win">原生 &#x2014; <code>splat_load</code> MCP 工具，場景圖整合</td><td class="se-vs-loss">第三方套件；非場景圖原生</td><td class="se-vs-loss">第三方套件；非場景圖原生</td></tr>
+                <tr><td>編輯器工具與資產商店</td><td class="se-vs-loss">早期階段 &#x2014; RakuEditor DLL；尚無圖形編輯器</td><td class="se-vs-win">業界標準編輯器；大型資產商店</td><td class="se-vs-win">業界標準編輯器；Fab 市集</td></tr>
+                <tr><td>3A 主機管線</td><td class="se-vs-loss">非目前目標</td><td class="se-vs-win">完整主機認證支援</td><td class="se-vs-win">完整主機認證支援</td></tr>
+                <tr><td>文件廣度</td><td class="se-vs-loss">稀疏 &#x2014; Phase 0（逐 DLL 參考待補）</td><td class="se-vs-win">詳盡</td><td class="se-vs-win">詳盡</td></tr>
+                <tr><td>自帶 LLM（無鎖定）</td><td class="se-vs-win">任何 MCP 相容模型 &#x2014; Claude、GPT、本機</td><td class="se-vs-loss">無原生對等物</td><td class="se-vs-loss">無原生對等物</td></tr>
+                <tr><td>匯出數量可驗證性</td><td class="se-vs-win">dumpbin 輸出已簽入儲存庫 &#x2014; 可稽核</td><td class="se-vs-loss">N/A &#x2014; 封閉執行階段</td><td class="se-vs-loss">N/A &#x2014; 封閉執行階段</td></tr>
+            </tbody>
+        </table>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 0.88rem; margin-top: 16px;">
+            完整的誠實比較（更多子系統、授權、定價）&#x2192; <a href="compare.html" style="color: var(--accent-bright);">compare.html</a>
+        </p>
+    </div>
+</section>
 
+<section class="section" style="border-top: 1px solid #222244; border-bottom: 1px solid #222244;">
+    <div class="container">
+        <h2>執行階段的目前狀態</h2>
+        <p style="color: var(--text-secondary); max-width: 760px; margin: -16px 0 24px; font-size: 1.05rem;">
+            我們公開誠實的狀態，讓您能基於真實事實而非行銷來評估執行階段。
+        </p>
+        <div class="se-honest-box">
+            <h4>Phase 0 &#x2014; 讓執行階段可信且可用</h4>
+            <p><strong style="color: var(--text-primary);">已發佈且可信：</strong>18 個 C++ DLL，共 30,738 個匯出函式（透過 <code>dumpbin /exports</code> 驗證，作為 CI 構件追蹤於 <code>raku-runtime/dll_exports/</code>）。<code>src/mcp/</code> 處的 MCP 伺服器已上線 17 個原生工具。<code>RakuXR</code> 中的 OpenXR 1.1 支援。NVIDIA Inception 成員（2026 年 5 月）。5 項美國已獲核准專利（優先權日：2012 年 7 月）。</p>
+            <p><strong style="color: var(--text-primary);">作用中的缺陷：</strong><code>RakuAssets</code> 有一個進行中的 <code>LNK2001</code> 連結器修復。其餘 17 個 DLL 均 CI 通過；乾淨的 18/18 建置即將到來但尚未確認。修復落地後將移除此通知。</p>
+            <p><strong style="color: var(--text-primary);">仍待完成（Phase 0 追蹤項）：</strong>逐 DLL 參考文件；已發佈的 DLL 能力矩陣；「10 分鐘驅動場景」快速入門影片。首批嵌入式 OEM 出貨為 Phase 1。</p>
+            <p><strong style="color: var(--text-primary);">匯出數量說明：</strong>30,738 是文件化/主幹基準。一個未合併的 WIP 分支的本機 Release 建置顯示 +46（30,784）&#x2014; 但僅 30,738 這個數字為對外正式使用。</p>
+        </div>
+    </div>
+</section>
 
-<!-- Performance Callout -->
 <section class="section" style="background: var(--bg-secondary);">
     <div class="container" style="text-align: center;">
-        <h2>為 XR 最佳化</h2>
+        <h2>為 XR 最佳化 &#x2014; 也為眼鏡散熱範圍最佳化</h2>
         <p style="color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.1rem;">
-            每個子系統都針對 VR 與 AR 頭戴裝置嚴苛的影格預算進行最佳化。
+            每個子系統都針對 VR 與 AR 頭戴裝置嚴苛的影格預算進行了最佳化 &#x2014; 也針對 Unity 與 Unreal 並不鎖定的、智慧眼鏡硬體更緊的限制。
         </p>
         <div class="features">
-            <div class="feature">
-                <h3>高效能 VFX</h3>
-                <p>令人驚豔的視覺特效，不影響遊戲效能。</p>
-            </div>
-            <div class="feature">
-                <h3>可靠的物理</h3>
-                <p>在所有平台上皆有一致的遊戲體驗。</p>
-            </div>
-            <div class="feature">
-                <h3>沉浸式音訊</h3>
-                <p>始終保持純淨的空間音訊品質。</p>
-            </div>
+            <div class="feature"><h3>120 Hz XR 算繪</h3><p>帶自動 LOD 的注視點算繪管線在每個頭戴裝置等級上維持影格預算。</p></div>
+            <div class="feature"><h3>裝置端 SLM 推論</h3><p>RakuSLM 鎖定智慧眼鏡硬體低於 5&#xA0;W 的散熱範圍 &#x2014; 而非外接 GPU 設備。</p></div>
+            <div class="feature"><h3>透明的內部結構</h3><p>全部 30,738 個匯出都是公開符號。在 C++ 層面進行剖析和最佳化 &#x2014; 沒有黑盒。</p></div>
         </div>
         <p style="margin-top: 40px;">
-            <a href="sdk.html" class="btn btn-primary">探索 SDK</a>
+            <a href="#quickstart" class="btn btn-primary">從 MCP 快速入門開始</a>
             <a href="xr-features.html" class="btn btn-secondary" style="margin-left: 16px;">XR 功能</a>
             <a href="ai-systems.html" class="btn btn-secondary" style="margin-left: 16px;">AI 系統</a>
+        </p>
+    </div>
+</section>
+
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 28px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception 成員 - 在媒體頁面了解更多">
+            <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 成員" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <p style="max-width: 600px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            驅動 Raku Capture 的引擎由一家 NVIDIA Inception 成員打造。我們運用該計畫的 NGC 目錄、合作夥伴雲端點數和 DLI 培訓來加速空間管線。<a href="press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">了解更多 &#x2192;</a>
         </p>
     </div>
 </section>
@@ -418,13 +688,14 @@
             <div class="footer-col">
                 <h4>解決方案</h4>
                 <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
                     <li><a href="smart-glasses.html">智慧眼鏡製造商</a></li>
                     <li><a href="llm-makers.html">AI 實驗室</a></li>
                     <li><a href="enterprise.html">企業</a></li>
                     <li><a href="creator.html">創作者</a></li>
                     <li><a href="robotics.html">機器人</a></li>
                     <li><a href="insurance.html">保險</a></li>
-                    <li><a href="compare.html">與 Unity / Unreal 比較</a></li>
+                    <li><a href="compare.html">比較 Unity / Unreal</a></li>
                     <li><a href="spatial-engine.html">空間引擎</a></li>
                     <li><a href="ai-systems.html">AI 系統</a></li>
                     <li><a href="xr-features.html">XR 功能</a></li>
@@ -456,14 +727,14 @@
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>公司資訊</h4>
+                <h4>公司</h4>
                 <ul>
-                    <li><a href="why-rakuai.html">為何選擇 RakuAI</a></li>
-                    <li><a href="pricing.html">定價</a></li>
+                    <li><a href="why-rakuai.html">關於</a></li>
+                    <li><a href="pricing.html">價格</a></li>
                     <li><a href="contact.html">聯絡我們</a></li>
-                    <li><a href="mailto:partners@rakuai.com">合作夥伴聯絡</a></li>
-                    <li><a href="../privacy.html">隱私權</a></li>
-                    <li><a href="../terms.html">使用條款</a></li>
+                    <li><a href="mailto:partners@rakuai.com">合作夥伴</a></li>
+                    <li><a href="../privacy.html">隱私權政策</a></li>
+                    <li><a href="../terms.html">服務條款</a></li>
                 </ul>
             </div>
         </div>
@@ -473,21 +744,25 @@
         </div>
         <p>&copy; 2026 RakuAI, LLC &bull; 5 項美國已獲核准專利（優先權日：2012 年 7 月）&bull; 由 RakuAI 引擎驅動</p>
         <p class="trademark-notice">
-            RakuAI&trade; 與 RakuXR&trade; 是 RakuAI, LLC 的商標。
-            <span class="kanji-logo">&#x697D;</span>AI 與 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的設計化商標。
+            RakuAI&trade; 和 RakuXR&trade; 是 RakuAI, LLC 的商標。
+            <span class="kanji-logo">&#x697D;</span>AI 和 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的風格化標誌。
             5 項美國已獲核准專利（優先權日：2012 年 7 月）。
         </p>
     </div>
         <!-- nv-inception:start -->
         <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
-            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception 成員 - read more on the press page" style="line-height: 0;">
-                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 成員" width="160" height="69" style="height: 40px; width: auto; display: block;">
-            </a>
-            <a href="../press.html#aws-activate" aria-label="基於 AWS 構建 — AWS Activate 參與者" style="line-height: 0;">
-                <img src="../branding/aws/powered-by-aws-white.png" alt="基於 AWS 構建" height="40" style="height: 40px; width: auto; display: block;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception 成員 - 在媒體頁面了解更多" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 成員" width="160" height="40" style="height: 40px; width: auto; display: block;">
             </a>
         </div>
         <!-- nv-inception:end -->
+        <!-- aws-activate:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 4px 0 8px; opacity: 0.9;">
+            <a href="../press.html#aws-activate" aria-label="AWS Activate 參與者 - 在媒體頁面了解更多" style="line-height: 0;">
+                <img src="../branding/aws/powered-by-aws-white.png" alt="基於 AWS 構建" width="120" height="43" style="height: 36px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- aws-activate:end -->
 </footer>
 
 <script src="../js/auth-nav.js" defer></script>
