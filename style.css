@@ -26,15 +26,13 @@ body {
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
-    padding-top: var(--banner-h);
 }
 
-/* Beta Announcement Bar */
+/* Beta Announcement Bar — kept in normal document flow so it can wrap to
+   multiple lines on narrow screens without overlapping the sticky nav (and
+   hiding the mobile hamburger). It scrolls away; the nav then pins to the top. */
 .beta-announcement-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    position: relative;
     z-index: 10000;
     background: linear-gradient(90deg, #6c5ce7, #a388ff);
     color: white;
@@ -122,9 +120,9 @@ nav {
     border-bottom: 1px solid #222244;
     padding: 16px 0;
     position: sticky;
-    /* Stick below the fixed announcement bar (shares --banner-h with body's
-       padding-top), otherwise the nav slides up underneath the banner on scroll. */
-    top: var(--banner-h);
+    /* The announcement bar is in normal flow above the nav, so the nav pins to
+       the very top once the bar scrolls off-screen. */
+    top: 0;
     z-index: 100;
 }
 
