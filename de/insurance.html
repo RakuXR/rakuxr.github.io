@@ -384,6 +384,22 @@
             .ins-cta-row { flex-direction: column; align-items: stretch; }
             .ins-btn-primary, .ins-btn-secondary { text-align: center; }
         }
+        .ins-hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+        @media (max-width: 860px) { .ins-hero-grid { grid-template-columns: 1fr; } .ins-hero-figure { display: none; } }
+        .ins-carousel-viewport { overflow: hidden; }
+        .ins-carousel-track { display: flex; transition: transform 0.35s ease; }
+        .ins-slide { min-width: 100%; display: grid; grid-template-columns: 120px 1fr; gap: 24px; align-items: center; padding: 28px 0; }
+        @media (max-width: 560px) { .ins-slide { grid-template-columns: 1fr; } .ins-slide-art { display: none; } }
+        .ins-slide-art svg { width: 120px; height: 120px; display: block; }
+        .ins-slide-step { font-size: 0.78rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-secondary); }
+        .ins-slide h3 { color: var(--accent-bright); font-size: 1.25rem; margin: 6px 0 10px; }
+        .ins-slide p { color: var(--text-secondary); font-size: 0.96rem; line-height: 1.6; margin: 0; }
+        .ins-carousel-controls { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 16px; }
+        .ins-carousel-btn { background: none; border: 1px solid #2a2a4a; color: var(--accent-bright); border-radius: 6px; padding: 6px 14px; cursor: pointer; font-size: 1.1rem; }
+        .ins-carousel-btn:hover { border-color: var(--accent); }
+        .ins-carousel-dots { display: flex; gap: 6px; }
+        .ins-carousel-dot { width: 8px; height: 8px; border-radius: 50%; border: none; background: #2a2a4a; cursor: pointer; padding: 0; }
+        .ins-carousel-dot[aria-selected="true"] { background: var(--accent-bright); }
     </style>
 </head>
 <body>
@@ -463,25 +479,130 @@
 
 <section class="ins-hero">
     <div class="container">
-        <span class="eyebrow">Für Eigenheimbesitzer, Mieter &amp; ihre Versicherer</span>
-        <h1>Ein Telefon-Scan. Ein versicherungsfertiges Inventarverzeichnis.</h1>
-        <p class="subhead">
-            RakuAI Capture verwandelt einen 60&ndash;90-Sekunden-Telefon-Scan eines Raums in eine detaillierte Liste seines Inhalts &mdash; mit ungefähren Maßen und geschätzten Wiederbeschaffungswerten &mdash;, die du deiner Versicherung übergeben kannst. Gebaut für die drei Momente, in denen man es wirklich braucht: einen <strong>Schadensfall</strong> melden, einen <strong>Umzug</strong> planen und <strong>verkleinern</strong>. Dieselbe 3D-Gaussian-Splat-Rekonstruktion und derselbe MCP-Kern wie im Rest von RakuAI &mdash; keine neue Engine.
-        </p>
-        <p class="audience-line">
-            Diese Seite ist ehrlich darüber, was heute live ist und was auf der Roadmap steht. Wir dokumentieren einen Raum und erstellen ein strukturiertes Inventar; wir sind kein Versicherer und legen keine Vertragsbedingungen fest und regulieren keine Schäden.
-        </p>
+        <div class="ins-hero-grid">
+            <div class="ins-hero-copy">
+                <span class="eyebrow">F&uuml;r Eigenheimbesitzer, Mieter &amp; ihre Versicherer</span>
+                <h1>Ein Telefon-Scan. Ein versicherungsfertiges Inventarverzeichnis.</h1>
+                <p class="subhead">
+                    RakuAI Capture verwandelt einen 60&ndash;90-Sekunden-Telefon-Scan eines Raums in ein detailliertes, abfragbares Inventarverzeichnis &mdash; mit ungen&auml;hren Ma&szlig;en und gesch&auml;tzten Wiederbeschaffungswerten. Der KI-Assistent eines Schadensregulierers kann das Inventar &uuml;ber die MCP-Oberfl&auml;che abfragen &mdash; ohne Vor-Ort-Besuch. Dieselbe 3D-Gaussian-Splat-Rekonstruktion und derselbe MCP-Kern wie im Rest von RakuAI &mdash; keine neue Engine. Gebaut f&uuml;r drei Momente: einen <strong>Schadensfall</strong> melden, einen <strong>Umzug</strong> planen und <strong>verkleinern</strong>.
+                </p>
+                <p class="audience-line">
+                    Phase&nbsp;1 / Pilot-Bereitschaft &mdash; ehrlich dar&uuml;ber, was heute ausgeliefert wird und was auf der Roadmap steht. Wir dokumentieren einen Raum und erstellen ein strukturiertes Inventar; wir sind kein Versicherer.
+                </p>
+                <div style="display: flex; margin: 22px 0 4px;">
+                    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Mitglied von NVIDIA Inception &mdash; zu den Details scrollen">
+                        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Mitglied von</span>
+                        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+                        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">Mehr lesen &darr;</span>
+                    </a>
+                </div>
+                <div class="ins-cta-row" style="justify-content:flex-start;">
+                    <a href="#request-pilot" class="ins-btn-primary">Pilot anfragen &rarr;</a>
+                    <a href="capture.html" class="ins-btn-secondary">Den Capture-Flow ausprobieren &rarr;</a>
+                </div>
+            </div>
+            <div class="ins-hero-figure" aria-hidden="true">
+                <svg viewBox="0 0 360 320" role="img" xmlns="http://www.w3.org/2000/svg">
+                    <title>Ein Telefon scannt einen Raum und erstellt ein detailliertes Inventarverzeichnis</title>
+                    <defs>
+                        <linearGradient id="insRoom" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#1a1a3a"/>
+                            <stop offset="1" stop-color="#11112a"/>
+                        </linearGradient>
+                        <linearGradient id="insScan" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#a388ff" stop-opacity="0.55"/>
+                            <stop offset="1" stop-color="#a388ff" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <g transform="translate(24,26) scale(1.18) translate(-24,-26)">
+                    <rect x="24" y="26" width="220" height="180" rx="12" fill="url(#insRoom)" stroke="#2c2c50"/>
+                    <g fill="#6c5ce7">
+                        <circle cx="70" cy="150" r="3.2" opacity="0.9"/><circle cx="86" cy="158" r="2.6" opacity="0.7"/>
+                        <circle cx="100" cy="146" r="3" opacity="0.8"/><circle cx="120" cy="160" r="2.4" opacity="0.6"/>
+                        <circle cx="150" cy="120" r="3.2" opacity="0.85"/><circle cx="168" cy="132" r="2.6" opacity="0.7"/>
+                        <circle cx="190" cy="150" r="3" opacity="0.8"/><circle cx="205" cy="160" r="2.4" opacity="0.6"/>
+                        <circle cx="64" cy="100" r="2.6" opacity="0.6"/><circle cx="200" cy="96" r="2.6" opacity="0.6"/>
+                    </g>
+                    <rect x="60" y="150" width="80" height="34" rx="6" fill="#23244a" stroke="#3a3a66"/>
+                    <rect x="172" y="112" width="48" height="72" rx="5" fill="#23244a" stroke="#3a3a66"/>
+                    </g>
+                    <polygon points="320,250 200,40 248,40" fill="url(#insScan)"/>
+                    <g>
+                        <rect x="296" y="196" width="48" height="92" rx="10" fill="#16162e" stroke="#a388ff" stroke-width="2"/>
+                        <rect x="302" y="206" width="36" height="60" rx="4" fill="#0a0a1a"/>
+                        <circle cx="320" cy="278" r="3.5" fill="#3a3a66"/>
+                    </g>
+                    <g>
+                        <rect x="150" y="232" width="150" height="78" rx="9" fill="#16162e" stroke="#2c2c50"/>
+                        <rect x="162" y="244" width="14" height="14" rx="3" fill="#00cec9"/>
+                        <rect x="184" y="246" width="78" height="6" rx="3" fill="#3a3a66"/>
+                        <rect x="184" y="258" width="48" height="5" rx="2.5" fill="#2c2c50"/>
+                        <rect x="162" y="272" width="14" height="14" rx="3" fill="#00cec9"/>
+                        <rect x="184" y="274" width="66" height="6" rx="3" fill="#3a3a66"/>
+                        <rect x="184" y="286" width="40" height="5" rx="2.5" fill="#2c2c50"/>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+</section>
 
-<div style="display: flex; justify-content: center; margin: 22px 0 4px;">
-    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Mitglied von NVIDIA Inception — zu den Details scrollen">
-        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Mitglied von</span>
-        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
-        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">Mehr lesen &darr;</span>
-    </a>
-</div>
-        <div class="ins-cta-row">
-            <a href="capture.html" class="ins-btn-primary">Den Capture-Flow ausprobieren &rarr;</a>
-            <a href="mailto:partnerships@rakuai.com?subject=Insurance%20capture%20%E2%80%94%20partnership%20inquiry" class="ins-btn-secondary">Versicherer- &amp; InsurTech-Partnerschaften &rarr;</a>
+
+<!-- Infografik-Carousel -->
+<section class="ins-section" id="flow-carousel" style="padding-top:0;border-bottom:1px solid #222244;">
+    <div class="container">
+        <h2>Vom Telefon in der Hand zur Liste, die du einreichen kannst.</h2>
+        <p class="ins-subtitle">Dieselbe Raku-Capture-Pipeline, Schritt für Schritt.</p>
+        <div class="ins-carousel" data-carousel>
+            <div class="ins-carousel-viewport">
+                <div class="ins-carousel-track" data-carousel-track role="group" aria-roledescription="carousel" aria-label="Wie ein Scan zum Inventar wird">
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="Schritt 1 von 4: Den Raum scannen">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="44" y="18" width="40" height="84" rx="9" fill="#16162e" stroke="#a388ff" stroke-width="2"/><rect x="50" y="28" width="28" height="56" rx="3" fill="#0a0a1a"/><circle cx="64" cy="94" r="3.5" fill="#3a3a66"/><path d="M30 60 H14 M90 60 H106 M64 18 V6" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round" opacity="0.7"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">Schritt 1</span>
+                            <h3>Den Raum scannen</h3>
+                            <p>Geh mit deinem Telefon eine langsame Runde &mdash; etwa 60–90 Sekunden, mit Bildschirmanleitung. Kein Stativ, kein teures Gerät, keine Spezialkamera.</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="Schritt 2 von 4: Rekonstruieren">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="24" width="88" height="72" rx="10" fill="#1a1a3a" stroke="#2c2c50"/><g fill="#6c5ce7"><circle cx="40" cy="70" r="4"/><circle cx="56" cy="76" r="3"/><circle cx="72" cy="62" r="4"/><circle cx="86" cy="74" r="3"/><circle cx="50" cy="50" r="3"/><circle cx="78" cy="48" r="3"/></g></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">Schritt 2</span>
+                            <h3>Rekonstruieren</h3>
+                            <p>Frames und Bewegung werden in der Cloud zu einem 3D-Gaussian-Splat rekonstruiert &mdash; einem erkundbaren Modell des tatsächlichen Raums.</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="Schritt 3 von 4: Mit einem LLM auflisten">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="22" y="20" width="76" height="80" rx="9" fill="#16162e" stroke="#2c2c50"/><rect x="34" y="34" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="37" width="38" height="6" rx="3" fill="#3a3a66"/><rect x="34" y="56" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="59" width="34" height="6" rx="3" fill="#3a3a66"/><rect x="34" y="78" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="81" width="30" height="6" rx="3" fill="#3a3a66"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">Schritt 3</span>
+                            <h3>Mit einem LLM auflisten</h3>
+                            <p>Ein LLM durchläuft die Szene über die MCP-Oberfläche und listet die sichtbaren Objekte auf. Claude, ChatGPT, Gemini oder Copilot &mdash; nach Wahl.</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="Schritt 4 von 4: Prüfen und exportieren">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="24" y="18" width="72" height="84" rx="9" fill="#16162e" stroke="#2c2c50"/><path d="M40 60 l12 12 l28 -28" fill="none" stroke="#00cec9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">Schritt 4</span>
+                            <h3>Prüfen &amp; exportieren</h3>
+                            <p>Du bearbeitest die Liste, bestätigst die Werte und exportierst ein sauberes Inventar für deinen Versicherer. Jeder Wert ist als Schätzung gekennzeichnet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ins-carousel-controls">
+                <button type="button" class="ins-carousel-btn" data-carousel-prev aria-label="Vorherige Folie">&larr;</button>
+                <div class="ins-carousel-dots" role="tablist" aria-label="Folie wählen" data-carousel-dots data-dot-class="ins-carousel-dot"></div>
+                <button type="button" class="ins-carousel-btn" data-carousel-next aria-label="Nächste Folie">&rarr;</button>
+            </div>
         </div>
     </div>
 </section>
@@ -570,6 +691,35 @@
     </div>
 </section>
 
+
+<!-- Versicherer-Wirtschaftlichkeit -->
+<section class="ins-section" id="carrier-economics" style="background: rgba(108,92,231,0.04);">
+    <div class="container">
+        <h2>Das Versicherer-Modell, klar erklärt.</h2>
+        <p class="ins-subtitle">Der Verbraucher scannt kostenlos beim Onboarding oder der Verlängerung. Der Versicherer zahlt pro Scan. Der Return: geringere Schadenregulierungskosten (LAE) und ein kürzerer FNOL-bis-Auszahlung-Zyklus.</p>
+        <div class="ins-steps" style="max-width:900px;">
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">$</span>
+                <h4>Versicherer zahlt 5–20&nbsp;$ pro Scan</h4>
+                <p>Der Verbraucher scannt beim Onboarding oder der Verlängerung — keine Kosten für den Versicherungsnehmer. Der Versicherer finanziert den Scan als Akquisitions- und Kundenbindungsinvestition.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">%</span>
+                <h4>LAE-Reduktion</h4>
+                <p>Weniger Kontaktpunkte mit dem Schadensregulierer bei Policen, für die bereits ein Inventar vor dem Schadensfall vorliegt. Zielmetrik für den Piloten: &ge;10&nbsp;% Reduktion der Regulierer-Kontaktpunkte gegenüber einer Kontrollgruppe.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">&#x2193;</span>
+                <h4>Kürzerer FNOL-bis-Auszahlung-Zyklus</h4>
+                <p>Wenn ein Schaden gemeldet wird, fragt der KI-Assistent des Regulierers den gespeicherten Splat über MCP ab und erhält in Sekunden ein strukturiertes Inventar — statt tagelang auf einen Vor-Ort-Besuch zu warten.</p>
+            </div>
+        </div>
+        <p style="text-align:center; margin:28px auto 0; font-size:0.88rem; color:var(--text-secondary); max-width:760px; opacity:0.85;">
+            Die Backend-Kosten pro Scan werden auf 0,50–2,00&nbsp;$ geschätzt. Noch keine unterzeichnete Versichererpartnerschaft; das ist das Wertmodell, das wir in unsere Phase-1-Pilot-Gespräche einbringen.
+        </p>
+    </div>
+</section>
+
 <!-- Why us vs the field -->
 <section class="ins-section" id="why-rakuai">
     <div class="container">
@@ -643,6 +793,45 @@
     </div>
 </section>
 
+
+<!-- Schadensregulierer-Workflow -->
+<section class="ins-section" id="adjuster-workflow">
+    <div class="container">
+        <h2>Wie der Schadensregulierer-Assistent-Workflow passt.</h2>
+        <p class="ins-subtitle">Die MCP-Oberfläche, die Raku Capture antreibt, ist auch der Weg, über den der KI-Assistent eines Regulierers den Scan abfragt.</p>
+        <div class="ins-steps">
+            <div class="ins-step">
+                <span class="ins-step-num">1</span>
+                <h4>Versicherungsnehmer scannt beim Onboarding</h4>
+                <p>Der Verbraucher scannt seinen Raum mit dem Raku-Capture-Flow. Der Versicherer bettet diesen Schritt kostenlos ins Onboarding neuer Policen oder bei der jährlichen Verlängerung ein.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">2</span>
+                <h4>Splat auf RakuAI-Cloud gespeichert</h4>
+                <p>Der rekonstruierte 3D-Gaussian-Splat wird mit Zustimmung des Versicherungsnehmers auf der RakuAI-Cloud gespeichert. Rohdaten-Frames werden nach der Rekonstruktion standardmäßig gelöscht.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">3</span>
+                <h4>KI des Regulierers fragt über MCP ab</h4>
+                <p>Wenn ein Schaden gemeldet wird, verbindet sich der KI-Assistent des Regulierers mit der 17-native-Tool-MCP-Oberfläche von RakuAI und durchläuft den rekonstruierten Raum. Eine natürlichsprachliche Anfrage gibt ein strukturiertes Inventar zurück — ohne Vor-Ort-Besuch.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">4</span>
+                <h4>Regulierer prüft und schließt ab</h4>
+                <p>Der Regulierer bearbeitet und bestätigt die Liste anhand des Schadens. Jeder Wert ist als Schätzung gekennzeichnet. RakuAI reguliert keine Schäden — das bleibt beim Versicherer.</p>
+            </div>
+        </div>
+        <div class="ins-honest" style="margin-top:32px;">
+            <h3>Ehrlicher Stand dieses Workflows</h3>
+            <ul>
+                <li><strong>Phase&nbsp;1 / Pilot-Bereitschaft (aktuell):</strong> Die MCP-Abfrage-Oberfläche funktioniert heute. Das Versicherer-Portal, die Abrechnung pro Scan und der formale versicherungsfertige Export sind für den ersten Piloten in Arbeit.</li>
+                <li><strong>Noch nicht:</strong> SOC-2-Zertifizierung (von großen Versicherern gefordert; frühe Piloten zielen zuerst auf InsurTechs ab). Noch keine unterzeichnete Versichererpartnerschaft.</li>
+                <li><strong>Deine Daten:</strong> Scans werden ohne ausdrückliche Zustimmung nie an Dritte weitergegeben.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
 <!-- Partner CTA -->
 <section class="ins-section" id="partners">
     <div class="container">
@@ -672,6 +861,27 @@
                 <a href="mailto:partnerships@rakuai.com?subject=InsurTech%20integration%20%E2%80%94%20capture%20layer" class="ins-btn-secondary" style="text-align:center;">Eine Integration erkunden &rarr;</a>
             </div>
         </div>
+    </div>
+</section>
+
+
+<!-- Pilot-CTA -->
+<section class="ins-section" id="request-pilot" style="background: rgba(108,92,231,0.06); scroll-margin-top:80px;">
+    <div class="container" style="text-align:center;">
+        <h2>Einen kostenlosen 90-Tage-Piloten anfragen.</h2>
+        <p class="ins-subtitle" style="max-width:720px;">
+            Ein Partner pro Quartal. Wir integrieren den Raku-Capture-Scan-Flow in dein Onboarding, führen rund 100 Kunden-Scans durch und veröffentlichen gemeinsam die Ergebnisse. Kein Entgelt für den Piloten. Wir bitten um Zugang zum UX-Team und um die Erlaubnis zur Veröffentlichung einer Fallstudie.
+        </p>
+        <p style="color:var(--text-secondary); font-size:0.9rem; max-width:680px; margin:0 auto 28px; line-height:1.65;">
+            <strong>Was der Pilot umfasst:</strong> Scan-Flow-Integration, MCP-Inventarisierung nach deinem bevorzugten Format, ein Versicherer-Prüfportal sowie Abschluss- und Regulierer-Kontaktpunkt-Metriken. Frühe Piloten zielen zuerst auf InsurTechs ab &mdash; SOC&nbsp;2 Typ&nbsp;II ist in Arbeit für größere Versicherer.
+        </p>
+        <div class="ins-cta-row" style="justify-content:center;">
+            <a href="mailto:partnerships@rakuai.com?subject=Insurance%20pilot%20request%20%E2%80%94%20%5BIhr%20Unternehmen%5D" class="ins-btn-primary">E-Mail an partnerships@rakuai.com &rarr;</a>
+            <a href="mailto:partnerships@rakuai.com?subject=Insurance%20capability%20inquiry%20%E2%80%94%20%5BIhr%20Unternehmen%5D" class="ins-btn-secondary">Zuerst Funktionsanfrage &rarr;</a>
+        </div>
+        <p style="margin-top:20px; color:var(--text-secondary); font-size:0.82rem; opacity:0.8;">
+            Piloten laufen auf der RakuAI-Cloud mit einem Versicherer-Prüfportal, bis SOC&nbsp;2 da ist. Heute kein SOC&nbsp;2 &mdash; zuerst InsurTechs.
+        </p>
     </div>
 </section>
 
@@ -792,13 +1002,53 @@
         <!-- nv-inception:end -->
 </footer>
 
-<script src="/js/public-config.js"></script>
-<script src="/js/api-client.js"></script>
-<script src="/js/auth-nav.js" defer></script>
-<script src="/js/lang-selector.js" defer></script>
-
-
-<script src="/js/nav-dropdown.js" defer></script>
-<script src="/js/section-nav.js" defer></script>
+<script>
+(function () {
+    function initCarousel(root) {
+        var track = root.querySelector('[data-carousel-track]');
+        var slides = Array.prototype.slice.call(track.children);
+        var dotsWrap = root.querySelector('[data-carousel-dots]');
+        var prev = root.querySelector('[data-carousel-prev]');
+        var next = root.querySelector('[data-carousel-next]');
+        if (!track || !slides.length) return;
+        var index = 0;
+        var dots = slides.map(function (slide, i) {
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = dotsWrap.getAttribute('data-dot-class') || 'ins-carousel-dot';
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', 'Zu Folie ' + (i + 1) + ' wechseln');
+            dot.addEventListener('click', function () { go(i, true); });
+            dotsWrap.appendChild(dot);
+            return dot;
+        });
+        function go(i, focusDot) {
+            index = (i + slides.length) % slides.length;
+            track.style.transform = 'translateX(' + (-index * 100) + '%)';
+            slides.forEach(function (s, n) { s.setAttribute('aria-hidden', n === index ? 'false' : 'true'); });
+            dots.forEach(function (d, n) { d.setAttribute('aria-selected', n === index ? 'true' : 'false'); d.tabIndex = n === index ? 0 : -1; });
+            if (focusDot && dots[index]) dots[index].focus();
+        }
+        if (prev) prev.addEventListener('click', function () { go(index - 1, false); });
+        if (next) next.addEventListener('click', function () { go(index + 1, false); });
+        dotsWrap.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1, true); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1, true); }
+            else if (e.key === 'Home') { e.preventDefault(); go(0, true); }
+            else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1, true); }
+        });
+        go(0, false);
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-carousel]'), initCarousel);
+    });
+})();
+</script>
+<script src="../js/public-config.js"></script>
+<script src="../js/api-client.js"></script>
+<script src="../js/auth-nav.js" defer></script>
+<script src="../js/lang-selector.js" defer></script>
+<script src="../js/nav-dropdown.js" defer></script>
+<script src="../js/section-nav.js" defer></script>
 </body>
 </html>
