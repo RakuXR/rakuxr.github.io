@@ -55,11 +55,14 @@ import sys
 
 SKIP_DIRS = {".git", ".github", "node_modules", "tests"}
 NAV_MARKER = 'id="panel-solutions"'
+# Robust matcher for the marker: tolerates single/double quotes and
+# whitespace around "=" so a page is never silently skipped on a quoting quirk.
+NAV_MARKER_RE = re.compile(rb'id\s*=\s*["\']panel-solutions["\']', re.IGNORECASE)
 PANEL_END_ANCHOR = "panel-developers"
 PANEL_FALLBACK_BYTES = 6000
 ROOT_INDEX = "index.html"
 ROLLOUT_IN_PROGRESS = {"robotics", "insurance", "capture"}
-SLUG_HREF_RE = re.compile(rb'href\s*=\s*["\'][^"\']*?([a-z0-9-]+)\.html["\']', re.IGNORECASE)
+SLUG_HREF_RE = re.compile(rb'href\s*=\s*["\'][^"\']*?([a-z0-9-]+)\.html(?:[?#][^"\']*)?["\']', re.IGNORECASE)
 
 # SKIP_NOTE -- pages with no #panel-solutions marker, skipped by design (the
 # skip is automatic via marker-absence; this is a record, not an allow-list):
@@ -69,7 +72,7 @@ SLUG_HREF_RE = re.compile(rb'href\s*=\s*["\'][^"\']*?([a-z0-9-]+)\.html["\']', r
 #   demo/talk-to-a-room/index.html, engine/index.html
 
 
-def find_html_files(root):
+def find_html_files(root: str) -> list[str]:
     out = []
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
@@ -79,21 +82,23 @@ def find_html_files(root):
     return sorted(out)
 
 
-def extract_panel(data):
-    i = data.find(NAV_MARKER.encode())
-    if i < 0:
+def extract_panel(data: bytes) -> "bytes | None":
+    """Return the bytes of the #panel-solutions block, or None if absent."""
+    m = NAV_MARKER_RE.search(data)
+    if m is None:
         return None
+    i = m.start()
     j = data.find(PANEL_END_ANCHOR.encode(), i)
     if j < 0:
         j = i + PANEL_FALLBACK_BYTES
     return data[i:j]
 
 
-def slugs_in_panel(panel):
+def slugs_in_panel(panel: bytes) -> set[str]:
     return {m.group(1).decode("ascii", "replace").lower() for m in SLUG_HREF_RE.finditer(panel)}
 
 
-def derive_required(root):
+def derive_required(root: str) -> tuple[set[str], set[str]]:
     path = os.path.join(root, ROOT_INDEX)
     with open(path, "rb") as fh:
         panel = extract_panel(fh.read())
@@ -106,7 +111,7 @@ def derive_required(root):
     return candidate, candidate - ROLLOUT_IN_PROGRESS
 
 
-def main(argv):
+def main(argv: list[str]) -> int:
     root = argv[1] if len(argv) > 1 else "."
     candidate, required = derive_required(root)
     if not required:
