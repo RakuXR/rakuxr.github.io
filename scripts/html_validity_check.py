@@ -49,6 +49,14 @@ BARE_JS_RE = re.compile(rb"""src\s*=\s*["']js/""", re.IGNORECASE)
 OPEN_FOOTER_RE = re.compile(rb"<footer\b", re.IGNORECASE)
 CLOSE_FOOTER_RE = re.compile(rb"</footer\s*>", re.IGNORECASE)
 
+# Used to neutralize <script>/<style> bodies and HTML comments before the
+# token-counting checks, so literal "<footer>" / src="js/..." strings that
+# legitimately live inside JS, CSS, or commented-out markup do not produce
+# false positives.
+SCRIPT_RE = re.compile(rb"<script\b.*?</script\s*>", re.DOTALL | re.IGNORECASE)
+STYLE_RE = re.compile(rb"<style\b.*?</style\s*>", re.DOTALL | re.IGNORECASE)
+COMMENT_RE = re.compile(rb"<!--.*?-->", re.DOTALL)
+
 
 def find_html_files(root: str) -> list[str]:
     out: list[str] = []
@@ -67,28 +75,40 @@ def check_file(path: str) -> list[str]:
     with open(path, "rb") as fh:
         data = fh.read()
 
-    # (a) closing tags at EOF
+    # (a) closing tags at EOF — checked on the raw bytes; truncation is the
+    # whole point of this check, so never strip anything for it.
     if not END_RE.search(data):
         violations.append("does not end with </body></html>")
 
-    # (b) balanced <footer> / </footer>
-    n_open = len(OPEN_FOOTER_RE.findall(data))
-    n_close = len(CLOSE_FOOTER_RE.findall(data))
-    if n_open != n_close:
-        violations.append(
-            f"unbalanced footer tags: {n_open} <footer> vs {n_close} </footer>"
-        )
+    # The footer-balance and bare-js checks look for literal markup tokens, so
+    # strip <script>/<style> bodies first — otherwise valid JS/CSS that merely
+    # contains the string "<footer>" or "src=\"js/...\"" would trip a false
+    # positive. Comment-marker balance is counted BEFORE stripping comments
+    # (so we can still flag a genuinely unbalanced "<!--"); then comments are
+    # removed so commented-out markup does not skew the footer / js checks.
+    no_code = SCRIPT_RE.sub(b"", data)
+    no_code = STYLE_RE.sub(b"", no_code)
 
     # (c) balanced comment markers
-    n_open_c = data.count(b"<!--")
-    n_close_c = data.count(b"-->")
+    n_open_c = no_code.count(b"<!--")
+    n_close_c = no_code.count(b"-->")
     if n_open_c != n_close_c:
         violations.append(
             f"unbalanced comment markers: {n_open_c} '<!--' vs {n_close_c} '-->'"
         )
 
+    clean = COMMENT_RE.sub(b"", no_code)
+
+    # (b) balanced <footer> / </footer>
+    n_open = len(OPEN_FOOTER_RE.findall(clean))
+    n_close = len(CLOSE_FOOTER_RE.findall(clean))
+    if n_open != n_close:
+        violations.append(
+            f"unbalanced footer tags: {n_open} <footer> vs {n_close} </footer>"
+        )
+
     # (d) bare relative js/ src
-    if BARE_JS_RE.search(data):
+    if BARE_JS_RE.search(clean):
         violations.append(
             'relative script src="js/..." found '
             "(must be /js/... on root pages or ../js/... on locale pages)"
