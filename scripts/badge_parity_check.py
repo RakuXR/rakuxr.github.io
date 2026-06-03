@@ -133,30 +133,36 @@ def footer_region(data):
     return data[start:end]
 
 
-def check_file(path, root):
-    with open(path, "rb") as fh:
-        data = fh.read()
+def check_file(path, root, data):
     rel = os.path.relpath(path, root)
     problems = []
 
-    has_pill = bool(HERO_PILL_RE.search(data))
+    pill_count = len(HERO_PILL_RE.findall(data))
+    has_pill = pill_count >= 1
     footer_divs = len(FOOTER_DIV_RE.findall(data))
+    nv_s, nv_e = len(NV_START_RE.findall(data)), len(NV_END_RE.findall(data))
+    aws_s, aws_e = len(AWS_START_RE.findall(data)), len(AWS_END_RE.findall(data))
 
-    if not has_pill and footer_divs == 0:
+    # Fully skip pages with no badge surface AND no badge markers at all --
+    # standalone surfaces (admin, auth callbacks, the capture-app PWA shell,
+    # the demo room) carry nothing to check. A page that has only orphan
+    # markers (a half-deleted lockup: markers left behind, div removed) is NOT
+    # skipped, so the marker-balance check below still catches it.
+    if not has_pill and footer_divs == 0 and nv_s == 0 and nv_e == 0 \
+            and aws_s == 0 and aws_e == 0:
         return problems
 
-    pill_count = len(HERO_PILL_RE.findall(data))
+    # (1) Hero pill <= 1.
     if pill_count >= 2:
         problems.append(
             "{}: {} hero NVIDIA Inception pills (duplicate-pill regression; "
             "expected 0 or 1)".format(rel, pill_count))
 
-    nv_s, nv_e = len(NV_START_RE.findall(data)), len(NV_END_RE.findall(data))
+    # (3) Marker balance (runs even with no pill/div, to catch orphan markers).
     if nv_s != nv_e:
         problems.append(
             "{}: unbalanced nv-inception markers (start={}, end={})".format(
                 rel, nv_s, nv_e))
-    aws_s, aws_e = len(AWS_START_RE.findall(data)), len(AWS_END_RE.findall(data))
     if aws_s != aws_e:
         problems.append(
             "{}: unbalanced aws-activate markers (start={}, end={})".format(
@@ -199,7 +205,7 @@ def main(argv):
             data = fh.read()
         if HERO_PILL_RE.search(data) or FOOTER_DIV_RE.search(data):
             badge_pages += 1
-        all_problems.extend(check_file(path, root))
+        all_problems.extend(check_file(path, root, data))
 
     if all_problems:
         for p in all_problems:
