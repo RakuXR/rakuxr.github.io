@@ -61,7 +61,7 @@ NAV_MARKER_RE = re.compile(rb'id\s*=\s*["\']panel-solutions["\']', re.IGNORECASE
 PANEL_END_ANCHOR = "panel-developers"
 PANEL_FALLBACK_BYTES = 6000
 ROOT_INDEX = "index.html"
-ROLLOUT_IN_PROGRESS = {"robotics", "insurance", "capture"}
+ROLLOUT_IN_PROGRESS = set()  # promoted 2026-06-02: capture/robotics/insurance now site-wide (#375 root, #376 locales)
 SLUG_HREF_RE = re.compile(rb'href\s*=\s*["\'][^"\']*?([a-z0-9-]+)\.html(?:[?#][^"\']*)?["\']', re.IGNORECASE)
 
 # SKIP_NOTE -- pages with no #panel-solutions marker, skipped by design (the
