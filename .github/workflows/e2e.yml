@@ -10,6 +10,21 @@ on:
     branches: [main]
 
 jobs:
+  # Fast structural-validity guard. Runs first/independently of the Playwright
+  # smoke suite because it needs no browser, no server, and no npm — just the
+  # Python stdlib. Catches silent mid-file truncations (dropped
+  # </body></html> + trailing nav <script> tags) that the curated e2e suite
+  # does not exercise on every page. See scripts/html_validity_check.py.
+  html-validity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run HTML validity guard
+        run: python3 scripts/html_validity_check.py .
+
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 10
