@@ -1151,8 +1151,8 @@
 /**
  * RakuAI Configuration (J.2)
  * Set RAKU_API_BASE to point to the backend API.
- * - Production: https://raku-backend.fly.dev
- * - Staging: https://raku-backend-staging.fly.dev
+ * - Production: https://api.rakuai.com (Azure Container Apps)
+ * - Staging: https://raku-api-staging.fly.dev
  * - Local dev: http://localhost:8000
  * - Same-origin (default): '' (empty string)
  *
@@ -1177,8 +1177,8 @@ var RAKU_API_BASE = (function() {
     if (meta && meta.content) return meta.content;
     // Priority 4: detect environment from hostname
     if (localHost) return 'http://localhost:8000';
-    if (host === 'staging.rakuai.com') return 'https://raku-backend-staging.fly.dev';
-    if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://raku-backend.fly.dev';
+    if (host === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
+    if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://api.rakuai.com';
     // Default: same-origin (relative URLs)
     return '';
 })();
@@ -1196,7 +1196,7 @@ var RAKU_API_BASE = (function() {
     var __qsApiBase = __qs.get('api_base');
     var API_BASE = (__overrideAllowed && __qsApiBase)
         ? __qsApiBase
-        : 'https://raku-api-staging.fly.dev';
+        : RAKU_API_BASE;
 
     var textarea = document.getElementById('prompt-input');
     var charCount = document.getElementById('char-count');
