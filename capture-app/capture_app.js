@@ -61,7 +61,8 @@ import {
 // app functional even when the locale layer fails to load.
 
 // W2A: capture persistence -- localStorage history + the My Captures view.
-import { CaptureHistory, STATUS as HISTORY_STATUS } from './capture_history.js';
+import { CaptureHistory, STATUS as HISTORY_STATUS,
+  RECON_FAILED_CODE, isTerminalFailure } from './capture_history.js';
 import { CapturesView } from './captures_view.js';
 
 // One shared history store for this page. Anonymous-first: it records every
@@ -979,8 +980,14 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
         return job.splat_url;
       }
       if (job.status === 'failed') {
-        throw new Error(job.error || t('error.reconstructionFailed', null,
-          'Reconstruction failed.'));
+        // Tag this as the *terminal* reconstruction failure (the server itself
+        // reported it failed) so callers persist FAILED only here -- never for
+        // the transient 'lost contact' / timeout throws below, which would
+        // otherwise re-render as a stale failure next visit.
+        const failure = new Error(job.error || t('error.reconstructionFailed',
+          null, 'Reconstruction failed.'));
+        failure.code = RECON_FAILED_CODE;
+        throw failure;
       }
       if (job.status === 'cancelled') {
         return null; // user cancelled — handled quietly, not an error
@@ -1560,6 +1567,16 @@ async function runPipeline() {
     }
     state.viewerTeardown = teardown;
   } catch (err) {
+    // A genuine, server-reported reconstruction failure is terminal -- record
+    // it so My Captures reflects reality instead of showing 'processing'
+    // forever. Transient errors (lost contact, client timeout, viewer-load)
+    // leave the entry PROCESSING and recoverable -- never a stale FAILED.
+    if (isTerminalFailure(err) && state.captureId) {
+      try {
+        captureHistory.update(state.captureId,
+          { status: HISTORY_STATUS.FAILED });
+      } catch (e2) { /* non-fatal */ }
+    }
     // Only surface the error if this run is still the active one.
     if (run === state.runToken) {
       const detail = err && err.message ? err.message : String(err);
@@ -1846,12 +1863,19 @@ async function reopenCapture(entry) {
     if (run !== state.runToken) { teardown(); return; }
     state.viewerTeardown = teardown;
   } catch (err) {
-    // W2A: a failed re-open must not leave the entry stuck in
-    // 'processing' -- mark it failed so My Captures reflects reality.
-    try {
-      captureHistory.update(entry.captureId,
-        { status: HISTORY_STATUS.FAILED });
-    } catch (e2) { /* non-fatal */ }
+    // W2A: a genuine, server-reported reconstruction failure is terminal --
+    // record it so My Captures reflects reality. But a *transient* error --
+    // lost contact (404 / network blips), a client-side timeout while the
+    // server is still working, or a viewer-load error on an otherwise-ready
+    // splat -- must NOT be recorded as FAILED: that stale 'failed' would
+    // re-render as a current failure next visit even though the job is still
+    // processing/ready server-side. Leave it PROCESSING (recoverable) instead.
+    if (isTerminalFailure(err)) {
+      try {
+        captureHistory.update(entry.captureId,
+          { status: HISTORY_STATUS.FAILED });
+      } catch (e2) { /* non-fatal */ }
+    }
     if (run === state.runToken) showError(err.message || String(err));
   }
 }

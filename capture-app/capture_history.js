@@ -32,6 +32,21 @@ const STATUS = Object.freeze({
   CANCELLED: 'cancelled',
 });
 
+// The error `code` the capture pipeline stamps onto the Error it throws for a
+// *terminal* reconstruction failure -- i.e. the server itself reported
+// job.status === 'failed'. Callers persist STATUS.FAILED only when
+// isTerminalFailure(err) is true. A transient error -- lost contact (a 404 or
+// a run of network blips), a client-side timeout while the server is still
+// working, or a viewer-load (WebGL) error on an otherwise-ready splat -- is
+// NOT terminal: it must leave the record PROCESSING and recoverable, never
+// poison it as a stale 'failed' that re-renders as a current failure on the
+// next visit.
+const RECON_FAILED_CODE = 'reconstruction-failed';
+
+function isTerminalFailure(err) {
+  return !!(err && err.code === RECON_FAILED_CODE);
+}
+
 
 function defaultStore() {
   if (typeof localStorage !== 'undefined') return localStorage;
@@ -174,5 +189,6 @@ function mapServerStatus(s) {
 
 export {
   CaptureHistory, STORAGE_KEY, SCHEMA_VERSION, MAX_ENTRIES, STATUS,
+  RECON_FAILED_CODE, isTerminalFailure,
   defaultLabel, mapServerStatus,
 };
