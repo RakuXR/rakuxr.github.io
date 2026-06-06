@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com https://sparkjs.dev https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io https://sparkjs.dev https://cdn.jsdelivr.net https://cdn.raku.games; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none'; worker-src 'self' blob:;">
     <title>Raku Capture — Scan it. Then talk to it.</title>
     <meta name="description" content="Raku Capture turns anything your camera sees into a world your AI assistant can walk through, measure, and change. Scan reality, then talk to it over MCP — see, measure, simulate, and act inside your actual space.">
     <meta name="keywords" content="3D capture, gaussian splat, scan to 3D, spatial AI, MCP, AI assistant, room scan, smart glasses, digital twin, talk to your room">
@@ -580,31 +580,33 @@
 
 
         <!--
-            LIVE DRAGGABLE SPLAT VIEWER — INTEGRATION SEAM (NOT YET WIRED)
+            LIVE DRAGGABLE SPLAT VIEWER — wired to Spark (https://github.com/sparkjsdev/spark)
 
-            This site does not currently load a WebGL / Gaussian-splat renderer
-            (no Spark, three.js, or .spz pipeline ships today — only hCaptcha and
-            the internal js/ helpers). So this is an honest placeholder, not a
-            faked viewer.
+            Renderer wiring is now real. The viewer mounts whenever
+            #splat-viewer[data-splat-url] is set to an http(s) URL pointing at a
+            .spz or .ply Gaussian splat. While the attribute is empty or the
+            sentinel "PENDING", the placeholder text below stays visible — we
+            do NOT fake a splat with a static image or pre-canned model. See
+            js/splat-viewer.js for the mount logic and CSP entries above for
+            the allowlisted CDNs (sparkjs.dev for Spark, cdn.jsdelivr.net for
+            three.js, cdn.raku.games for the future Raku capture CDN).
 
-            TODO (drop-in, when 3D shipping is approved):
-              1. Add the Spark renderer script to this page (and to the page CSP
-                 connect-src / script-src so the .spz can be fetched and the
-                 worker can run). Spark: https://github.com/sparkjsdev/spark
-              2. Load a captured scene from the CDN, e.g.:
-                   const splat = new SplatMesh({ url: "https://cdn.raku.games/captures/demo-room.spz" });
-                 mounted into #splat-viewer with orbit/drag controls.
-              3. Remove the .viewer-* placeholder children below once the
-                 canvas mounts; keep the #splat-viewer element id as the mount point.
+            Operator: to enable the viewer, set
+              data-splat-url="https://cdn.raku.games/captures/<your-scan>.spz"
+            on the #splat-viewer element below. Any non-PENDING http(s) URL
+            triggers the mount; the renderer labels the loaded scene as
+            "Sample scene -- your scans replace this when ready" so a public
+            sample is never mistaken for a visitor's own capture.
         -->
         <div class="cap-viewer-wrap">
-            <div id="splat-viewer" role="figure" aria-label="Placeholder for a live, draggable 3D capture (Gaussian splat) of a scanned space">
+            <div id="splat-viewer" data-splat-url="PENDING" role="figure" aria-label="Placeholder for a live, draggable 3D capture (Gaussian splat) of a scanned space">
                 <span class="viewer-badge">Live splat viewer &middot; coming to this page</span>
                 <span class="viewer-headline">Drag to look around your scanned world.</span>
-                <span class="viewer-note">A real, draggable Gaussian-splat capture mounts here. We are not faking a viewer — when the renderer ships, the placeholder is replaced by an interactive .spz you can orbit with your mouse.</span>
+                <span class="viewer-note">A real, draggable Gaussian-splat capture mounts here. We are not faking a viewer — the Spark renderer is wired in; when an operator points <code>data-splat-url</code> at a captured .spz, the placeholder is replaced by an interactive splat you can orbit with your mouse.</span>
             </div>
-            <p class="cap-viewer-caption"><strong>Real today:</strong> phone scan in, draggable splat out, MCP runtime live. <strong>Coming to this page:</strong> the interactive splat viewer above (honest placeholder — not yet shipped).</p>
+            <p class="cap-viewer-caption"><strong>Real today:</strong> phone scan in, draggable splat out, Spark renderer wired on this page, MCP runtime live. <strong>Pending:</strong> a verifiable public sample to load by default — until then the honest placeholder above stands.</p>
         </div>
+        <script type="module" src="js/splat-viewer.js"></script>
 
         <div class="cap-qr">
             <div class="cap-qr-img">
