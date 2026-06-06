@@ -257,7 +257,7 @@
         .ins-table td {
             color: var(--text-secondary);
         }
-        .ins-table td.ins-num {
+        .ins-table td.ins-num, .ins-table th.ins-num {
             text-align: right;
             white-space: nowrap;
             font-variant-numeric: tabular-nums;
@@ -831,14 +831,14 @@
 <section class="ins-section" id="sample-output">
     <div class="container">
         <h2>What the output looks like.</h2>
-        <p class="ins-subtitle">An illustrative single-room inventory. Real output is generated from your scan and is fully editable before you submit it to anyone.</p>
+        <p class="ins-subtitle">A <strong>future-state illustration</strong> of a priced single-room inventory &mdash; what the document will show once a licensed replacement-cost source is wired. The dollar figures below are illustrative placeholders, not values RakuAI produces today. The real export the pipeline generates right now is itemized but <strong>unpriced</strong> &mdash; see &ldquo;The real claim export&rdquo; just below. Either way you review and edit the list before it goes anywhere.</p>
         <div class="ins-table-wrap" role="region" aria-label="Illustrative contents inventory for one room">
             <table class="ins-table">
                 <thead>
                     <tr>
                         <th scope="col">Item</th>
                         <th scope="col">Approx. size</th>
-                        <th scope="col">Est. replacement</th>
+                        <th scope="col" class="ins-num">Est. replacement</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -852,7 +852,38 @@
             </table>
         </div>
         <p class="ins-table-note">
-            Every figure above is an <strong>estimate</strong>, not an appraisal. Object recognition and value estimation are imperfect &mdash; you review and correct the list before it goes anywhere. RakuAI does not set your coverage, determine claim payouts, or guarantee replacement cost; your insurer does.
+            Every figure above is an <strong>estimate</strong>, not an appraisal &mdash; and, today, an illustrative placeholder rather than a generated value (pricing is gated, below). Object recognition and value estimation are imperfect &mdash; you review and correct the list before it goes anywhere. RakuAI does not set your coverage, determine claim payouts, or guarantee replacement cost; your insurer does.
+        </p>
+    </div>
+</section>
+
+<!-- The real, unpriced claim export (carrier-demo flow) -->
+<section class="ins-section" id="claim-export">
+    <div class="container">
+        <h2>The real claim export.</h2>
+        <p class="ins-subtitle">This is the actual document an adjuster&rsquo;s AI assistant receives over MCP today &mdash; <code>GET /api/v1/capture/{id}/claim/export</code>, generated from a reconstructed scan. It itemizes contents with approximate dimensions and a transparent confidence. It is honest about what is <em>not</em> there yet: <strong>no dollar values</strong>, because no licensed replacement-cost source is wired. Nothing here is faked &mdash; an unpriced line is shown as &ldquo;not priced,&rdquo; never as $0.</p>
+        <div class="ins-table-wrap" role="region" aria-label="Real unpriced contents claim export for one room">
+            <table class="ins-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col">Approx. size</th>
+                        <th scope="col" class="ins-num">Confidence</th>
+                        <th scope="col" class="ins-num">Est. replacement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>3-seat sofa</td><td>210 &times; 90 &times; 90 cm</td><td class="ins-num">0.80</td><td class="ins-num">Not priced</td></tr>
+                    <tr><td>55&Prime; television</td><td>123 &times; 71 &times; 8 cm</td><td class="ins-num">0.80</td><td class="ins-num">Not priced</td></tr>
+                    <tr><td>Coffee table</td><td>110 &times; 45 &times; 60 cm</td><td class="ins-num">0.80</td><td class="ins-num">Not priced</td></tr>
+                    <tr><td>Bookshelf</td><td>80 &times; 200 &times; 30 cm</td><td class="ins-num">0.80</td><td class="ins-num">Not priced</td></tr>
+                    <tr><td>Area rug</td><td>200 &times; 1 &times; 290 cm</td><td class="ins-num">0.80</td><td class="ins-num">Not priced</td></tr>
+                    <tr class="ins-total"><td>Room total &mdash; 5 items</td><td>&mdash;</td><td class="ins-num">0.80 avg</td><td class="ins-num">Not priced</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="ins-table-note">
+            Confidence is a <strong>data-presence score</strong>, not a learned probability: 0.80 means the object carried both a declared type and usable dimensions from the reconstruction &mdash; never 1.0, which would imply an appraisal-grade identification we do not perform. Dimensions are converted from the reconstructed scene&rsquo;s world units (approximate, not measured). The same document is available as carrier-ingestible JSON or CSV. The <strong>replacement-value column stays &ldquo;not priced&rdquo;</strong> until a licensed cost source lands &mdash; that is the one named, honest gate, and we will not fabricate a dollar figure to fill it.
         </p>
     </div>
 </section>
