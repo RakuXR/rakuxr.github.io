@@ -222,6 +222,33 @@
             color: var(--text-secondary);
             font-size: 0.9rem;
         }
+        .llm-onboard {
+            max-width: 880px;
+            margin: 0 auto 28px;
+            list-style: none;
+            padding: 0;
+            counter-reset: onboard;
+        }
+        .llm-onboard li {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-left: 3px solid var(--accent);
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            color: var(--text-secondary);
+            font-size: 1.0rem;
+            line-height: 1.65;
+        }
+        .llm-onboard li strong {
+            color: var(--accent-bright);
+            display: block;
+            margin-bottom: 6px;
+            font-size: 1.05rem;
+        }
+        .llm-onboard code {
+            font-size: 0.88rem;
+        }
     </style>
 </head>
 <body>
@@ -309,7 +336,7 @@
             Connect via MCP and your model competes on quality of intent, not on how deep it integrated.
         </p>
         <div class="llm-cta-row">
-            <a href="/mcp" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">Plug in via MCP &rarr;</a>
+            <a href="mcp.html" class="btn btn-primary" style="padding: 13px 28px; font-size: 1.05rem;">Plug in via MCP &rarr;</a>
             <a href="mailto:partners@rakuai.com" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">Work with us &rarr;</a>
             <a href="/blog/six-mcp-tools-and-what-the-adapters-unlock/" class="btn btn-secondary" style="padding: 13px 28px; font-size: 1.05rem;">Read the architecture &rarr;</a>
         </div>
@@ -330,7 +357,7 @@
         <div class="llm-pillars">
             <div class="llm-pillar">
                 <h3>1. Connect once, drive everything.</h3>
-                <p>If your assistant speaks MCP, it speaks RakuAI. One JSON-Schema contract, versioned and stable: 17 native tools (5 read + 12 mutation) plus ~147 passthrough endpoints drawn from ~9,500 available via <code style="font-size:0.88rem; color:var(--accent-bright);">api.rakuai.com</code>. No custom integration, no per-vendor fork.</p>
+                <p>If your assistant speaks MCP, it speaks RakuAI. One JSON-Schema contract, versioned and stable: <strong>17 native tools</strong> (5 read + 12 mutation) are the versioned public contract you pin to. They sit inside a <strong>147-tool registry</strong> &mdash; 17 native + 7 universal passthrough + 123 subsystem-catalog wrappers &mdash; and the passthrough reaches the ~9,500 endpoints on <code style="font-size:0.88rem; color:var(--accent-bright);">api.rakuai.com</code>. No custom integration, no per-vendor fork.</p>
             </div>
             <div class="llm-pillar">
                 <h3>2. Multi-vendor by design.</h3>
@@ -342,7 +369,7 @@
             </div>
             <div class="llm-pillar">
                 <h3>4. Deny-by-default in production.</h3>
-                <p>Read tools (get_scene_state, list_objects, get_metrics, get_world_model, get_render_target) are live in production. Mutation tools (set_render_target, start_simulation, and 10 others) are sandboxed and audit-logged by default.</p>
+                <p>Read tools (get_scene_state, capture_scene, get_metrics, xr_get_session, xr_list_anchors) are live in production. Mutation tools (set_render_target, start_simulation, and 10 others) are sandboxed and audit-logged by default.</p>
             </div>
         </div>
     </div>
@@ -375,12 +402,47 @@
     </div>
 </section>
 
+<section class="llm-section" id="onboard">
+    <div class="container">
+        <h2>Onboard your model &mdash; in an afternoon</h2>
+        <p style="text-align:center; color:var(--text-secondary); max-width:760px; margin:0 auto 36px; font-size:1.05rem; line-height:1.7;">
+            The first-lab connector path, end to end. Production is <strong>deny-by-default</strong>: the 5 read tools are live, the 12 mutation tools run sandboxed and audit-logged until a connection is explicitly granted higher tier. Nothing below is faked &mdash; it is the contract any MCP client can pin to today.
+        </p>
+        <ol class="llm-onboard">
+            <li>
+                <strong>1. Point your MCP client at the endpoint.</strong>
+                Any MCP-speaking assistant connects over Streamable HTTP / stdio. No SDK lock-in, no per-vendor fork.
+                <pre class="llm-arch" style="margin-top:14px; white-space:pre-wrap; font-size:0.82rem;">{
+  "mcpServers": {
+    "rakuai": { "url": "https://mcp.rakuai.com/mcp" }
+  }
+}</pre>
+            </li>
+            <li>
+                <strong>2. Pin the 17-tool contract.</strong>
+                The versioned public contract is the <code style="color:var(--accent-bright);">17 native tools</code> (5 read + 12 mutation), drift-protected in CI. Your tool picker will surface all <code style="color:var(--accent-bright);">147</code> registry entries (17 native + 7 universal passthrough + 123 subsystem-catalog wrappers) &mdash; that is expected, not a bug. Pin to the 17; the rest are conveniences layered on top.
+            </li>
+            <li>
+                <strong>3. Run the reference loop.</strong>
+                Scan a real space with <a href="capture.html" style="color:var(--accent-bright);">Raku Capture</a>, then <code style="color:var(--accent-bright);">get_scene_state</code> &rarr; reason &rarr; act. The "scan a space, then talk to it" demo is reproducible with no proprietary tooling on either side &mdash; see the <a href="llm-guide.html" style="color:var(--accent-bright);">LLM Integration Guide</a> and the <a href="developers/claude-desktop.html" style="color:var(--accent-bright);">Claude Desktop guide</a>.
+            </li>
+            <li>
+                <strong>4. Get listed &amp; co-market.</strong>
+                We maintain the connector listing in your directory and ship a per-platform integration guide. There is <em>no signed lab partner today</em> &mdash; this is the path we run with the first lab to say yes. Email <a href="mailto:partners@rakuai.com" style="color:var(--accent-bright);">partners@rakuai.com</a>.
+            </li>
+        </ol>
+        <p style="text-align:center; margin-top:8px;">
+            <a href="mcp.html" class="btn btn-primary" style="padding:12px 28px;">Open the MCP server page &rarr;</a>
+        </p>
+    </div>
+</section>
+
 <section class="llm-section">
     <div class="container">
         <h2>Architecture</h2>
         <div style="max-width:1080px; margin:0 auto;">
         <svg viewBox="0 0 1080 480" width="100%" style="max-width:1080px; height:auto; display:block;" role="img" aria-labelledby="llmflow-title" xmlns="http://www.w3.org/2000/svg">
-            <title id="llmflow-title">RakuAI architecture for LLM makers: your LLM connects over MCP to the RakuAI runtime, which drives smart glasses, headsets and the browser, exposing six tools every frame.</title>
+            <title id="llmflow-title">RakuAI architecture for LLM makers: your LLM connects over MCP to the RakuAI runtime, which drives smart glasses, headsets and the browser, exposing 17 native tools every frame.</title>
             <defs>
                 <linearGradient id="llmflow-grad" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0" stop-color="#6c5ce7"/>
