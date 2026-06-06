@@ -776,7 +776,7 @@
                     <tr>
                         <td>5 read-only scene-query tools</td>
                         <td><span class="rb-badge-prod">Production</span></td>
-                        <td>The Phase-1 robotics focus. Query distances, occupancy, anchors, deltas. No real-robot dependency for integration testing.</td>
+                        <td>The Phase-1 robotics focus. Query relative position (distance/clearance between named objects), path clearance, occupancy, and a scene summary. Scene-delta ("what changed since T") is Phase-2 roadmap. No real-robot dependency for integration testing.</td>
                     </tr>
                     <tr>
                         <td>Splat reconstruction pipeline</td>
@@ -823,7 +823,7 @@
                 <ul>
                     <li>A per-facility Gaussian splat captured once and hosted forever</li>
                     <li>17 native MCP tools any LLM can call &mdash; "what's blocking aisle 7?", "did the pallet move since Tuesday?"</li>
-                    <li>Measurable scene queries: object distances, free-space extents, pose deltas, occupancy status &mdash; returned as structured data your planner acts on directly</li>
+                    <li>Measurable scene queries: relative position between named objects, path clearance for a body of radius r, free-space extents, occupancy status &mdash; returned as structured data your planner acts on directly</li>
                     <li>Multi-vendor LLM: Claude, GPT, Gemini, or NVIDIA NIM-hosted open weights &mdash; your choice, per workload</li>
                     <li>Hosted reconstruction + query infrastructure, zero infra burden on you</li>
                 </ul>
@@ -846,49 +846,81 @@
     </div>
 </section>
 
-<!-- Scene query examples: measurable, concrete -->
+<!-- Scene query examples: measurable, concrete, grounded in the shipped API -->
 <section class="sg-section" id="scene-queries">
     <div class="container">
         <h2>What a robot actually asks &mdash; and gets back.</h2>
         <p class="sg-subtitle">
-            The 5 read-only scene-query tools are the Phase-1 robotics focus. They return <strong>structured spatial data</strong> &mdash; distances, poses, free-space extents, object deltas &mdash; not prose summaries. Your planner gets numbers it can act on.
+            The read-only scene-query API is the Phase-1 robotics focus. It answers <strong>object-relationship and path-clearance</strong> questions over the stored per-facility scene &mdash; relative position between two named objects, free space along a planned segment, who's near a waypoint &mdash; and returns <strong>structured JSON your planner acts on directly</strong>, not prose. Every response below is the <em>real</em> shape these endpoints return today.
+        </p>
+
+        <p class="sg-prior-art-note" style="margin-top:0;">
+            <strong>The example scene</strong> is one captured world, <code>warehouse-aisle-7</code> &mdash; 42 objects: pallets, racks, fixtures (a dock and two charging bays), and two people. Distances are in the engine's <code>world_units</code>, calibrated to the facility's metric scale at capture time. An unknown world returns 404 (existence is never disclosed); an empty world returns honest zeros, never a fabricated obstacle.
         </p>
 
         <div class="rb-query-grid">
             <div class="rb-query-card">
-                <div class="rb-query-ask">"How far is the nearest obstacle to the robot's current pose, and in which direction?"</div>
-                <div class="rb-query-answer">{ "distance_m": 1.43, "bearing_deg": 22, "object_id": "pallet-007", "confidence": 0.91 }</div>
-                <div class="rb-query-tool">scene_query &mdash; read-only</div>
+                <div class="rb-query-ask">"Before I issue per-query calls, what's in this scene and what can I ask?"</div>
+                <div class="rb-query-answer">{ "object_count": 42, "type_count": 5,
+  "types": [{"type":"pallet","count":21},{"type":"rack","count":12},
+            {"type":"fixture","count":6},{"type":"person","count":2},
+            {"type":"untyped","count":1}],
+  "bounds": { "min": [-12.0,0.0,-3.5], "max": [18.4,4.2,9.1] },
+  "extent": [30.4,4.2,12.6], "unit": "world_units",
+  "queryable": { "distance": true, "clearance_point": true,
+    "clearance_between": true, "occupancy_box": true,
+    "occupancy_radius": true } }</div>
+                <div class="rb-query-tool">GET /scene-query/{world}/scene/summary &mdash; read-only</div>
             </div>
             <div class="rb-query-card">
-                <div class="rb-query-ask">"Is the path from dock A3 to charging bay 2 clear of objects taller than 0.5 m?"</div>
-                <div class="rb-query-answer">{ "clear": false, "blocking_objects": ["pallet-007","person-003"], "free_corridor_width_m": 0.6 }</div>
-                <div class="rb-query-tool">scene_query &mdash; read-only</div>
+                <div class="rb-query-ask">"What's the relative position of pallet-007 and the charging bay it may be blocking?"</div>
+                <div class="rb-query-answer">{ "resolved": true, "entity_a": "pallet-007",
+  "entity_b": "charging-bay-2", "center_distance": 2.14,
+  "aabb_gap": 1.03, "overlapping": false,
+  "has_clearance": true, "missing_entities": [],
+  "unit": "world_units" }</div>
+                <div class="rb-query-tool">GET /scene-query/{world}/distance &mdash; read-only</div>
             </div>
             <div class="rb-query-card">
-                <div class="rb-query-ask">"What changed in zone B since the last shift handoff at 06:00?"</div>
-                <div class="rb-query-answer">{ "delta_count": 4, "moved": ["pallet-002","pallet-009"], "added": ["cart-014"], "removed": [] }</div>
-                <div class="rb-query-tool">scene_describe &mdash; read-only</div>
+                <div class="rb-query-ask">"Can a 0.45-radius AMR drive straight from dock-A3 to charging-bay-2 right now?"</div>
+                <div class="rb-query-answer">{ "resolved": true, "clear": false,
+  "path_length": 14.5, "body_radius": 0.45,
+  "min_clearance": 0.31,
+  "limiting_entity": { "entity_id": "pallet-007",
+    "name": "pallet-007", "gap": 0.31 },
+  "unit": "world_units" }</div>
+                <div class="rb-query-tool">POST /scene-query/{world}/clearance/path &mdash; read-only</div>
             </div>
             <div class="rb-query-card">
-                <div class="rb-query-ask">"List every valve flagged red in Q3 with its last-seen pose."</div>
-                <div class="rb-query-answer">{ "count": 3, "items": [{ "id": "valve-17", "pose": {...}, "flagged_at": "2026-08-14T09:12Z" }, ...] }</div>
-                <div class="rb-query-tool">capture_list + scene_query &mdash; read-only</div>
+                <div class="rb-query-ask">"Is anyone within 2.0 of the robot's next waypoint?"</div>
+                <div class="rb-query-answer">{ "resolved": true, "query_kind": "radius",
+  "occupant_count": 1,
+  "occupants": [{ "entity_id": "person-003",
+    "name": "person-003", "gap": 1.12 }],
+  "unit": "world_units" }</div>
+                <div class="rb-query-tool">POST /scene-query/{world}/occupancy/radius &mdash; read-only</div>
             </div>
             <div class="rb-query-card">
-                <div class="rb-query-ask">"Where are the five largest free-floor rectangles in the storage hall right now?"</div>
-                <div class="rb-query-answer">{ "free_zones": [{ "center": [x,y], "extent_m": [3.2, 4.1] }, ...] }</div>
-                <div class="rb-query-tool">scene_query &mdash; read-only</div>
+                <div class="rb-query-ask">"Is there room for a 0.9-wide body to pass between rack-A3 and pallet-014?"</div>
+                <div class="rb-query-answer">{ "resolved": true, "entity_a": "rack-A3",
+  "entity_b": "pallet-014", "aabb_gap": 0.62,
+  "required_clearance": 0.9, "has_clearance": false,
+  "unit": "world_units" }</div>
+                <div class="rb-query-tool">POST /scene-query/{world}/clearance/between &mdash; read-only</div>
             </div>
             <div class="rb-query-card">
-                <div class="rb-query-ask">"Is there a person within 2 m of the robot's planned path?"</div>
-                <div class="rb-query-answer">{ "person_detected": true, "closest_m": 1.1, "anchor_id": "person-003", "changed_at": "2026-05-31T14:03Z" }</div>
-                <div class="rb-query-tool">scene_query &mdash; read-only</div>
+                <div class="rb-query-ask">"How much free space is around the drop point [3.0, 0.2, 1.4]?"</div>
+                <div class="rb-query-answer">{ "resolved": true, "nearest_gap": 0.78,
+  "has_clearance": true,
+  "nearest": { "entity_id": "pallet-014",
+    "name": "pallet-014", "gap": 0.78 },
+  "considered_entities": 42, "unit": "world_units" }</div>
+                <div class="rb-query-tool">POST /scene-query/{world}/clearance/point &mdash; read-only</div>
             </div>
         </div>
 
         <p class="sg-prior-art-note">
-            These queries run against the stored per-facility splat. The runtime returns structured JSON; your LLM and planner interpret it however they choose. The MCP surface also exposes 12 mutation tools (anchors, sessions, transforms) &mdash; covered in the safety section below.
+            These endpoints layer over the 5 read-only scene-memory MCP tools the planner's LLM calls; the runtime returns structured JSON and your LLM and planner interpret it however they choose. <strong>Every call is metered</strong> &mdash; per-query counts persist to durable usage records, with per-pilot rollups and SLA-grade p50/p95/p99 latency + error-rate read back from <code>/scene-query/usage/&#123;summary,by-caller,sla&#125;</code>. That measured volume is what the 90-day pilot converts on: the meter, not the price &mdash; pricing stays your decision. <em>Scene-delta ("what changed since shift T") is on the Phase-2 roadmap, not yet shipped &mdash; we don't show it as live.</em> The MCP surface also exposes 12 audited mutation tools (anchors, sessions, transforms) &mdash; covered in the safety section below.
         </p>
     </div>
 </section>
