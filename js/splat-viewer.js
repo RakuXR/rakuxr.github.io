@@ -16,7 +16,10 @@
 const MOUNT_ID = 'splat-viewer';
 const SENTINEL_PENDING = 'PENDING';
 const SPARK_MODULE_URL = 'https://sparkjs.dev/releases/spark/2.1.0/spark.module.js';
-const THREE_MODULE_URL = 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
+// `three` resolves through the importmap in capture.html. Bare specifier is
+// required so Spark's peer-dependency import (which also says `from "three"`)
+// hits the same module instance instead of a second copy.
+const THREE_MODULE_URL = 'three';
 
 function logOperatorHint(reason) {
   // One line, prefixed so an operator can grep for it in the browser console.
@@ -96,7 +99,20 @@ async function mountViewer(mount, splatUrl) {
   const width = Math.max(1, Math.floor(rect.width));
   const height = Math.max(1, Math.floor(rect.height));
 
-  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  // WebGL context creation can throw on older devices, mobile browsers with
+  // WebGL disabled, or headless environments. If we let the throw propagate
+  // the script aborts and the placeholder is left in a half-mounted state
+  // (canvas inserted, badge/headline hidden behind it) -- a fake-success
+  // shape. Catch, restore the placeholder, and log an operator hint instead.
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  } catch (err) {
+    logOperatorHint('WebGLRenderer initialization failed: ' + (err && err.message ? err.message : err));
+    if (canvas.parentNode === mount) mount.removeChild(canvas);
+    showPlaceholderChildren(mount);
+    return;
+  }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(width, height, false);
 
@@ -153,7 +169,13 @@ async function mountViewer(mount, splatUrl) {
   }
   function onWheel(ev) {
     ev.preventDefault();
-    const factor = Math.exp(ev.deltaY * 0.001);
+    // Wheel deltaY varies wildly across input devices: physical wheels send
+    // small steps (~1-100), trackpads/MacBook smooth-scroll send very large
+    // bursts (1000+), and a Linux X11 wheel can send ~120 per detent. Clamp
+    // to a sane range so one frantic trackpad swipe can't blow the camera
+    // out to the far clip plane.
+    const clampedDelta = Math.max(-100, Math.min(100, ev.deltaY));
+    const factor = Math.exp(clampedDelta * 0.001);
     camera.position.multiplyScalar(factor);
     // Keep within a sane zoom range.
     const dist = camera.position.length();
@@ -207,13 +229,22 @@ function init() {
     logOperatorHint('data-splat-url is the sentinel "PENDING"');
     return;
   }
-  // Defensive: only http(s) URLs are mounted. This blocks accidental
-  // file:// or javascript: values from being passed through to fetch.
-  if (!/^https?:\/\//i.test(splatUrl)) {
-    logOperatorHint('data-splat-url is not an http(s) URL: ' + splatUrl);
+  // Defensive: resolve through the URL constructor so a same-origin relative
+  // path (e.g. `captures/room.spz` for local testing or for a future
+  // raku-api-hosted asset) works, but the resolved protocol must still be
+  // http(s) -- blocks accidental javascript:, data:, or file: values.
+  let resolvedUrl;
+  try {
+    resolvedUrl = new URL(splatUrl, window.location.origin);
+  } catch (err) {
+    logOperatorHint('data-splat-url is not a valid URL: ' + splatUrl);
     return;
   }
-  mountViewer(mount, splatUrl);
+  if (resolvedUrl.protocol !== 'http:' && resolvedUrl.protocol !== 'https:') {
+    logOperatorHint('data-splat-url protocol is not http(s): ' + splatUrl);
+    return;
+  }
+  mountViewer(mount, resolvedUrl.href);
 }
 
 if (document.readyState === 'loading') {
