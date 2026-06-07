@@ -114,6 +114,9 @@ function detectApiBase() {
 }
 
 const API_BASE = detectApiBase();
+// Hand the resolved API base to the debug overlay (capture_debug.js, loaded
+// first) so it probes GPU-worker availability against the right host.
+if (window.RakuDebug) window.RakuDebug.apiBase = API_BASE;
 
 // Spark renderer pinned CDN module URL. Spark is an MIT-licensed 3D Gaussian
 // splat renderer for three.js (https://github.com/sparkjsdev/spark).
@@ -216,6 +219,9 @@ const screens = {
 function showPhase(phase) {
   const leavingIntro = state.phase === Phase.INTRO && phase !== Phase.INTRO;
   const enteringIntro = state.phase !== Phase.INTRO && phase === Phase.INTRO;
+  // Debug overlay hook (capture_debug.js): record every state-machine
+  // transition. No-op when the debug logger is not loaded.
+  if (window.RakuDebug) window.RakuDebug.state(state.phase, phase);
   state.phase = phase;
   for (const [p, elId] of Object.entries(screens)) {
     const el = $(elId);

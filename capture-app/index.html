@@ -820,6 +820,13 @@
     </section>
   </main>
 
+  <!-- Debug log overlay. Classic script, loaded FIRST (before i18n.js and the
+       app module) so its fetch / XHR / EventSource interceptors are installed
+       before any app code runs — no network call or state transition is missed.
+       Installs window.RakuDebug; a persistent DEBUG button (F2) toggles a
+       dark, scrollable, copyable log panel on every screen of the flow. -->
+  <script src="./capture_debug.js"></script>
+
   <!-- i18n runtime. Classic script, loaded BEFORE the app module so
        window.RakuI18n exists when capture_app.js runs; the app awaits
        RakuI18n.ready before its first paint. -->
