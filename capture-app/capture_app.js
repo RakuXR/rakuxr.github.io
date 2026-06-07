@@ -141,6 +141,8 @@ const KEYFRAME_MAX_EDGE = 1280;    // downscale long edge before upload
 
 const Phase = Object.freeze({
   INTRO: 'intro',
+  SIGNIN: 'signin',
+  REGISTER: 'register',
   GUIDE: 'guide',
   SCALE: 'scale',
   CAPTURE: 'capture',
@@ -200,6 +202,8 @@ const $ = (id) => document.getElementById(id);
 
 const screens = {
   [Phase.INTRO]: 'screen-intro',
+  [Phase.SIGNIN]: 'screen-signin',
+  [Phase.REGISTER]: 'screen-register',
   [Phase.GUIDE]: 'screen-guide',
   [Phase.SCALE]: 'screen-scale',
   [Phase.CAPTURE]: 'camera-stage',
@@ -1395,10 +1399,12 @@ async function initIntroPreview() {
   applyIntroCaption();
 
   try {
-    // Lane 3C: pick a reachable sample URL. The manifest primary url is on
-    // cdn.raku.games (the CDN we control); fallbackUrl is the original
-    // third-party URL kept until the human asset drop lands. resolveSampleUrl
-    // probes the primary and falls back so the above-the-fold demo cannot 404.
+    // Lane 3C: pick a reachable sample URL. As of 2026-06-07 the manifest
+    // primary `url` is a VERIFIED-WORKING public host (cdn.raku.games is not
+    // live yet — see samples/manifest.json plannedSelfHostUrl). resolveSampleUrl
+    // returns it (probing only when a manifest entry also lists a fallbackUrl),
+    // and loadSplatViewer degrades to a labelled placeholder if it is ever
+    // unreachable, so the above-the-fold demo cannot 404.
     const sampleUrl = await resolveSampleUrl(sample);
     if (!sampleUrl) { panel.hidden = true; return; }
     if (state.phase !== Phase.INTRO) { panel.hidden = true; return; }
@@ -1423,12 +1429,14 @@ async function initIntroPreview() {
 /**
  * Resolve a reachable URL for a sample-splat manifest entry (Lane 3C).
  *
- * The manifest's primary `url` points at cdn.raku.games (the CDN we control);
- * `fallbackUrl` is the original third-party URL, kept live until the human
- * asset drop populates cdn.raku.games (see samples/manifest.json). This probes
- * the primary with a lightweight ranged GET (HEAD is often blocked on object
- * stores) and returns the first URL that answers, so the landing demo survives
- * a missing or 404-ing CDN asset.
+ * The manifest's primary `url` is the verified-working host the demo loads from
+ * (cdn.raku.games self-hosting is not live yet — see samples/manifest.json).
+ * A manifest entry MAY still carry an optional `fallbackUrl`; when it does, this
+ * probes the primary with a lightweight ranged GET (HEAD is often blocked on
+ * object stores) and returns the first URL that answers, so the landing demo
+ * survives a missing or 404-ing primary. With only a primary `url` (the current
+ * manifest), it is returned directly and loadSplatViewer's own placeholder
+ * handles any miss.
  *
  * @param {object} sample manifest entry: { url, fallbackUrl? }
  * @returns {Promise<string|null>} a URL (null only when sample has no usable url; on probe failure the last candidate is returned UNPROBED so the viewer fallback handles the degrade)

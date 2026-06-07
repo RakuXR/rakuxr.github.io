@@ -18,15 +18,21 @@ VIEWPORT = ('  <meta name="viewport" content="width=device-width, '
 
 # (1) index.html CSP: the public host needs a policy; the Spark/three ES
 # modules load from cdn.jsdelivr.net and the app fetches api.rakuai.com.
+# 2026-06-07: Spark's renderer instantiates WebAssembly, which needs
+# 'wasm-unsafe-eval' in script-src; the sample splats now load from
+# storage.googleapis.com and sparkjs.dev (see samples/manifest.json, while
+# cdn.raku.games self-hosting is not yet live) so both are allowed in
+# connect-src, plus data: for the inline decode worker payloads.
 INDEX_CSP = (
     '  <meta http-equiv="Content-Security-Policy" content="'
     "default-src 'self'; "
-    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+    "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; "
     "style-src 'self' 'unsafe-inline'; "
     "img-src 'self' data: blob: https://api.qrserver.com; "
     "font-src 'self'; "
-    "connect-src 'self' https://api.rakuai.com http://localhost:8000 "
-    "https://cdn.jsdelivr.net https://cdn.raku.games; "
+    "connect-src 'self' data: https://api.rakuai.com http://localhost:8000 "
+    "https://cdn.jsdelivr.net https://cdn.raku.games "
+    "https://storage.googleapis.com https://sparkjs.dev; "
     "worker-src 'self' blob:; "
     "manifest-src 'self'; "
     "base-uri 'self'; "
