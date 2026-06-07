@@ -212,6 +212,9 @@ const screens = {
 function showPhase(phase) {
   const leavingIntro = state.phase === Phase.INTRO && phase !== Phase.INTRO;
   const enteringIntro = state.phase !== Phase.INTRO && phase === Phase.INTRO;
+  // Debug overlay hook (capture_debug.js): record every state-machine
+  // transition. No-op when the debug logger is not loaded.
+  if (window.RakuDebug) window.RakuDebug.state(state.phase, phase);
   state.phase = phase;
   for (const [p, elId] of Object.entries(screens)) {
     const el = $(elId);
