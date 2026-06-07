@@ -114,6 +114,9 @@ function detectApiBase() {
 }
 
 const API_BASE = detectApiBase();
+// Hand the resolved API base to the debug overlay (capture_debug.js, loaded
+// first) so it probes GPU-worker availability against the right host.
+if (window.RakuDebug) window.RakuDebug.apiBase = API_BASE;
 
 // Spark renderer pinned CDN module URL. Spark is an MIT-licensed 3D Gaussian
 // splat renderer for three.js (https://github.com/sparkjsdev/spark).

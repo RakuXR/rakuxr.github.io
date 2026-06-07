@@ -89,7 +89,11 @@
     toggle: function () { setOpen(!isOpen); },
     /** Full plaintext dump of the buffer — what "Copy Log" copies. */
     dump: dumpText,
-    clear: function () { entries = []; dropped = 0; renderAll(); }
+    clear: function () { entries = []; dropped = 0; renderAll(); },
+    /** Resolved raku-api base; set by capture_app.js. Used for the GPU probe. */
+    apiBase: null,
+    /** Probe + display whether the GPU reconstruction worker is reachable. */
+    checkGpu: function () { return checkGpuAvailability(); }
   };
   window.RakuDebug = RakuDebug;
 
@@ -105,6 +109,13 @@
         (input && typeof input === 'object' && input.method) || 'GET').toUpperCase();
       var url = (typeof input === 'string') ? input :
         (input && input.url) ? input.url : String(input);
+      // When a capture is SUBMITTED (POST /api/v1/capture), immediately probe
+      // GPU-worker availability so the user sees whether real reconstruction is
+      // reachable BEFORE committing to the wait (rather than after a timeout).
+      if (method === 'POST' && /\/api\/v1\/capture(\?.*)?$/.test(url)) {
+        push('GPU', 'Capture submitted — checking GPU worker availability…', null);
+        checkGpuAvailability();
+      }
       var t0 = nowMs();
       return origFetch.apply(this, arguments).then(function (resp) {
         var dt = Math.round(nowMs() - t0);
@@ -260,7 +271,7 @@
   // =======================================================================
   // UI — built on DOM ready (patches above already buffer everything).
   // =======================================================================
-  var badge, panel, listEl, countEl, isOpen = false, built = false;
+  var badge, panel, listEl, countEl, gpuEl, isOpen = false, built = false;
 
   var CAT_COLORS = {
     NET: '#66ffff', 'NET!': '#ff6666',
@@ -268,9 +279,69 @@
     XHR: '#ffd166', 'XHR!': '#ff6666',
     UPLOAD: '#5ad19a', STATE: '#ff7ad9',
     SSE: '#6cf', 'SSE!': '#ff6666',
+    GPU: '#5ad19a', 'GPU!': '#ff6666',
     ERROR: '#ff6666', WARN: '#f0b429', LOG: '#cfcfe6'
   };
   function catColor(cat) { return CAT_COLORS[cat] || '#cfcfe6'; }
+
+  // ---- GPU reconstruction worker availability ----------------------------
+  var _gpuChecking = false;
+
+  function _apiBase() {
+    // Prefer the base capture_app.js handed us; otherwise mirror its detection.
+    if (RakuDebug.apiBase) return RakuDebug.apiBase;
+    var h = location.hostname;
+    return (h === 'localhost' || h === '127.0.0.1') ? 'http://localhost:8000' : 'https://api.rakuai.com';
+  }
+
+  function setGpuStrip(cls, text) {
+    if (!gpuEl) return;
+    gpuEl.className = cls; // 'up' | 'down' | 'unknown'
+    gpuEl.textContent = text;
+  }
+
+  /**
+   * Probe GET /api/v1/capture/recon/availability and reflect the result in the
+   * GPU strip + a log entry, so the user knows whether real reconstruction is
+   * reachable BEFORE committing to a wait. Degrades honestly: a 404 means the
+   * API hasn't shipped the endpoint yet; a network error means unknown.
+   */
+  function checkGpuAvailability() {
+    if (_gpuChecking) return;
+    _gpuChecking = true;
+    setGpuStrip('unknown', 'GPU worker: checking…');
+    var base = _apiBase();
+    // Use the original fetch so this probe doesn't recursively log as app NET.
+    var f = origFetch || window.fetch;
+    f(base + '/api/v1/capture/recon/availability', { method: 'GET' }).then(function (resp) {
+      if (resp.status === 404) {
+        setGpuStrip('unknown', 'GPU worker: status endpoint not deployed yet');
+        push('GPU', 'availability endpoint not found (404) — API not yet updated', null);
+        _gpuChecking = false;
+        return;
+      }
+      return resp.json().then(function (data) {
+        var avail = data && data.available;
+        var backend = (data && data.backend) || '?';
+        var reason = (data && data.reason) || '';
+        if (avail === true) {
+          setGpuStrip('up', 'GPU worker: REACHABLE ✓  (' + backend + ')');
+          push('GPU', 'available ✓ — ' + backend, capData(data));
+        } else if (avail === false) {
+          setGpuStrip('down', 'GPU worker: NOT reachable ✗ — try Phone GPU mode');
+          push('GPU!', 'NOT available ✗ — ' + reason, capData(data));
+        } else {
+          setGpuStrip('unknown', 'GPU worker: unknown (' + backend + ')');
+          push('GPU', 'availability unknown — ' + reason, capData(data));
+        }
+        _gpuChecking = false;
+      });
+    }, function (err) {
+      setGpuStrip('unknown', 'GPU worker: probe failed (network)');
+      push('GPU!', 'availability probe failed: ' + (err && err.message || err), null);
+      _gpuChecking = false;
+    });
+  }
 
   function build() {
     if (built) return;
@@ -298,6 +369,12 @@
       'border-radius:6px;font:600 10px ui-monospace,monospace;padding:5px 9px;cursor:pointer;}',
       '#raku-debug-head button:hover{border-color:#6c63ff;color:#fff;}',
       '#raku-debug-head button.copied{background:#3ec97a;color:#06210f;border-color:#3ec97a;}',
+      // GPU availability strip — prominent so the user sees reachability at a glance.
+      '#raku-debug-gpu{flex-shrink:0;padding:6px 10px;font-weight:700;cursor:pointer;',
+      'border-bottom:1px solid #2a2a3a;font-size:11px;letter-spacing:.3px;}',
+      '#raku-debug-gpu.up{background:rgba(62,201,122,.16);color:#5ad19a;}',
+      '#raku-debug-gpu.down{background:rgba(255,107,107,.16);color:#ff8a8a;}',
+      '#raku-debug-gpu.unknown{background:rgba(240,180,41,.12);color:#f0b429;}',
       '#raku-debug-list{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 8px;}',
       '#raku-debug-list::-webkit-scrollbar{width:8px;}',
       '#raku-debug-list::-webkit-scrollbar-thumb{background:#2a2a3a;border-radius:4px;}',
@@ -331,11 +408,14 @@
         '<button id="raku-debug-copy" type="button">Copy Log</button>' +
         '<button id="raku-debug-clear" type="button">Clear</button>' +
       '</div>' +
+      '<div id="raku-debug-gpu" class="unknown" title="GPU reconstruction worker reachability — checked on load and when you start a capture">GPU worker: checking…</div>' +
       '<div id="raku-debug-list"></div>';
     document.body.appendChild(panel);
 
     listEl = panel.querySelector('#raku-debug-list');
     countEl = panel.querySelector('#raku-debug-count');
+    gpuEl = panel.querySelector('#raku-debug-gpu');
+    gpuEl.addEventListener('click', function () { checkGpuAvailability(); });
     panel.querySelector('#raku-debug-clear').addEventListener('click', function () { RakuDebug.clear(); });
     panel.querySelector('#raku-debug-copy').addEventListener('click', onCopy);
 
@@ -348,6 +428,9 @@
     try { if (localStorage.getItem(STORAGE_KEY) === '1') setOpen(true); } catch (e) {}
 
     renderAll();
+    // Probe GPU-worker availability up front so the strip reflects reachability
+    // immediately, before the user starts a capture.
+    checkGpuAvailability();
   }
 
   function setOpen(open) {
