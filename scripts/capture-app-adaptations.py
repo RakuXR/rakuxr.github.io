@@ -23,6 +23,11 @@ VIEWPORT = ('  <meta name="viewport" content="width=device-width, '
 # storage.googleapis.com and sparkjs.dev (see samples/manifest.json, while
 # cdn.raku.games self-hosting is not yet live) so both are allowed in
 # connect-src, plus data: for the inline decode worker payloads.
+# 2026-06-07 (b): finished captures serve their .spz from the private Azure
+# Blob captures container via a SAS-token URL on
+# rakuaistore.blob.core.windows.net, which the Spark viewer fetch()es — it
+# must be in connect-src or the browser blocks the request pre-flight
+# (instant "Load failed", no round-trip).
 INDEX_CSP = (
     '  <meta http-equiv="Content-Security-Policy" content="'
     "default-src 'self'; "
@@ -32,7 +37,8 @@ INDEX_CSP = (
     "font-src 'self'; "
     "connect-src 'self' data: https://api.rakuai.com http://localhost:8000 "
     "https://cdn.jsdelivr.net https://cdn.raku.games "
-    "https://storage.googleapis.com https://sparkjs.dev; "
+    "https://storage.googleapis.com https://sparkjs.dev "
+    "https://rakuaistore.blob.core.windows.net; "
     "worker-src 'self' blob:; "
     "manifest-src 'self'; "
     "base-uri 'self'; "
