@@ -1083,6 +1083,11 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+    // Splats from the COLMAP/Brush pipeline carry a Y-down world axis (the
+    // OpenCV convention COLMAP uses), so three.js's default Y-up camera draws
+    // them upside down. Flip the camera's up vector to match the data and the
+    // splat renders right-side up in the orbit viewer.
+    camera.up.set(0, -1, 0);
 
     const splats = new SplatMesh({ url: splatUrl });
     scene.add(splats);
