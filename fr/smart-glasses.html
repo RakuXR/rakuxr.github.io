@@ -21,6 +21,7 @@
     <meta name="twitter:title" content="RakuAI pour les fabricants de lunettes connectées — Un partenaire runtime pour l'ère PWA de la RA">
     <meta name="twitter:description" content="Ce qui est livré aujourd'hui, au T3 2026 et en 2027. Matrice de capacités pour Meta Ray-Ban Display, Android XR et Apple Vision Pro. Architecture MCP-depuis-les-lunettes.">
     <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <meta name="twitter:url" content="https://rakuai.com/fr/smart-glasses.html">
     <link rel="canonical" href="https://rakuai.com/fr/smart-glasses.html">
     <link rel="alternate" hreflang="en" href="https://rakuai.com/smart-glasses.html">
     <link rel="alternate" hreflang="de" href="https://rakuai.com/de/smart-glasses.html">
@@ -42,7 +43,7 @@
             border-bottom: none;
         }
         .sg-hero {
-            padding: 96px 0 72px;
+            padding: 44px 0 48px;
             text-align: center;
         }
         .sg-hero .eyebrow {
@@ -503,6 +504,7 @@
         .sg-hero-grid .audience-line { max-width: none; margin-left: 0; margin-right: 0; }
         .sg-hero-grid .sg-cta-row { justify-content: flex-start; }
         .sg-hero-grid .sg-nvidia-badge { justify-content: flex-start; }
+        /* Hero figure: glasses silhouette + MCP-driven capability HUD */
         .sg-hero-fig {
             width: 100%;
             max-width: 520px;
@@ -951,6 +953,9 @@
     function go(i, focusDot) {
         current = (i + slides.length) % slides.length;
         track.style.transform = 'translateX(' + (-current * 100) + '%)';
+        // Slides are positioned by translateX inside a flex track; toggling
+        // `hidden` collapses them out of the track and blanks the viewport.
+        // Use aria-hidden + inert for a11y while keeping them laid out.
         slides.forEach(function (s, n) {
             s.setAttribute('aria-hidden', n === current ? 'false' : 'true');
             s.inert = (n !== current);
