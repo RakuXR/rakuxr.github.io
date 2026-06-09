@@ -64,11 +64,13 @@ trap cleanup EXIT INT TERM
 
 # Verbatim canonical copy, minus the two mirror-only files...
 rsync -a --delete --exclude README.md --exclude qr-capture-app.svg \
+  --exclude capture_debug.js \
   "$SRC"/ "$EXPECTED"/
 # ...carry the committed mirror-only files into the expected tree so the diff
 # below ignores them (they are intentionally NOT canonical)...
 [ -f "$COMMITTED/README.md" ] && cp "$COMMITTED/README.md" "$EXPECTED/README.md"
 [ -f "$COMMITTED/qr-capture-app.svg" ] && cp "$COMMITTED/qr-capture-app.svg" "$EXPECTED/qr-capture-app.svg"
+[ -f "$COMMITTED/capture_debug.js" ] && cp "$COMMITTED/capture_debug.js" "$EXPECTED/capture_debug.js"
 # ...then apply the same deterministic hosting adaptations.
 python3 "$ADAPT" "$EXPECTED"
 
