@@ -129,16 +129,27 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      overflow: hidden;
+      /* Scroll vertically when a screen's content is taller than the viewport
+         (e.g. the intro screen on a phone, where heading + sample preview +
+         buttons + the compute-toggle + auth row overflow). The camera/viewer
+         stages are position:absolute; inset:0 overlays, so they fill this
+         relative box without adding scroll height. */
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
     }
 
-    /* Each phase is a full-bleed screen; JS toggles [hidden]. */
+    /* Each phase is a full-bleed screen; JS toggles [hidden]. Anchor content to
+       the top so a tall screen scrolls fully — vertically centering a column
+       taller than the viewport clips its top/bottom and traps the overflow.
+       min-height keeps short screens filling the viewport. */
     .screen {
-      flex: 1;
+      flex: 1 0 auto;
+      min-height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       text-align: center;
       padding: 28px 22px;
       gap: 18px;
@@ -338,6 +349,33 @@
     }
     .progress-label { font-size: 13px; color: var(--muted); }
 
+    /* Indeterminate "working" bar — used for the reconstruction stage, whose
+       backend % is a capped time-estimate, not real completion. capture_app.js
+       adds .is-indeterminate to .progress and clears the fill width; the fill
+       becomes a sliding band so the bar reads as "working", not "stuck at 0%". */
+    .progress.is-indeterminate .progress-fill {
+      width: 35% !important;
+      transition: none;
+      background: linear-gradient(90deg,
+        transparent 0%, var(--accent) 35%, var(--accent2) 65%, transparent 100%);
+      animation: progress-indeterminate 1.3s ease-in-out infinite;
+    }
+    @keyframes progress-indeterminate {
+      0%   { transform: translateX(-120%); }
+      100% { transform: translateX(320%); }
+    }
+    /* Reduced-motion fallback: no sliding band — a static, partial "working"
+       pulse instead, so the bar still reads as active without animation. */
+    @media (prefers-reduced-motion: reduce) {
+      .progress.is-indeterminate .progress-fill {
+        width: 60% !important;
+        animation: progress-pulse 2s ease-in-out infinite;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        transform: none;
+      }
+      @keyframes progress-pulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+    }
+
     .spinner {
       width: 42px; height: 42px;
       border: 3px solid var(--border);
@@ -381,6 +419,40 @@
       font-size: 14px;
     }
 
+    /* Failure diagnostics — consent-gated. Nothing is shown until the user taps
+       "What happened?" (#btn-diagnose); the technical block stays collapsed
+       until "Show technical details" is tapped. capture_app.js owns the
+       hidden state of every element here. */
+    .error-diagnosis {
+      max-width: 440px;
+      margin: 4px 0 0;
+      padding: 12px 14px;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text, #e8e8f0);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .error-diagnosis[hidden] { display: none; }
+    .error-technical { width: 100%; max-width: 440px; margin: 2px 0 0; }
+    .error-technical[hidden] { display: none; }
+    .error-detail {
+      margin: 0;
+      padding: 10px 12px;
+      background: #05050a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      max-height: 160px;
+      overflow: auto;
+    }
+    #btn-diagnose[hidden], #btn-error-details[hidden] { display: none; }
+
     /* Intro live sample-splat preview (W1.4 — plan §6.1 step 1) */
     .intro-preview {
       width: 100%;
@@ -402,14 +474,89 @@
     }
     #intro-preview-canvas:active { cursor: grabbing; }
     .intro-preview-caption { font-size: 12px; color: var(--muted); }
-  </style>
+    /* Navigation helpers (added by task #154). */
+    .logo-link { text-decoration: none; color: inherit; cursor: pointer; }
+    .logo-link:focus-visible { outline: 2px solid var(--accent, #6c63ff); outline-offset: 2px; border-radius: 4px; }
+    .btn-link {
+      display: inline-block; margin-top: 12px; padding: 10px 16px;
+      background: transparent; color: var(--accent, #6c63ff);
+      text-decoration: none; border: 1px solid var(--accent, #6c63ff);
+      border-radius: 8px; font-weight: 500; transition: background 0.2s;
+    }
+    .btn-link:hover { background: rgba(108, 99, 255, 0.1); }
+  
+    /* Auth chrome added by task #172 (sign-in / register). */
+    .header-link, .header-signin {
+      color: var(--text-secondary, #7a7a9a); font-weight: 500;
+      text-decoration: none; padding: 6px 10px; border-radius: 6px;
+      font-size: 0.85rem; transition: background 0.15s, color 0.15s;
+    }
+    .header-link:hover, .header-signin:hover {
+      background: rgba(108,99,255,0.08); color: var(--text, #e8e8f0);
+    }
+    .header-signin {
+      border: 1px solid rgba(108,99,255,0.45); color: var(--accent, #6c63ff);
+    }
+    .intro-auth {
+      margin-top: 20px; padding: 16px; border-top: 1px solid var(--border, #2a2a3a);
+      display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center;
+    }
+    .intro-auth .progress-label { width: 100%; margin: 0 0 4px; }
+    .auth-form { display: flex; flex-direction: column; gap: 14px; max-width: 360px; margin: 16px auto; }
+    .auth-form label { display: flex; flex-direction: column; gap: 6px; text-align: left; font-size: 0.95rem; color: var(--text-secondary, #7a7a9a); }
+    .auth-form input[type="email"], .auth-form input[type="password"] {
+      padding: 10px 12px; border: 1px solid var(--border, #2a2a3a);
+      background: var(--panel-2, #1d1d2a); color: var(--text, #e8e8f0);
+      border-radius: 8px; font-size: 1rem; font-family: inherit;
+    }
+    .auth-form input:focus { outline: 2px solid var(--accent, #6c63ff); outline-offset: 1px; }
+    .auth-form small { color: var(--muted, #7a7a9a); font-size: 0.8rem; }
+    .auth-form .auth-terms { flex-direction: row; align-items: center; gap: 8px; }
+    .auth-form .auth-terms input { width: auto; }
+    .auth-error { color: var(--err, #ff6b6b); font-size: 0.9rem; min-height: 1.2em; margin: -4px 0 0; }
+
+    /* Phone vs Cloud toggle (task #174). */
+    .compute-toggle {
+      margin: 20px auto 8px; padding: 14px; max-width: 380px;
+      border: 1px solid var(--border, #2a2a3a); border-radius: 12px;
+      display: flex; flex-direction: column; gap: 10px; text-align: left;
+    }
+    .compute-toggle legend {
+      padding: 0 8px; font-size: 0.95rem; font-weight: 600;
+      color: var(--text, #e8e8f0);
+    }
+    .compute-option {
+      display: flex; align-items: flex-start; gap: 10px; padding: 10px;
+      border: 1px solid transparent; border-radius: 8px; cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .compute-option:hover { background: rgba(108,99,255,0.05); }
+    .compute-option input[type="radio"] { margin-top: 3px; }
+    .compute-option:has(input:checked) {
+      background: rgba(108,99,255,0.08); border-color: rgba(108,99,255,0.45);
+    }
+    .compute-radio-label {
+      display: flex; flex-direction: column; gap: 4px;
+      font-size: 0.9rem;
+    }
+    .compute-radio-label strong { color: var(--text, #e8e8f0); }
+    .compute-radio-label small { color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; line-height: 1.45; }
+    .compute-option-phone:has(input:disabled) { opacity: 0.6; cursor: not-allowed; }
+    .compute-fallback-note {
+      margin: 4px 0 0; padding: 8px 10px; border-radius: 6px;
+      background: rgba(240,180,41,0.08); color: var(--warn, #f0b429);
+      font-size: 0.85rem;
+    }
+</style>
 </head>
 
 <body>
   <header>
-    <span class="logo">Raku Capture</span>
+    <a class="logo-link" href="/capture-app/" data-i18n-attr="aria-label:header.homeAria" aria-label="Back to Raku Capture"><span class="logo">Raku Capture</span></a>
+    <a class="header-link" href="https://rakuai.com/capture.html" data-i18n="header.aboutCapture">About Raku Capture</a>
     <span class="tagline" data-i18n="header.tagline">Scan a room &rarr; explorable 3D</span>
     <span class="proto-badge" data-i18n="header.protoBadge" data-i18n-attr="title:header.protoBadgeTitle" title="Development prototype, not yet wired to a live backend">PROTOTYPE</span>
+    <a class="header-signin" href="#" id="header-signin-link" data-i18n="header.signin">Sign in</a>
     <span class="lang-switcher" data-i18n-switcher></span>
   </header>
 
@@ -437,6 +584,77 @@
       <button class="btn" id="btn-grant-camera" data-i18n="intro.getStarted">Get started</button>
       <button class="btn secondary" id="btn-my-captures" data-i18n="intro.myCaptures">My captures</button>
       <p class="progress-label" data-i18n="intro.cameraNote">Camera access is requested later, when you open the camera.</p>
+
+      <!-- Phone vs Cloud reconstruction toggle (task #174) -->
+      <fieldset class="compute-toggle" id="compute-toggle" aria-describedby="compute-toggle-hint">
+        <legend data-i18n="compute.title">Where do you want to process this?</legend>
+        <label class="compute-option compute-option-cloud">
+          <input type="radio" name="compute_backend" value="cloud" checked>
+          <span class="compute-radio-label">
+            <strong data-i18n="compute.cloud.title">Cloud (recommended)</strong>
+            <small data-i18n="compute.cloud.desc">We reconstruct on our servers. Works on any device. Takes ~2-20 minutes depending on the scene.</small>
+          </span>
+        </label>
+        <label class="compute-option compute-option-phone">
+          <input type="radio" name="compute_backend" value="phone">
+          <span class="compute-radio-label">
+            <strong data-i18n="compute.phone.title">Phone GPU (experimental)</strong>
+            <small data-i18n="compute.phone.desc">For testing: reconstruct on this device. Unless you have a high-end smartphone (iPhone 15 Pro+, Pixel 8 Pro+, Galaxy S24 Ultra+), select Cloud — phone GPU is currently in beta and slow on older devices.</small>
+          </span>
+        </label>
+        <p class="compute-fallback-note" id="compute-fallback-note" hidden data-i18n="compute.fallback">Your browser doesn't support WebGPU yet. Falling back to Cloud automatically.</p>
+      </fieldset>
+
+      <div class="intro-auth" id="intro-auth">
+        <p class="progress-label" id="auth-state" data-i18n="auth.signedOut">Not signed in — captures stay anonymous (3/day limit).</p>
+        <button class="btn secondary" id="btn-signin" data-i18n="auth.signin">Sign in</button>
+        <button class="btn secondary" id="btn-register" data-i18n="auth.register">Create account</button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-signin" hidden>
+      <h2 data-i18n="signin.heading">Sign in to Raku</h2>
+      <p class="lead" data-i18n="signin.lead">Sign in to keep your captures safe + get higher daily limits (Free: 10/day, Pro Beta: 100/day).</p>
+      <form class="auth-form" id="signin-form" autocomplete="on" onsubmit="return false;">
+        <label data-i18n="signin.emailLabel">Email
+          <input type="email" id="signin-email" autocomplete="email" required>
+        </label>
+        <label data-i18n="signin.passwordLabel">Password
+          <input type="password" id="signin-password" autocomplete="current-password" required minlength="6">
+        </label>
+        <p class="auth-error" id="signin-error" hidden></p>
+        <button class="btn" id="btn-signin-submit" data-i18n="signin.submit">Sign in</button>
+      </form>
+      <p>
+        <a href="#" id="link-go-register" data-i18n="signin.toRegister">No account yet? Create one</a>
+        &middot;
+        <a href="#" id="link-back-to-intro" data-i18n="signin.cancel">Cancel</a>
+      </p>
+    </section>
+
+    <section class="screen" id="screen-register" hidden>
+      <h2 data-i18n="register.heading">Create your account</h2>
+      <p class="lead" data-i18n="register.lead">Free tier: 10 captures/day. No card required. Email + password only.</p>
+      <form class="auth-form" id="register-form" autocomplete="on" onsubmit="return false;">
+        <label data-i18n="register.emailLabel">Email
+          <input type="email" id="register-email" autocomplete="email" required>
+        </label>
+        <label data-i18n="register.passwordLabel">Password
+          <input type="password" id="register-password" autocomplete="new-password" required minlength="8">
+          <small data-i18n="register.passwordHint">Minimum 8 characters.</small>
+        </label>
+        <label class="auth-terms">
+          <input type="checkbox" id="register-terms" required>
+          <span data-i18n="register.terms">I agree to the <a href="https://rakuai.com/terms.html" target="_blank">terms</a> and <a href="https://rakuai.com/privacy.html" target="_blank">privacy policy</a>.</span>
+        </label>
+        <p class="auth-error" id="register-error" hidden></p>
+        <button class="btn" id="btn-register-submit" data-i18n="register.submit">Create account</button>
+      </form>
+      <p>
+        <a href="#" id="link-go-signin" data-i18n="register.toSignin">Already have an account? Sign in</a>
+        &middot;
+        <a href="#" id="link-register-back" data-i18n="register.cancel">Cancel</a>
+      </p>
     </section>
 
     <!-- PHASE: guided capture (live camera) ---------------------------------- -->
@@ -517,6 +735,7 @@
            live upload %). No data-i18n: the app sets it via t() and
            re-renders it on locale change. -->
       <p class="progress-label" id="upload-label">Preparing&hellip;</p>
+      <button class="btn secondary" id="btn-cancel-uploading" data-i18n="uploading.cancel">Cancel upload</button>
     </section>
 
     <!-- PHASE: analyzing -> reconstructing ----------------------------------- -->
@@ -526,8 +745,11 @@
            runtime (per reconstruction stage + live %). No data-i18n: the app
            sets them via t() and re-renders them on locale change. -->
       <h2 id="processing-title">Analyzing footage</h2>
-      <div class="progress"><div class="progress-fill" id="processing-fill"></div></div>
+      <p class="processing-stage" id="processing-stage" role="status" aria-live="polite"></p>
+      <div class="progress" id="processing-track"><div class="progress-fill" id="processing-fill"></div></div>
       <p class="progress-label" id="processing-label">This usually takes a minute or two&hellip;</p>
+      <p class="processing-elapsed" id="processing-elapsed" aria-live="off"></p>
+      <p class="processing-notice" id="processing-notice" role="status" aria-live="polite" hidden></p>
       <button class="btn secondary" id="btn-cancel-processing" data-i18n="processing.cancel">Cancel</button>
     </section>
 
@@ -555,7 +777,23 @@
            specific failure text for the current error. No data-i18n: the app
            sets it via t() and re-renders the current error on locale change. -->
       <div class="error-box" id="error-message">Something went wrong.</div>
+
+      <!-- Failure diagnostics (consent-gated). All of these are owned by
+           capture_app.js (showError / applyErrorDiagnostics): the "What
+           happened?" button reveals the plain-English diagnosis; the
+           collapsible technical block holds the raw error string. They start
+           hidden and are revealed on tap — nothing is shown until the user
+           asks. No data-i18n: the app sets the labels via t() and re-renders
+           them on locale change. -->
+      <button class="btn secondary" id="btn-diagnose" hidden>What happened?</button>
+      <p class="error-diagnosis" id="error-diagnosis" role="status" aria-live="polite" hidden></p>
+      <button class="btn secondary" id="btn-error-details" hidden>Show technical details</button>
+      <div class="error-technical" id="error-technical" hidden>
+        <pre class="error-detail" id="error-detail"></pre>
+      </div>
+
       <button class="btn secondary" id="btn-retry" data-i18n="error.title">Try again</button>
+      <a class="btn-link" id="btn-exit-error" href="/capture-app/" data-i18n="error.backHome">Back to start</a>
     </section>
   </main>
 

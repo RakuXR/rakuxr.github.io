@@ -20,7 +20,7 @@
     <link rel="alternate" hreflang="zh-TW" href="https://rakuai.com/zh-TW/contact.html">
     <link rel="alternate" hreflang="es" href="https://rakuai.com/es/contact.html">
     <link rel="alternate" hreflang="x-default" href="https://rakuai.com/contact.html">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai https://api.rakuai.com https://formspree.io; frame-src https://hcaptcha.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action 'self'; connect-src 'self' https://api.raku.ai https://api.rakuai.com; frame-src https://hcaptcha.com;">
     <link rel="stylesheet" href="style.css">
     <style>
         .contact-form {
@@ -189,10 +189,12 @@
                         <div class="col-heading" role="presentation">By audience</div>
                         <div class="col-heading" role="presentation">Platform</div>
                         <ul class="col" role="group">
-                            <li role="none"><a role="menuitem" href="smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
-                            <li role="none"><a role="menuitem" href="llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
-                            <li role="none"><a role="menuitem" href="enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
-                            <li role="none"><a role="menuitem" href="creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
                             <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
                         </ul>
                         <ul class="col" role="group">
@@ -257,7 +259,7 @@
             <p style="color: var(--text-secondary);">Thank you for reaching out. We'll get back to you as soon as possible.</p>
         </div>
 
-        <form class="contact-form" id="contact-form" action="https://formspree.io/f/xaqpnyng" method="POST">
+        <form class="contact-form" id="contact-form" action="https://api.rakuai.com/api/v1/leads" method="POST">
             <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" id="name" name="name" required autocomplete="name" placeholder="Your name" aria-label="Name">
@@ -379,13 +381,33 @@
         submitBtn.disabled = true;
         submitBtn.textContent = 'Sending...';
 
+        // Honeypot check - bots fill _gotcha; quietly succeed if they do.
+        var gotcha = (form.querySelector('input[name="_gotcha"]') || {}).value;
+        if (gotcha) {
+            form.style.display = 'none';
+            if (successMsg) successMsg.style.display = 'block';
+            return;
+        }
+
         var formData = new FormData(form);
         formData.delete('captcha_answer');
 
-        fetch(form.action, {
+        var payload = {
+            name: (formData.get('name') || '').toString(),
+            email: (formData.get('email') || '').toString(),
+            message: (formData.get('message') || '').toString(),
+            source: 'contact',
+            subject: (formData.get('subject') || formData.get('_subject') || '').toString() || null,
+            _gotcha: (formData.get('_gotcha') || '').toString(),
+            metadata: {
+                _subject: (formData.get('_subject') || '').toString() || undefined
+            }
+        };
+
+        fetch('https://api.rakuai.com/api/v1/leads', {
             method: 'POST',
-            body: formData,
-            headers: { 'Accept': 'application/json' }
+            body: JSON.stringify(payload),
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
         }).then(function(response) {
             return response.json().then(function(data) {
                 if (response.ok) {
@@ -420,6 +442,8 @@
                     <li><a href="llm-makers.html">AI Labs</a></li>
                     <li><a href="enterprise.html">Enterprise</a></li>
                     <li><a href="creator.html">Creators</a></li>
+                    <li><a href="robotics.html">Robotics</a></li>
+                    <li><a href="insurance.html">Insurance</a></li>
                     <li><a href="compare.html">Compare vs Unity / Unreal</a></li>
                     <li><a href="spatial-engine.html">Spatial Engine</a></li>
                     <li><a href="ai-systems.html">AI Systems</a></li>
@@ -477,10 +501,17 @@
         <!-- nv-inception:start -->
         <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
             <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
-                <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="40" style="height: 40px; width: auto; display: block;">
+                <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
             </a>
         </div>
         <!-- nv-inception:end -->
+        <!-- aws-activate:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 4px 0 8px; opacity: 0.9;">
+            <a href="press.html#aws-activate" aria-label="AWS Activate participant - read more on the press page" style="line-height: 0;">
+                <img src="branding/aws/powered-by-aws-white.png" alt="Powered by AWS" width="120" height="43" style="height: 36px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- aws-activate:end -->
 </footer>
 
 <script src="/js/auth-nav.js" defer></script>

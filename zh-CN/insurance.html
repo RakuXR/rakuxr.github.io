@@ -1,0 +1,717 @@
+<!-- TODO: native-speaker review of marketing copy. Updated 2026-06-01. -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>面向保险业的 RakuAI — 一次手机扫描即可生成可直接提交保险公司的物品清单</title>
+    <meta name="description" content="一次手机扫描即可将房间转化为带尺寸和预估重置价值的逐项物品清单 — 为理赔、搬家和精简物品而打造。与 Raku Capture 共用同一套泼溅 + MCP 核心。对今日已上线的功能保持诚实。">
+    <meta name="keywords" content="保险物品清单, 家庭物品清单应用, 理赔取证, 重置价值预估, 手机 3D 扫描, 可提交保险公司的 PDF, 理赔费用, 高斯泼溅保险">
+    <meta property="og:title" content="面向保险业的 RakuAI — 一次手机扫描即可生成可直接提交保险公司的物品清单">
+    <meta property="og:description" content="60–90 秒手机扫描 → 逐项物品清单、尺寸及预估重置价值。适用于理赔、搬家和精简物品。共用同一套泼溅 + MCP 核心，无需新引擎。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/zh-CN/insurance.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="面向保险业的 RakuAI — 一次手机扫描即可生成可直接提交保险公司的物品清单">
+    <meta name="twitter:description" content="60–90 秒手机扫描 → 逐项物品清单、尺寸及预估重置价值。适用于理赔、搬家和精简物品。">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/zh-CN/insurance.html">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/insurance.html">
+    <link rel="alternate" hreflang="zh-CN" href="https://rakuai.com/zh-CN/insurance.html">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/insurance.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .ins-section { padding: 72px 0; border-bottom: 1px solid #222244; }
+        .ins-section:last-of-type { border-bottom: none; }
+        .ins-hero { padding: 40px 0 56px; }
+        .ins-hero-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 40px;
+            align-items: center;
+            text-align: left;
+        }
+        .ins-hero-grid .ins-hero-copy { min-width: 0; }
+        .ins-hero-figure { width: 100%; max-width: 440px; margin: 0 auto; display: block; height: auto; }
+        .ins-hero-figure svg { width: 100%; height: auto; display: block; }
+        .ins-scan-beam {
+            transform-box: view-box;
+            transform-origin: 320px 250px;
+            animation: insScanSweep 2.8s ease-in-out infinite;
+        }
+        @keyframes insScanSweep {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(14deg); }
+        }
+        @media (prefers-reduced-motion: reduce) { .ins-scan-beam { animation: none; transform: rotate(2deg); } }
+        @media (max-width: 860px) {
+            .ins-hero-grid { grid-template-columns: 1fr; text-align: center; gap: 28px; }
+            .ins-hero-figure { max-width: 360px; order: -1; }
+        }
+        .ins-hero .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem; letter-spacing: 2px; text-transform: uppercase;
+            color: var(--accent-bright); padding: 6px 14px;
+            border: 1px solid rgba(108,92,231,0.45); border-radius: 999px; margin-bottom: 18px;
+        }
+        .ins-hero h1 {
+            font-size: clamp(2.2rem,5vw,3.6rem); line-height: 1.1; margin-bottom: 20px;
+            background: linear-gradient(135deg,var(--accent-bright),var(--success));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .ins-hero .subhead { color: var(--text-secondary); font-size: 1.15rem; line-height: 1.65; max-width: 820px; margin: 0 auto 32px; }
+        .ins-hero .audience-line { color: var(--text-secondary); font-size: 0.95rem; max-width: 720px; margin: 18px auto 0; opacity: 0.85; font-style: italic; }
+        .ins-cta-row { display: flex; gap: 16px; justify-content: flex-start; flex-wrap: wrap; margin-top: 24px; }
+        .ins-btn-primary {
+            display: inline-block; background: linear-gradient(135deg,var(--accent),var(--accent-bright));
+            color: #fff; padding: 14px 28px; border-radius: 10px; font-weight: 700;
+            text-decoration: none; font-size: 1rem; transition: transform 0.15s ease,box-shadow 0.15s ease;
+        }
+        .ins-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,92,231,0.4); }
+        .ins-btn-secondary {
+            display: inline-block; background: transparent; color: var(--accent-bright);
+            border: 1px solid var(--accent-bright); padding: 13px 28px; border-radius: 10px;
+            font-weight: 600; text-decoration: none; font-size: 1rem; transition: background 0.15s ease;
+        }
+        .ins-btn-secondary:hover { background: rgba(163,136,255,0.1); }
+        .ins-section h2 { font-size: clamp(1.8rem,3.5vw,2.5rem); color: var(--accent-bright); margin-bottom: 12px; text-align: center; }
+        .ins-section .ins-subtitle { text-align: center; color: var(--text-secondary); font-size: 1.05rem; max-width: 760px; margin: 0 auto 40px; }
+        .ins-usecases { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 18px; max-width: 1080px; margin: 0 auto; }
+        .ins-usecase { background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 26px; }
+        .ins-usecase h3 { color: var(--accent-bright); font-size: 1.2rem; margin-bottom: 10px; }
+        .ins-usecase p { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin: 0; }
+        .ins-steps { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 16px; max-width: 1080px; margin: 0 auto; }
+        .ins-step { background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 22px; }
+        .ins-step .ins-step-num {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 34px; height: 34px; border-radius: 999px;
+            background: rgba(108,92,231,0.12); color: var(--accent-bright);
+            font-weight: 700; font-size: 1rem; margin-bottom: 12px;
+        }
+        .ins-step h4 { color: var(--text-primary); font-size: 1.02rem; margin-bottom: 6px; }
+        .ins-step p { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.55; margin: 0; }
+        .ins-table-wrap { max-width: 880px; margin: 0 auto; overflow-x: auto; border: 1px solid #222244; border-radius: 12px; background: var(--bg-secondary); }
+        .ins-table { width: 100%; border-collapse: collapse; min-width: 560px; font-size: 0.95rem; }
+        .ins-table th,.ins-table td { padding: 13px 18px; text-align: left; border-bottom: 1px solid #222244; vertical-align: top; }
+        .ins-table thead th { background: rgba(108,92,231,0.08); color: var(--accent-bright); font-weight: 700; font-size: 0.92rem; white-space: nowrap; }
+        .ins-table td { color: var(--text-secondary); }
+        .ins-table td.ins-num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+        .ins-table tr.ins-total td { color: var(--text-primary); font-weight: 700; background: rgba(255,255,255,0.015); }
+        .ins-table tr:last-child th,.ins-table tr:last-child td { border-bottom: none; }
+        .ins-table-note { max-width: 880px; margin: 14px auto 0; font-size: 0.82rem; color: var(--text-secondary); opacity: 0.85; padding: 0 6px; line-height: 1.6; }
+        .ins-matrix-wrap { max-width: 1000px; margin: 0 auto; overflow-x: auto; border: 1px solid #222244; border-radius: 12px; background: var(--bg-secondary); }
+        .ins-matrix { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 0.95rem; }
+        .ins-matrix th,.ins-matrix td { padding: 14px 18px; text-align: left; border-bottom: 1px solid #222244; vertical-align: top; }
+        .ins-matrix thead th { background: rgba(108,92,231,0.08); color: var(--accent-bright); font-weight: 700; font-size: 0.92rem; white-space: nowrap; }
+        .ins-matrix tbody th { color: var(--text-primary); font-weight: 600; background: rgba(255,255,255,0.015); min-width: 220px; }
+        .ins-matrix td { color: var(--text-secondary); }
+        .ins-matrix tr:last-child th,.ins-matrix tr:last-child td { border-bottom: none; }
+        .ins-honest { max-width: 820px; margin: 0 auto; background: var(--bg-secondary); border: 1px solid #222244; border-left: 4px solid var(--accent-bright); border-radius: 8px; padding: 24px 28px; }
+        .ins-honest h3 { color: var(--accent-bright); font-size: 1.15rem; margin-bottom: 10px; }
+        .ins-honest ul { margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem; }
+        .ins-honest li { margin-bottom: 8px; }
+        .ins-partner-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 18px; max-width: 1080px; margin: 0 auto; }
+        .ins-partner-card { background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 26px; display: flex; flex-direction: column; gap: 14px; }
+        .ins-partner-card > div { flex-grow: 1; }
+        .ins-partner-card h3 { color: var(--accent-bright); font-size: 1.15rem; margin-bottom: 10px; }
+        .ins-partner-card p { color: var(--text-secondary); font-size: 0.93rem; line-height: 1.6; margin: 0; }
+        .ins-crosslinks { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 14px; max-width: 1080px; margin: 0 auto; }
+        .ins-crosslink { display: block; background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 20px 22px; color: var(--text-primary); text-decoration: none; transition: border-color 0.15s,transform 0.15s; }
+        .ins-crosslink:hover { border-color: var(--accent-bright); transform: translateY(-2px); }
+        .ins-crosslink .label { color: var(--accent-bright); font-weight: 700; margin-bottom: 6px; font-size: 1rem; }
+        .ins-crosslink .desc { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; }
+        /* carousel */
+        .ins-carousel { max-width: 920px; margin: 0 auto; }
+        .ins-carousel-viewport { overflow: hidden; border: 1px solid #222244; border-radius: 14px; background: var(--bg-secondary); }
+        .ins-carousel-track { display: flex; transition: transform 0.45s ease; }
+        @media (prefers-reduced-motion: reduce) { .ins-carousel-track { transition: none; } }
+        .ins-slide { flex: 0 0 100%; min-width: 100%; box-sizing: border-box; padding: 36px 40px; display: grid; grid-template-columns: 150px 1fr; gap: 28px; align-items: center; }
+        .ins-slide .ins-slide-art svg { width: 100%; height: auto; display: block; }
+        .ins-slide h3 { color: var(--accent-bright); font-size: 1.25rem; margin: 0 0 10px; }
+        .ins-slide p { color: var(--text-secondary); font-size: 0.98rem; line-height: 1.6; margin: 0; }
+        .ins-slide .ins-slide-step { display: inline-block; font-size: 0.72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--success); margin-bottom: 8px; }
+        .ins-carousel-controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+        .ins-carousel-btn { background: var(--bg-secondary); border: 1px solid #2c2c50; color: var(--accent-bright); width: 42px; height: 42px; border-radius: 999px; font-size: 1.1rem; cursor: pointer; line-height: 1; transition: border-color 0.15s; }
+        .ins-carousel-btn:hover { border-color: var(--accent-bright); }
+        .ins-carousel-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        .ins-carousel-dots { display: flex; gap: 10px; }
+        .ins-carousel-dot { width: 11px; height: 11px; border-radius: 999px; border: 1px solid #3a3a66; background: transparent; padding: 0; cursor: pointer; transition: background 0.15s; }
+        .ins-carousel-dot[aria-selected="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
+        @media (max-width: 620px) { .ins-slide { grid-template-columns: 1fr; padding: 28px 22px; text-align: center; gap: 16px; } .ins-slide .ins-slide-art { max-width: 130px; margin: 0 auto; } }
+        @media (max-width: 768px) { .ins-hero { padding: 28px 0 40px; } .ins-section { padding: 56px 0; } .ins-honest { padding: 20px; } }
+        @media (max-width: 480px) { .ins-cta-row { flex-direction: column; align-items: stretch; } .ins-btn-primary,.ins-btn-secondary { text-align: center; } }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    5 项专利 | 9,500+ 个 API 端点 | 18 个原生 DLL | AI 原生空间游戏引擎 — 现已开放抢先体验
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="打开菜单" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">解决方案</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="解决方案" hidden>
+                        <div class="col-heading" role="presentation">按受众</div>
+                        <div class="col-heading" role="presentation">平台</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">面向智能眼镜厂商<span class="item-desc">硬件 OEM 合作伙伴计划</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">面向 AI 实验室<span class="item-desc">面向基础模型的 MCP 运行时</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">面向企业<span class="item-desc">大规模部署空间 AI</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">面向创作者<span class="item-desc">构建并发布空间世界</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">机器人<span class="item-desc">面向机器人的持久空间记忆</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">保险<span class="item-desc">手机扫描生成物品清单</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">与 Unity / Unreal 比较<span class="item-desc">诚实的对比</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">扫描空间，然后与它对话</span></a></li>
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">空间引擎<span class="item-desc">运行时支柱</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI 系统<span class="item-desc">编排与权限</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR 功能<span class="item-desc">显示、追踪、锚定</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">开发者</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="开发者" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">文档</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP 服务器</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API 参考</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">模板</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">开发者门户</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop 指南</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">开发者指南</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM 集成指南</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">资源</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="资源" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">博客</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">为什么选 RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">新闻媒体</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">探索</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">内容包</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">文档</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">联系我们</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none"><a role="menuitem" href="pricing.html">价格</a></li>
+                <li class="nav-item" role="none"><a role="menuitem" href="../blog/">博客</a></li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">登录</a>
+            <a href="../insurance.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="ins-hero">
+    <div class="container">
+        <div class="ins-hero-grid">
+            <div class="ins-hero-copy">
+                <span class="eyebrow">面向房主、租户及其保险公司</span>
+                <h1>一次手机扫描，一份可直接提交保险公司的物品清单。</h1>
+                <p class="subhead">
+                    RakuAI Capture 把一次 60&ndash;90 秒的房间手机扫描，转化为一份逐项、可查询的物品清单 &mdash; 附带近似尺寸和预估重置价值。理赔员的 AI 助手可通过 MCP 接口查询清单，无需上门。与 RakuAI 其余部分共用同一套 3D 高斯泼溅重建和 MCP 核心 &mdash; 无需新引擎。为三个时刻而打造：提交<strong>理赔</strong>、规划<strong>搬家</strong>，以及<strong>精简物品</strong>。
+                </p>
+                <p class="audience-line">
+                    第 1 阶段 / 试点准备就绪 &mdash; 如实说明今日已上线的功能与路线图上的规划。我们记录一处空间并生成结构化清单；我们不是保险公司，也不设定保单条款或裁定理赔。
+                </p>
+                <div style="display:flex;margin:22px 0 4px;">
+                    <a href="#nvidia-inception" style="display:inline-flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(108,92,231,0.08);border:1px solid rgba(108,92,231,0.35);border-radius:999px;text-decoration:none;" aria-label="NVIDIA Inception 成员——滚动查看详情">
+                        <span style="color:var(--text-secondary,#7a7a9a);font-size:0.85rem;font-weight:500;letter-spacing:0.02em;">成员：</span>
+                        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height:28px;width:auto;display:block;">
+        <img src="../branding/aws/powered-by-aws-white.png" alt="基于 AWS 构建" height="28" style="height: 28px; width: auto; display: block;">
+                        <span style="color:var(--accent-bright,#a388ff);font-size:0.85rem;font-weight:600;">了解更多 &darr;</span>
+                    </a>
+                </div>
+                <div class="ins-cta-row">
+                    <a href="#partners" class="ins-btn-primary">申请试点 &rarr;</a>
+                    <a href="capture.html" class="ins-btn-secondary">试用捕获流程 &rarr;</a>
+                </div>
+            </div>
+            <div class="ins-hero-figure" aria-hidden="true">
+                <svg viewBox="0 0 360 320" role="img" xmlns="http://www.w3.org/2000/svg">
+                    <title>手机扫描一个房间并生成逐项物品清单</title>
+                    <defs>
+                        <linearGradient id="insRoom" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#1a1a3a"/><stop offset="1" stop-color="#11112a"/>
+                        </linearGradient>
+                        <linearGradient id="insScan" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#a388ff" stop-opacity="0.55"/><stop offset="1" stop-color="#a388ff" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <g transform="translate(24,26) scale(1.18) translate(-24,-26)">
+                        <rect x="24" y="26" width="220" height="180" rx="12" fill="url(#insRoom)" stroke="#2c2c50"/>
+                        <g fill="#6c5ce7">
+                            <circle cx="70" cy="150" r="3.2" opacity="0.9"/><circle cx="86" cy="158" r="2.6" opacity="0.7"/>
+                            <circle cx="100" cy="146" r="3" opacity="0.8"/><circle cx="120" cy="160" r="2.4" opacity="0.6"/>
+                            <circle cx="150" cy="120" r="3.2" opacity="0.85"/><circle cx="168" cy="132" r="2.6" opacity="0.7"/>
+                            <circle cx="190" cy="150" r="3" opacity="0.8"/><circle cx="205" cy="160" r="2.4" opacity="0.6"/>
+                            <circle cx="64" cy="100" r="2.6" opacity="0.6"/><circle cx="200" cy="96" r="2.6" opacity="0.6"/>
+                        </g>
+                        <rect x="60" y="150" width="80" height="34" rx="6" fill="#23244a" stroke="#3a3a66"/>
+                        <rect x="172" y="112" width="48" height="72" rx="5" fill="#23244a" stroke="#3a3a66"/>
+                    </g>
+                    <polygon class="ins-scan-beam" points="320,250 200,40 248,40" fill="url(#insScan)"/>
+                    <g>
+                        <rect x="296" y="196" width="48" height="92" rx="10" fill="#16162e" stroke="#a388ff" stroke-width="2"/>
+                        <rect x="302" y="206" width="36" height="60" rx="4" fill="#0a0a1a"/>
+                        <circle cx="320" cy="278" r="3.5" fill="#3a3a66"/>
+                    </g>
+                    <g>
+                        <rect x="150" y="232" width="150" height="78" rx="9" fill="#16162e" stroke="#2c2c50"/>
+                        <rect x="162" y="244" width="14" height="14" rx="3" fill="#00cec9"/>
+                        <rect x="184" y="246" width="78" height="6" rx="3" fill="#3a3a66"/>
+                        <rect x="184" y="258" width="48" height="5" rx="2.5" fill="#2c2c50"/>
+                        <rect x="162" y="272" width="14" height="14" rx="3" fill="#00cec9"/>
+                        <rect x="184" y="274" width="66" height="6" rx="3" fill="#3a3a66"/>
+                        <rect x="184" y="286" width="40" height="5" rx="2.5" fill="#2c2c50"/>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ins-section" id="flow-carousel" style="padding-top:0;border-bottom:1px solid #222244;">
+    <div class="container">
+        <h2>从手中的手机到一份可提交的清单。</h2>
+        <p class="ins-subtitle">同一套 Raku Capture 流水线，一步一步来。使用箭头、圆点或键盘切换。</p>
+        <div class="ins-carousel" id="ins-carousel">
+            <div class="ins-carousel-viewport">
+                <div class="ins-carousel-track" id="ins-carousel-track">
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步骤 1：扫描房间">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="44" y="18" width="40" height="84" rx="9" fill="#16162e" stroke="#a388ff" stroke-width="2"/><rect x="50" y="28" width="28" height="56" rx="3" fill="#0a0a1a"/><circle cx="64" cy="94" r="3.5" fill="#3a3a66"/><path d="M30 60 H14 M90 60 H106 M64 18 V6" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round" opacity="0.7"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">步骤 1</span>
+                            <h3>扫描房间</h3>
+                            <p>手持手机缓慢绕行一圈，约 60&ndash;90 秒，屏幕有引导。无需三脚架，无需专用设备，无需特殊相机。</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步骤 2：重建">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="24" width="88" height="72" rx="10" fill="#1a1a3a" stroke="#2c2c50"/><g fill="#6c5ce7"><circle cx="40" cy="70" r="4"/><circle cx="56" cy="76" r="3"/><circle cx="72" cy="62" r="4"/><circle cx="86" cy="74" r="3"/><circle cx="50" cy="50" r="3"/><circle cx="78" cy="48" r="3"/></g></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">步骤 2</span>
+                            <h3>重建</h3>
+                            <p>帧 + 运动数据在云端重建为 3D 高斯泼溅——一个可探索的真实空间模型。</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步骤 3：通过任意 LLM 逐项清点">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="22" y="20" width="76" height="80" rx="9" fill="#16162e" stroke="#2c2c50"/><rect x="34" y="34" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="37" width="38" height="6" rx="3" fill="#3a3a66"/><rect x="34" y="56" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="59" width="34" height="6" rx="3" fill="#3a3a66"/><rect x="34" y="78" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="81" width="30" height="6" rx="3" fill="#3a3a66"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">步骤 3</span>
+                            <h3>通过任意 LLM 逐项清点</h3>
+                            <p>LLM 通过 17 个原生工具 MCP 接口遍历场景，列出可见物体并附近似尺寸。Claude、ChatGPT、Gemini 或 Copilot——自由选择。</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="步骤 4：审核并导出">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="24" y="18" width="72" height="84" rx="9" fill="#16162e" stroke="#2c2c50"/><path d="M40 60 l12 12 l28 -28" fill="none" stroke="#00cec9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">步骤 4</span>
+                            <h3>审核并导出</h3>
+                            <p>你编辑清单、确认价值，导出一份干净的清单交给你的保险公司。每个数值都标注为预估值——你始终掌握控制权。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ins-carousel-controls">
+                <button type="button" class="ins-carousel-btn" id="ins-carousel-prev" aria-label="上一张">&larr;</button>
+                <div class="ins-carousel-dots" id="ins-carousel-dots" role="tablist" aria-label="选择幻灯片"></div>
+                <button type="button" class="ins-carousel-btn" id="ins-carousel-next" aria-label="下一张">&rarr;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ins-section" id="use-cases">
+    <div class="container">
+        <h2>人们需要它的三个时刻。</h2>
+        <p class="ins-subtitle">我们刻意把房地产挂牌扫描让给了既有玩家（Matterport 等）。这是无人占据的面向消费者的切入点：一次自助扫描，在清单真正重要的时刻生成一份结构化物品清单。</p>
+        <div class="ins-usecases">
+            <div class="ins-usecase">
+                <h3>理赔</h3>
+                <p>遭受损失之后——火灾、盗窃、水浸、风暴——凭记忆重建你曾拥有的物品既痛苦又常引发争议。在投保或续保时做一次扫描，能在意外发生之前留下带时间戳的逐项记录。提交理赔时，理赔员的 AI 助手通过 MCP 查询已存储的泼溅。提交理赔从此变成"提交清单"，而不是"回忆你失去的一切"——理赔员甚至可能无需上门。</p>
+            </div>
+            <div class="ins-usecase">
+                <h3>搬家</h3>
+                <p>搬家公司、估值保障和运输保险都需要一份物品清单。每个房间扫描一次，即可生成带粗略尺寸的逐项明细——既便于搬家公司报价，也可记录上车前后的物品状况。</p>
+            </div>
+            <div class="ins-usecase">
+                <h3>精简物品</h3>
+                <p>清空一处住所——遗产处置、父母入住养老机构、孩子离家上大学——意味着要决定哪些留下、出售、捐赠或投保。一次扫描就能让全家共享一份逐项的房间物品视图。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ins-section" id="how-it-works">
+    <div class="container">
+        <h2>一次扫描如何变成清单。</h2>
+        <p class="ins-subtitle">这正是贯穿产品其余部分的同一套 Raku Capture 流水线——扫描、重建、查询。保险只是对输出的一层封装，而非新引擎。</p>
+        <div class="ins-steps">
+            <div class="ins-step">
+                <span class="ins-step-num">1</span>
+                <h4>扫描房间</h4>
+                <p>手持手机缓慢绕行一圈，60&ndash;90 秒，屏幕上有引导。无需专用硬件。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">2</span>
+                <h4>重建</h4>
+                <p>帧 + 运动数据在云端重建为 3D 高斯泼溅——一个可探索的空间模型。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">3</span>
+                <h4>通过 MCP 逐项清点</h4>
+                <p>LLM（Claude、ChatGPT、Gemini 或 Copilot）连接至 17 个原生工具 MCP 接口，遍历重建后的房间：列出可见物体、近似尺寸和预估重置价值——无需上门。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">4</span>
+                <h4>审核并导出</h4>
+                <p>你编辑清单、确认价值，导出一份干净的清单交给你的保险公司。每个数值都标注为预估值。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ins-section" id="sample-output">
+    <div class="container">
+        <h2>输出长什么样。</h2>
+        <p class="ins-subtitle">一份示意性的单房间清单。真实输出由你的扫描生成，在提交给任何人之前都可完全编辑。</p>
+        <div class="ins-table-wrap" role="region" aria-label="单个房间的示意性物品清单">
+            <table class="ins-table">
+                <thead>
+                    <tr><th scope="col">物品</th><th scope="col">近似尺寸</th><th scope="col">预估重置价值</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>三人沙发</td><td>210 &times; 90 cm</td><td class="ins-num">$1,200</td></tr>
+                    <tr><td>55&Prime; 电视</td><td>123 &times; 71 cm</td><td class="ins-num">$650</td></tr>
+                    <tr><td>茶几</td><td>110 &times; 60 cm</td><td class="ins-num">$240</td></tr>
+                    <tr><td>书架（满载）</td><td>80 &times; 200 cm</td><td class="ins-num">$380</td></tr>
+                    <tr><td>地毯</td><td>200 &times; 290 cm</td><td class="ins-num">$320</td></tr>
+                    <tr class="ins-total"><td>预估房间合计</td><td>&mdash;</td><td class="ins-num">$2,790</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="ins-table-note">上述每个数字都是<strong>预估值</strong>，而非评估鉴定。物体识别与价值预估并不完美——在清单提交给任何地方之前，由你审核并更正。RakuAI 不设定你的保障范围、不决定理赔赔付、也不保证重置成本；这些由你的保险公司决定。</p>
+    </div>
+</section>
+
+<section class="ins-section" id="carrier-economics" style="background:rgba(108,92,231,0.04);">
+    <div class="container">
+        <h2>保险公司付费模式，如实说明。</h2>
+        <p class="ins-subtitle">消费者在投保或续保时免费扫描。保险公司按次付费。保险公司的回报是更低的理赔费用（LAE）和更短的 FNOL 到赔付周期。</p>
+        <div class="ins-steps" style="max-width:900px;">
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">$</span>
+                <h4>保险公司每次扫描支付 $5&ndash;$20</h4>
+                <p>消费者在投保或续保时扫描——投保人无需付费。保险公司以客户获取和留存投资的形式资助扫描。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">%</span>
+                <h4>降低理赔费用（LAE）</h4>
+                <p>对于已有事前物品清单的保单，减少理赔员接触点。目标试点指标：与对照组相比，扫描保单的理赔员接触点减少 &ge;10%。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">&#x2193;</span>
+                <h4>缩短 FNOL 到赔付周期</h4>
+                <p>提交理赔后，理赔员的 AI 通过 MCP 查询已存储的泼溅，在几秒内获得结构化清单——而不是等待数天的上门勘查和手动记录。</p>
+            </div>
+        </div>
+        <p style="text-align:center;margin:28px auto 0;font-size:0.88rem;color:var(--text-secondary);max-width:760px;opacity:0.85;">每次扫描的后端成本预估为 $0.50&ndash;$2.00（保险扫描通常为单房间、低帧数）。目前尚无签署的保险公司合作；这是我们正在进行第 1 阶段试点沟通时所采用的价值模型。</p>
+    </div>
+</section>
+
+<section class="ins-section" id="why-rakuai">
+    <div class="container">
+        <h2>为什么这件事尤其要选 RakuAI。</h2>
+        <p class="ins-subtitle">捕获市场已经拥挤，但"消费者自助扫描 &rarr; 结构化清单"这条流水线仍是一片空白。</p>
+        <div class="ins-matrix-wrap" role="region" aria-label="RakuAI 在物品清单上的对比">
+            <table class="ins-matrix">
+                <thead>
+                    <tr><th scope="col">方式</th><th scope="col">优势</th><th scope="col">在物品清单上的不足</th></tr>
+                </thead>
+                <tbody>
+                    <tr><th scope="row">手机拍照清单（自己做 / 邮件）</th><td>免费，人人都能做</td><td>没有尺寸、没有结构，容易丢失，损失发生后重建起来痛苦</td></tr>
+                    <tr><th scope="row">理赔员上门</th><td>权威</td><td>每次上门综合成本约 200&ndash;500 美元；且只在理赔提交之后才发生</td></tr>
+                    <tr><th scope="row">Matterport 式 3D 漫游</th><td>高保真捕获</td><td>为房地产挂牌打造——没有逐项物品输出，没有便于保险公司使用的导出</td></tr>
+                    <tr><th scope="row">RakuAI Capture</th><td>自助手机扫描、泼溅保真度、通过 MCP 由 LLM 驱动的逐项清点</td><td>诚实定位：价值为预估值，正式的保险公司导出格式仍在构建中</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="ins-section" id="honest">
+    <div class="container">
+        <h2>今天什么是真的，什么不是。</h2>
+        <p class="ins-subtitle">我们宁可把话说得保守些。以下是已上线与路线图之间的当前界线。</p>
+        <div class="ins-honest">
+            <h3>今日已上线</h3>
+            <ul>
+                <li>基于手机的捕获与云端泼溅重建（即 Raku Capture 流程）。</li>
+                <li>通过 MCP 接口的场景查询——LLM 可遍历重建后的房间并描述其中的物品。</li>
+                <li>多 LLM 支持：Claude、ChatGPT、Gemini 与 Copilot 都能驱动运行时。</li>
+            </ul>
+        </div>
+        <div class="ins-honest" style="margin-top:18px;">
+            <h3>推进中 / 路线图</h3>
+            <ul>
+                <li>一份精致的单页<strong>可提交保险公司的导出</strong>（房间缩略图 + 逐项表格 + 合计 + 扫描元数据）。底层数据今日已存在；格式化文档正在构建中。</li>
+                <li>针对特定保险公司的清单模板——由于不存在统一的行业标准格式，按单个试点处理。</li>
+                <li>按扫描计费，以及面向消费者的变化追踪层级（每年重新扫描，查看差异）。</li>
+            </ul>
+        </div>
+        <div class="ins-honest" style="margin-top:18px;">
+            <h3>我们尚不具备的</h3>
+            <ul>
+                <li>SOC 2 认证。大型保险公司在采购前要求它；在这项就绪工作并行推进的同时，我们与 InsurTech 开展早期试点。</li>
+                <li>任何已签署的保险公司合作。我们不声称获得任何保险公司的背书。</li>
+                <li>评估鉴定权限。我们做记录和预估；我们不做估值或裁定。</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="ins-section" id="adjuster-workflow">
+    <div class="container">
+        <h2>理赔员 AI 助手的工作流程如何融入。</h2>
+        <p class="ins-subtitle">驱动 Raku Capture 的 MCP 接口，同样是理赔员的 AI 助手查询扫描的方式。以下是实际操作过程——以及对其现状的诚实说明。</p>
+        <div class="ins-steps">
+            <div class="ins-step">
+                <span class="ins-step-num">1</span>
+                <h4>投保人在投保时扫描</h4>
+                <p>消费者使用 Raku Capture 流程扫描自己的房间。保险公司将此作为新保单投保或年度续保中的免费步骤嵌入。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">2</span>
+                <h4>泼溅存储在 RakuAI 云上</h4>
+                <p>重建后的 3D 高斯泼溅在投保人同意下存储于 RakuAI 的云端。原始帧在重建后默认丢弃。扫描专项数据处理披露正在添加至隐私政策中。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">3</span>
+                <h4>理赔员的 AI 通过 MCP 查询</h4>
+                <p>提交理赔后，理赔员的 AI 助手连接至 RakuAI 的 17 个原生工具 MCP 接口，遍历重建后的房间。一个自然语言查询即可返回结构化清单，无需上门。理赔员审核和编辑，而不是从头测量。</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">4</span>
+                <h4>理赔员审核并结案</h4>
+                <p>理赔员对照理赔内容编辑并确认清单。每个数值都标注为预估值。RakuAI 不裁定理赔或决定赔付——这些由保险公司决定。</p>
+            </div>
+        </div>
+        <div class="ins-honest" style="margin-top:32px;">
+            <h3>此工作流程的诚实状态</h3>
+            <ul>
+                <li><strong>第 1 阶段 / 试点准备就绪（当前）：</strong>MCP 查询接口今日可用——LLM 可遍历重建后的房间并返回结构化清单。保险公司门户、按次计费和正式的可提交保险公司导出正在为第一个试点构建中。</li>
+                <li><strong>尚未就绪：</strong>SOC 2 认证（大型保险公司要求；早期试点优先针对 InsurTech）。截至今日尚无签署的保险公司合作。</li>
+                <li><strong>你的数据：</strong>扫描内容不会在未经明确同意的情况下与任何第三方共享。保险公司通过保险公司审核门户只能看到清单文档，看不到原始扫描数据——在 SOC 2 落地前，这是数据处理模型。</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="ins-section" id="partners">
+    <div class="container">
+        <h2>面向保险公司与 InsurTech。</h2>
+        <p class="ins-subtitle">三种具体的合作方式。保险公司模式：<strong>保险公司按次付费</strong>（$5&ndash;$20），投保人在投保或续保时免费扫描，保险公司通过更低的 LAE 和更快的 FNOL 到赔付周期获益。<em>第 1 阶段 / 试点准备就绪——目前尚无签署的保险公司合作。</em></p>
+        <div class="ins-partner-grid">
+            <div class="ins-partner-card">
+                <div>
+                    <h3>1. 能力咨询</h3>
+                    <p>你正在评估一个物品捕获层，希望获得一份书面回复，说明 RakuAI 如何对接你的产品、你偏好的清单格式以及你的投保流程。告诉我们你的约束条件；我们将回复今日已实现的功能，以及为试点会构建什么。</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=Insurance%20capability%20inquiry%20%E2%80%94%20%5Byour%20company%5D" class="ins-btn-secondary" style="text-align:center;">partnerships@rakuai.com &rarr;</a>
+            </div>
+            <div class="ins-partner-card">
+                <div>
+                    <h3>2. 90 天免费试点</h3>
+                    <p>每季度一个合作伙伴。我们把扫描流程集成进你的投保环节（白标或旁挂式网页应用），收集约 100 次客户扫描，并联合发布案例研究。试点不收费；我们请求 UX 团队的接入权限以及发布许可。</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=Insurance%2090-day%20pilot" class="ins-btn-secondary" style="text-align:center;">商讨试点 &rarr;</a>
+                <p class="ins-table-note" style="margin-top:0;">在 SOC 2 落地之前，早期试点运行在 RakuAI 云上，并配有保险公司审核门户。</p>
+            </div>
+            <div class="ins-partner-card">
+                <div>
+                    <h3>3. InsurTech 集成</h3>
+                    <p>你已经拥有理赔编排、航拍／外部数据或车辆损伤评估——却缺少室内物品这一环。我们可以成为你以自有品牌通过 API 转售的捕获与清点层。</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=InsurTech%20integration%20%E2%80%94%20capture%20layer" class="ins-btn-secondary" style="text-align:center;">探讨集成 &rarr;</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ins-section">
+    <div class="container">
+        <h2>在扫描或动笔之前了解得更深入。</h2>
+        <p class="ins-subtitle">大多数人接下来会读的页面。</p>
+        <div class="ins-crosslinks">
+            <a href="capture.html" class="ins-crosslink">
+                <div class="label">Raku Capture &rarr;</div>
+                <div class="desc">本方案所基于的消费者扫描流程——扫描空间，然后与它对话。</div>
+            </a>
+            <a href="mcp.html" class="ins-crosslink">
+                <div class="label">MCP 服务器 &rarr;</div>
+                <div class="desc">让 LLM 遍历场景并逐项清点其中物品的 MCP 接口。自 2026 年 3 月起投入生产。</div>
+            </a>
+            <a href="spatial-engine.html" class="ins-crosslink">
+                <div class="label">空间引擎 &rarr;</div>
+                <div class="desc">泼溅重建底层的 C++ 运行时——同一套核心，保险无需新引擎。</div>
+            </a>
+            <a href="../privacy.html" class="ins-crosslink">
+                <div class="label">隐私 &rarr;</div>
+                <div class="desc">扫描住所很敏感。捕获数据如何处理，以及如何删除一次扫描。</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="section" id="nvidia-inception" style="background:var(--bg-primary);border-top:1px solid rgba(108,92,231,0.25);padding:32px 0;scroll-margin-top:80px;">
+    <div class="container" style="display:flex;align-items:center;gap:24px;justify-content:center;flex-wrap:wrap;">
+        <a href="press.html#nvidia-inception" style="line-height:0;" aria-label="NVIDIA Inception 成员——在新闻页查看详情">
+            <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 成员" width="200" height="86" style="height:50px;width:auto;">
+        </a>
+        <p style="max-width:640px;margin:0;color:var(--text-secondary);font-size:0.95rem;">
+            RakuAI 是 <strong>NVIDIA Inception</strong> 成员。我们在 <a href="capture.html" style="color:var(--accent-bright);">Raku Capture</a> 中交付的同一套 NVIDIA 加速 3D 高斯泼溅技术栈，正是重建房间并驱动上文所述物品清点的引擎。<a href="press.html#nvidia-inception" style="color:var(--accent-bright);white-space:nowrap;">了解更多 &rarr;</a>
+        </p>
+    </div>
+    <p style="max-width:720px;margin:14px auto 0;text-align:center;color:var(--text-secondary);font-size:0.78rem;opacity:0.75;padding:0 16px;">
+        NVIDIA Inception 是面向 AI 初创企业的免费计划；RakuAI 的成员身份并不意味着 NVIDIA 对 RakuAI 的产品作出背书。详见 <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color:var(--text-secondary);">nvidia.com/startups</a>。
+    </p>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>解决方案</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">智能眼镜厂商</a></li>
+                    <li><a href="llm-makers.html">AI 实验室</a></li>
+                    <li><a href="enterprise.html">企业</a></li>
+                    <li><a href="creator.html">创作者</a></li>
+                    <li><a href="robotics.html">机器人</a></li>
+                    <li><a href="insurance.html">保险</a></li>
+                    <li><a href="compare.html">与 Unity / Unreal 比较</a></li>
+                    <li><a href="spatial-engine.html">空间引擎</a></li>
+                    <li><a href="ai-systems.html">AI 系统</a></li>
+                    <li><a href="xr-features.html">XR 功能</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>开发者</h4>
+                <ul>
+                    <li><a href="docs.html">文档</a></li>
+                    <li><a href="mcp.html">MCP 服务器</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="../api/">API 参考</a></li>
+                    <li><a href="templates.html">模板</a></li>
+                    <li><a href="developers/">开发者门户</a></li>
+                    <li><a href="../developers/claude-desktop.html">Claude Desktop 指南</a></li>
+                    <li><a href="developer-guide.html">开发者指南</a></li>
+                    <li><a href="llm-guide.html">LLM 集成指南</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>资源</h4>
+                <ul>
+                    <li><a href="../blog/">博客</a></li>
+                    <li><a href="why-rakuai.html">为什么选 RakuAI</a></li>
+                    <li><a href="press.html">新闻媒体</a></li>
+                    <li><a href="../discover.html">探索</a></li>
+                    <li><a href="content-packs.html">内容包</a></li>
+                    <li><a href="docs.html">文档</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>公司</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">关于</a></li>
+                    <li><a href="pricing.html">价格</a></li>
+                    <li><a href="contact.html">联系我们</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">合作伙伴</a></li>
+                    <li><a href="../privacy.html">隐私</a></li>
+                    <li><a href="../terms.html">条款</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 项美国授权专利（优先日：2012 年 7 月） &bull; 由 RakuAI 引擎驱动</p>
+        <p class="trademark-notice">RakuAI&trade; 与 RakuXR&trade; 是 RakuAI, LLC 的商标。<span class="kanji-logo">&#x697D;</span>AI 与 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的风格化标识。5 项美国授权专利（优先日：2012 年 7 月）。</p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex;align-items:center;justify-content:center;gap:14px;margin:20px 0 8px;opacity:0.9;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception 成员——在新闻页查看详情" style="line-height:0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 成员" width="160" height="69" style="height:40px;width:auto;display:block;">
+            </a>
+            <a href="../press.html#aws-activate" aria-label="基于 AWS 构建 — AWS Activate 参与者" style="line-height: 0;">
+                <img src="../branding/aws/powered-by-aws-white.png" alt="基于 AWS 构建" height="40" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script src="../js/public-config.js"></script>
+<script src="../js/api-client.js"></script>
+<script src="../js/auth-nav.js" defer></script>
+<script src="../js/lang-selector.js" defer></script>
+<script src="../js/nav-dropdown.js" defer></script>
+<script src="../js/section-nav.js" defer></script>
+<script>
+(function(){
+    var track=document.getElementById('ins-carousel-track');
+    if(!track)return;
+    var slides=Array.prototype.slice.call(track.children);
+    var dotsWrap=document.getElementById('ins-carousel-dots');
+    var prev=document.getElementById('ins-carousel-prev');
+    var next=document.getElementById('ins-carousel-next');
+    var index=0;
+    var dots=slides.map(function(_,i){
+        var b=document.createElement('button');
+        b.type='button';b.className='ins-carousel-dot';
+        b.setAttribute('role','tab');b.setAttribute('aria-label','第'+(i+1)+'张');
+        b.addEventListener('click',function(){go(i);});
+        dotsWrap.appendChild(b);return b;
+    });
+    function go(i){
+        index=(i+slides.length)%slides.length;
+        track.style.transform='translateX('+(-index*100)+'%)';
+        slides.forEach(function(s,n){s.setAttribute('aria-hidden',n===index?'false':'true');s.inert=(n!==index);});
+        dots.forEach(function(d,n){d.setAttribute('aria-selected',n===index?'true':'false');});
+    }
+    prev.addEventListener('click',function(){go(index-1);});
+    next.addEventListener('click',function(){go(index+1);});
+    var startX=null;
+    track.addEventListener('touchstart',function(e){startX=e.touches[0].clientX;},{passive:true});
+    track.addEventListener('touchend',function(e){if(startX===null)return;var dx=e.changedTouches[0].clientX-startX;if(Math.abs(dx)>40){go(dx<0?index+1:index-1);}startX=null;},{passive:true});
+    go(0);
+})();
+</script>
+</body>
+</html>

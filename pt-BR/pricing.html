@@ -10,175 +10,66 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preços - RakuAI</title>
-    <meta name="description" content="Preços do RakuAI. Plano gratuito com 10 gerações por dia. Plano Pro por US$ 14,99/mês com geração prioritária, IA de alta qualidade e exportação.">
-    <meta property="og:title" content="Preços - RakuAI">
-    <meta property="og:description" content="Crie jogos jogáveis de verdade descrevendo-os para a IA. Comece grátis e migre para o Pro por US$ 14,99/mês.">
+    <title>Preços - Raku Capture | RakuAI</title>
+    <meta name="description" content="Preços do Raku Capture. Free: 10 capturas/dia, 1 GB. Pro Beta: 100 capturas/dia, 25 GB - grátis durante a beta. Enterprise: sob medida. MCP runtime em todos os planos.">
+    <meta property="og:title" content="Preços - Raku Capture | RakuAI">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:description" content="Escaneie um ambiente e converse com ele. Grátis para sempre com 10 capturas/dia. Pro Beta grátis durante a beta. Enterprise sob medida.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://rakuai.com/pt-BR/pricing">
+    <meta property="og:url" content="https://rakuai.com/pt-BR/pricing.html">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="canonical" href="https://rakuai.com/pt-BR/pricing.html">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/pricing.html">
+    <link rel="alternate" hreflang="ja" href="https://rakuai.com/ja/pricing.html">
+    <link rel="alternate" hreflang="es" href="https://rakuai.com/es/pricing.html">
+    <link rel="alternate" hreflang="fr" href="https://rakuai.com/fr/pricing.html">
+    <link rel="alternate" hreflang="de" href="https://rakuai.com/de/pricing.html">
+    <link rel="alternate" hreflang="ko" href="https://rakuai.com/ko/pricing.html">
+    <link rel="alternate" hreflang="pt-BR" href="https://rakuai.com/pt-BR/pricing.html">
+    <link rel="alternate" hreflang="zh-CN" href="https://rakuai.com/zh-CN/pricing.html">
+    <link rel="alternate" hreflang="zh-TW" href="https://rakuai.com/zh-TW/pricing.html">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/pricing.html">
     <link rel="stylesheet" href="../style.css">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action 'self'; connect-src 'self' https://api.raku.ai;">
     <style>
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 32px;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .pricing-card {
-            background: var(--bg-secondary);
-            border: 2px solid #222244;
-            border-radius: 16px;
-            padding: 40px 32px;
-            position: relative;
-        }
-        .pricing-card.featured {
-            border-color: var(--accent);
-            box-shadow: 0 0 40px rgba(108, 92, 231, 0.25);
-        }
-        .pricing-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-        }
-        .pricing-card .price {
-            font-size: 3rem;
-            font-weight: 800;
-            margin: 16px 0 8px;
-        }
-        .pricing-card .price-period {
-            font-size: 1rem;
-            font-weight: 400;
-            color: var(--text-secondary);
-        }
-        .pricing-card .price-note {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-        }
-        .pricing-card ul {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 32px;
-        }
-        .pricing-card ul li {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-        }
-        .pricing-card ul li::before {
-            content: "\2713";
-            color: var(--success);
-            font-weight: 700;
-            margin-right: 10px;
-        }
-        .pricing-card ul li.pro-only::before {
-            content: "\2B50";
-        }
-        .best-value-ribbon {
-            position: absolute;
-            top: 16px;
-            right: -32px;
-            background: var(--success);
-            color: var(--bg-primary);
-            padding: 4px 40px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            transform: rotate(45deg);
-            letter-spacing: 0.05em;
-        }
-        .upgrade-btn {
-            display: block;
-            width: 100%;
-            text-align: center;
-            padding: 16px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .upgrade-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
-        }
-        .upgrade-btn-pro {
-            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
-            color: white;
-        }
-        .upgrade-btn-free {
-            background: transparent;
-            color: var(--accent-bright);
-            border: 2px solid var(--accent);
-        }
-        .guarantee {
-            text-align: center;
-            margin-top: 32px;
-            padding: 24px;
-            background: rgba(0, 206, 201, 0.08);
-            border: 1px solid rgba(0, 206, 201, 0.2);
-            border-radius: 12px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .guarantee h4 {
-            color: var(--success);
-            margin-bottom: 8px;
-        }
-        .guarantee p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-        /* Upgrade banner (reusable component) */
-        .upgrade-banner {
-            background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(163, 136, 255, 0.1));
-            border: 1px solid var(--accent);
-            border-radius: 12px;
-            padding: 20px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .upgrade-banner-text h4 {
-            color: var(--text-primary);
-            margin-bottom: 4px;
-            font-size: 1rem;
-        }
-        .upgrade-banner-text p {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            margin: 0;
-        }
-        .upgrade-banner .btn {
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        @media (max-width: 768px) {
-            .pricing-grid {
-                grid-template-columns: 1fr;
-            }
-            .upgrade-banner {
-                flex-direction: column;
-                text-align: center;
-            }
+        #nvidia-inception { scroll-margin-top: 80px; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1100px; margin: 0 auto; }
+        .pricing-card { background: var(--bg-secondary); border: 2px solid #222244; border-radius: 16px; padding: 36px 28px; position: relative; display: flex; flex-direction: column; }
+        .pricing-card.featured { border-color: var(--accent); box-shadow: 0 0 40px rgba(108, 92, 231, 0.25); }
+        .pricing-card h3 { font-size: 1.5rem; margin-bottom: 8px; }
+        .pricing-card .price { font-size: 2.6rem; font-weight: 800; margin: 12px 0 4px; line-height: 1.1; }
+        .pricing-card .price-period { font-size: 1rem; font-weight: 400; color: var(--text-secondary); }
+        .pricing-card .price-note { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 24px; }
+        .pricing-card .coming-soon-tag { display: inline-block; background: rgba(253, 203, 110, 0.12); color: #fdcb6e; border: 1px solid rgba(253, 203, 110, 0.35); border-radius: 999px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 8px; vertical-align: middle; }
+        .pricing-card ul { list-style: none; padding: 0; margin: 0 0 28px; flex-grow: 1; }
+        .pricing-card ul li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; color: var(--text-secondary); }
+        .pricing-card ul li::before { content: "\2713"; color: var(--success); font-weight: 700; margin-right: 10px; }
+        .pricing-card ul li.headline { color: var(--text-primary, #e8e8f0); font-weight: 600; }
+        .upgrade-btn { display: block; width: 100%; text-align: center; padding: 14px; border-radius: 8px; font-size: 1rem; font-weight: 700; text-decoration: none; cursor: pointer; border: none; transition: transform 0.2s, box-shadow 0.2s; box-sizing: border-box; }
+        .upgrade-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4); text-decoration: none; }
+        .upgrade-btn-pro { background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; }
+        .upgrade-btn-free { background: transparent; color: var(--accent-bright); border: 2px solid var(--accent); }
+        .upgrade-btn-ent { background: transparent; color: var(--success); border: 2px solid var(--success); }
+        .tier-feature-row { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 0; max-width: 1100px; margin: 48px auto 0; background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; overflow: hidden; }
+        .tier-feature-row > div { padding: 14px 18px; border-bottom: 1px solid #222244; font-size: 0.92rem; color: var(--text-secondary); }
+        .tier-feature-row > div.header { background: rgba(108, 92, 231, 0.08); color: var(--accent-bright); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+        .tier-feature-row > div.label { color: #e8e8f0; font-weight: 600; background: rgba(255,255,255,0.02); }
+        @media (max-width: 880px) {
+            .pricing-grid { grid-template-columns: 1fr; }
+            .tier-feature-row { grid-template-columns: 1fr; }
+            .tier-feature-row > div { text-align: left; }
         }
     </style>
 </head>
 <body>
 
 <div class="beta-announcement-bar">
-    &#x697D;AI<sup class="tm">™</sup> — O Runtime Universal para World Models &nbsp;|&nbsp; <a href="index.html#for-studios">Para Estúdios e Desenvolvedores →</a> &nbsp;&nbsp; Também: <a href="index.html#quickstart">Experimente o Demo →</a>
+    &#x697D;AI<sup class="tm">&trade;</sup> &mdash; Escaneie um ambiente e converse com ele &nbsp;|&nbsp; <a href="../capture-app/">Experimente o Raku Capture &rarr;</a> &nbsp;&nbsp; Tamb&eacute;m: <a href="capture.html">Como funciona</a>
 </div>
+
+
 
 <nav role="navigation" aria-label="Primary">
     <div class="container">
@@ -198,6 +89,8 @@
                             <li role="none"><a role="menuitem" href="llm-makers.html">Para laboratórios de IA<span class="item-desc">Runtime MCP para modelos de fundação</span></a></li>
                             <li role="none"><a role="menuitem" href="enterprise.html">Para empresas<span class="item-desc">IA espacial em larga escala</span></a></li>
                             <li role="none"><a role="menuitem" href="creator.html">Para criadores<span class="item-desc">Construa &amp; publique mundos espaciais</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robótica<span class="item-desc">Memória espacial persistente para robôs</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Seguros<span class="item-desc">Digitalização por telefone para inventário de conteúdo</span></a></li>
                             <li role="none"><a role="menuitem" href="compare.html">Comparação com Unity / Unreal<span class="item-desc">Uma comparação honesta</span></a></li>
                         </ul>
                         <ul class="col" role="none">
@@ -243,61 +136,24 @@
     </div>
 </nav>
 
+
+
 <section class="hero">
     <div class="container">
-        <h1>Preços Simples e Transparentes</h1>
-        <p class="subtitle">Comece grátis. Experimente o Pro por 7 dias sem custo. Faça upgrade quando quiser.</p>
+        <h1>Preços do Raku Capture</h1>
+        <p class="subtitle">Escaneie um ambiente com seu celular e converse com ele a partir de Claude, ChatGPT, Gemini ou Copilot. Grátis para uso pessoal. Pro Beta grátis enquanto estivermos em beta.</p>
 
-        <figure style="max-width: 880px; margin: 32px auto 0;">
-        <svg viewBox="0 0 1080 260" width="100%" style="max-width:880px; height:auto; display:block;" role="img" aria-labelledby="price-title" xmlns="http://www.w3.org/2000/svg">
-            <title id="price-title">A escada de valor: comece no Free, cresça para o Pro e depois escale para Studio, Platform e licenciamento OEM.</title>
-            <defs>
-                <linearGradient id="price-grad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0" stop-color="#6c5ce7"/>
-                    <stop offset="1" stop-color="#00cec9"/>
-                </linearGradient>
-                <marker id="price-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto-start-reverse">
-                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                </marker>
-            </defs>
-
-            <line x1="312" y1="170" x2="356" y2="138" stroke="url(#price-grad)" stroke-width="2" marker-end="url(#price-arrow)"/>
-            <line x1="628" y1="118" x2="672" y2="86" stroke="url(#price-grad)" stroke-width="2" marker-end="url(#price-arrow)"/>
-
-            <!-- Free step -->
-            <g transform="translate(48,150)">
-                <rect width="264" height="74" rx="11" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
-                <text x="132" y="32" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">Free</text>
-                <text x="132" y="54" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">10 gera&#231;&#245;es / dia &#183; suporte XR</text>
-            </g>
-
-            <!-- Pro step -->
-            <g transform="translate(364,98)">
-                <rect width="264" height="74" rx="11" fill="#15152e" stroke="url(#price-grad)" stroke-width="2"/>
-                <text x="132" y="32" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">Pro</text>
-                <text x="132" y="54" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="11">100 / dia &#183; exporta&#231;&#227;o &#183; fila priorit&#225;ria</text>
-            </g>
-
-            <!-- Enterprise step -->
-            <g transform="translate(680,46)">
-                <rect width="288" height="74" rx="11" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
-                <text x="144" y="32" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">Studio &#183; Platform &#183; OEM</text>
-                <text x="144" y="54" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">licenciamento personalizado &#183; integra&#231;&#227;o profunda</text>
-            </g>
-        </svg>
-        <figcaption style="text-align:center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">Uma escada: comece gr&#225;tis, cres&#231;a para o Pro, escale para licenciamento personalizado.</figcaption>
-        </figure>
-
-        <!-- K.9: Monthly/Annual Toggle -->
-        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 24px; align-items: center;">
-            <span id="toggle-monthly-label" style="font-weight: 700; color: var(--accent-bright);">Mensal</span>
-            <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
-                <input type="checkbox" id="billing-toggle" onchange="toggleBillingPeriod()" style="opacity: 0; width: 0; height: 0;">
-                <span style="position: absolute; inset: 0; background: #333; border-radius: 28px; transition: 0.3s;"></span>
-                <span id="toggle-knob" style="position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; background: var(--accent-bright); border-radius: 50%; transition: 0.3s;"></span>
-            </label>
-            <span id="toggle-annual-label" style="font-weight: 400; color: var(--text-secondary);">Anual <span style="color: var(--success); font-size: 0.85rem; font-weight: 700;">Economize 17%</span></span>
+        <!-- Above-fold NVIDIA Inception chip -->
+        <div style="display: flex; justify-content: center; margin: 24px 0 4px;">
+            <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Membro do NVIDIA Inception — saiba mais na página de imprensa">
+                <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Membro do</span>
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="112" height="28" style="height: 28px; width: auto; display: block;">
+        <img src="../branding/aws/powered-by-aws-white.png" alt="Desenvolvido na AWS" height="28" style="height: 28px; width: auto; display: block;">
+                <span style="color: var(--accent-bright); font-size: 0.85rem; font-weight: 600;">Saiba mais ↓</span>
+            </a>
         </div>
+
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 18px;">Respaldado por <strong>5 patentes dos EUA concedidas</strong> (prioridade julho de 2012) · <a href="press.html#nvidia-inception">Desenvolvido por um membro do NVIDIA Inception</a></p>
     </div>
 </section>
 
@@ -306,173 +162,248 @@
         <div class="pricing-grid">
             <!-- Free Tier -->
             <div class="pricing-card">
-                <h3>Grátis</h3>
-                <div class="price">US$ 0</div>
-                <p class="price-note">Sem cartão de crédito</p>
+                <h3>Free</h3>
+                <div class="price">$0<span class="price-period"> / mês</span></div>
+                <p class="price-note">Para sempre · sem cartão de crédito</p>
                 <ul>
-                    <li>10 gerações de jogos por dia</li>
-                    <li>Todos os templates de jogos</li>
-                    <li>Criação de jogos com IA</li>
-                    <li>Jogar e compartilhar no navegador</li>
-                    <li>Suporte a XR</li>
+                    <li class="headline">10 capturas por dia</li>
+                    <li>1 GB de armazenamento</li>
+                    <li>Retenção de 7 dias</li>
+                    <li>Captura por qualquer iPhone ou Android (web)</li>
+                    <li>Visualizador 3D interativo com links compartilháveis</li>
+                    <li>MCP runtime — pilote o RakuAI a partir de Claude, ChatGPT, Gemini, Copilot</li>
                     <li>Suporte da comunidade</li>
                 </ul>
-                <a href="index.html#create" class="upgrade-btn upgrade-btn-free">Comece a Criar Grátis</a>
+                <a href="../capture-app/" class="upgrade-btn upgrade-btn-free">Começar grátis</a>
             </div>
 
-            <!-- Pro Tier -->
-            <div class="pricing-card featured" style="overflow: hidden;">
-                <div class="best-value-ribbon">MELHOR VALOR</div>
-                <h3 style="color: var(--accent-bright);">Pro</h3>
-                <div class="price" id="pro-price">US$ 14,99<span class="price-period"> / mês</span></div>
-                <p class="price-note" id="pro-price-note">7 dias grátis &middot; Cancele quando quiser</p>
+            <!-- Pro Beta Tier -->
+            <div class="pricing-card featured">
+                <h3 style="color: var(--accent-bright);">Pro Beta<span class="coming-soon-tag">Em breve</span></h3>
+                <div class="price">$0<span class="price-period"> / mês</span></div>
+                <p class="price-note">Grátis durante a beta · $14,99/mês no lançamento</p>
                 <ul>
-                    <li>100 gerações de jogos por dia</li>
-                    <li class="pro-only">Fila de geração prioritária</li>
-                    <li class="pro-only">Modelo de IA de maior qualidade</li>
-                    <li class="pro-only">Exportar configurações de jogos</li>
-                    <li class="pro-only">Exportação standalone (.exe)</li>
-                    <li>Todos os templates + personalizados</li>
-                    <li>Rede para multiplayer</li>
-                    <li>Saves na nuvem</li>
-                    <li>Profiler de desempenho</li>
-                    <li>Suporte prioritário</li>
+                    <li class="headline">100 capturas por dia</li>
+                    <li>25 GB de armazenamento</li>
+                    <li>Retenção de 90 dias</li>
+                    <li>Tudo do Free</li>
+                    <li>MCP runtime em todas as suas capturas</li>
+                    <li>Fila de reconstrução de maior qualidade</li>
+                    <li>Suporte prioritário por e-mail</li>
+                    <li>Reconstrução mais rápida via créditos cloud do NVIDIA Inception</li>
                 </ul>
-                <button onclick="handleUpgradeClick()" class="upgrade-btn upgrade-btn-pro" id="upgrade-pro-btn">
-                    Iniciar Teste Grátis de 7 Dias
-                </button>
-                <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
-                    <a href="pro-features.html" style="color: var(--accent-bright);">Ver todos os recursos Pro &rarr;</a>
-                </p>
+                <a href="../capture-app/" class="upgrade-btn upgrade-btn-pro">Entrar na Pro Beta</a>
+                <p style="margin-top: 12px; font-size: 0.78rem; color: var(--text-secondary); text-align: center;">Grátis hoje. Avisaremos com pelo menos 30 dias de antecedência antes de qualquer cobrança.</p>
+            </div>
+
+            <!-- Enterprise Tier -->
+            <div class="pricing-card">
+                <h3 style="color: var(--success);">Enterprise</h3>
+                <div class="price">Sob medida</div>
+                <p class="price-note">Adaptado ao seu deployment</p>
+                <ul>
+                    <li class="headline">Limites de captura e armazenamento sob medida</li>
+                    <li>Retenção e residência de dados sob medida</li>
+                    <li>SSO e gestão de equipe</li>
+                    <li>Endpoint privado do MCP runtime</li>
+                    <li>Integração com smart glasses e OEM</li>
+                    <li>SLA, revisão de segurança, NDA</li>
+                    <li>Suporte de engenharia dedicado</li>
+                </ul>
+                <a href="mailto:partners@rakuai.com?subject=Raku%20Capture%20-%20consulta%20Enterprise" class="upgrade-btn upgrade-btn-ent">Falar com vendas</a>
             </div>
         </div>
 
-        <div class="guarantee">
-            <h4>Sem Risco</h4>
-            <p>Cancele quando quiser nas configurações da sua conta. Sem contratos de longo prazo. Os seus jogos são sempre seus, mesmo se você fizer downgrade.</p>
+        <!-- Tier comparison table -->
+        <div class="tier-feature-row">
+            <div class="header">&nbsp;</div>
+            <div class="header" style="text-align: center;">Free</div>
+            <div class="header" style="text-align: center;">Pro Beta</div>
+            <div class="header" style="text-align: center;">Enterprise</div>
+            <div class="label" style="">Capturas / dia</div>
+            <div style="text-align: center">10</div>
+            <div style="text-align: center">100</div>
+            <div style="text-align: center">Sob medida</div>
+            <div class="label" style="">Armazenamento</div>
+            <div style="text-align: center">1 GB</div>
+            <div style="text-align: center">25 GB</div>
+            <div style="text-align: center">Sob medida</div>
+            <div class="label" style="">Retenção</div>
+            <div style="text-align: center">7 dias</div>
+            <div style="text-align: center">90 dias</div>
+            <div style="text-align: center">Sob medida</div>
+            <div class="label" style="">MCP runtime (Claude, ChatGPT, Gemini, Copilot)</div>
+            <div style="text-align: center">&#10003;</div>
+            <div style="text-align: center">&#10003;</div>
+            <div style="text-align: center">&#10003; endpoint privado</div>
+            <div class="label" style="">Visualizador 3D interativo e links compartilháveis</div>
+            <div style="text-align: center">&#10003;</div>
+            <div style="text-align: center">&#10003;</div>
+            <div style="text-align: center">&#10003;</div>
+            <div class="label" style="border-bottom: none">Suporte</div>
+            <div style="text-align: center; border-bottom: none">Comunidade</div>
+            <div style="text-align: center; border-bottom: none">E-mail prioritário</div>
+            <div style="text-align: center; border-bottom: none">Dedicado</div>
         </div>
+
+        <p style="text-align: center; max-width: 760px; margin: 32px auto 0; color: var(--text-secondary); font-size: 0.9rem;">A Pro Beta é grátis enquanto o produto estiver em beta. Avisaremos com pelo menos 30 dias de antecedência antes de começar a cobrar. Cancele a qualquer momento na sua conta.</p>
     </div>
 </section>
 
-<!-- Upgrade Success Banner (shown after Stripe redirect) -->
-<section class="section" id="upgrade-success" style="display: none;">
-    <div class="container">
-        <div class="upgrade-banner" style="border-color: var(--success); background: rgba(0, 206, 201, 0.1);">
-            <div class="upgrade-banner-text">
-                <h4 style="color: var(--success);">Bem-vindo ao Pro!</h4>
-                <p>Sua conta foi atualizada. Agora você tem 100 gerações por dia, fila prioritária e IA de alta qualidade.</p>
-            </div>
-            <a href="index.html#create" class="btn btn-primary">Começar a Criar</a>
-        </div>
-    </div>
-</section>
-
-<!-- Enterprise -->
-<section class="section" id="enterprise">
+<section class="section" style="border-top: 1px solid rgba(108,92,231,0.15);">
     <div class="container" style="text-align: center;">
-        <h2>Licenciamento Enterprise e para Estúdios</h2>
-        <p style="color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.05rem;">
-            Está desenvolvendo um título comercial, lançando em console ou avaliando uma integração de plataforma? Oferecemos licenciamento personalizado para estúdios e parceiros de plataforma.
-        </p>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto 40px;">
-            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
-                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">Estúdio</h3>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Equipes lançando jogos comerciais. Builds personalizados, suporte prioritário e acesso antecipado a novos recursos.</p>
+        <h2>O que você ganha em todos os planos</h2>
+        <p style="color: var(--text-secondary); max-width: 720px; margin: 0 auto 40px;">Mesmo no Free, sua captura é uma cena real que um LLM consegue ler. MCP não está atrás de paywall.</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; max-width: 1000px; margin: 0 auto;">
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 24px; text-align: left;">
+                <h3 style="color: var(--accent-bright); font-size: 1.05rem; margin-bottom: 8px;">MCP runtime, em produção</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Conecte Claude, ChatGPT, Gemini ou Copilot às suas capturas via Model Context Protocol. Eles podem ler a cena; não podem reescrever silenciosamente o seu ambiente.</p>
             </div>
-            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
-                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">Plataforma</h3>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Fabricantes de consoles e plataformas XR. Integração profunda, co-marketing e suporte de engenharia dedicado.</p>
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 24px; text-align: left;">
+                <h3 style="color: var(--accent-bright); font-size: 1.05rem; margin-bottom: 8px;">Scan de celular → cena 3D</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Capture de qualquer iPhone ou Android via o PWA do navegador. Reconstruímos a cena no servidor; você recebe um splat explorável e um link de visualizador compartilhável.</p>
             </div>
-            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
-                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">OEM</h3>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">Licenciamento para pré-instalação e bundle por fabricantes de hardware. Opções white-label disponíveis.</p>
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 24px; text-align: left;">
+                <h3 style="color: var(--accent-bright); font-size: 1.05rem; margin-bottom: 8px;">Engine respaldada por patentes</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">5 patentes dos EUA concedidas com data de prioridade de julho de 2012, cobrindo o runtime espacial por trás de cada captura.</p>
             </div>
         </div>
-        <a href="enterprise.html" class="btn btn-primary">Fale com Vendas Enterprise</a>
-        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 16px;">Tecnologia protegida por patentes. NDA disponível para deep-dives técnicos.</p>
     </div>
 </section>
 
-<section class="section" style="background: var(--bg-secondary);">
+<!-- NVIDIA Inception recognition strip -->
+<section class="section" id="nvidia-inception" style="border-top: 1px solid rgba(108,92,231,0.25);">
     <div class="container">
-        <h2>Perguntas Frequentes</h2>
-        <div class="faq">
-            <div class="faq-item">
-                <h3>O que acontece quando atinjo o limite diário?</h3>
-                <p>Usuários do plano gratuito têm 10 gerações por dia. Ao atingir o limite, você verá uma opção para fazer upgrade para o Pro, com 100 gerações por dia, ou esperar até o dia seguinte. Os seus jogos existentes continuam jogáveis.</p>
-            </div>
-            <div class="faq-item">
-                <h3>Qual a diferença entre a IA do plano Grátis e do Pro?</h3>
-                <p>O plano Grátis usa o nosso modelo de IA rápido para geração ágil. O Pro usa um modelo de maior qualidade, que produz configurações de jogos mais criativas e detalhadas, com mecânicas de gameplay mais ricas.</p>
-            </div>
-            <div class="faq-item">
-                <h3>Como funciona o teste grátis?</h3>
-                <p>O seu teste Pro de 7 dias começa imediatamente, com acesso total a todos os recursos Pro. Você não é cobrado até o fim do teste. Cancele a qualquer momento durante o período de teste e nenhuma cobrança será feita.</p>
-            </div>
-            <div class="faq-item">
-                <h3>Existe um plano anual?</h3>
-                <p>Sim! Ative o seletor "Anual" acima para ver o preço anual de US$ 149,99/ano &mdash; equivalente a 2 meses grátis em comparação à cobrança mensal.</p>
-            </div>
-            <div class="faq-item">
-                <h3>Posso cancelar quando quiser?</h3>
-                <p>Sim. Cancele nas configurações da sua conta ou no portal do cliente do Stripe. Os seus recursos Pro permanecem ativos até o fim do período de cobrança. Não é necessário pedir reembolso &mdash; basta cancelar.</p>
-            </div>
-            <div class="faq-item">
-                <h3>Quais formas de pagamento são aceitas?</h3>
-                <p>Usamos o Stripe para processamento seguro de pagamentos. Aceitamos os principais cartões de crédito, cartões de débito e também Apple Pay / Google Pay.</p>
-            </div>
-            <div class="faq-item">
-                <h3>Posso vender os jogos que eu criar?</h3>
-                <p>Sim. Você é dono dos jogos que cria. O plano Pro inclui exportação standalone para distribuição comercial na Steam, itch.io ou em qualquer plataforma.</p>
-            </div>
+        <div style="display:flex; align-items:center; gap: 24px; flex-wrap: wrap; justify-content: center; background: rgba(108,92,231,0.05); border: 1px solid rgba(108,92,231,0.25); border-radius: 12px; padding: 24px 28px; max-width: 1000px; margin: 0 auto;">
+            <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="Membro do NVIDIA Inception — saiba mais na página de imprensa">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="200" height="50" style="height: 50px; width: auto;">
+            </a>
+            <p style="max-width: 580px; margin: 0; color: var(--text-secondary);">
+                O Raku Capture é desenvolvido por um membro do <strong>NVIDIA Inception</strong>. Estamos trazendo o 3D Gaussian Splatting acelerado pela NVIDIA (o treinador Brush em A10G / L40S) para a reconstrução, para que um scan de celular vire um splat explorável em minutos — em breve via o catálogo NGC e os créditos cloud de parceiros do programa.
+                <a href="press.html#nvidia-inception" style="white-space: nowrap;">Ler o anúncio →</a>
+            </p>
         </div>
     </div>
 </section>
 
-<!-- K.11: Referral Section -->
-<section class="section" id="referral-section" style="display: none;">
+<section class="section" style="border-top: 1px solid rgba(108,92,231,0.15);">
+    <div class="container" style="max-width: 820px;">
+        <h2 style="text-align: center;">Perguntas frequentes</h2>
+        <div style="margin-top: 32px;">
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">A Pro Beta é realmente grátis agora?</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">Sim. A Pro Beta é grátis enquanto o Raku Capture estiver em beta. Avisaremos com pelo menos 30 dias antes de qualquer cobrança, e você pode permanecer no Free se não quiser fazer upgrade. O preço previsto na disponibilidade geral é $14,99/mês.</p>
+            </details>
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">O que conta como uma «captura»?</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">Um scan enviado que reconstruímos em uma cena 3D. O contador diário reinicia à meia-noite UTC. Reabrir ou compartilhar uma captura existente não conta.</p>
+            </details>
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">O que acontece com as capturas após a janela de retenção?</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">No Free, capturas e cenas reconstruídas são apagadas 7 dias após o upload. Na Pro Beta são 90 dias. Você pode reenviar o vídeo original. Enterprise tem retenção sob medida.</p>
+            </details>
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">MCP é mesmo incluso no Free?</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">Sim. O MCP runtime está em produção e disponível em todos os planos — Free incluso. Conecte Claude, ChatGPT, Gemini ou Copilot às suas capturas e eles conseguem ler a cena via Model Context Protocol.</p>
+            </details>
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">Quando chega a reconstrução acelerada por GPU?</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">O treinamento de splat no servidor com NVIDIA A10G / L40S está no roadmap via créditos cloud do NVIDIA Inception. Hoje a reconstrução roda em CPU; quando a GPU chegar, vamos rotear primeiro Pro Beta e Enterprise para lá.</p>
+            </details>
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">Quero embarcar isso no nosso produto / óculos / frota.</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">Isso é Enterprise. Envie um e-mail para <a href="mailto:partners@rakuai.com">partners@rakuai.com</a> com o caso de uso e a escala estimada e retornaremos.</p>
+            </details>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="border-top: 1px solid rgba(108,92,231,0.25);">
     <div class="container" style="text-align: center;">
-        <h2>Compartilhe o RakuAI e Ganhe Recompensas</h2>
-        <p style="color: var(--text-secondary); max-width: 600px; margin: -24px auto 32px;">
-            Compartilhe seu link de indicação com amigos. Quando eles assinarem o Pro, vocês dois recebem recompensas.
-        </p>
-        <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px; max-width: 500px; margin: 0 auto;">
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 8px;">Seu link de indicação:</p>
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <input type="text" id="referral-link" readonly style="flex: 1; background: var(--bg-primary); border: 1px solid #333; border-radius: 6px; padding: 12px; color: var(--text-primary); font-size: 0.9rem;">
-                <button onclick="copyReferralLink()" class="btn btn-primary" style="padding: 12px 20px; white-space: nowrap;" id="copy-ref-btn">Copiar</button>
-            </div>
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;" id="referral-stats"></p>
+        <h2>Experimente o Raku Capture hoje</h2>
+        <p style="max-width: 720px; margin: 16px auto 24px; color: var(--text-secondary);">Funciona no iPhone Safari e no Android Chrome — sem instalação. Escaneie um ambiente, veja a reconstrução e aponte o Claude para ele via MCP.</p>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a class="btn btn-primary" href="../capture-app/">Comece a capturar grátis</a>
+            <a class="btn" style="border: 1px solid var(--accent); color: var(--accent-bright);" href="capture.html">Como funciona</a>
+            <a class="btn" style="border: 1px solid var(--success); color: var(--success);" href="mailto:partners@rakuai.com?subject=Raku%20Capture%20-%20consulta%20Enterprise">Falar com Enterprise</a>
         </div>
     </div>
 </section>
 
 <footer>
     <div class="container">
-        <div class="footer-links">
-            <a href="../engine/">Engine</a>
-            <a href="../api/">API</a>
-            <a href="docs.html">Documentação</a>
-            <a href="../games/">Arcade</a>
-            <a href="press.html">Imprensa</a>
-            <a href="developers/">Desenvolvedores</a>
-            <a href="../privacy.html">Privacidade</a>
-            <a href="../terms.html">Termos</a>
-            <a href="contact.html">Contato</a>
-            <a href="https://github.com/RakuXR">GitHub</a>
-            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Soluções</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">Fabricantes de smart glasses</a></li>
+                    <li><a href="llm-makers.html">Laboratórios de IA</a></li>
+                    <li><a href="enterprise.html">Empresas</a></li>
+                    <li><a href="creator.html">Criadores</a></li>
+                    <li><a href="robotics.html">Robótica</a></li>
+                    <li><a href="insurance.html">Seguros</a></li>
+                    <li><a href="compare.html">Comparação com Unity / Unreal</a></li>
+                    <li><a href="spatial-engine.html">Engine Espacial</a></li>
+                    <li><a href="ai-systems.html">Sistemas de IA</a></li>
+                    <li><a href="xr-features.html">Recursos XR</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Desenvolvedores</h4>
+                <ul>
+                    <li><a href="docs.html">Documentação</a></li>
+                    <li><a href="mcp.html">Servidor MCP</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="../api/">Referência da API</a></li>
+                    <li><a href="templates.html">Templates</a></li>
+                    <li><a href="developers/">Portal do desenvolvedor</a></li>
+                    <li><a href="../developers/claude-desktop.html">Guia do Claude Desktop</a></li>
+                    <li><a href="developer-guide.html">Guia do desenvolvedor</a></li>
+                    <li><a href="llm-guide.html">Guia de integração LLM</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Recursos</h4>
+                <ul>
+                    <li><a href="../blog/">Blog</a></li>
+                    <li><a href="why-rakuai.html">Por que RakuAI</a></li>
+                    <li><a href="press.html">Kit de imprensa</a></li>
+                    <li><a href="../discover.html">Descobrir</a></li>
+                    <li><a href="content-packs.html">Pacotes de conteúdo</a></li>
+                    <li><a href="docs.html">Documentação</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Empresa</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">Sobre</a></li>
+                    <li><a href="pricing.html">Preços</a></li>
+                    <li><a href="contact.html">Contato</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">Parceiros</a></li>
+                    <li><a href="../privacy.html">Privacidade</a></li>
+                    <li><a href="../terms.html">Termos</a></li>
+                </ul>
+            </div>
         </div>
-        <p>&copy; 2026 RakuAI, LLC &bull; 5 Patentes Concedidas nos EUA (Prioridade: Julho de 2012) &bull; Powered by the RakuAI Engine</p>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 patentes nos EUA concedidas (Prioridade: julho de 2012) &bull; Movido pela engine RakuAI</p>
         <p class="trademark-notice">
-            RakuAI&trade; e RakuXR&trade; são marcas registradas da RakuAI, LLC.
+            RakuAI&trade; e RakuXR&trade; são marcas da RakuAI, LLC.
             <span class="kanji-logo">&#x697D;</span>AI e <span class="kanji-logo">&#x697D;</span>XR são marcas estilizadas da RakuAI, LLC.
-            5 Patentes Concedidas nos EUA (Prioridade: Julho de 2012).
+            5 patentes nos EUA concedidas (Prioridade: julho de 2012).
         </p>
     </div>
         <!-- nv-inception:start -->
         <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
-            <a href="../press.html#nvidia-inception" aria-label="Membro do NVIDIA Inception - read more on the press page" style="line-height: 0;">
-                <img src="../branding/nvidia-inception-member.svg" alt="Membro do NVIDIA Inception" width="160" height="40" style="height: 40px; width: auto; display: block;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception Member - leia mais na página de imprensa" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+            <a href="../press.html#aws-activate" aria-label="Desenvolvido na AWS — participante do AWS Activate" style="line-height: 0;">
+                <img src="../branding/aws/powered-by-aws-white.png" alt="Desenvolvido na AWS" height="40" style="height: 40px; width: auto; display: block;">
             </a>
         </div>
         <!-- nv-inception:end -->
@@ -627,9 +558,10 @@ async function loadReferralSection() {
 })();
 </script>
 
-<script src="/js/auth-nav.js" defer></script>
-<script src="/js/lang-selector.js" defer></script>
+<script src="../js/auth-nav.js" defer></script>
+<script src="../js/lang-selector.js" defer></script>
 <script src="../js/nav-dropdown.js" defer></script>
-    <script src="/js/section-nav.js" defer></script>
+    <script src="../js/section-nav.js" defer></script>
 </body>
 </html>
+

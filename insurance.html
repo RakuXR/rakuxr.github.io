@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>RakuAI for Insurance — One Phone Scan to an Insurer-Ready Contents Inventory</title>
+    <meta name="description" content="A one-pass phone scan that turns a room into an itemized contents list with measurements and estimated replacement values — built for claims, moves, and downsizing. Same splat + MCP core as Raku Capture. Honest about what ships today.">
+    <meta name="keywords" content="insurance contents inventory, home inventory app, claims documentation, replacement value estimate, phone 3D scan, insurer-ready PDF, loss adjustment expense, Gaussian splatting insurance">
+    <meta property="og:title" content="RakuAI for Insurance — One Phone Scan to an Insurer-Ready Contents Inventory">
+    <meta property="og:description" content="60–90 second phone scan → itemized contents, measurements, and estimated replacement value. For claims, moves, and downsizing. Same splat + MCP core, no new engine.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/insurance.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RakuAI for Insurance — One Phone Scan to an Insurer-Ready Contents Inventory">
+    <meta name="twitter:description" content="60–90 second phone scan → itemized contents, measurements, and estimated replacement value. For claims, moves, and downsizing.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <meta name="twitter:url" content="https://rakuai.com/insurance.html">
+    <link rel="canonical" href="https://rakuai.com/insurance.html">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .ins-section {
+            padding: 72px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .ins-section:last-of-type {
+            border-bottom: none;
+        }
+        .ins-hero {
+            padding: 40px 0 56px;
+            text-align: center;
+        }
+        /* Hero split: copy + inline SVG figure */
+        .ins-hero-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 40px;
+            align-items: center;
+            text-align: left;
+        }
+        .ins-hero-grid .ins-hero-copy { min-width: 0; }
+        .ins-hero-grid.center-copy { text-align: left; }
+        .ins-hero-figure {
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            display: block;
+            height: auto;
+        }
+        .ins-hero-figure svg { width: 100%; height: auto; display: block; }
+        .ins-scan-beam {
+            transform-box: view-box;
+            transform-origin: 320px 250px;
+            animation: insScanSweep 2.8s ease-in-out infinite;
+        }
+        @keyframes insScanSweep {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(14deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .ins-scan-beam { animation: none; transform: rotate(2deg); }
+        }
+        @media (max-width: 860px) {
+            .ins-hero-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 28px;
+            }
+            .ins-hero-figure { max-width: 360px; order: -1; }
+        }
+        .ins-hero .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            padding: 6px 14px;
+            border: 1px solid rgba(108, 92, 231, 0.45);
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+        .ins-hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .ins-hero .subhead {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            line-height: 1.65;
+            max-width: 820px;
+            margin: 0 auto 32px;
+        }
+        .ins-hero .audience-line {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 720px;
+            margin: 18px auto 0;
+            opacity: 0.85;
+            font-style: italic;
+        }
+        .ins-cta-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+        .ins-btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .ins-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
+        }
+        .ins-btn-secondary {
+            display: inline-block;
+            background: transparent;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.15s ease;
+        }
+        .ins-btn-secondary:hover {
+            background: rgba(163, 136, 255, 0.1);
+        }
+        .ins-section h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .ins-section .ins-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 760px;
+            margin: 0 auto 40px;
+        }
+
+        /* Use-case cards */
+        .ins-usecases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .ins-usecase {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 26px;
+        }
+        .ins-usecase h3 {
+            color: var(--accent-bright);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .ins-usecase p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* How it works steps */
+        .ins-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .ins-step {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 22px 22px;
+            position: relative;
+        }
+        .ins-step .ins-step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: rgba(108, 92, 231, 0.12);
+            color: var(--accent-bright);
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+        .ins-step h4 {
+            color: var(--text-primary);
+            font-size: 1.02rem;
+            margin-bottom: 6px;
+        }
+        .ins-step p {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        /* Sample inventory table */
+        .ins-table-wrap {
+            max-width: 880px;
+            margin: 0 auto;
+            overflow-x: auto;
+            border: 1px solid #222244;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+        .ins-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 560px;
+            font-size: 0.95rem;
+        }
+        .ins-table th, .ins-table td {
+            padding: 13px 18px;
+            text-align: left;
+            border-bottom: 1px solid #222244;
+            vertical-align: top;
+        }
+        .ins-table thead th {
+            background: rgba(108, 92, 231, 0.08);
+            color: var(--accent-bright);
+            font-weight: 700;
+            font-size: 0.92rem;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+        }
+        .ins-table td {
+            color: var(--text-secondary);
+        }
+        .ins-table td.ins-num {
+            text-align: right;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+        .ins-table tfoot td, .ins-table tr.ins-total td {
+            color: var(--text-primary);
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.015);
+        }
+        .ins-table tr:last-child th, .ins-table tr:last-child td {
+            border-bottom: none;
+        }
+        .ins-table-note {
+            max-width: 880px;
+            margin: 14px auto 0;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            opacity: 0.85;
+            padding: 0 6px;
+            line-height: 1.6;
+        }
+
+        /* Comparison matrix */
+        .ins-matrix-wrap {
+            max-width: 1000px;
+            margin: 0 auto;
+            overflow-x: auto;
+            border: 1px solid #222244;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+        .ins-matrix {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 640px;
+            font-size: 0.95rem;
+        }
+        .ins-matrix th, .ins-matrix td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid #222244;
+            vertical-align: top;
+        }
+        .ins-matrix thead th {
+            background: rgba(108, 92, 231, 0.08);
+            color: var(--accent-bright);
+            font-weight: 700;
+            font-size: 0.92rem;
+            white-space: nowrap;
+        }
+        .ins-matrix tbody th {
+            color: var(--text-primary);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.015);
+            min-width: 220px;
+        }
+        .ins-matrix td {
+            color: var(--text-secondary);
+        }
+        .ins-matrix tr:last-child th, .ins-matrix tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Honest framing callout */
+        .ins-honest {
+            max-width: 820px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-left: 4px solid var(--accent-bright);
+            border-radius: 8px;
+            padding: 24px 28px;
+        }
+        .ins-honest h3 {
+            color: var(--accent-bright);
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+        }
+        .ins-honest ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        .ins-honest li { margin-bottom: 8px; }
+
+        /* Partner cards */
+        .ins-partner-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .ins-partner-card {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 26px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .ins-partner-card > div { flex-grow: 1; }
+        .ins-partner-card h3 {
+            color: var(--accent-bright);
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+        }
+        .ins-partner-card p {
+            color: var(--text-secondary);
+            font-size: 0.93rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Cross-links */
+        .ins-crosslinks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .ins-crosslink {
+            display: block;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px 22px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: border-color 0.15s ease, transform 0.15s ease;
+        }
+        .ins-crosslink:hover {
+            border-color: var(--accent-bright);
+            transform: translateY(-2px);
+        }
+        .ins-crosslink .label {
+            color: var(--accent-bright);
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        .ins-crosslink .desc {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.5;
+        }
+
+        /* Infographic carousel (dependency-free) */
+        .ins-carousel {
+            max-width: 920px;
+            margin: 0 auto;
+            position: relative;
+        }
+        .ins-carousel-viewport {
+            overflow: hidden;
+            border: 1px solid #222244;
+            border-radius: 14px;
+            background: var(--bg-secondary);
+        }
+        .ins-carousel-track {
+            display: flex;
+            transition: transform 0.45s ease;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .ins-carousel-track { transition: none; }
+        }
+        .ins-slide {
+            flex: 0 0 100%;
+            min-width: 100%;
+            box-sizing: border-box;
+            padding: 36px 40px;
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 28px;
+            align-items: center;
+        }
+        .ins-slide .ins-slide-art { width: 100%; height: auto; }
+        .ins-slide .ins-slide-art svg { width: 100%; height: auto; display: block; }
+        .ins-slide h3 { color: var(--accent-bright); font-size: 1.25rem; margin: 0 0 10px; }
+        .ins-slide p { color: var(--text-secondary); font-size: 0.98rem; line-height: 1.6; margin: 0; }
+        .ins-slide .ins-slide-step {
+            display: inline-block;
+            font-size: 0.72rem;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--success);
+            margin-bottom: 8px;
+        }
+        .ins-carousel-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            margin-top: 18px;
+        }
+        .ins-carousel-btn {
+            background: var(--bg-secondary);
+            border: 1px solid #2c2c50;
+            color: var(--accent-bright);
+            width: 42px;
+            height: 42px;
+            border-radius: 999px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .ins-carousel-btn:hover { border-color: var(--accent-bright); }
+        .ins-carousel-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        .ins-carousel-dots { display: flex; gap: 10px; }
+        .ins-carousel-dot {
+            width: 11px; height: 11px; border-radius: 999px;
+            border: 1px solid #3a3a66; background: transparent;
+            padding: 0; cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .ins-carousel-dot[aria-selected="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
+        .ins-carousel-dot:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        @media (max-width: 620px) {
+            .ins-slide { grid-template-columns: 1fr; padding: 28px 22px; text-align: center; gap: 16px; }
+            .ins-slide .ins-slide-art { max-width: 130px; margin: 0 auto; }
+        }
+        @media (max-width: 768px) {
+            .ins-hero { padding: 28px 0 40px; }
+            .ins-section { padding: 56px 0; }
+            .ins-honest { padding: 20px 20px; }
+            .ins-table th, .ins-table td,
+            .ins-matrix th, .ins-matrix td { padding: 11px 12px; font-size: 0.88rem; }
+        }
+        @media (max-width: 480px) {
+            .ins-cta-row { flex-direction: column; align-items: stretch; }
+            .ins-btn-primary, .ins-btn-secondary { text-align: center; }
+        }
+    </style>
+
+    <script type="application/ld+json">
+    {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://rakuai.com/#organization",
+    "name": "RakuAI",
+    "url": "https://rakuai.com",
+    "logo": "https://rakuai.com/favicon.svg",
+    "description": "AI-native spatial runtime: capture reality with a phone camera, drive it with an LLM. 17 native MCP tools, Gaussian-splatting pipeline, hosted at api.rakuai.com.",
+    "memberOf": {
+        "@type": "ProgramMembership",
+        "programName": "NVIDIA Inception Program",
+        "hostingOrganization": {
+            "@type": "Organization",
+            "name": "NVIDIA",
+            "url": "https://www.nvidia.com"
+        }
+    }
+}
+    </script>
+    <script type="application/ld+json">
+    {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "RakuAI for Insurance",
+    "url": "https://rakuai.com/insurance.html",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "iOS, Android, Web",
+    "description": "A one-pass phone scan (60–90 seconds) that turns a room into an itemized contents list with measurements and estimated replacement values — built for insurance claims, home moves, and downsizing. Powered by the same Gaussian-splatting and MCP core as Raku Capture.",
+    "provider": {
+        "@id": "https://rakuai.com/#organization"
+    },
+    "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "description": "Early-access pilot"
+    }
+}
+    </script>
+    <script type="application/ld+json">
+    {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "RakuAI",
+            "item": "https://rakuai.com/"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Insurance",
+            "item": "https://rakuai.com/insurance.html"
+        }
+    ]
+}
+    </script>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    5 Patents | 9,500+ API Endpoints | 18 Native DLLs | The AI-Native Spatial Game Engine — Now in Early Access <a href="/engine/">Explore the engine &rarr;</a>
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading" role="presentation">By audience</div>
+                        <div class="col-heading" role="presentation">Platform</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">Robotics<span class="item-desc">Persistent spatial memory for robots</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">Insurance<span class="item-desc">Phone scan to contents inventory</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">Scan a space, then talk to it</span></a></li>
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP Server</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="api/">API Reference</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">Templates</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">Developer Portal</a></li>
+                        <li role="none"><a role="menuitem" href="developers/claude-desktop.html">Claude Desktop guide</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">Developer Guide</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM Integration Guide</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
+                        <li role="none"><a role="menuitem" href="blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">Why RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">Press Kit</a></li>
+                        <li role="none"><a role="menuitem" href="discover.html">Discover</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">Content Packs</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">Pricing</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="blog/">Blog</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">Sign In</a>
+            <a href="ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<section class="ins-hero">
+    <div class="container">
+        <div class="ins-hero-grid">
+            <div class="ins-hero-copy">
+                <span class="eyebrow">For homeowners, renters &amp; their insurers</span>
+                <h1>One phone scan. An insurer-ready contents inventory.</h1>
+                <p class="subhead">
+                    RakuAI Capture turns a 60&ndash;90 second phone scan of a room into an itemized, queryable contents inventory &mdash; with approximate measurements and estimated replacement values. An adjuster&rsquo;s AI assistant can query the inventory over the MCP surface without a site visit. Same 3D Gaussian-splat reconstruction and MCP core as the rest of RakuAI &mdash; no new engine. Built for three moments: filing a <strong>claim</strong>, planning a <strong>move</strong>, and <strong>downsizing</strong>.
+                </p>
+                <p class="audience-line">
+                    Phase&nbsp;1 / pilot readiness &mdash; honest about what ships today versus what&rsquo;s on the roadmap. We document a space and produce a structured inventory; we are not an insurer and do not set policy terms or settle claims.
+                </p>
+                <div style="display: flex; margin: 22px 0 4px;">
+                    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Member of NVIDIA Inception and AWS Activate participant - scroll to details">
+                        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Member of</span>
+                        <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+        <img src="branding/aws/powered-by-aws-white.png" alt="AWS Activate" width="80" height="28" style="height: 28px; width: auto; display: block;">
+                        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">Read more &darr;</span>
+                    </a>
+                </div>
+                <div class="ins-cta-row" style="justify-content:flex-start;">
+                    <a href="#request-pilot" class="ins-btn-primary">Request a pilot &rarr;</a>
+                    <a href="capture.html" class="ins-btn-secondary">Try the capture flow &rarr;</a>
+                </div>
+            </div>
+            <div class="ins-hero-figure" aria-hidden="true">
+                <!-- Phone scan -> reconstructed room -> itemized inventory -->
+                <svg viewBox="0 0 360 320" role="img" xmlns="http://www.w3.org/2000/svg">
+                    <title>A phone scanning a room and producing an itemized contents inventory</title>
+                    <defs>
+                        <linearGradient id="insRoom" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#1a1a3a"/>
+                            <stop offset="1" stop-color="#11112a"/>
+                        </linearGradient>
+                        <linearGradient id="insScan" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#a388ff" stop-opacity="0.55"/>
+                            <stop offset="1" stop-color="#a388ff" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- reconstructed room + contents, scaled up ~18% as one unit
+                         (about its top-left corner) so the room reads larger while
+                         staying clear of the phone and inventory card. -->
+                    <g transform="translate(24,26) scale(1.18) translate(-24,-26)">
+                    <!-- reconstructed room box -->
+                    <rect x="24" y="26" width="220" height="180" rx="12" fill="url(#insRoom)" stroke="#2c2c50"/>
+                    <!-- splat point cloud -->
+                    <g fill="#6c5ce7">
+                        <circle cx="70" cy="150" r="3.2" opacity="0.9"/><circle cx="86" cy="158" r="2.6" opacity="0.7"/>
+                        <circle cx="100" cy="146" r="3" opacity="0.8"/><circle cx="120" cy="160" r="2.4" opacity="0.6"/>
+                        <circle cx="150" cy="120" r="3.2" opacity="0.85"/><circle cx="168" cy="132" r="2.6" opacity="0.7"/>
+                        <circle cx="190" cy="150" r="3" opacity="0.8"/><circle cx="205" cy="160" r="2.4" opacity="0.6"/>
+                        <circle cx="64" cy="100" r="2.6" opacity="0.6"/><circle cx="200" cy="96" r="2.6" opacity="0.6"/>
+                    </g>
+                    <!-- simple sofa + lamp silhouettes -->
+                    <rect x="60" y="150" width="80" height="34" rx="6" fill="#23244a" stroke="#3a3a66"/>
+                    <rect x="172" y="112" width="48" height="72" rx="5" fill="#23244a" stroke="#3a3a66"/>
+                    </g>
+                    <!-- scan sweep beam (CSS-animated; paused under prefers-reduced-motion) -->
+                    <polygon class="ins-scan-beam" points="320,250 200,40 248,40" fill="url(#insScan)"/>
+                    <!-- phone -->
+                    <g>
+                        <rect x="296" y="196" width="48" height="92" rx="10" fill="#16162e" stroke="#a388ff" stroke-width="2"/>
+                        <rect x="302" y="206" width="36" height="60" rx="4" fill="#0a0a1a"/>
+                        <circle cx="320" cy="278" r="3.5" fill="#3a3a66"/>
+                    </g>
+                    <!-- inventory output card -->
+                    <g>
+                        <rect x="150" y="232" width="150" height="78" rx="9" fill="#16162e" stroke="#2c2c50"/>
+                        <rect x="162" y="244" width="14" height="14" rx="3" fill="#00cec9"/>
+                        <rect x="184" y="246" width="78" height="6" rx="3" fill="#3a3a66"/>
+                        <rect x="184" y="258" width="48" height="5" rx="2.5" fill="#2c2c50"/>
+                        <rect x="162" y="272" width="14" height="14" rx="3" fill="#00cec9"/>
+                        <rect x="184" y="274" width="66" height="6" rx="3" fill="#3a3a66"/>
+                        <rect x="184" y="286" width="40" height="5" rx="2.5" fill="#2c2c50"/>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Infographic carousel: scan -> splat -> itemize -> review -->
+<section class="ins-section" id="flow-carousel" style="padding-top:0;border-bottom:1px solid #222244;">
+    <div class="container">
+        <h2>From a phone in your hand to a list you can submit.</h2>
+        <p class="ins-subtitle">The same Raku Capture pipeline, one step at a time. Use the arrows, dots, or your keyboard.</p>
+        <div class="ins-carousel" data-carousel>
+            <div class="ins-carousel-viewport">
+                <div class="ins-carousel-track" data-carousel-track role="group" aria-roledescription="carousel" aria-label="How one scan becomes an inventory">
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="Step 1 of 4: Scan the room">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="44" y="18" width="40" height="84" rx="9" fill="#16162e" stroke="#a388ff" stroke-width="2"/><rect x="50" y="28" width="28" height="56" rx="3" fill="#0a0a1a"/><circle cx="64" cy="94" r="3.5" fill="#3a3a66"/><path d="M30 60 H14 M90 60 H106 M64 18 V6" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round" opacity="0.7"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">Step 1</span>
+                            <h3>Scan the room</h3>
+                            <p>Walk a slow loop with your phone &mdash; about 60&ndash;90 seconds, guided on-screen. No tripod, no $300 rig, no special camera.</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="Step 2 of 4: Reconstruct">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="24" width="88" height="72" rx="10" fill="#1a1a3a" stroke="#2c2c50"/><g fill="#6c5ce7"><circle cx="40" cy="70" r="4"/><circle cx="56" cy="76" r="3"/><circle cx="72" cy="62" r="4"/><circle cx="86" cy="74" r="3"/><circle cx="50" cy="50" r="3"/><circle cx="78" cy="48" r="3"/></g></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">Step 2</span>
+                            <h3>Reconstruct</h3>
+                            <p>Frames and motion are reconstructed in the cloud into a 3D Gaussian splat &mdash; an explorable model of the actual space.</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="Step 3 of 4: Itemize with an LLM">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="22" y="20" width="76" height="80" rx="9" fill="#16162e" stroke="#2c2c50"/><rect x="34" y="34" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="37" width="38" height="6" rx="3" fill="#3a3a66"/><rect x="34" y="56" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="59" width="34" height="6" rx="3" fill="#3a3a66"/><rect x="34" y="78" width="12" height="12" rx="3" fill="#00cec9"/><rect x="52" y="81" width="30" height="6" rx="3" fill="#3a3a66"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">Step 3</span>
+                            <h3>Itemize with any LLM</h3>
+                            <p>An LLM walks the scene over the MCP surface and lists the visible objects with approximate measurements. Claude, ChatGPT, Gemini, or Copilot &mdash; your choice.</p>
+                        </div>
+                    </div>
+                    <div class="ins-slide" role="group" aria-roledescription="slide" aria-label="Step 4 of 4: Review and export">
+                        <div class="ins-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="24" y="18" width="72" height="84" rx="9" fill="#16162e" stroke="#2c2c50"/><path d="M40 60 l12 12 l28 -28" fill="none" stroke="#00cec9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                        <div>
+                            <span class="ins-slide-step">Step 4</span>
+                            <h3>Review &amp; export</h3>
+                            <p>You edit the list, confirm values, and export a clean inventory to hand to your carrier. Every value is labelled an estimate &mdash; you stay in control.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ins-carousel-controls">
+                <button type="button" class="ins-carousel-btn" data-carousel-prev aria-label="Previous slide">&larr;</button>
+                <div class="ins-carousel-dots" role="tablist" aria-label="Choose slide" data-carousel-dots data-dot-class="ins-carousel-dot"></div>
+                <button type="button" class="ins-carousel-btn" data-carousel-next aria-label="Next slide">&rarr;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Three jobs people actually hire this for -->
+<section class="ins-section" id="use-cases">
+    <div class="container">
+        <h2>Three moments people need this.</h2>
+        <p class="ins-subtitle">
+            We deliberately ceded real-estate listing capture to the incumbents (Matterport and friends). This is the consumer-facing wedge nobody owns: a self-serve scan that produces a structured contents inventory for the moments an inventory actually matters.
+        </p>
+        <div class="ins-usecases">
+            <div class="ins-usecase">
+                <h3>Claims documentation</h3>
+                <p>After a loss &mdash; fire, theft, water, storm &mdash; reconstructing what you owned from memory is painful and disputes are common. A scan taken at policy onboarding or renewal gives a timestamped, itemized record before anything happens. When a claim is filed, the adjuster&rsquo;s AI assistant queries the stored splat over MCP: &ldquo;List the furniture in this room with dimensions and estimated values.&rdquo; Filing becomes &ldquo;submit the inventory&rdquo; instead of &ldquo;remember everything you lost&rdquo; &mdash; and the adjuster may never need to visit.</p>
+            </div>
+            <div class="ins-usecase">
+                <h3>Moves</h3>
+                <p>Movers, valuation coverage, and transit insurance all want a contents list. One scan per room produces an itemized manifest with rough dimensions &mdash; useful for movers' quotes and for documenting condition before and after the truck.</p>
+            </div>
+            <div class="ins-usecase">
+                <h3>Downsizing</h3>
+                <p>Clearing out a home &mdash; an estate, a parent moving into assisted living, a kid leaving for college &mdash; means deciding what to keep, sell, donate, or insure. A scan gives the whole family one shared, itemized view of what's in the room.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How it works -->
+<section class="ins-section" id="how-it-works">
+    <div class="container">
+        <h2>How one scan becomes an inventory.</h2>
+        <p class="ins-subtitle">It's the same Raku Capture pipeline used across the rest of the product &mdash; scan, reconstruct, query. Insurance is a wrapper on output, not a new engine.</p>
+        <div class="ins-steps">
+            <div class="ins-step">
+                <span class="ins-step-num">1</span>
+                <h4>Scan the room</h4>
+                <p>Walk a slow loop with your phone, 60&ndash;90 seconds, guided on-screen. No special hardware.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">2</span>
+                <h4>Reconstruct</h4>
+                <p>Frames + motion are reconstructed in the cloud into a 3D Gaussian splat &mdash; an explorable model of the space.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">3</span>
+                <h4>Itemize over MCP</h4>
+                <p>An LLM (Claude, ChatGPT, Gemini, or Copilot) connects to the 17-native-tool MCP surface and walks the reconstructed room: listing visible objects, approximate dimensions, and estimated replacement values &mdash; without a site visit.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">4</span>
+                <h4>Review &amp; export</h4>
+                <p>You edit the list, confirm values, and export a clean inventory you can hand to your carrier. Every value is labelled an estimate.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sample output -->
+<section class="ins-section" id="sample-output">
+    <div class="container">
+        <h2>What the output looks like.</h2>
+        <p class="ins-subtitle">An illustrative single-room inventory. Real output is generated from your scan and is fully editable before you submit it to anyone.</p>
+        <div class="ins-table-wrap" role="region" aria-label="Illustrative contents inventory for one room">
+            <table class="ins-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col">Approx. size</th>
+                        <th scope="col">Est. replacement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>3-seat sofa</td><td>210 &times; 90 cm</td><td class="ins-num">$1,200</td></tr>
+                    <tr><td>55&Prime; television</td><td>123 &times; 71 cm</td><td class="ins-num">$650</td></tr>
+                    <tr><td>Coffee table</td><td>110 &times; 60 cm</td><td class="ins-num">$240</td></tr>
+                    <tr><td>Bookshelf (filled)</td><td>80 &times; 200 cm</td><td class="ins-num">$380</td></tr>
+                    <tr><td>Area rug</td><td>200 &times; 290 cm</td><td class="ins-num">$320</td></tr>
+                    <tr class="ins-total"><td>Estimated room total</td><td>&mdash;</td><td class="ins-num">$2,790</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="ins-table-note">
+            Every figure above is an <strong>estimate</strong>, not an appraisal. Object recognition and value estimation are imperfect &mdash; you review and correct the list before it goes anywhere. RakuAI does not set your coverage, determine claim payouts, or guarantee replacement cost; your insurer does.
+        </p>
+    </div>
+</section>
+
+<!-- Carrier economics strip -->
+<section class="ins-section" id="carrier-economics" style="background: rgba(108,92,231,0.04);">
+    <div class="container">
+        <h2>The carrier-pays model, plainly.</h2>
+        <p class="ins-subtitle">The consumer scans for free at onboarding or renewal. The carrier pays per scan. The carrier&rsquo;s return is lower loss-adjustment expense (LAE) and a shorter FNOL-to-payout cycle.</p>
+        <div class="ins-steps" style="max-width:900px;">
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">$</span>
+                <h4>Carrier pays $5&ndash;$20 per scan</h4>
+                <p>The consumer scans at onboarding or renewal &mdash; no charge to the policyholder. The carrier funds the scan as an acquisition and retention investment.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">%</span>
+                <h4>LAE reduction</h4>
+                <p>Fewer adjuster touchpoints on policies where a pre-loss contents inventory already exists. Target pilot metric: &ge;10% reduction in adjuster touchpoints on scanned policies versus a control group.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num" style="background:rgba(0,206,201,0.12);color:var(--success);">&#x2193;</span>
+                <h4>Shorter FNOL-to-payout cycle</h4>
+                <p>When a claim is filed, the adjuster&rsquo;s AI queries the stored splat over MCP and gets a structured inventory in seconds &mdash; not days waiting for an in-person visit and manual writeup.</p>
+            </div>
+        </div>
+        <p style="text-align:center; margin:28px 0 0; font-size:0.88rem; color:var(--text-secondary); max-width:760px; margin-left:auto; margin-right:auto; opacity:0.85;">
+            Backend cost per scan is estimated at $0.50&ndash;$2.00 (insurance scans are typically single-room, low frame count). No signed carrier partnership yet; this is the value model we are taking into our Phase-1 pilot conversations.
+        </p>
+    </div>
+</section>
+
+<!-- Why us vs the field -->
+<section class="ins-section" id="why-rakuai">
+    <div class="container">
+        <h2>Why RakuAI for this, specifically.</h2>
+        <p class="ins-subtitle">The capture market is crowded, but the consumer self-serve scan &rarr; structured inventory pipeline is wide open.</p>
+        <div class="ins-matrix-wrap" role="region" aria-label="How RakuAI compares for contents inventory">
+            <table class="ins-matrix">
+                <thead>
+                    <tr>
+                        <th scope="col">Approach</th>
+                        <th scope="col">Strength</th>
+                        <th scope="col">Gap for contents inventory</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">Phone-photo list (DIY / email)</th>
+                        <td>Free, everyone can do it</td>
+                        <td>No measurements, no structure, easy to lose, painful to reconstruct after a loss</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Adjuster visit</th>
+                        <td>Authoritative</td>
+                        <td>Loaded cost roughly $200&ndash;$500 per visit; only happens after a claim is filed</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Matterport-style 3D walkthrough</th>
+                        <td>High-fidelity capture</td>
+                        <td>Built for real-estate listings &mdash; no itemized contents output, no carrier-friendly export</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">RakuAI Capture</th>
+                        <td>Self-serve phone scan, splat fidelity, LLM-driven itemization over MCP</td>
+                        <td>Honest framing: values are estimates, and the formal carrier-export format is still being built</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Honest framing -->
+<section class="ins-section" id="honest">
+    <div class="container">
+        <h2>What's real today, and what isn't.</h2>
+        <p class="ins-subtitle">We would rather under-promise. Here is the current line between shipping and roadmap.</p>
+        <div class="ins-honest">
+            <h3>Shipping today</h3>
+            <ul>
+                <li>Phone-based capture and cloud splat reconstruction (the Raku Capture flow).</li>
+                <li>Scene query over the MCP surface &mdash; an LLM can walk the reconstructed room and describe what's in it.</li>
+                <li>Multi-LLM support: Claude, ChatGPT, Gemini, and Copilot can all drive the runtime.</li>
+            </ul>
+        </div>
+        <div class="ins-honest" style="margin-top: 18px;">
+            <h3>In flight / roadmap</h3>
+            <ul>
+                <li>A polished, one-page <strong>insurer-ready export</strong> (room thumbnail + itemized table + totals + scan metadata). The underlying data exists today; the formatted document is being built.</li>
+                <li>Carrier-specific inventory templates &mdash; handled as per-pilot work, since there is no single industry-standard format.</li>
+                <li>Per-scan metering and a consumer change-tracking tier (re-scan annually, see a diff).</li>
+            </ul>
+        </div>
+        <div class="ins-honest" style="margin-top: 18px;">
+            <h3>What we don't have yet</h3>
+            <ul>
+                <li>SOC 2 certification. Large carriers require it before procurement; we run early pilots with InsurTechs while that readiness work proceeds in parallel.</li>
+                <li>Any signed carrier partnership. We do not claim endorsement by any insurer.</li>
+                <li>Appraisal authority. We document and estimate; we do not value or settle.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+
+<!-- Adjuster-assistant workflow -->
+<section class="ins-section" id="adjuster-workflow">
+    <div class="container">
+        <h2>How the adjuster-assistant workflow fits in.</h2>
+        <p class="ins-subtitle">The MCP surface that powers Raku Capture is also how an adjuster&rsquo;s AI assistant queries the scan. Here&rsquo;s what that looks like in practice &mdash; and what&rsquo;s honest about where it stands today.</p>
+        <div class="ins-steps">
+            <div class="ins-step">
+                <span class="ins-step-num">1</span>
+                <h4>Policyholder scans at onboarding</h4>
+                <p>The consumer scans their room with the Raku Capture flow. The carrier embeds this as a free step in new-policy onboarding or annual renewal.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">2</span>
+                <h4>Splat stored on RakuAI cloud</h4>
+                <p>The reconstructed 3D Gaussian splat is stored on RakuAI&rsquo;s cloud with the policyholder&rsquo;s consent. Raw frames are discarded after reconstruction by default. Scan-specific data-handling disclosures are being added to the privacy policy before any consumer scan goes live.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">3</span>
+                <h4>Adjuster&rsquo;s AI queries over MCP</h4>
+                <p>When a claim is filed, the adjuster&rsquo;s AI assistant connects to RakuAI&rsquo;s 17-native-tool MCP surface and walks the reconstructed room. A natural-language query &mdash; &ldquo;List the contents of this room with approximate dimensions and estimated replacement values&rdquo; &mdash; returns a structured inventory without a site visit. The adjuster reviews and edits rather than measuring from scratch.</p>
+            </div>
+            <div class="ins-step">
+                <span class="ins-step-num">4</span>
+                <h4>Adjuster reviews and closes</h4>
+                <p>The adjuster edits and confirms the list against the claim. Every value is labelled an estimate. RakuAI does not settle claims or determine payouts &mdash; that stays with the insurer.</p>
+            </div>
+        </div>
+        <div class="ins-honest" style="margin-top:32px;">
+            <h3>Honest status of this workflow</h3>
+            <ul>
+                <li><strong>Phase&nbsp;1 / pilot readiness (current):</strong> The MCP query surface works today &mdash; an LLM can walk the reconstructed room and return a structured inventory. The carrier portal, per-scan metering, and formal insurer-ready export (one-page PDF with scan metadata) are in flight for the first pilot.</li>
+                <li><strong>Not yet:</strong> SOC 2 certification (required by large carriers; early pilots target InsurTechs first). No signed carrier partnership as of today.</li>
+                <li><strong>Your data:</strong> Scans are never shared with any third party without explicit consent. The carrier sees only the inventory document, not the raw scan, via a carrier review portal &mdash; until SOC 2 lands, that is the data-handling model.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- Partner CTA -->
+<section class="ins-section" id="partners">
+    <div class="container">
+        <h2>For carriers and InsurTechs.</h2>
+        <p class="ins-subtitle">Three concrete ways to engage. The carrier model: <strong>carrier pays per scan</strong> ($5&ndash;$20), policyholder scans free at onboarding or renewal, carrier wins with lower LAE and faster FNOL-to-payout cycle. <em>Phase&nbsp;1 / pilot readiness &mdash; no signed carrier partnership yet.</em></p>
+        <div class="ins-partner-grid">
+            <div class="ins-partner-card">
+                <div>
+                    <h3>1. Capability inquiry</h3>
+                    <p>You're evaluating a contents-capture layer and want a written response on how RakuAI maps to your product, your preferred inventory format, and your onboarding flow. Tell us your constraints; we'll reply with what's real today and what we'd build for a pilot.</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=Insurance%20capability%20inquiry%20%E2%80%94%20%5Byour%20company%5D" class="ins-btn-secondary" style="text-align:center;">partnerships@rakuai.com &rarr;</a>
+            </div>
+            <div class="ins-partner-card">
+                <div>
+                    <h3>2. Free 90-day pilot</h3>
+                    <p>One partner per quarter. We integrate the scan flow into your onboarding (white-label or sidecar web app), collect roughly 100 customer scans, and co-publish a case study. We don't charge for the pilot; we ask for UX-team access and permission to publish.</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=Insurance%2090-day%20pilot" class="ins-btn-secondary" style="text-align:center;">Discuss a pilot &rarr;</a>
+                <p class="ins-table-note" style="margin-top:0;">Early pilots run on RakuAI cloud with a carrier review portal until SOC 2 lands.</p>
+            </div>
+            <div class="ins-partner-card">
+                <div>
+                    <h3>3. InsurTech integration</h3>
+                    <p>You already own claims orchestration, aerial/exterior data, or auto damage assessment &mdash; and have no interior contents story. We can be the capture-and-itemize layer you resell under your brand via API.</p>
+                </div>
+                <a href="mailto:partnerships@rakuai.com?subject=InsurTech%20integration%20%E2%80%94%20capture%20layer" class="ins-btn-secondary" style="text-align:center;">Explore an integration &rarr;</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Dedicated pilot CTA section -->
+<section class="ins-section" id="request-pilot" style="background: rgba(108,92,231,0.06); scroll-margin-top:80px;">
+    <div class="container" style="text-align:center;">
+        <h2>Request a free 90-day pilot.</h2>
+        <p class="ins-subtitle" style="max-width:720px;">
+            One partner per quarter. We integrate the Raku Capture scan flow into your onboarding (white-label or sidecar web app), run roughly 100 customer scans, and co-publish the results. No charge for the pilot. We ask for UX-team access and permission to publish a case study.
+        </p>
+        <p style="color:var(--text-secondary); font-size:0.9rem; max-width:680px; margin:0 auto 28px; line-height:1.65;">
+            <strong>What the pilot covers:</strong> scan-flow integration, MCP itemization against your preferred inventory format, a carrier review portal (so scan data stays on RakuAI cloud), and completion + adjuster-touchpoint metrics. Early pilots target InsurTechs first &mdash; SOC&nbsp;2 Type&nbsp;II is in-flight for larger-carrier procurement.
+        </p>
+        <div class="ins-cta-row" style="justify-content:center;">
+            <a href="mailto:partnerships@rakuai.com?subject=Insurance%20pilot%20request%20%E2%80%94%20%5Byour%20company%5D&body=Company%3A%0APreferred%20inventory%20format%3A%0AOnboarding%20flow%20context%3A%0ATimeline%3A" class="ins-btn-primary">Email partnerships@rakuai.com &rarr;</a>
+            <a href="mailto:partnerships@rakuai.com?subject=Insurance%20capability%20inquiry%20%E2%80%94%20%5Byour%20company%5D" class="ins-btn-secondary">Capability inquiry first &rarr;</a>
+        </div>
+        <p style="margin-top:20px; color:var(--text-secondary); font-size:0.82rem; opacity:0.8;">
+            Pilots run on RakuAI cloud with a carrier review portal until SOC&nbsp;2 lands. No SOC&nbsp;2 today &mdash; InsurTechs first.
+        </p>
+    </div>
+</section>
+
+<!-- Cross-links -->
+<section class="ins-section">
+    <div class="container">
+        <h2>Go deeper before you scan or write.</h2>
+        <p class="ins-subtitle">The pages most people read next.</p>
+        <div class="ins-crosslinks">
+            <a href="capture.html" class="ins-crosslink">
+                <div class="label">Raku Capture &rarr;</div>
+                <div class="desc">The consumer scan flow this is built on &mdash; scan a space, then talk to it.</div>
+            </a>
+            <a href="mcp.html" class="ins-crosslink">
+                <div class="label">MCP Server &rarr;</div>
+                <div class="desc">The MCP surface that lets an LLM walk a scene and itemize what's in it. Production since March 2026.</div>
+            </a>
+            <a href="spatial-engine.html" class="ins-crosslink">
+                <div class="label">Spatial Engine &rarr;</div>
+                <div class="desc">The C++ runtime under the splat reconstruction &mdash; the same core, no new engine for insurance.</div>
+            </a>
+            <a href="privacy.html" class="ins-crosslink">
+                <div class="label">Privacy &rarr;</div>
+                <div class="desc">Scanning a home is sensitive. How capture data is handled, and how to delete a scan.</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- NVIDIA Inception validation strip (member chip + recognition card) -->
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 32px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception Member - read more on the press page">
+            <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <p style="max-width: 640px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            RakuAI is an <strong>NVIDIA Inception</strong> member. The same NVIDIA-accelerated 3D Gaussian splatting stack we ship in <a href="capture.html" style="color: var(--accent-bright);">Raku Capture</a> is what reconstructs the room and powers the contents itemization described above. <a href="press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">Read more &rarr;</a>
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 14px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        NVIDIA Inception is a free program for AI startups; RakuAI's membership does not imply that NVIDIA endorses RakuAI's products. Learn more at <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color: var(--text-secondary);">nvidia.com/startups</a>.
+    </p>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Solutions</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">Smart-Glasses Manufacturers</a></li>
+                    <li><a href="llm-makers.html">AI Labs</a></li>
+                    <li><a href="enterprise.html">Enterprise</a></li>
+                    <li><a href="creator.html">Creators</a></li>
+                    <li><a href="compare.html">Compare vs Unity / Unreal</a></li>
+                    <li><a href="spatial-engine.html">Spatial Engine</a></li>
+                    <li><a href="ai-systems.html">AI Systems</a></li>
+                    <li><a href="xr-features.html">XR Features</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="docs.html">Documentation</a></li>
+                    <li><a href="mcp.html">MCP Server</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="api/">API Reference</a></li>
+                    <li><a href="templates.html">Templates</a></li>
+                    <li><a href="developers/">Developer Portal</a></li>
+                    <li><a href="developers/claude-desktop.html">Claude Desktop guide</a></li>
+                    <li><a href="developer-guide.html">Developer Guide</a></li>
+                    <li><a href="llm-guide.html">LLM Integration Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="blog/">Blog</a></li>
+                    <li><a href="why-rakuai.html">Why RakuAI</a></li>
+                    <li><a href="press.html">Press Kit</a></li>
+                    <li><a href="discover.html">Discover</a></li>
+                    <li><a href="content-packs.html">Content Packs</a></li>
+                    <li><a href="docs.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">About</a></li>
+                    <li><a href="pricing.html">Pricing</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">Partners</a></li>
+                    <li><a href="privacy.html">Privacy</a></li>
+                    <li><a href="terms.html">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
+                <img src="branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+        <!-- aws-activate:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 4px 0 8px; opacity: 0.9;">
+            <a href="press.html#aws-activate" aria-label="AWS Activate participant - read more on the press page" style="line-height: 0;">
+                <img src="branding/aws/powered-by-aws-white.png" alt="Powered by AWS" width="120" height="43" style="height: 36px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- aws-activate:end -->
+</footer>
+
+<script>
+/* Self-contained, dependency-free infographic carousel.
+   Accessible: arrow buttons, dot tablist, keyboard (Left/Right/Home/End),
+   ARIA live region for slide changes. Reduced-motion handled in CSS. */
+(function () {
+    function initCarousel(root) {
+        var track = root.querySelector('[data-carousel-track]');
+        var slides = Array.prototype.slice.call(track.children);
+        var dotsWrap = root.querySelector('[data-carousel-dots]');
+        var prev = root.querySelector('[data-carousel-prev]');
+        var next = root.querySelector('[data-carousel-next]');
+        if (!track || !slides.length) return;
+        var index = 0;
+        var dots = slides.map(function (slide, i) {
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = dotsWrap.getAttribute('data-dot-class') || 'ins-carousel-dot';
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+            dot.addEventListener('click', function () { go(i, true); });
+            dotsWrap.appendChild(dot);
+            return dot;
+        });
+        function go(i, focusDot) {
+            index = (i + slides.length) % slides.length;
+            track.style.transform = 'translateX(' + (-index * 100) + '%)';
+            slides.forEach(function (s, n) {
+                s.setAttribute('aria-hidden', n === index ? 'false' : 'true');
+            });
+            dots.forEach(function (d, n) {
+                d.setAttribute('aria-selected', n === index ? 'true' : 'false');
+                d.tabIndex = n === index ? 0 : -1;
+            });
+            if (focusDot && dots[index]) dots[index].focus();
+        }
+        if (prev) prev.addEventListener('click', function () { go(index - 1, false); });
+        if (next) next.addEventListener('click', function () { go(index + 1, false); });
+        dotsWrap.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1, true); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1, true); }
+            else if (e.key === 'Home') { e.preventDefault(); go(0, true); }
+            else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1, true); }
+        });
+        go(0, false);
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-carousel]'), initCarousel);
+    });
+})();
+</script>
+<script src="/js/public-config.js"></script>
+<script src="/js/api-client.js"></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+
+
+<script src="/js/nav-dropdown.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>

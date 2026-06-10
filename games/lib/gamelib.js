@@ -557,7 +557,7 @@ export class CRTEffect {
 export class ApiClient {
   constructor(debugOverlay) {
     this.debug = debugOverlay;
-    this.base = 'https://raku-api-staging.fly.dev';
+    this.base = 'https://api.rakuai.com';
     this.apiKey = '';
     this.enabled = false;
   }

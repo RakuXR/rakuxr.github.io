@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Scan it. Then talk to it. &#x2014; RakuAI Capture for everyday spaces &mdash; RakuAI Blog</title>
+    <meta name="description" content="Scan a real room with your phone — no rig, no markers, no install — and get a 3D reconstruction your AI assistant can read, measure, and reason over via MCP. Splat training is GPU-gated and arriving within days. This is the Raku Capture story.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/scan-it-then-talk-to-it/">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/blog/scan-it-then-talk-to-it/">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/blog/scan-it-then-talk-to-it/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="Scan it. Then talk to it. — RakuAI Capture for everyday spaces">
+    <meta property="og:description" content="Scan a real room with your phone — no rig, no markers, no install — and get a 3D reconstruction your AI assistant can read, measure, and reason over via MCP. Splat training is GPU-gated and arriving within days. This is the Raku Capture story.">
+    <meta property="og:url" content="https://rakuai.com/blog/scan-it-then-talk-to-it/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-05-31T12:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Scan it. Then talk to it. — RakuAI Capture for everyday spaces">
+    <meta name="twitter:description" content="Scan a real room with your phone — no rig, no markers, no install — and get a 3D reconstruction your AI assistant can read, measure, and reason over via MCP. Splat training is GPU-gated and arriving within days. This is the Raku Capture story.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading" role="presentation">By audience</div>
+                        <div class="col-heading" role="presentation">Platform</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="/smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="/llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="/enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="/creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="/compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="/spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li>
+                            <li role="none"><a role="menuitem" href="/ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="/xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
+                        <li role="none"><a role="menuitem" href="/docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="/mcp.html">MCP Server</a></li>
+                        <li role="none"><a role="menuitem" href="/sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="/api/">API Reference</a></li>
+                        <li role="none"><a role="menuitem" href="/templates.html">Templates</a></li>
+                        <li role="none"><a role="menuitem" href="/developers/">Developer Portal</a></li>
+                        <li role="none"><a role="menuitem" href="/developers/claude-desktop.html">Claude Desktop guide</a></li>
+                        <li role="none"><a role="menuitem" href="/developer-guide.html">Developer Guide</a></li>
+                        <li role="none"><a role="menuitem" href="/llm-guide.html">LLM Integration Guide</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
+                        <li role="none"><a role="menuitem" href="/blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="/why-rakuai.html">Why RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="/press.html">Press Kit</a></li>
+                        <li role="none"><a role="menuitem" href="/discover.html">Discover</a></li>
+                        <li role="none"><a role="menuitem" href="/content-packs.html">Content Packs</a></li>
+                        <li role="none"><a role="menuitem" href="/docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="/contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="/pricing.html">Pricing</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="/blog/" aria-current="page">Blog</a>
+                </li>
+            </ul>
+            <a href="/developers/login.html" class="nav-signin">Sign In</a>
+            <a href="/ja/index.html" class="lang-toggle">&#x697D;AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>Scan it. Then talk to it. &mdash; RakuAI Capture for everyday spaces</h1>
+            <p class="post-meta">
+                <time datetime="2026-05-31T12:00:00+00:00">May 31, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Phone scan to 3D Gaussian splat to AI assistant asking questions about a room over MCP" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cap-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a0a1a"/><stop offset="0.5" stop-color="#0d0d24"/><stop offset="1" stop-color="#0a0a1c"/></linearGradient>
+    <linearGradient id="cap-flow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#a388ff"/><stop offset="0.5" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/></linearGradient>
+    <marker id="cap-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#a388ff"/></marker>
+  </defs>
+  <rect width="1200" height="480" fill="url(#cap-bg)"/>
+  <text x="600" y="52" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="30" font-weight="800">Scan it. Then talk to it.</text>
+  <text x="600" y="80" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="15">Phone &rarr; Gaussian splat &rarr; AI assistant reads it over MCP</text>
+  <rect x="30" y="130" width="155" height="110" rx="12" fill="#16213a" stroke="#a388ff" stroke-width="2"/>
+  <text x="107" y="160" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-weight="700" font-size="14">Your Phone</text>
+  <text x="107" y="180" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12">Scan a room</text>
+  <text x="107" y="197" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12">30&ndash;60 seconds</text>
+  <text x="107" y="216" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">no install &bull; no markers</text>
+  <line x1="185" y1="185" x2="248" y2="185" stroke="#a388ff" stroke-width="2" marker-end="url(#cap-arrow)"/>
+  <rect x="250" y="130" width="165" height="110" rx="12" fill="#16213a" stroke="#8870f0" stroke-width="2"/>
+  <text x="332" y="160" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-weight="700" font-size="14">Reconstruct</text>
+  <text x="332" y="180" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12">COLMAP SfM</text>
+  <text x="332" y="197" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12">sparse point cloud</text>
+  <text x="332" y="216" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">CPU &bull; live today</text>
+  <line x1="415" y1="185" x2="478" y2="185" stroke="#a388ff" stroke-width="2" marker-end="url(#cap-arrow)"/>
+  <rect x="480" y="120" width="185" height="130" rx="12" fill="#16213a" stroke="url(#cap-flow)" stroke-width="2.5"/>
+  <text x="572" y="152" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-weight="700" font-size="14">3D Gaussian Splat</text>
+  <text x="572" y="172" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12">Brush v0.3.0</text>
+  <text x="572" y="190" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12">.spz output</text>
+  <text x="572" y="208" text-anchor="middle" fill="#e84393" font-family="system-ui,sans-serif" font-size="11">GPU-gated</text>
+  <text x="572" y="224" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">early access</text>
+  <line x1="665" y1="185" x2="728" y2="185" stroke="#a388ff" stroke-width="2" marker-end="url(#cap-arrow)"/>
+  <rect x="730" y="120" width="175" height="130" rx="12" fill="#16213a" stroke="#6c5ce7" stroke-width="2.5"/>
+  <text x="817" y="152" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-weight="700" font-size="14">MCP Runtime</text>
+  <text x="817" y="172" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12">17 native tools</text>
+  <text x="817" y="190" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12">~9,500 passthrough</text>
+  <text x="817" y="208" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">every tier, incl. free</text>
+  <text x="817" y="224" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">api.rakuai.com</text>
+  <line x1="905" y1="185" x2="968" y2="185" stroke="#00cec9" stroke-width="2" marker-end="url(#cap-arrow)"/>
+  <rect x="970" y="130" width="195" height="110" rx="12" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+  <text x="1067" y="160" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-weight="700" font-size="14">Your AI Assistant</text>
+  <text x="1067" y="180" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12">Claude / ChatGPT</text>
+  <text x="1067" y="197" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12">Gemini / Copilot</text>
+  <text x="1067" y="216" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">asks questions, gets answers</text>
+  <rect x="60" y="310" width="340" height="60" rx="8" fill="#1a1a30" stroke="#a388ff" stroke-width="1" opacity="0.8"/>
+  <text x="230" y="334" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12" font-style="italic">&ldquo;Will this couch fit along the far wall?&rdquo;</text>
+  <text x="230" y="354" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">measure_distance &rarr; real number in cm</text>
+  <rect x="440" y="310" width="320" height="60" rx="8" fill="#1a1a30" stroke="#6c5ce7" stroke-width="1" opacity="0.8"/>
+  <text x="600" y="334" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12" font-style="italic">&ldquo;How far is the window from the desk?&rdquo;</text>
+  <text x="600" y="354" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">query_scene_objects + measure_distance</text>
+  <rect x="800" y="310" width="340" height="60" rx="8" fill="#1a1a30" stroke="#00cec9" stroke-width="1" opacity="0.8"/>
+  <text x="970" y="334" text-anchor="middle" fill="#c8c8e0" font-family="system-ui,sans-serif" font-size="12" font-style="italic">&ldquo;What is in this room?&rdquo;</text>
+  <text x="970" y="354" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">query_scene_objects &rarr; scene contents</text>
+  <text x="600" y="430" text-anchor="middle" fill="#7070a0" font-family="system-ui,sans-serif" font-size="11">The unit of value is a talkable scene &mdash; not a pretty 3D model. NVIDIA Inception member &bull; 5 US Patents (priority July 2012)</text>
+</svg>
+<figcaption>Scan a real space with your phone. The pipeline turns it into a 3D Gaussian splat your AI assistant can query, measure, and reason about over MCP &mdash; from any AI assistant, on any tier.</figcaption>
+</figure>
+
+<p class="post-hook">You pull out your phone, walk around your living room for thirty seconds, and tap upload. A few minutes later you have a 3D reconstruction of that room &mdash; and once GPU splat training is online (arriving within days), that becomes a draggable photorealistic Gaussian splat made of millions of tiny transparent ellipsoids &mdash; sitting at a URL you can share. Then you open Claude, or ChatGPT, or Gemini, point it at your Raku MCP server, and ask: &ldquo;Will this couch fit along the far wall?&rdquo; The assistant reads the scene, measures the gap, and tells you.</p>
+
+<p>That is the Raku Capture idea. One phone. No rig, no markers, no desktop 3D software, no install. The result is not a photo &mdash; it is a <em>talkable scene</em>: a living spatial object your AI assistant can query, measure, and reason about.</p>
+
+<p>This post is the honest account of what that looks like today, what is still arriving, and why the combination of honest capture and an open-protocol AI runtime is something genuinely new.</p>
+
+<h2 id="what-gaussian-splatting-is">What Gaussian splatting actually is</h2>
+<p>Most 3D capture tools produce meshes &mdash; a skin of triangles laid over the estimated shape of a space. Meshes look plausible from the outside and fall apart up close. Gaussian splatting is different. It fills the scene with millions of tiny 3D ellipsoids &mdash; each one positioned, oriented, scaled, and colour-tuned to match what a real camera saw from a real angle. The result is dense, view-dependent, and photorealistic in a way triangles cannot match.</p>
+<p>The technical name is 3D Gaussian Splatting (3DGS). The file format is <code>.spz</code> (compressed) or <code>.ply</code> (interchange). You cannot touch it or break it; you can rotate it, zoom into it, and point an AI at it.</p>
+<p>Raku uses Brush v0.3.0 as the Gaussian splatting trainer. It runs on a GPU (Azure A10, AWS G5, or Nebius H100 &mdash; more on that below). The COLMAP Structure-from-Motion step that precedes it &mdash; turning your video frames into a sparse 3D point cloud &mdash; runs on CPU and is live today.</p>
+
+<h2 id="how-capture-works">How the capture flow works</h2>
+<p><strong>Step one: open the PWA.</strong> The entry point is a QR code on <a href="/capture.html">rakuai.com/capture.html</a>. Scan it on your phone. The capture app opens in your mobile browser &mdash; no App Store, no APK, no account required to try. It runs as a Progressive Web App.</p>
+<p><strong>Step two: record a scan.</strong> Walk slowly around the space &mdash; or around the object, or along the wall you care about. Thirty to sixty seconds of steady footage is enough. The app uploads the frames to the Raku backend over <code>POST /capture/upload</code>. Your scan goes to Azure Blob Storage immediately.</p>
+<p><strong>Step three: reconstruction.</strong> The backend dispatches a reconstruction job to <code>recon-worker</code> &mdash; a Container Apps job runner. It runs COLMAP across your frames, computes camera positions, and produces a sparse 3D point cloud. This step is CPU-bound and runs today, for every scan.</p>
+<p><strong>Step four: splat training.</strong> The COLMAP output feeds into Brush, which fits millions of Gaussians to your frames. This is the GPU-bound step. <strong>Honest: GPU quota on Azure A10 is in review; AWS Activate credits are pending (applied May 28). Until one of those lands, reconstructions fall back to the sparse point cloud.</strong> This is early access, not a finished product. Real GPU paths are expected within days.</p>
+<p><strong>Step five: the splat lives.</strong> The trained <code>.spz</code> file sits at <code>api.rakuai.com/splats/&lt;id&gt;.spz</code>. You get a shareable link and an interactive viewer. Drag to rotate. Pinch to zoom. It is your room, preserved as a measurable 3D object.</p>
+
+<h2 id="the-mcp-part">The part that makes it useful: MCP</h2>
+<p>The interactive viewer is satisfying. The MCP runtime is what makes the splat actually useful.</p>
+<p>MCP &mdash; Model Context Protocol &mdash; is the open protocol that lets an external AI assistant call typed tools against an external service. Raku exposes your captured scene through two surfaces:</p>
+<p><strong>17 native tools</strong> &mdash; a typed contract for reading and mutating a spatial scene. The read-only tools (query object positions, measure distances, get scene metadata) work on every tier including free. Mutation tools (move objects, annotate, update scene state) require explicit permission grants and are denied by default.</p>
+<p><strong>~9,500 passthrough endpoints</strong> &mdash; the full FastAPI surface of the Raku backend, exposed through the MCP relay. Capture history, job status, reconstruction quality, scene metadata &mdash; all reachable from any MCP client.</p>
+<p>The MCP server runs at <code>api.rakuai.com</code>. It speaks stdio transport. Every call is logged to an immutable audit trail. Per-session rate limits are enforced.</p>
+<p><strong>MCP is on every tier, including free.</strong> Connecting your AI assistant to a captured scene is not a Pro feature.</p>
+
+<h2 id="questions-you-can-ask">Asking your assistant questions about a space</h2>
+<p>Once you have connected your AI assistant to Raku over MCP, the questions you can ask become spatial and grounded rather than hypothetical:</p>
+<p>&ldquo;Will this couch fit along the far wall?&rdquo; &mdash; The assistant calls <code>measure_distance</code> between the two walls, compares against the couch dimensions you provide, and gives you a real number, not an estimate.</p>
+<p>&ldquo;How far is the window from the desk?&rdquo; &mdash; <code>query_scene_objects</code> locates both, <code>measure_distance</code> returns the gap in centimetres.</p>
+<p>&ldquo;What is on the shelving unit in the corner?&rdquo; &mdash; <code>query_scene_objects</code> returns the objects the runtime has identified in that region.</p>
+<p>&ldquo;What would this room look like with the desk rotated ninety degrees?&rdquo; &mdash; With a mutation grant, the assistant can reposition the desk in the scene model and re-render the view.</p>
+<p>These are not search results. They are measurements and observations made against a 3D representation of your actual space. The assistant brings the language and the reasoning. Raku brings the spatial substrate.</p>
+<p>Claude, ChatGPT, Gemini, and Copilot all work. The MCP contract is the same for all of them. When a new AI assistant ships MCP support, it works against Raku without any code change on our side.</p>
+
+<h2 id="live-vs-arriving">What is live today versus what is arriving</h2>
+<p><strong>Live today:</strong></p>
+<ul>
+<li>Phone scan PWA &mdash; no install, QR entry, uploads to Azure Blob</li>
+<li>COLMAP feature extraction and sparse point cloud</li>
+<li>Backend infrastructure (FastAPI ~9,500 endpoints, Redis job store, tier-aware rate limits)</li>
+<li>MCP runtime with 17 native tools + ~9,500 passthrough endpoints</li>
+<li>Hosted MCP relay for Claude, ChatGPT, Gemini, Copilot</li>
+<li>Free tier (10 captures/day, 1&nbsp;GB, 7-day retention, MCP included)</li>
+<li>Pro Beta &mdash; \$0 during the beta period, will be <strong>\$14.99/mo at GA</strong> with at least 30 days notice before any charge</li>
+</ul>
+<p><strong>Gated (early access &mdash; expected within days):</strong></p>
+<ul>
+<li>Real GPU splat training on Azure A10 (quota in review)</li>
+<li>Real GPU splat training on AWS G5 (Activate credits in review)</li>
+<li>Live 3D splat viewer in the capture app (three.js renderer is wired; needs a trained splat to display)</li>
+</ul>
+<p><strong>Roadmap:</strong></p>
+<ul>
+<li>Self-service production mutation grants</li>
+<li>Higher-quality reconstruction queue for Pro</li>
+<li>Third-party adapter ecosystem</li>
+</ul>
+<p>NVIDIA Inception member since May 2026. Five granted US patents (priority July 2012).</p>
+
+<h2 id="honest-framing">Honest about what it is</h2>
+<p>Raku Capture is phone-grade and prosumer-grade reconstruction. It is not a surveying instrument. It is not a professional photogrammetry tool. It will not give you millimetre accuracy or CAD-ready models.</p>
+<p>What it will give you is a photorealistic 3D Gaussian splat of your space, produced from a phone walkthrough, accessible to any LLM over MCP. For the questions most people want to ask about a real space &mdash; &ldquo;will this fit?&rdquo;, &ldquo;how far is that?&rdquo;, &ldquo;what is over there?&rdquo; &mdash; it is accurate enough to be genuinely useful.</p>
+<p>The splat viewer is not yet shipped on capture.html. The live end-to-end demo (scan on phone, see splat in browser, ask assistant a question) requires a trained splat, and GPU training is the one gate still open. That gate is expected to close within days.</p>
+
+<h2 id="getting-started">Getting started</h2>
+<p>If you want to try the capture end today: <a href="/capture.html">rakuai.com/capture.html</a> &mdash; scan the QR on your phone.</p>
+<p>If you want to connect your AI assistant over MCP: <a href="/developers/claude-desktop.html">/developers/claude-desktop.html</a> &mdash; the Claude Desktop guide; same pattern for all assistants.</p>
+<p>If you want to understand the full MCP tool surface: <a href="/mcp.html">/mcp.html</a>.</p>
+<p>Scan it. Then talk to it.</p>
+
+<div class="post-cta">
+<h3>Try Raku Capture</h3>
+<p>Scan a real space with your phone &mdash; no install, no rig, no markers. Connect any AI assistant over MCP. Early access &mdash; GPU splat training arriving within days.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/capture.html">Scan a Space</a>
+<a class="cta-btn cta-secondary" href="/mcp.html">MCP Tool Surface</a>
+</div>
+</div>
+        </div>
+        <ul class="post-tags"><li>capture</li><li>gaussian-splat</li><li>mcp</li><li>consumer</li><li>ai-assistant</li><li>everyday-spaces</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/how-rakuai-works-end-to-end/" rel="prev">&larr; How RakuAI Works &mdash; End to End</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Solutions</h4>
+                <ul>
+                    <li><a href="/smart-glasses.html">Smart-Glasses Manufacturers</a></li>
+                    <li><a href="/llm-makers.html">AI Labs</a></li>
+                    <li><a href="/enterprise.html">Enterprise</a></li>
+                    <li><a href="/creator.html">Creators</a></li>
+                    <li><a href="/compare.html">Compare vs Unity / Unreal</a></li>
+                    <li><a href="/spatial-engine.html">Spatial Engine</a></li>
+                    <li><a href="/ai-systems.html">AI Systems</a></li>
+                    <li><a href="/xr-features.html">XR Features</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="/docs.html">Documentation</a></li>
+                    <li><a href="/mcp.html">MCP Server</a></li>
+                    <li><a href="/sdk.html">SDK</a></li>
+                    <li><a href="/api/">API Reference</a></li>
+                    <li><a href="/templates.html">Templates</a></li>
+                    <li><a href="/developers/">Developer Portal</a></li>
+                    <li><a href="/developers/claude-desktop.html">Claude Desktop guide</a></li>
+                    <li><a href="/developer-guide.html">Developer Guide</a></li>
+                    <li><a href="/llm-guide.html">LLM Integration Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/blog/">Blog</a></li>
+                    <li><a href="/why-rakuai.html">Why RakuAI</a></li>
+                    <li><a href="/press.html">Press Kit</a></li>
+                    <li><a href="/discover.html">Discover</a></li>
+                    <li><a href="/content-packs.html">Content Packs</a></li>
+                    <li><a href="/docs.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="/why-rakuai.html">About</a></li>
+                    <li><a href="/pricing.html">Pricing</a></li>
+                    <li><a href="/contact.html">Contact</a></li>
+                    <li><a href="mailto:partners@rakuai.com">Partners</a></li>
+                    <li><a href="/privacy.html">Privacy</a></li>
+                    <li><a href="/terms.html">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
+            <a href="../../press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
+                <img src="../../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="40" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script src="/js/nav-dropdown.js" defer></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>

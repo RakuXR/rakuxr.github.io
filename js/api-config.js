@@ -20,7 +20,7 @@
     if (h === 'localhost' || h === '127.0.0.1' || h === '') {
         window.RAKU_API_BASE = 'http://localhost:8000';
     } else if (h === 'staging.rakuai.com') {
-        window.RAKU_API_BASE = 'https://raku-api-staging.fly.dev';
+        window.RAKU_API_BASE = 'https://api.rakuai.com';
     } else {
         window.RAKU_API_BASE = 'https://api.rakuai.com';
     }

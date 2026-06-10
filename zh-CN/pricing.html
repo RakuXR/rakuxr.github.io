@@ -4,180 +4,65 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>价格 - RakuAI</title>
-    <meta name="description" content="RakuAI 价格方案。免费版每天 10 次生成。Pro 版 $14.99/月，享受优先生成、高质量 AI 与导出功能。">
-    <meta property="og:title" content="价格 - RakuAI">
-    <meta property="og:description" content="向 AI 描述就能生成可玩的游戏。从免费开始，$14.99/月升级到 Pro。">
+    <title>价格 - Raku Capture | RakuAI</title>
+    <meta name="description" content="Raku Capture 价格。免费版：每日 10 次捕获，1 GB。Pro Beta：每日 100 次，25 GB — 测试期免费。企业版：定制。所有方案均含 MCP 运行时。">
+    <meta property="og:title" content="价格 - Raku Capture | RakuAI">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:description" content="扫描一个房间，然后与它对话。每日 10 次永久免费，Pro Beta 测试期免费，企业版定制。所有方案均含 MCP 运行时。">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://rakuai.com/zh-CN/pricing">
+    <meta property="og:url" content="https://rakuai.com/zh-CN/pricing.html">
     <meta name="twitter:card" content="summary_large_image">
     <link rel="canonical" href="https://rakuai.com/zh-CN/pricing.html">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/pricing.html">
+    <link rel="alternate" hreflang="ja" href="https://rakuai.com/ja/pricing.html">
+    <link rel="alternate" hreflang="es" href="https://rakuai.com/es/pricing.html">
+    <link rel="alternate" hreflang="fr" href="https://rakuai.com/fr/pricing.html">
+    <link rel="alternate" hreflang="de" href="https://rakuai.com/de/pricing.html">
+    <link rel="alternate" hreflang="ko" href="https://rakuai.com/ko/pricing.html">
+    <link rel="alternate" hreflang="pt-BR" href="https://rakuai.com/pt-BR/pricing.html">
+    <link rel="alternate" hreflang="zh-CN" href="https://rakuai.com/zh-CN/pricing.html">
+    <link rel="alternate" hreflang="zh-TW" href="https://rakuai.com/zh-TW/pricing.html">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/pricing.html">
     <link rel="stylesheet" href="../style.css">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' https://api.raku.ai; frame-src https://hcaptcha.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; form-action 'self'; connect-src 'self' https://api.raku.ai;">
     <style>
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 32px;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        .pricing-card {
-            background: var(--bg-secondary);
-            border: 2px solid #222244;
-            border-radius: 16px;
-            padding: 40px 32px;
-            position: relative;
-        }
-        .pricing-card.featured {
-            border-color: var(--accent);
-            box-shadow: 0 0 40px rgba(108, 92, 231, 0.25);
-        }
-        .pricing-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 8px;
-        }
-        .pricing-card .price {
-            font-size: 3rem;
-            font-weight: 800;
-            margin: 16px 0 8px;
-        }
-        .pricing-card .price-period {
-            font-size: 1rem;
-            font-weight: 400;
-            color: var(--text-secondary);
-        }
-        .pricing-card .price-note {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            margin-bottom: 24px;
-        }
-        .pricing-card ul {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 32px;
-        }
-        .pricing-card ul li {
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-        }
-        .pricing-card ul li::before {
-            content: "\2713";
-            color: var(--success);
-            font-weight: 700;
-            margin-right: 10px;
-        }
-        .pricing-card ul li.pro-only::before {
-            content: "\2B50";
-        }
-        .best-value-ribbon {
-            position: absolute;
-            top: 16px;
-            right: -32px;
-            background: var(--success);
-            color: var(--bg-primary);
-            padding: 4px 40px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            transform: rotate(45deg);
-            letter-spacing: 0.05em;
-        }
-        .upgrade-btn {
-            display: block;
-            width: 100%;
-            text-align: center;
-            padding: 16px;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .upgrade-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
-        }
-        .upgrade-btn-pro {
-            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
-            color: white;
-        }
-        .upgrade-btn-free {
-            background: transparent;
-            color: var(--accent-bright);
-            border: 2px solid var(--accent);
-        }
-        .guarantee {
-            text-align: center;
-            margin-top: 32px;
-            padding: 24px;
-            background: rgba(0, 206, 201, 0.08);
-            border: 1px solid rgba(0, 206, 201, 0.2);
-            border-radius: 12px;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .guarantee h4 {
-            color: var(--success);
-            margin-bottom: 8px;
-        }
-        .guarantee p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-        .upgrade-banner {
-            background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(163, 136, 255, 0.1));
-            border: 1px solid var(--accent);
-            border-radius: 12px;
-            padding: 20px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .upgrade-banner-text h4 {
-            color: var(--text-primary);
-            margin-bottom: 4px;
-            font-size: 1rem;
-        }
-        .upgrade-banner-text p {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            margin: 0;
-        }
-        .upgrade-banner .btn {
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        @media (max-width: 768px) {
-            .pricing-grid {
-                grid-template-columns: 1fr;
-            }
-            .upgrade-banner {
-                flex-direction: column;
-                text-align: center;
-            }
+        #nvidia-inception { scroll-margin-top: 80px; }
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1100px; margin: 0 auto; }
+        .pricing-card { background: var(--bg-secondary); border: 2px solid #222244; border-radius: 16px; padding: 36px 28px; position: relative; display: flex; flex-direction: column; }
+        .pricing-card.featured { border-color: var(--accent); box-shadow: 0 0 40px rgba(108, 92, 231, 0.25); }
+        .pricing-card h3 { font-size: 1.5rem; margin-bottom: 8px; }
+        .pricing-card .price { font-size: 2.6rem; font-weight: 800; margin: 12px 0 4px; line-height: 1.1; }
+        .pricing-card .price-period { font-size: 1rem; font-weight: 400; color: var(--text-secondary); }
+        .pricing-card .price-note { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 24px; }
+        .pricing-card .coming-soon-tag { display: inline-block; background: rgba(253, 203, 110, 0.12); color: #fdcb6e; border: 1px solid rgba(253, 203, 110, 0.35); border-radius: 999px; padding: 3px 10px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-left: 8px; vertical-align: middle; }
+        .pricing-card ul { list-style: none; padding: 0; margin: 0 0 28px; flex-grow: 1; }
+        .pricing-card ul li { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.95rem; color: var(--text-secondary); }
+        .pricing-card ul li::before { content: "\2713"; color: var(--success); font-weight: 700; margin-right: 10px; }
+        .pricing-card ul li.headline { color: var(--text-primary, #e8e8f0); font-weight: 600; }
+        .upgrade-btn { display: block; width: 100%; text-align: center; padding: 14px; border-radius: 8px; font-size: 1rem; font-weight: 700; text-decoration: none; cursor: pointer; border: none; transition: transform 0.2s, box-shadow 0.2s; box-sizing: border-box; }
+        .upgrade-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4); text-decoration: none; }
+        .upgrade-btn-pro { background: linear-gradient(135deg, var(--accent), var(--accent-bright)); color: white; }
+        .upgrade-btn-free { background: transparent; color: var(--accent-bright); border: 2px solid var(--accent); }
+        .upgrade-btn-ent { background: transparent; color: var(--success); border: 2px solid var(--success); }
+        .tier-feature-row { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 0; max-width: 1100px; margin: 48px auto 0; background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; overflow: hidden; }
+        .tier-feature-row > div { padding: 14px 18px; border-bottom: 1px solid #222244; font-size: 0.92rem; color: var(--text-secondary); }
+        .tier-feature-row > div.header { background: rgba(108, 92, 231, 0.08); color: var(--accent-bright); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+        .tier-feature-row > div.label { color: #e8e8f0; font-weight: 600; background: rgba(255,255,255,0.02); }
+        @media (max-width: 880px) {
+            .pricing-grid { grid-template-columns: 1fr; }
+            .tier-feature-row { grid-template-columns: 1fr; }
+            .tier-feature-row > div { text-align: left; }
         }
     </style>
 </head>
 <body>
-<!--
-  Machine-translated by Claude. Pending human review.
-  Source: ../pricing.html @ 52a4f1d7f283da1cfd06e0377ba68b9c389f5f3a
-  Date: 2026-05-17
-  Language: zh-CN (Simplified Chinese, Mainland)
--->
-
 <div class="beta-announcement-bar">
-    &#x697D;AI<sup class="tm">™</sup> — 世界模型的通用运行时 &nbsp;|&nbsp; <a href="index.html#for-studios">面向工作室与开发者 →</a> &nbsp;&nbsp; 也可：<a href="index.html#quickstart">试用消费者 Demo →</a>
+    &#x697D;AI<sup class="tm">&trade;</sup> &mdash; 扫描一个房间，然后与它对话 &nbsp;|&nbsp; <a href="../capture-app/">试用 Raku Capture &rarr;</a> &nbsp;&nbsp; 另外：<a href="capture.html">工作原理</a>
 </div>
+
+
 
 <nav role="navigation" aria-label="Primary">
     <div class="container">
@@ -197,6 +82,8 @@
                             <li role="none"><a role="menuitem" href="llm-makers.html">面向 AI 实验室<span class="item-desc">面向基础模型的 MCP 运行时</span></a></li>
                             <li role="none"><a role="menuitem" href="enterprise.html">面向企业<span class="item-desc">大规模部署空间 AI</span></a></li>
                             <li role="none"><a role="menuitem" href="creator.html">面向创作者<span class="item-desc">构建并发布空间世界</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">机器人<span class="item-desc">面向机器人的持久空间记忆</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">保险<span class="item-desc">手机扫描生成物品清单</span></a></li>
                             <li role="none"><a role="menuitem" href="compare.html">与 Unity / Unreal 比较<span class="item-desc">诚实的对比</span></a></li>
                         </ul>
                         <ul class="col" role="none">
@@ -245,61 +132,24 @@
     </div>
 </nav>
 
+
+
 <section class="hero">
     <div class="container">
-        <h1>简单透明的定价</h1>
-        <p class="subtitle">从免费开始。Pro 提供 7 天免费试用。准备好再升级。</p>
+        <h1>Raku Capture 价格</h1>
+        <p class="subtitle">用手机扫描一个房间，然后在 Claude、ChatGPT、Gemini 或 Copilot 里与它对话。个人使用永久免费。Pro Beta 在测试期间免费。</p>
 
-        <figure style="max-width: 880px; margin: 32px auto 0;">
-        <svg viewBox="0 0 1080 260" width="100%" style="max-width:880px; height:auto; display:block;" role="img" aria-labelledby="price-title" xmlns="http://www.w3.org/2000/svg">
-            <title id="price-title">价值阶梯：从 Free 起步，成长为 Pro，再扩展到 Studio、Platform 和 OEM 授权。</title>
-            <defs>
-                <linearGradient id="price-grad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0" stop-color="#6c5ce7"/>
-                    <stop offset="1" stop-color="#00cec9"/>
-                </linearGradient>
-                <marker id="price-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto-start-reverse">
-                    <path d="M1,1 L8,4.5 L1,8" fill="none" stroke="#00cec9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                </marker>
-            </defs>
-
-            <line x1="312" y1="170" x2="356" y2="138" stroke="url(#price-grad)" stroke-width="2" marker-end="url(#price-arrow)"/>
-            <line x1="628" y1="118" x2="672" y2="86" stroke="url(#price-grad)" stroke-width="2" marker-end="url(#price-arrow)"/>
-
-            <!-- Free step -->
-            <g transform="translate(48,150)">
-                <rect width="264" height="74" rx="11" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
-                <text x="132" y="32" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">Free</text>
-                <text x="132" y="54" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">每天 10 次生成 · 支持 XR</text>
-            </g>
-
-            <!-- Pro step -->
-            <g transform="translate(364,98)">
-                <rect width="264" height="74" rx="11" fill="#15152e" stroke="url(#price-grad)" stroke-width="2"/>
-                <text x="132" y="32" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">Pro</text>
-                <text x="132" y="54" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="11">每天 100 次 · 导出 · 优先队列</text>
-            </g>
-
-            <!-- Enterprise step -->
-            <g transform="translate(680,46)">
-                <rect width="288" height="74" rx="11" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
-                <text x="144" y="32" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">Studio &#183; Platform &#183; OEM</text>
-                <text x="144" y="54" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">定制授权 · 深度集成</text>
-            </g>
-        </svg>
-        <figcaption style="text-align:center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 8px;">一条阶梯：免费起步，成长为 Pro，扩展到定制授权。</figcaption>
-        </figure>
-
-        <!-- K.9: Monthly/Annual Toggle -->
-        <div style="display: flex; justify-content: center; gap: 12px; margin-top: 24px; align-items: center;">
-            <span id="toggle-monthly-label" style="font-weight: 700; color: var(--accent-bright);">按月</span>
-            <label style="position: relative; display: inline-block; width: 52px; height: 28px; cursor: pointer;">
-                <input type="checkbox" id="billing-toggle" onchange="toggleBillingPeriod()" style="opacity: 0; width: 0; height: 0;">
-                <span style="position: absolute; inset: 0; background: #333; border-radius: 28px; transition: 0.3s;"></span>
-                <span id="toggle-knob" style="position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; background: var(--accent-bright); border-radius: 50%; transition: 0.3s;"></span>
-            </label>
-            <span id="toggle-annual-label" style="font-weight: 400; color: var(--text-secondary);">按年 <span style="color: var(--success); font-size: 0.85rem; font-weight: 700;">省 17%</span></span>
+        <!-- Above-fold NVIDIA Inception chip -->
+        <div style="display: flex; justify-content: center; margin: 24px 0 4px;">
+            <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="NVIDIA Inception 成员 — 详情见媒体页">
+                <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">成员：</span>
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="112" height="28" style="height: 28px; width: auto; display: block;">
+        <img src="../branding/aws/powered-by-aws-white.png" alt="基于 AWS 构建" height="28" style="height: 28px; width: auto; display: block;">
+                <span style="color: var(--accent-bright); font-size: 0.85rem; font-weight: 600;">了解更多 ↓</span>
+            </a>
         </div>
+
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 18px;">由 <strong>5 项已授权美国专利</strong>背书（优先日 2012 年 7 月）· <a href="press.html#nvidia-inception">NVIDIA Inception 成员打造</a></p>
     </div>
 </section>
 
@@ -308,173 +158,248 @@
         <div class="pricing-grid">
             <!-- Free Tier -->
             <div class="pricing-card">
-                <h3>免费版</h3>
-                <div class="price">$0</div>
-                <p class="price-note">无需信用卡</p>
+                <h3>Free</h3>
+                <div class="price">$0<span class="price-period"> / 月</span></div>
+                <p class="price-note">永久免费 · 无需信用卡</p>
                 <ul>
-                    <li>每天 10 次游戏生成</li>
-                    <li>全部游戏模板</li>
-                    <li>由 AI 驱动的游戏创建</li>
-                    <li>浏览器游玩与分享</li>
-                    <li>XR 支持</li>
+                    <li class="headline">每日 10 次捕获</li>
+                    <li>1 GB 存储</li>
+                    <li>捕获保留 7 天</li>
+                    <li>从 iPhone 或 Android 浏览器拍摄</li>
+                    <li>交互式 3D 查看器与分享链接</li>
+                    <li>MCP 运行时 — 从 Claude、ChatGPT、Gemini、Copilot 驱动 RakuAI</li>
                     <li>社区支持</li>
                 </ul>
-                <a href="index.html#create" class="upgrade-btn upgrade-btn-free">免费开始创作</a>
+                <a href="../capture-app/" class="upgrade-btn upgrade-btn-free">免费开始</a>
             </div>
 
-            <!-- Pro Tier -->
-            <div class="pricing-card featured" style="overflow: hidden;">
-                <div class="best-value-ribbon">超值之选</div>
-                <h3 style="color: var(--accent-bright);">Pro</h3>
-                <div class="price" id="pro-price">$14.99<span class="price-period"> / 月</span></div>
-                <p class="price-note" id="pro-price-note">7 天免费试用 &middot; 随时取消</p>
+            <!-- Pro Beta Tier -->
+            <div class="pricing-card featured">
+                <h3 style="color: var(--accent-bright);">Pro Beta<span class="coming-soon-tag">即将推出</span></h3>
+                <div class="price">$0<span class="price-period"> / 月</span></div>
+                <p class="price-note">测试期间免费 · 正式发布后 $14.99/月</p>
                 <ul>
-                    <li>每天 100 次游戏生成</li>
-                    <li class="pro-only">优先生成队列</li>
-                    <li class="pro-only">更高质量的 AI 模型</li>
-                    <li class="pro-only">导出游戏配置</li>
-                    <li class="pro-only">独立打包导出（.exe）</li>
-                    <li>全部模板 + 自定义</li>
-                    <li>多人联网</li>
-                    <li>云存档</li>
-                    <li>性能分析器</li>
-                    <li>优先支持</li>
+                    <li class="headline">每日 100 次捕获</li>
+                    <li>25 GB 存储</li>
+                    <li>捕获保留 90 天</li>
+                    <li>包含 Free 的全部功能</li>
+                    <li>所有捕获均支持 MCP 运行时</li>
+                    <li>更高质量的重建队列</li>
+                    <li>优先邮件支持</li>
+                    <li>通过 NVIDIA Inception 云积分加速重建</li>
                 </ul>
-                <button onclick="handleUpgradeClick()" class="upgrade-btn upgrade-btn-pro" id="upgrade-pro-btn">
-                    开始 7 天免费试用
-                </button>
-                <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary); text-align: center;">
-                    <a href="pro-features.html" style="color: var(--accent-bright);">查看全部 Pro 功能 &rarr;</a>
-                </p>
+                <a href="../capture-app/" class="upgrade-btn upgrade-btn-pro">加入 Pro Beta</a>
+                <p style="margin-top: 12px; font-size: 0.78rem; color: var(--text-secondary); text-align: center;">目前免费。开始收费前至少提前 30 天通知您。</p>
+            </div>
+
+            <!-- Enterprise Tier -->
+            <div class="pricing-card">
+                <h3 style="color: var(--success);">Enterprise</h3>
+                <div class="price">定制</div>
+                <p class="price-note">为您的部署量身定制</p>
+                <ul>
+                    <li class="headline">定制捕获与存储额度</li>
+                    <li>定制保留期与数据驻留</li>
+                    <li>SSO 与团队管理</li>
+                    <li>专属 MCP 运行时端点</li>
+                    <li>智能眼镜与 OEM 集成</li>
+                    <li>SLA、安全审查、NDA</li>
+                    <li>专属工程支持</li>
+                </ul>
+                <a href="mailto:partners@rakuai.com?subject=Raku%20Capture%20企业版咨询" class="upgrade-btn upgrade-btn-ent">联系销售</a>
             </div>
         </div>
 
-        <div class="guarantee">
-            <h4>零风险</h4>
-            <p>随时可在账户设置中取消。无长期合约。即使降级，你创建的游戏也始终归你所有。</p>
+        <!-- Tier comparison table -->
+        <div class="tier-feature-row">
+            <div class="header">&nbsp;</div>
+            <div class="header" style="text-align: center;">Free</div>
+            <div class="header" style="text-align: center;">Pro Beta</div>
+            <div class="header" style="text-align: center;">Enterprise</div>
+            <div class="label" style="">每日捕获次数</div>
+            <div style="text-align: center">10</div>
+            <div style="text-align: center">100</div>
+            <div style="text-align: center">定制</div>
+            <div class="label" style="">存储</div>
+            <div style="text-align: center">1 GB</div>
+            <div style="text-align: center">25 GB</div>
+            <div style="text-align: center">定制</div>
+            <div class="label" style="">保留期</div>
+            <div style="text-align: center">7 天</div>
+            <div style="text-align: center">90 天</div>
+            <div style="text-align: center">定制</div>
+            <div class="label" style="">MCP 运行时（Claude、ChatGPT、Gemini、Copilot）</div>
+            <div style="text-align: center">&#10003;</div>
+            <div style="text-align: center">&#10003;</div>
+            <div style="text-align: center">&#10003; 专属端点</div>
+            <div class="label" style="">交互式 3D 查看器与分享链接</div>
+            <div style="text-align: center">&#10003;</div>
+            <div style="text-align: center">&#10003;</div>
+            <div style="text-align: center">&#10003;</div>
+            <div class="label" style="border-bottom: none">支持</div>
+            <div style="text-align: center; border-bottom: none">社区</div>
+            <div style="text-align: center; border-bottom: none">优先邮件</div>
+            <div style="text-align: center; border-bottom: none">专属</div>
         </div>
+
+        <p style="text-align: center; max-width: 760px; margin: 32px auto 0; color: var(--text-secondary); font-size: 0.9rem;">Pro Beta 在产品测试期间免费。开始收费前我们会至少提前 30 天通知您。可随时在账户中取消。</p>
     </div>
 </section>
 
-<!-- Upgrade Success Banner (shown after Stripe redirect) -->
-<section class="section" id="upgrade-success" style="display: none;">
-    <div class="container">
-        <div class="upgrade-banner" style="border-color: var(--success); background: rgba(0, 206, 201, 0.1);">
-            <div class="upgrade-banner-text">
-                <h4 style="color: var(--success);">欢迎加入 Pro！</h4>
-                <p>你的账户已升级。现在每天可生成 100 次、享有优先队列与高质量 AI。</p>
-            </div>
-            <a href="index.html#create" class="btn btn-primary">开始创作</a>
-        </div>
-    </div>
-</section>
-
-<!-- Enterprise -->
-<section class="section" id="enterprise">
+<section class="section" style="border-top: 1px solid rgba(108,92,231,0.15);">
     <div class="container" style="text-align: center;">
-        <h2>企业与工作室授权</h2>
-        <p style="color: var(--text-secondary); max-width: 700px; margin: -24px auto 40px; font-size: 1.05rem;">
-            正在做商业游戏、要在主机上发行，或在评估平台集成？我们为工作室与平台合作伙伴提供定制授权。
-        </p>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto 40px;">
-            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
-                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">工作室</h3>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">面向出货商业游戏的团队。定制构建、优先支持、新功能抢先体验。</p>
+        <h2>所有方案均包含</h2>
+        <p style="color: var(--text-secondary); max-width: 720px; margin: 0 auto 40px;">即使是 Free 方案，您的捕获也是 LLM 可读的真实场景。MCP 不会被锁在付费墙背后。</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; max-width: 1000px; margin: 0 auto;">
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 24px; text-align: left;">
+                <h3 style="color: var(--accent-bright); font-size: 1.05rem; margin-bottom: 8px;">MCP 运行时，已上线生产</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">通过 Model Context Protocol 把 Claude、ChatGPT、Gemini 或 Copilot 连接到您的捕获。它们能读取场景，但不能悄悄改写您的房间。</p>
             </div>
-            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
-                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">平台</h3>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">面向主机厂商与 XR 平台。深度集成、联合营销、专属工程支持。</p>
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 24px; text-align: left;">
+                <h3 style="color: var(--accent-bright); font-size: 1.05rem; margin-bottom: 8px;">手机扫描 → 3D 场景</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">通过浏览器 PWA 从 iPhone 或 Android 拍摄。我们在服务器端重建场景，返回一个可探索的 splat 与可分享的查看器链接。</p>
             </div>
-            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px;">
-                <h3 style="color: var(--accent-bright); font-size: 1.1rem; margin-bottom: 8px;">OEM</h3>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">面向硬件厂商的预装与捆绑授权。可提供白标方案。</p>
+            <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 24px; text-align: left;">
+                <h3 style="color: var(--accent-bright); font-size: 1.05rem; margin-bottom: 8px;">受专利保护的引擎</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6;">5 项已授权美国专利，优先日 2012 年 7 月，覆盖每次捕获背后的空间运行时。</p>
             </div>
         </div>
-        <a href="enterprise.html" class="btn btn-primary">联系企业销售</a>
-        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 16px;">受专利保护的技术。如需技术深入沟通，可签署 NDA。</p>
     </div>
 </section>
 
-<section class="section" style="background: var(--bg-secondary);">
+<!-- NVIDIA Inception recognition strip -->
+<section class="section" id="nvidia-inception" style="border-top: 1px solid rgba(108,92,231,0.25);">
     <div class="container">
-        <h2>常见问题</h2>
-        <div class="faq">
-            <div class="faq-item">
-                <h3>达到每日上限后会怎样？</h3>
-                <p>免费用户每天可生成 10 次。达到上限后，你会看到升级到 Pro（每天 100 次）的选项，或者等到第二天再用。你已有的游戏依然可玩。</p>
-            </div>
-            <div class="faq-item">
-                <h3>免费版和 Pro 的 AI 有什么区别？</h3>
-                <p>免费版使用我们用于快速生成的高效 AI 模型。Pro 使用更高质量的模型，能产出更具创意、细节更丰富、玩法机制更深入的游戏配置。</p>
-            </div>
-            <div class="faq-item">
-                <h3>免费试用怎么进行？</h3>
-                <p>你的 7 天 Pro 试用从开通的那一刻立即生效，可使用全部 Pro 功能。试用结束前不会扣费。试用期内随时取消即可避免扣费。</p>
-            </div>
-            <div class="faq-item">
-                <h3>有按年订阅吗？</h3>
-                <p>有！把上方的“按年”开关切到开，即可看到年付价格 $149.99/年——相比按月订阅相当于免费多用 2 个月。</p>
-            </div>
-            <div class="faq-item">
-                <h3>可以随时取消吗？</h3>
-                <p>可以。可以在账户设置或 Stripe 客户中心取消。取消后 Pro 功能将保留到当前账单周期结束。无需退款流程——直接取消即可。</p>
-            </div>
-            <div class="faq-item">
-                <h3>支持哪些支付方式？</h3>
-                <p>我们使用 Stripe 进行安全支付。支持所有主流信用卡、借记卡，以及 Apple Pay / Google Pay。</p>
-            </div>
-            <div class="faq-item">
-                <h3>我可以出售自己做的游戏吗？</h3>
-                <p>可以。你创建的游戏归你所有。Pro 版本提供独立打包导出功能，可在 Steam、itch.io 等任意平台进行商业发行。</p>
-            </div>
+        <div style="display:flex; align-items:center; gap: 24px; flex-wrap: wrap; justify-content: center; background: rgba(108,92,231,0.05); border: 1px solid rgba(108,92,231,0.25); border-radius: 12px; padding: 24px 28px; max-width: 1000px; margin: 0 auto;">
+            <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception 成员 — 详情见媒体页">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="200" height="50" style="height: 50px; width: auto;">
+            </a>
+            <p style="max-width: 580px; margin: 0; color: var(--text-secondary);">
+                Raku Capture 由 <strong>NVIDIA Inception</strong> 成员打造。我们正把 NVIDIA 加速的 3D Gaussian Splatting（A10G / L40S 上的 Brush 训练器）引入重建流程，让手机扫描在几分钟内变成可探索的 splat — 即将通过项目的 NGC 目录与合作伙伴云积分实现。
+                <a href="press.html#nvidia-inception" style="white-space: nowrap;">阅读公告 →</a>
+            </p>
         </div>
     </div>
 </section>
 
-<!-- K.11: Referral Section -->
-<section class="section" id="referral-section" style="display: none;">
+<section class="section" style="border-top: 1px solid rgba(108,92,231,0.15);">
+    <div class="container" style="max-width: 820px;">
+        <h2 style="text-align: center;">常见问题</h2>
+        <div style="margin-top: 32px;">
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">Pro Beta 现在真的免费吗？</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">是的。Raku Capture 处于测试期间 Pro Beta 免费。我们会在开始收费前至少 30 天通过邮件通知您，您也可以选择留在 Free 方案。预计正式发布时的价格是每月 $14.99。</p>
+            </details>
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">一次「捕获」是怎么算的？</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">一次上传的扫描被我们重建为 3D 场景。日计数在 UTC 0 点重置。重新打开或分享已有的捕获不计入额度。</p>
+            </details>
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">保留期过后捕获会怎样？</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">在 Free 上，捕获及其重建场景在上传 7 天后删除。Pro Beta 是 90 天。您可以随时重新上传源视频。Enterprise 可定制保留期。</p>
+            </details>
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">Free 真的包含 MCP 吗？</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">是的。MCP 运行时已上线生产，所有方案都可使用 — 包括 Free。把 Claude、ChatGPT、Gemini 或 Copilot 连接到您的捕获后，它们能通过 Model Context Protocol 读取场景。</p>
+            </details>
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">GPU 加速重建什么时候上线？</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">服务器端在 NVIDIA A10G / L40S 上的 splat 训练，已经通过 NVIDIA Inception 的云积分进入路线图。目前重建在 CPU 上运行；GPU 上线后，我们会优先把 Pro Beta 与 Enterprise 流量路由到那里。</p>
+            </details>
+            <details style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 10px; padding: 18px 22px; margin-bottom: 14px;">
+                <summary style="cursor: pointer; font-weight: 600; color: var(--accent-bright);">我想把它集成到我们的产品 / 眼镜 / 车队中。</summary>
+                <p style="margin-top: 12px; color: var(--text-secondary);">那是 Enterprise 的范围。请发送邮件到 <a href="mailto:partners@rakuai.com">partners@rakuai.com</a>，描述使用场景与大致规模，我们会回复您。</p>
+            </details>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="border-top: 1px solid rgba(108,92,231,0.25);">
     <div class="container" style="text-align: center;">
-        <h2>分享 RakuAI，赚取奖励</h2>
-        <p style="color: var(--text-secondary); max-width: 600px; margin: -24px auto 32px;">
-            把你的推荐链接分享给朋友。当他们升级到 Pro 时，你们双方都会得到奖励。
-        </p>
-        <div style="background: var(--bg-secondary); border: 1px solid #222244; border-radius: 12px; padding: 28px; max-width: 500px; margin: 0 auto;">
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 8px;">你的推荐链接：</p>
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <input type="text" id="referral-link" readonly style="flex: 1; background: var(--bg-primary); border: 1px solid #333; border-radius: 6px; padding: 12px; color: var(--text-primary); font-size: 0.9rem;">
-                <button onclick="copyReferralLink()" class="btn btn-primary" style="padding: 12px 20px; white-space: nowrap;" id="copy-ref-btn">复制</button>
-            </div>
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;" id="referral-stats"></p>
+        <h2>今天就试试 Raku Capture</h2>
+        <p style="max-width: 720px; margin: 16px auto 24px; color: var(--text-secondary);">可在 iPhone Safari 与 Android Chrome 中运行 — 无需安装。扫描一个房间，观看重建过程，然后通过 MCP 让 Claude 与它对话。</p>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <a class="btn btn-primary" href="../capture-app/">免费开始捕获</a>
+            <a class="btn" style="border: 1px solid var(--accent); color: var(--accent-bright);" href="capture.html">工作原理</a>
+            <a class="btn" style="border: 1px solid var(--success); color: var(--success);" href="mailto:partners@rakuai.com?subject=Raku%20Capture%20企业版咨询">联系 Enterprise</a>
         </div>
     </div>
 </section>
 
 <footer>
     <div class="container">
-        <div class="footer-links">
-            <a href="../engine/">引擎</a>
-            <a href="../api/">API</a>
-            <a href="docs.html">文档</a>
-            <a href="../games/">街机厅</a>
-            <a href="press.html">新闻媒体</a>
-            <a href="developers/">开发者</a>
-            <a href="../privacy.html">隐私</a>
-            <a href="../terms.html">条款</a>
-            <a href="contact.html">联系我们</a>
-            <a href="https://github.com/RakuXR">GitHub</a>
-            <a href="https://www.linkedin.com/company/rakuai">LinkedIn</a>
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>解决方案</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">智能眼镜厂商</a></li>
+                    <li><a href="llm-makers.html">AI 实验室</a></li>
+                    <li><a href="enterprise.html">企业</a></li>
+                    <li><a href="creator.html">创作者</a></li>
+                    <li><a href="robotics.html">机器人</a></li>
+                    <li><a href="insurance.html">保险</a></li>
+                    <li><a href="compare.html">与 Unity / Unreal 比较</a></li>
+                    <li><a href="spatial-engine.html">空间引擎</a></li>
+                    <li><a href="ai-systems.html">AI 系统</a></li>
+                    <li><a href="xr-features.html">XR 功能</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>开发者</h4>
+                <ul>
+                    <li><a href="docs.html">文档</a></li>
+                    <li><a href="mcp.html">MCP 服务器</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="../api/">API 参考</a></li>
+                    <li><a href="templates.html">模板</a></li>
+                    <li><a href="developers/">开发者门户</a></li>
+                    <li><a href="../developers/claude-desktop.html">Claude Desktop 指南</a></li>
+                    <li><a href="developer-guide.html">开发者指南</a></li>
+                    <li><a href="llm-guide.html">LLM 集成指南</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>资源</h4>
+                <ul>
+                    <li><a href="../blog/">博客</a></li>
+                    <li><a href="why-rakuai.html">为什么选 RakuAI</a></li>
+                    <li><a href="press.html">新闻媒体</a></li>
+                    <li><a href="../discover.html">探索</a></li>
+                    <li><a href="content-packs.html">内容包</a></li>
+                    <li><a href="docs.html">文档</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>公司</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">关于</a></li>
+                    <li><a href="pricing.html">价格</a></li>
+                    <li><a href="contact.html">联系我们</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">合作伙伴</a></li>
+                    <li><a href="../privacy.html">隐私</a></li>
+                    <li><a href="../terms.html">条款</a></li>
+                </ul>
+            </div>
         </div>
-        <p>&copy; 2026 RakuAI, LLC &bull; 5 项美国授权专利（优先权日：2012 年 7 月） &bull; 由 RakuAI 引擎驱动</p>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 项美国授权专利（优先日：2012 年 7 月） &bull; 由 RakuAI 引擎驱动</p>
         <p class="trademark-notice">
-            RakuAI&trade; 和 RakuXR&trade; 是 RakuAI, LLC 的商标。
-            <span class="kanji-logo">&#x697D;</span>AI 与 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的设计化商标。
-            5 项美国授权专利（优先权日：2012 年 7 月）。
+            RakuAI&trade; 与 RakuXR&trade; 是 RakuAI, LLC 的商标。
+            <span class="kanji-logo">&#x697D;</span>AI 与 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的风格化标识。
+            5 项美国授权专利（优先日：2012 年 7 月）。
         </p>
     </div>
         <!-- nv-inception:start -->
         <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
-            <a href="../press.html#nvidia-inception" aria-label="NVIDIA Inception 成员 - read more on the press page" style="line-height: 0;">
-                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 成员" width="160" height="40" style="height: 40px; width: auto; display: block;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception 成员——在新闻页查看详情" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 成员" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+            <a href="../press.html#aws-activate" aria-label="基于 AWS 构建 — AWS Activate 参与者" style="line-height: 0;">
+                <img src="../branding/aws/powered-by-aws-white.png" alt="基于 AWS 构建" height="40" style="height: 40px; width: auto; display: block;">
             </a>
         </div>
         <!-- nv-inception:end -->
@@ -621,9 +546,10 @@ async function loadReferralSection() {
 })();
 </script>
 
-<script src="/js/auth-nav.js" defer></script>
-<script src="/js/lang-selector.js" defer></script>
+<script src="../js/auth-nav.js" defer></script>
+<script src="../js/lang-selector.js" defer></script>
 <script src="../js/nav-dropdown.js" defer></script>
-    <script src="/js/section-nav.js" defer></script>
+    <script src="../js/section-nav.js" defer></script>
 </body>
 </html>
+

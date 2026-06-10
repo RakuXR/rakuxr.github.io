@@ -1,0 +1,809 @@
+<!-- TODO: native-speaker review of marketing copy. Updated 2026-06-01. -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>Raku Capture — 扫描它。然后和它对话。</title>
+    <meta name="description" content="Raku Capture 将你的相机看到的一切，变成你的 AI 助手可以走入、测量并改动的世界。扫描现实，然后通过 MCP 与它对话——在你真实的空间里看见、测量、模拟和操作。">
+    <meta name="keywords" content="3D 捕获, 高斯泼溅, 扫描转 3D, 空间 AI, MCP, AI 助手, 房间扫描, 智能眼镜, 数字孪生, 与房间对话">
+    <meta property="og:title" content="Raku Capture — 扫描它。然后和它对话。">
+    <meta property="og:description" content="将你的相机看到的一切，变成你的 AI 助手可以走入、测量并改动的世界。捕获现实，让你的 AI 通过 MCP 在其中看见、测量、模拟和操作。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/zh-CN/capture.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Raku Capture — 扫描它。然后和它对话。">
+    <meta name="twitter:description" content="将你的相机看到的一切，变成你的 AI 助手可以走入、测量并改动的世界。捕获现实，然后通过 MCP 与它对话。">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/zh-CN/capture.html">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/capture.html">
+    <link rel="alternate" hreflang="ja" href="https://rakuai.com/ja/capture.html">
+    <link rel="alternate" hreflang="fr" href="https://rakuai.com/fr/capture.html">
+    <link rel="alternate" hreflang="zh-CN" href="https://rakuai.com/zh-CN/capture.html">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/capture.html">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .cap-section {
+            padding: 72px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .cap-section:last-of-type {
+            border-bottom: none;
+        }
+        .cap-hero {
+            padding: 88px 0 56px;
+            text-align: center;
+        }
+        .cap-hero h1 {
+            font-size: clamp(2.4rem, 6vw, 4rem);
+            line-height: 1.08;
+            margin-bottom: 18px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .cap-hero .subhead {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            line-height: 1.65;
+            max-width: 760px;
+            margin: 0 auto 32px;
+        }
+        .cap-cta-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+        .cap-btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .cap-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4);
+        }
+        .cap-btn-secondary {
+            display: inline-block;
+            background: transparent;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.15s ease;
+        }
+        .cap-btn-secondary:hover {
+            background: rgba(163, 136, 255, 0.1);
+        }
+        .cap-hero-graphic {
+            max-width: 760px;
+            margin: 8px auto 30px;
+        }
+        .nvidia-chip { transition: background 0.15s; }
+        .nvidia-chip:hover { background: rgba(108,92,231,0.16); }
+        .cap-hero-graphic svg {
+            width: 100%;
+            height: auto;
+            display: block;
+            filter: drop-shadow(0 18px 40px rgba(108, 92, 231, 0.28));
+        }
+        @media (prefers-reduced-motion: no-preference) {
+            .cap-scan-sweep { animation: capScan 4s ease-in-out infinite; }
+            .cap-splat-cloud { animation: capPop 4s ease-in-out infinite; }
+            @keyframes capScan {
+                0%, 100% { transform: translateX(0); opacity: 0.7; }
+                50%      { transform: translateX(132px); opacity: 1; }
+            }
+            @keyframes capPop {
+                0%, 35% { opacity: 0.15; }
+                70%, 100% { opacity: 1; }
+            }
+        }
+        .cap-viewer-wrap {
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        #splat-viewer {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border-radius: 14px;
+            border: 1px solid #2a2a4a;
+            background:
+                radial-gradient(120% 120% at 50% 0%, rgba(108, 92, 231, 0.18), transparent 60%),
+                linear-gradient(135deg, #14142b, #0a0a1a);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            overflow: hidden;
+            cursor: grab;
+        }
+        #splat-viewer:active { cursor: grabbing; }
+        #splat-viewer .viewer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            border-radius: 999px;
+            padding: 6px 14px;
+            background: rgba(163, 136, 255, 0.08);
+        }
+        #splat-viewer .viewer-headline {
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            font-weight: 700;
+            max-width: 460px;
+            text-align: center;
+            line-height: 1.3;
+        }
+        #splat-viewer .viewer-note {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            max-width: 480px;
+            text-align: center;
+            line-height: 1.55;
+        }
+        .cap-viewer-caption {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 14px;
+        }
+        .cap-jobs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        .cap-job {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-top: 4px solid var(--accent-bright);
+            border-radius: 12px;
+            padding: 28px 24px;
+        }
+        .cap-job .step {
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+        .cap-job h3 {
+            color: var(--accent-bright);
+            font-size: 1.4rem;
+            margin: 6px 0 12px;
+        }
+        .cap-job p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.98rem;
+        }
+        .cap-cases {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        .cap-case {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 24px;
+        }
+        .cap-case .phase-tag {
+            display: inline-block;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--success);
+            border: 1px solid var(--success);
+            border-radius: 999px;
+            padding: 3px 10px;
+            margin-bottom: 12px;
+        }
+        .cap-case .phase-tag.later {
+            color: #ff7aa8;
+            border-color: #ff7aa8;
+        }
+        .cap-case h3 {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        .cap-case p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.96rem;
+        }
+        .cap-demos {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            max-width: 1040px;
+            margin: 0 auto;
+        }
+        .cap-demo .media-placeholder {
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            border-radius: 12px;
+            border: 1px dashed #3a3a5e;
+            background: linear-gradient(135deg, #12122a, #0a0a1a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .cap-demo h3 {
+            color: var(--accent-bright);
+            font-size: 1.25rem;
+            margin-bottom: 10px;
+        }
+        .cap-demo p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.96rem;
+        }
+        .cap-dev-cta {
+            max-width: 820px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 16px;
+            padding: 40px 36px;
+            text-align: center;
+        }
+        .cap-dev-cta h2 {
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+        }
+        .cap-dev-cta p {
+            color: var(--text-secondary);
+            line-height: 1.65;
+            max-width: 620px;
+            margin: 0 auto 24px;
+        }
+        .cap-section h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .cap-section .cap-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 720px;
+            margin: 0 auto 40px;
+        }
+        .cap-qr {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 620px;
+            margin: 36px auto 8px;
+            padding: 24px 28px;
+            background: var(--surface-raised, #16161f);
+            border: 1px solid #222244;
+            border-radius: 16px;
+        }
+        .cap-qr-img {
+            width: 168px;
+            height: 168px;
+            flex: 0 0 168px;
+            border-radius: 10px;
+            background: #fff;
+            padding: 10px;
+        }
+        .cap-qr-img img { width: 100%; height: 100%; display: block; }
+        .cap-qr-text { text-align: left; max-width: 320px; }
+        .cap-qr-text h3 {
+            font-size: 1.15rem;
+            margin: 0 0 8px;
+            color: var(--text-primary, #e8e8f0);
+        }
+        .cap-qr-text p {
+            color: var(--text-secondary);
+            font-size: 0.97rem;
+            line-height: 1.55;
+            margin: 0 0 10px;
+        }
+        .cap-qr-text a { color: var(--accent-bright); }
+        @media (max-width: 540px) {
+            .cap-qr { flex-direction: column; gap: 18px; text-align: center; }
+            .cap-qr-text { text-align: center; }
+        }
+        @media (max-width: 820px) {
+            .cap-jobs, .cap-cases, .cap-demos {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "RakuAI",
+      "url": "https://rakuai.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://rakuai.com/og-default.png",
+        "width": 1200,
+        "height": 630
+      },
+      "description": "AI 原生空间运行时。17 个原生 MCP 工具。默认拒绝。审计日志。生产部署于 Azure。",
+      "sameAs": [
+        "https://github.com/RakuXR"
+      ],
+      "award": "NVIDIA Inception Program member"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "Raku Capture",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Web, iOS, Android",
+      "url": "https://rakuai.com/zh-CN/capture.html",
+      "description": "将你的相机看到的一切，变成你的 AI 助手可以走入、测量并改动的世界。捕获现实，让你的 AI 通过 MCP 在其中看见、测量、模拟和操作。",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "主页",
+          "item": "https://rakuai.com"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Raku Capture",
+          "item": "https://rakuai.com/zh-CN/capture.html"
+        }
+      ]
+    }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    Raku Capture — 抢先体验。扫描空间，获得可对话的场景。MCP 支持 Claude、ChatGPT、Gemini 和 Copilot——所有套餐均可使用，无付费墙。
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="打开菜单" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" aria-label="打开解决方案菜单" role="menuitem">解决方案 &#x25BC;</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="解决方案" hidden>
+                        <div class="col-heading" role="presentation">按受众</div>
+                        <div class="col-heading" role="presentation">平台</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">面向智能眼镜厂商<span class="item-desc">硬件 OEM 合作伙伴计划</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">面向 AI 实验室<span class="item-desc">面向基础模型的 MCP 运行时</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">面向企业<span class="item-desc">大规模部署空间 AI</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">面向创作者<span class="item-desc">构建并发布空间世界</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">机器人<span class="item-desc">面向机器人的持久空间记忆</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">保险<span class="item-desc">手机扫描生成物品清单</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">与 Unity / Unreal 比较<span class="item-desc">诚实的对比</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">扫描空间，然后与它对话</span></a></li>
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">空间引擎<span class="item-desc">运行时支柱</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI 系统<span class="item-desc">编排与权限</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR 功能<span class="item-desc">显示、追踪、锚定</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" aria-label="打开开发者菜单" role="menuitem">开发者 &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="开发者" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">文档</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP 服务器</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API 参考</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">模板</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">开发者门户</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop 指南</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">开发者指南</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM 集成指南</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" aria-label="打开资源菜单" role="menuitem">资源 &#x25BC;</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="资源" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">博客</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">为什么选 RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">新闻媒体</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">探索</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">内容包</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">文档</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">联系我们</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">价格</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">博客</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">登录</a>
+            <a href="../capture.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ======================= HERO ======================= -->
+<section class="cap-hero">
+    <div class="container">
+        <h1>扫描它。然后和它对话。</h1>
+        <p class="subhead">RakuAI 将你的相机看到的一切，变成一个<strong>可对话的场景</strong>——高斯泼溅捕获、实时查看器，以及你的 AI 助手可以走入、测量并改动的 MCP 接口。</p>
+
+        <!-- Above-fold "Member of NVIDIA Inception" chip -->
+        <a href="#nvidia-inception" class="nvidia-chip" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; margin-top: 18px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="NVIDIA Inception 成员——滚动查看详情">
+            <span style="color: var(--text-secondary); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">成员：</span>
+            <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
+        <img src="../branding/aws/powered-by-aws-white.png" alt="基于 AWS 构建" height="28" style="height: 28px; width: auto; display: block;">
+            <span style="color: var(--accent-bright); font-size: 0.85rem; font-weight: 600;">了解更多 &darr;</span>
+        </a>
+
+        <div class="cap-hero-graphic">
+            <svg viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg" role="img"
+                 aria-label="左侧手机扫描一个房间；捕获的画面在右侧解析为该房间的 3D 高斯泼溅点云。">
+                <defs>
+                    <linearGradient id="capPhone" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#1a1a3a"/>
+                        <stop offset="1" stop-color="#0d0d22"/>
+                    </linearGradient>
+                    <linearGradient id="capScreen" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#6c5ce7"/>
+                        <stop offset="1" stop-color="#00cec9"/>
+                    </linearGradient>
+                    <radialGradient id="capGlow" cx="0.5" cy="0.4" r="0.7">
+                        <stop offset="0" stop-color="#6c5ce7" stop-opacity="0.35"/>
+                        <stop offset="1" stop-color="#6c5ce7" stop-opacity="0"/>
+                    </radialGradient>
+                    <linearGradient id="capBeam" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0" stop-color="#00cec9" stop-opacity="0"/>
+                        <stop offset="1" stop-color="#00cec9" stop-opacity="0.5"/>
+                    </linearGradient>
+                </defs>
+                <ellipse cx="500" cy="170" rx="260" ry="150" fill="url(#capGlow)"/>
+                <g transform="translate(70 78)">
+                    <rect x="0" y="0" width="118" height="172" rx="20" fill="url(#capPhone)"
+                          stroke="#6c5ce7" stroke-width="2"/>
+                    <rect x="12" y="14" width="94" height="144" rx="10" fill="#0a0a1a"/>
+                    <rect x="12" y="14" width="94" height="144" rx="10" fill="none"
+                          stroke="url(#capScreen)" stroke-width="2" opacity="0.9"/>
+                    <path d="M24 30 v-10 h12 M82 30 v-10 h-12 M24 142 v10 h12 M82 142 v10 h-12"
+                          fill="none" stroke="#00cec9" stroke-width="2.4" stroke-linecap="round"/>
+                    <path d="M34 118 l25 -16 l25 16 M34 118 v-30 l25 -16 l25 16 v30 M59 102 v16"
+                          fill="none" stroke="#a388ff" stroke-width="2" stroke-linejoin="round"/>
+                    <circle cx="59" cy="6" r="3" fill="#2a2a4a"/>
+                    <g class="cap-scan-sweep">
+                        <line x1="118" y1="60" x2="118" y2="190" stroke="#00cec9"
+                              stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+                        <rect x="92" y="60" width="26" height="130" fill="url(#capBeam)"/>
+                    </g>
+                </g>
+                <g transform="translate(232 164)">
+                    <line x1="0" y1="0" x2="78" y2="0" stroke="#6c5ce7" stroke-width="2.4"
+                          stroke-dasharray="6 6"/>
+                    <path d="M74 -6 l10 6 l-10 6 z" fill="#6c5ce7"/>
+                </g>
+                <g transform="translate(360 56)">
+                    <path d="M40 196 L160 244 L300 188 L180 150 Z" fill="none"
+                          stroke="#2a2a4a" stroke-width="1.6"/>
+                    <path d="M40 196 L40 70 L180 28 L180 150 M180 28 L300 66 L300 188 M40 70 L160 110 L160 244 M160 110 L300 66"
+                          fill="none" stroke="#2a2a4a" stroke-width="1.6"/>
+                    <g class="cap-splat-cloud">
+                        <ellipse cx="92" cy="120" rx="20" ry="14" fill="#6c5ce7" opacity="0.5"/>
+                        <ellipse cx="120" cy="98" rx="16" ry="12" fill="#a388ff" opacity="0.55"/>
+                        <ellipse cx="150" cy="132" rx="22" ry="15" fill="#00cec9" opacity="0.4"/>
+                        <ellipse cx="190" cy="104" rx="18" ry="13" fill="#6c5ce7" opacity="0.55"/>
+                        <ellipse cx="222" cy="138" rx="20" ry="14" fill="#a388ff" opacity="0.45"/>
+                        <ellipse cx="118" cy="158" rx="17" ry="12" fill="#00cec9" opacity="0.45"/>
+                        <ellipse cx="172" cy="166" rx="19" ry="13" fill="#6c5ce7" opacity="0.5"/>
+                        <ellipse cx="210" cy="92" rx="14" ry="11" fill="#a388ff" opacity="0.5"/>
+                        <ellipse cx="156" cy="86" rx="13" ry="10" fill="#00cec9" opacity="0.5"/>
+                        <ellipse cx="240" cy="116" rx="15" ry="11" fill="#6c5ce7" opacity="0.45"/>
+                        <circle cx="100" cy="108" r="2.6" fill="#e8e8f0"/>
+                        <circle cx="148" cy="120" r="2.6" fill="#e8e8f0"/>
+                        <circle cx="196" cy="128" r="2.6" fill="#e8e8f0"/>
+                        <circle cx="178" cy="96" r="2.2" fill="#00cec9"/>
+                        <circle cx="220" cy="150" r="2.2" fill="#a388ff"/>
+                        <circle cx="128" cy="142" r="2.2" fill="#6c5ce7"/>
+                    </g>
+                    <g transform="translate(54 222)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+                        <line x1="0" y1="0" x2="120" y2="0" stroke="#00cec9" stroke-width="1.4"/>
+                        <line x1="0" y1="-4" x2="0" y2="4" stroke="#00cec9" stroke-width="1.4"/>
+                        <line x1="120" y1="-4" x2="120" y2="4" stroke="#00cec9" stroke-width="1.4"/>
+                        <text x="60" y="-7" fill="#00cec9" font-size="11" text-anchor="middle">3.4 m</text>
+                    </g>
+                </g>
+            </svg>
+        </div>
+
+        <div class="cap-viewer-wrap">
+            <div id="splat-viewer" role="figure" aria-label="扫描空间的实时可拖动 3D 捕获（高斯泼溅）占位符">
+                <span class="viewer-badge">实时泼溅查看器 &middot; 即将上线本页</span>
+                <span class="viewer-headline">拖动以环顾你扫描的世界。</span>
+                <span class="viewer-note">此处将挂载一个真正可拖动的高斯泼溅捕获。我们不会伪造查看器——渲染器交付后，可用鼠标轨道环视的交互式 .spz 将替换该占位符。</span>
+            </div>
+            <p class="cap-viewer-caption"><strong>今日可用：</strong>手机扫描进，可拖动泼溅出，AI 操控的 MCP 运行时已经上线。<strong>即将上线本页：</strong>上方的交互式泼溅查看器（诚实占位符——尚未交付）。</p>
+        </div>
+
+        <div class="cap-qr">
+            <div class="cap-qr-img">
+                <img src="../capture-app/qr-capture-app.svg" alt="打开 rakuai.com/capture-app/ Raku Capture 网页应用的二维码" width="168" height="168">
+            </div>
+            <div class="cap-qr-text">
+                <h3>用手机扫码开始</h3>
+                <p>Capture 是手机端体验。把相机对准这个二维码即可打开 Raku Capture 网页应用，然后扫描一个真实空间。</p>
+                <p>或直接打开：<a href="../capture-app/">rakuai.com/capture-app/</a></p>
+            </div>
+        </div>
+        <div class="cap-cta-row">
+            <a class="cap-btn-primary" href="../capture-app/">扫描我自己的空间</a>
+            <a class="cap-btn-secondary" href="../developers/claude-desktop.html">把 RakuAI 接入 Claude</a>
+        </div>
+    </div>
+</section>
+
+<!-- NVIDIA Inception callout -->
+<section class="cap-section" id="nvidia-inception" style="padding-top: 24px; padding-bottom: 24px; scroll-margin-top: 80px;">
+    <div class="container">
+        <div style="display:flex; align-items:center; gap: 24px; flex-wrap: wrap; justify-content: center; background: rgba(108,92,231,0.05); border: 1px solid rgba(108,92,231,0.25); border-radius: 12px; padding: 20px 24px;">
+            <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception 成员——在新闻页查看详情">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="200" height="86" style="height: 50px; width: auto;">
+            </a>
+            <p style="max-width: 540px; margin: 0; color: var(--text-secondary);">
+                Raku Capture 由 <strong>NVIDIA Inception</strong> 成员打造。我们将 NVIDIA 加速的 3D 高斯泼溅（A10G / L40S 上的 Brush 训练器）引入重建步骤，让任意房间的一次手机扫描在几分钟内成为可探索的泼溅，并借助 NGC 目录与该计划的云额度。
+                <a href="press.html#nvidia-inception" style="white-space: nowrap;">查看公告 &rarr;</a>
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ======================= THE THREE JOBS ======================= -->
+<section class="cap-section">
+    <div class="container">
+        <h2>捕获。重建。栖居。</h2>
+        <p class="cap-subtitle">三件事，一条流水线。现实以视频进入，一个空间世界产出。然后你的 AI 助手通过 MCP 栖居其中——它读取场景，绝不悄悄改写你的房间。重建质量达到手机／消费级，而非测量级。</p>
+        <div class="cap-jobs">
+            <div class="cap-job">
+                <span class="step">步骤 01</span>
+                <h3>捕获</h3>
+                <p>对着一个空间拿起相机走动。手机就够了。无需机架、无需标记、无需录制棚。我们在这一步领跑，因为只有这一步先做到诚实，其他一切才有意思。</p>
+            </div>
+            <div class="cap-job">
+                <span class="step">步骤 02</span>
+                <h3>重建</h3>
+                <p>画面变成具有真实几何与尺度的高斯泼溅——一个你可以环视、测量、锚定的场景。运行时对物理、碰撞和变换保有最终权威。</p>
+            </div>
+            <div class="cap-job">
+                <span class="step">步骤 03</span>
+                <h3>栖居</h3>
+                <p>你的 AI 助手通过引擎已暴露的同一套 MCP 合约接入——17 个原生工具（5 个只读 + 12 个变更）加通用 <code>api_call</code>/<code>api_search</code> 透传。它可以看见场景、测量距离、模拟改动并采取行动——在你设定的权限范围内，每一次调用都被审计。<strong>MCP 对所有套餐开放——不设付费墙。</strong></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======================= CONNECT YOUR AI ASSISTANT ======================= -->
+<section class="cap-section">
+    <div class="container">
+        <h2>2 分钟接入你的 AI 助手</h2>
+        <p class="cap-subtitle">任何支持 <a href="mcp.html" style="color:var(--accent-bright)">Model Context Protocol</a> 的模型都能驱动可对话的场景。支持 Claude、ChatGPT、Gemini 和 GitHub Copilot——所有套餐均可使用，无付费墙，除粘贴一个配置块外无需任何额外设置。</p>
+        <div class="cap-dev-cta" style="margin-top:0">
+            <p style="color:var(--text-secondary);line-height:1.7;max-width:680px;margin:0 auto 20px;">MCP 服务器暴露 17 个原生工具（5 个只读 + 12 个变更）加通用 <code>api_call</code>/<code>api_search</code> 透传。核心场景工具包括：<code>load_world_model</code>、<code>ingest_frame</code>、<code>get_scene_state</code>、<code>set_render_target</code>、<code>start_simulation</code> 和 <code>get_metrics</code>。你的助手通过这些工具加载捕获的场景、摄入实时帧、读取几何与状态、运行模拟——每次调用均被记录，默认拒绝。你始终掌握控制权。</p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;">
+                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(108,92,231,0.12);border:1px solid rgba(108,92,231,0.35);border-radius:8px;padding:8px 14px;font-size:0.9rem;color:var(--text-secondary)">Claude (Anthropic)</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(108,92,231,0.12);border:1px solid rgba(108,92,231,0.35);border-radius:8px;padding:8px 14px;font-size:0.9rem;color:var(--text-secondary)">ChatGPT (OpenAI)</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(108,92,231,0.12);border:1px solid rgba(108,92,231,0.35);border-radius:8px;padding:8px 14px;font-size:0.9rem;color:var(--text-secondary)">Gemini (Google)</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(108,92,231,0.12);border:1px solid rgba(108,92,231,0.35);border-radius:8px;padding:8px 14px;font-size:0.9rem;color:var(--text-secondary)">Copilot (GitHub)</span>
+            </div>
+            <div class="cap-cta-row" style="margin-top:20px;">
+                <a class="cap-btn-secondary" href="../developers/claude-desktop.html">Claude Desktop 设置指南 &rarr;</a>
+                <a class="cap-btn-secondary" href="mcp.html">MCP 服务器文档 &rarr;</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======================= USE CASES ======================= -->
+<section class="cap-section">
+    <div class="container">
+        <h2>你能拿一个可对话的世界做什么</h2>
+        <p class="cap-subtitle">诚实的取景：核心用例正处于抢先体验阶段。其他是这条路通向何处——已经打上标签，方便你区分今天就真的能用的和路线图里的。<strong>Pro Beta 在抢先体验期间免费</strong>（$14.99/月是 GA 后的预计价格，不是现在的收费标准）。</p>
+        <div class="cap-cases">
+            <div class="cap-case">
+                <span class="phase-tag">核心 &middot; 抢先体验中</span>
+                <h3>一个扫描你空间的助手</h3>
+                <p>扫描一个房间。然后向助手询问眼前真实空间的问题——"这张沙发能沿着那面墙放得下吗？""窗户离桌子多远？"。它的回答基于测量得到的场景，而不是凭空猜测。</p>
+            </div>
+            <div class="cap-case">
+                <span class="phase-tag">近期</span>
+                <h3>说实话，是游戏的一部分</h3>
+                <p>捕获的空间可以在 RakuAI 运行时中成为关卡、背景或可玩的场景。我们不承诺提示词直出游戏。我们说：一次真实的扫描，是其中真实、可复用的一块。</p>
+            </div>
+            <div class="cap-case">
+                <span class="phase-tag later">后期阶段</span>
+                <h3>智能眼镜孪生</h3>
+                <p>在眼镜上，捕获变成助手与你共享的持久空间孪生——已锚定、亚毫米精度，按运行时设计的散热包线打造。</p>
+            </div>
+            <div class="cap-case">
+                <span class="phase-tag later">后期阶段</span>
+                <h3>实时视觉</h3>
+                <p>更长远的故事是连续捕获：随着你的移动，世界即时更新，助手通过 <code>ingest_frame</code> 实时推理。今天这条路用 stub 验证过。在端到端交付前，我们都会照实说。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======================= PHASE HOOKS / DEMOS ======================= -->
+<section class="cap-section">
+    <div class="container">
+        <h2>我们正在朝着做出的两个 demo</h2>
+        <p class="cap-subtitle">下面是概念媒体。这是排队等待制作的 demo，如实描述——是占位符，而不是包装成产品的演出片段。</p>
+        <div class="cap-demos">
+            <div class="cap-demo">
+                <div class="media-placeholder">[ 媒体占位符 &mdash; 20 秒手机 &rarr; 泼溅片段 ]</div>
+                <h3>20 秒，从手机到泼溅</h3>
+                <p>一段不剪辑的连续片段：有人拿着手机绕房间走约二十秒，那个房间的可拖动高斯泼溅就出现了。没有掩饰工作量的剪切。Capture 是我们的主张，所以我们展示 Capture。</p>
+            </div>
+            <div class="cap-demo">
+                <div class="media-placeholder">[ 媒体占位符 &mdash; "和你真实房间对话" 的助手 demo ]</div>
+                <h3>和你真实的房间对话</h3>
+                <p>同一次扫描，现在通过 MCP 接入了助手。我们请它测量缝隙、检查是否能塞下、描述架子上有什么——它都从捕获的场景给出答案。重点是助手对<em>你自己的</em>空间进行推理，而不是对一个标配空间。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======================= DEVELOPER CTA ======================= -->
+<section class="cap-section">
+    <div class="container">
+        <div class="cap-dev-cta">
+            <h2>开始扫描。开始提问。</h2>
+            <p>Capture 处于抢先体验阶段。但你的 AI 驱动的运行时不是——MCP 服务器今日已上线。用手机扫描一个空间，接入任何支持 MCP 的助手（Claude、ChatGPT、Gemini 或 Copilot），开始对真实空间提问吧。Pro Beta 在抢先体验期间免费。</p>
+            <div class="cap-cta-row">
+                <a class="cap-btn-primary" href="../capture-app/">扫描我自己的空间</a>
+                <a class="cap-btn-secondary" href="../developers/claude-desktop.html">接入 Claude &rarr;</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>解决方案</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">智能眼镜厂商</a></li>
+                    <li><a href="llm-makers.html">AI 实验室</a></li>
+                    <li><a href="enterprise.html">企业</a></li>
+                    <li><a href="creator.html">创作者</a></li>
+                    <li><a href="robotics.html">机器人</a></li>
+                    <li><a href="insurance.html">保险</a></li>
+                    <li><a href="compare.html">与 Unity / Unreal 比较</a></li>
+                    <li><a href="spatial-engine.html">空间引擎</a></li>
+                    <li><a href="ai-systems.html">AI 系统</a></li>
+                    <li><a href="xr-features.html">XR 功能</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>开发者</h4>
+                <ul>
+                    <li><a href="docs.html">文档</a></li>
+                    <li><a href="mcp.html">MCP 服务器</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="../api/">API 参考</a></li>
+                    <li><a href="templates.html">模板</a></li>
+                    <li><a href="developers/">开发者门户</a></li>
+                    <li><a href="../developers/claude-desktop.html">Claude Desktop 指南</a></li>
+                    <li><a href="developer-guide.html">开发者指南</a></li>
+                    <li><a href="llm-guide.html">LLM 集成指南</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>资源</h4>
+                <ul>
+                    <li><a href="../blog/">博客</a></li>
+                    <li><a href="why-rakuai.html">为什么选 RakuAI</a></li>
+                    <li><a href="press.html">新闻媒体</a></li>
+                    <li><a href="../discover.html">探索</a></li>
+                    <li><a href="content-packs.html">内容包</a></li>
+                    <li><a href="docs.html">文档</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>公司</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">关于</a></li>
+                    <li><a href="pricing.html">价格</a></li>
+                    <li><a href="contact.html">联系我们</a></li>
+                    <li><a href="mailto:partners@rakuai.com">合作伙伴</a></li>
+                    <li><a href="../privacy.html">隐私</a></li>
+                    <li><a href="../terms.html">条款</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 项美国专利已授权（优先日：2012 年 7 月） &bull; 由 RakuAI 引擎驱动</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 与 RakuXR&trade; 是 RakuAI, LLC 的商标。<span class="kanji-logo">&#x697D;</span>AI 与 <span class="kanji-logo">&#x697D;</span>XR 是 RakuAI, LLC 的风格化标识。5 项美国专利已授权（优先日：2012 年 7 月）。
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception 成员——在新闻页查看详情" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 成员" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+            <a href="../press.html#aws-activate" aria-label="基于 AWS 构建 — AWS Activate 参与者" style="line-height: 0;">
+                <img src="../branding/aws/powered-by-aws-white.png" alt="基于 AWS 构建" height="40" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script src="../js/public-config.js"></script>
+<script src="../js/api-client.js"></script>
+<script src="../js/auth-nav.js" defer></script>
+<script src="../js/lang-selector.js" defer></script>
+<script src="../js/nav-dropdown.js" defer></script>
+<script src="../js/section-nav.js" defer></script>
+</body>
+</html>

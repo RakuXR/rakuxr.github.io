@@ -173,6 +173,12 @@ const state = {
   errorMessageKey: null,  // i18n key of the current error, when it came from a key
   errorMessageParams: null,// params for that key
   errorMessageText: null, // literal error text when it did NOT come from a key
+  errorRaw: null,         // raw backend/network error string -> diagnosis + technical details
+  errorStage: null,       // last-known proc stage when the failure happened
+  errorDiagShown: false,  // true once the user taps "What happened?" (consent-gated)
+  procStartedAt: null,    // performance.now() when processing (post-upload) began -> elapsed timer
+  procElapsedMs: 0,       // elapsed ms in the current processing run, snapshot for the renderer
+  procSlowHint: false,    // 10-min+ : the existing "still working" reassurance is active
   introSampleName: null,  // label of the intro preview sample, for its caption
 
   // ---- metric-scale calibration ------------------------------------------
@@ -236,15 +242,98 @@ function showError(message) {
     state.errorMessageKey = message.key || null;
     state.errorMessageParams = message.params || null;
     state.errorMessageText = null;
+    // The raw backend/network detail (when present) drives both the diagnosis
+    // rule table and the collapsible "technical details".
+    state.errorRaw = (message.params && message.params.detail) || message.raw || null;
     text = t(message.key, message.params, message.fallback);
   } else {
     state.errorMessageKey = null;
     state.errorMessageParams = null;
     state.errorMessageText = message || null;
+    state.errorRaw = message || null;
     text = message || t('error.generic', null, 'Something went wrong.');
   }
+  // Snapshot the stage we were in when it failed (drives stage-aware rules),
+  // and reset the consent-gated diagnosis + collapsible details for this error.
+  state.errorStage = state.procStage || null;
+  state.errorDiagShown = false;
+  const techWrap = $('error-technical');
+  if (techWrap) techWrap.hidden = true;
   $('error-message').textContent = text;
+  applyErrorDiagnostics();
   showPhase(Phase.ERROR);
+}
+
+/**
+ * Resolve a key's text in BOTH the English source and the active locale, so a
+ * substring test can match either. The in-code `englishFallback` is the stable
+ * English source string; `I18N.t(key)` yields what the user actually saw in the
+ * active locale (RakuI18n already falls back to English for missing keys, so
+ * the English path is always represented).
+ */
+function _localizedVariants(key, englishFallback) {
+  const out = [];
+  if (englishFallback) out.push(englishFallback);
+  if (I18N && typeof I18N.t === 'function') {
+    try { const v = I18N.t(key); if (v && v !== key) out.push(v); } catch (e) {}
+  }
+  return out;
+}
+
+/** True if `haystack` (lowercased) contains any of `key`'s localized variants. */
+function _matchesKey(haystack, key, englishFallback) {
+  return _localizedVariants(key, englishFallback).some((s) => {
+    const needle = String(s || '').toLowerCase().trim();
+    return needle.length > 0 && haystack.indexOf(needle) !== -1;
+  });
+}
+
+/**
+ * Rule-based, client-side failure diagnosis (v1). Maps the raw error string +
+ * last-known stage to a plain-English cause + concrete next action, returned as
+ * an i18n key so it re-renders on a locale switch. Pure string matching on data
+ * the client already has — no telemetry, no network.
+ *
+ * Locale-robust: it first tries to match the LOCALIZED text of the known error
+ * source keys (so a Japanese timeout/network/SfM message is classified
+ * correctly), then falls back to the English-prose heuristics below — which
+ * keeps the original English path working unchanged.
+ */
+function diagnoseFailureKey(rawError, lastStage) {
+  const e = String(rawError || '').toLowerCase();
+
+  // 1) Stable-signal pass: match the localized variants of known source keys.
+  //    Order mirrors the prose pass: timeout before network before SfM.
+  if (_matchesKey(e, 'error.reconstructionTimeout', 'Reconstruction timed out.')) {
+    return 'error.diagTimeout';
+  }
+  if (_matchesKey(e, 'error.uploadNetwork', 'Network error during upload.')
+      || _matchesKey(e, 'error.reconstructionLostContact', 'Lost contact with the reconstruction job.')) {
+    return 'error.diagNetwork';
+  }
+  if (_matchesKey(e, 'error.reconstructionFailed', 'Reconstruction failed.')
+      || _matchesKey(e, 'error.noFrames', 'No frames were captured — try scanning the room again.')) {
+    return 'error.diagSfm';
+  }
+
+  // 2) English-prose heuristics (unchanged). Covers raw backend `detail`
+  //    strings (English from the server) and any text not matched above.
+  // Timeout / out-of-time on current capacity. Checked first because a timeout
+  // message often also mentions "reconstruct".
+  if (/timeout|timed out|timed-out|deadline|took too long|time limit|1500|time.*exceed|exceed.*time/.test(e)) {
+    return 'error.diagTimeout';
+  }
+  // Upload / network error.
+  if (/network|upload|connection|connect|offline|disconnect|lost contact|unreachable|fetch|http 5\d\d|http 4\d\d|\(http \d/.test(e)) {
+    return 'error.diagNetwork';
+  }
+  // Too-few / low-overlap frames or COLMAP structure-from-motion failure.
+  if (/colmap|sfm|structure[- ]?from[- ]?motion|feature|match|overlap|too few|insufficient|not enough|register|frames?|reconstruct|alignment|\balign/.test(e)
+      || lastStage === 'analyzing') {
+    return 'error.diagSfm';
+  }
+  // Unknown / other.
+  return 'error.diagUnknown';
 }
 
 /** Re-render the error screen's message in the active locale. */
@@ -257,6 +346,40 @@ function applyErrorMessage() {
     el.textContent = state.errorMessageText; // literal text — not localizable
   } else {
     el.textContent = t('error.generic', null, 'Something went wrong.');
+  }
+  applyErrorDiagnostics();
+}
+
+/**
+ * Render the failure-diagnostics affordances: the "What happened?" button, the
+ * consent-gated plain-English diagnosis, and the collapsible "technical details"
+ * holding the raw error. Idempotent; safe to call on locale change.
+ */
+function applyErrorDiagnostics() {
+  const diagEl = $('error-diagnosis');
+  const diagBtn = $('btn-diagnose');
+  const detailsBtn = $('btn-error-details');
+  const techWrap = $('error-technical');
+  const detailEl = $('error-detail');
+
+  const hasRaw = !!(state.errorRaw && String(state.errorRaw).trim());
+  const diagKey = diagnoseFailureKey(state.errorRaw, state.errorStage);
+
+  if (diagEl) {
+    diagEl.textContent = t(diagKey, null, 'We hit an unexpected error.');
+    diagEl.hidden = !state.errorDiagShown;
+  }
+  if (diagBtn) {
+    diagBtn.textContent = t('error.diagnose', null, 'What happened?');
+    diagBtn.hidden = state.errorDiagShown; // offer it only while still hidden
+  }
+  if (detailEl) detailEl.textContent = hasRaw ? String(state.errorRaw) : '';
+  if (detailsBtn) {
+    detailsBtn.hidden = !hasRaw; // only when there is a raw error to show
+    const open = techWrap && !techWrap.hidden;
+    detailsBtn.textContent = open
+      ? t('error.hideDetails', null, 'Hide technical details')
+      : t('error.showDetails', null, 'Show technical details');
   }
 }
 
@@ -755,6 +878,7 @@ function uploadCapture(frames, onProgress) {
       'meta',
       JSON.stringify({
         device: navigator.userAgent,
+        compute_backend: _getComputeBackend(),
         // frameCount reports every part appended to the `frames` field —
         // room frames PLUS the scale-reference frames — so it matches what
         // the backend actually receives. roomFrameCount / scaleReference
@@ -817,8 +941,14 @@ function uploadCapture(frames, onProgress) {
  */
 async function pollReconstruction(captureId, onProgress, shouldAbort) {
   const POLL_MS = 2000;
-  const MAX_MS = 10 * 60 * 1000;
+  // CPU SfM on big scenes can legitimately take 20+ min. Set the ceiling at
+  // 30 min so the client doesn't kill a job that is still making progress.
+  // The server enforces its own job timeout; this is just the client patience.
+  const MAX_MS = 30 * 60 * 1000;
   const MAX_CONSECUTIVE_FAILURES = 5;
+  // After 10 min, surface a "still working" hint via the progress label so
+  // the user knows the long wait is expected, not a hang.
+  const SLOW_HINT_MS = 10 * 60 * 1000;
   const started = performance.now();
   let consecutiveFailures = 0;
 
@@ -855,8 +985,15 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
       if (job.status === 'cancelled') {
         return null; // user cancelled — handled quietly, not an error
       }
-      // queued | analyzing | reconstructing
-      const stage = job.status === 'queued' ? 'analyzing' : job.status;
+      // queued | analyzing | reconstructing — pass the status through verbatim
+      // so the user-facing "Queued" stage can render (applyProcessingLabels()
+      // owns the queued -> first-step mapping). Previously this collapsed
+      // 'queued' into 'analyzing' here, making the queued stage unreachable.
+      const stage = job.status;
+      const elapsed = performance.now() - started;
+      // The slow-hint message is set on state so the label renderer can pick
+      // it up; the server's job is fine, we just want the user to know.
+      state.procSlowHint = elapsed > SLOW_HINT_MS;
       if (onProgress) onProgress(stage, job.progress || 0);
     } else if (gone || consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
       throw new Error(t('error.reconstructionLostContact', null,
@@ -1384,6 +1521,9 @@ async function runPipeline() {
 
     state.procStage = null;          // no stage reported yet
     state.procPct = 0;
+    state.procStartedAt = performance.now(); // drives the elapsed timer
+    state.procElapsedMs = 0;
+    state.procSlowHint = false;
     showPhase(Phase.PROCESSING);
     applyProcessingLabels();         // default copy in the active locale
     state.splatUrl = await pollReconstruction(
@@ -1391,6 +1531,8 @@ async function runPipeline() {
       (stage, pct) => {
         state.procStage = stage;
         state.procPct = pct;
+        state.procElapsedMs = state.procStartedAt
+          ? performance.now() - state.procStartedAt : 0;
         setFill('processing-fill', pct);
         applyProcessingLabels();
       },
@@ -1455,43 +1597,148 @@ function applyUploadLabel() {
   if (state.uploadPct == null) {
     el.textContent = t('uploading.preparing', null, 'Preparing…');
   } else {
-    const pct = Math.round(state.uploadPct * 100);
+    const pct = (state.uploadPct * 100).toFixed(1);
     el.textContent = t('uploading.progress', { pct: pct }, 'Uploading ' + pct + '%');
   }
 }
 
-/** PROCESSING — stage-specific title + label, or the default copy pre-stage. */
+// ---------------------------------------------------------------------------
+// PROCESSING — honest, named-stage display
+// ---------------------------------------------------------------------------
+// The backend reports per-stage `progress` (0..1) that RESETS between stages,
+// and for the real COLMAP backend the reconstructing-stage progress is a
+// time-elapsed/timeout estimate capped at ~0.85. Rendering either as one smooth
+// 0→100% bar lies to the user (looks like it jumps to ~99% then restarts, or
+// sits "stuck at 85%"). So: NAMED, ORDERED stages with a "Step N of M" header;
+// the bar is labelled as the current stage so a reset reads as "next step", not
+// "restarted"; and for reconstruction we drop the misleading number for an
+// indeterminate "working" indicator + honest copy. Fake progress is forbidden.
+
+// User-facing ordered stages. Backend statuses queued|analyzing|reconstructing
+// map onto the first three; 'finalizing' is shown when reconstruction hits 1.0
+// (just before 'ready').
+const PROC_STAGES = ['queued', 'analyzing', 'reconstructing', 'finalizing'];
+
+// Thresholds (ms) for honest, escalating "limited compute" messaging while in
+// the reconstructing stage. The existing 10-min slowHint is preserved and wins
+// over these when active.
+const COMPUTE_NOTICE_MS = 75 * 1000;              // ~75s -> shared-compute notice
+const COMPUTE_STILL_WORKING_MS = 5 * 60 * 1000;   // 5 min -> still-working reassurance
+
+function _formatElapsed(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+// Map a reported stage string to our ordered user-facing stage.
+function _userStage(stage) {
+  if (stage === 'queued') return 'queued';
+  if (stage === 'analyzing') return 'analyzing';
+  if (stage === 'reconstructing') {
+    return (state.procPct >= 1) ? 'finalizing' : 'reconstructing';
+  }
+  return stage || 'queued';
+}
+
 function applyProcessingLabels() {
   const titleEl = $('processing-title');
   const labelEl = $('processing-label');
-  const stage = state.procStage;
+  const stageEl = $('processing-stage');
+  const trackEl = $('processing-track');
+  const fillEl = $('processing-fill');
+  const elapsedEl = $('processing-elapsed');
+  const noticeEl = $('processing-notice');
+  const rawStage = state.procStage;
 
+  // Pre-stage (upload just finished, nothing reported yet): default copy only.
+  if (rawStage == null) {
+    if (titleEl) titleEl.textContent = t('processing.titleDefault', null, 'Analyzing footage');
+    if (stageEl) stageEl.textContent = '';
+    if (labelEl) labelEl.textContent = t('processing.labelDefault', null, 'This usually takes a minute or two…');
+    if (trackEl) trackEl.classList.remove('is-indeterminate');
+    if (elapsedEl) elapsedEl.textContent = '';
+    if (noticeEl) { noticeEl.textContent = ''; noticeEl.hidden = true; }
+    return;
+  }
+
+  const uStage = _userStage(rawStage);
+  const idx = PROC_STAGES.indexOf(uStage);
+  const stepNo = idx >= 0 ? idx + 1 : 1;
+  const total = PROC_STAGES.length;
+  const isRecon = uStage === 'reconstructing';
+
+  // Title: the named stage.
   if (titleEl) {
-    const titleKey = stage == null
-      ? 'processing.titleDefault'
-      : stage === 'analyzing'
-        ? 'processing.titleAnalyzing'
-        : stage === 'reconstructing'
-          ? 'processing.titleReconstructing'
-          : 'processing.titleGeneric';
+    const titleKey = uStage === 'analyzing'
+      ? 'processing.titleAnalyzing'
+      : uStage === 'reconstructing'
+        ? 'processing.titleReconstructing'
+        : uStage === 'finalizing'
+          ? 'processing.titleFinalizing'
+          : uStage === 'queued'
+            ? 'processing.titleQueued'
+            : 'processing.titleGeneric';
     titleEl.textContent = t(titleKey, null, 'Processing');
   }
 
+  // "Step N of M: <stage name>" so a per-stage progress reset reads as moving
+  // to the next step, not restarting.
+  if (stageEl) {
+    const stageName = t('processing.stage_' + uStage, null,
+      uStage.charAt(0).toUpperCase() + uStage.slice(1));
+    stageEl.textContent = t('processing.stepOf', { n: stepNo, total: total, label: stageName },
+      'Step ' + stepNo + ' of ' + total + ': ' + stageName);
+  }
+
+  // The bar: indeterminate for reconstruction (its number is a capped
+  // time-estimate, not real completion); a real per-stage % otherwise.
+  if (trackEl) trackEl.classList.toggle('is-indeterminate', isRecon);
+  if (isRecon && fillEl) fillEl.style.width = ''; // let the animation own the band
+
+  // Label under the bar.
   if (labelEl) {
-    if (stage == null) {
-      labelEl.textContent =
-        t('processing.labelDefault', null, 'This usually takes a minute or two…');
+    if (isRecon) {
+      labelEl.textContent = t('processing.labelReconstructingWorking', null,
+        'Reconstructing… (this is the longest step)');
+    } else if (uStage === 'finalizing') {
+      labelEl.textContent = t('processing.labelFinalizing', null, 'Finalizing…');
+    } else if (uStage === 'queued') {
+      labelEl.textContent = t('processing.labelQueued', null, 'Waiting for a free worker…');
     } else {
-      const pct = Math.round((state.procPct || 0) * 100);
-      const labelKey = stage === 'reconstructing'
-        ? 'processing.labelReconstructing'
-        : 'processing.labelAnalyzing';
-      const fallbackBase = stage === 'reconstructing'
-        ? 'Building Gaussian splats'
-        : 'Finding camera poses and features';
-      labelEl.textContent =
-        t(labelKey, { pct: pct }, fallbackBase + '… ' + pct + '%');
+      const pct = ((state.procPct || 0) * 100).toFixed(1);
+      labelEl.textContent = t('processing.labelAnalyzing', { pct: pct },
+        'Finding camera poses and features… ' + pct + '%');
     }
+  }
+
+  // Elapsed timer.
+  const elapsedMs = state.procElapsedMs || 0;
+  if (elapsedEl) {
+    elapsedEl.textContent = elapsedMs > 0
+      ? t('processing.elapsed', { time: _formatElapsed(elapsedMs) }, 'Elapsed ' + _formatElapsed(elapsedMs))
+      : '';
+  }
+
+  // Honest, escalating "limited compute" notice — only during reconstruction.
+  if (noticeEl) {
+    let notice = '';
+    if (isRecon) {
+      if (state.procSlowHint) {
+        // 10-min+ : reuse the existing strongest reassurance.
+        notice = t('processing.slowHint', null,
+          'Still working — slow scenes can take 20+ minutes. We will not give up while the server is making progress.');
+      } else if (elapsedMs > COMPUTE_STILL_WORKING_MS) {
+        notice = t('processing.computeStillWorking', null,
+          'This is taking longer than usual, but your scan is still being processed. We are compute-limited right now, not broken — thanks for your patience.');
+      } else if (elapsedMs > COMPUTE_NOTICE_MS) {
+        notice = t('processing.computeNotice', null,
+          'Reconstruction runs on our shared compute and can take several minutes right now — we are scaling up GPU capacity. Your scan is still processing.');
+      }
+    }
+    noticeEl.textContent = notice;
+    noticeEl.hidden = notice === '';
   }
 }
 
@@ -1574,10 +1821,18 @@ async function reopenCapture(entry) {
   try {
     state.procStage = null;
     state.procPct = 0;
+    // Reopened/deep-linked captures re-enter PROCESSING too, so start the same
+    // elapsed-timer state the main pipeline does — otherwise the elapsed time
+    // and the escalating compute-limit notices never appear on a resume.
+    state.procStartedAt = performance.now();
+    state.procElapsedMs = 0;
+    state.procSlowHint = false;
     showPhase(Phase.PROCESSING);
     state.splatUrl = await pollReconstruction(
       entry.captureId,
       (stage, pct) => { state.procStage = stage; state.procPct = pct;
+        state.procElapsedMs = state.procStartedAt
+          ? performance.now() - state.procStartedAt : 0;
         setFill('processing-fill', pct); applyProcessingLabels(); },
       () => run !== state.runToken);
     if (run !== state.runToken || !state.splatUrl) return;
@@ -1663,12 +1918,39 @@ function bindEvents() {
     runPipeline();
   });
 
+  $('btn-cancel-uploading').addEventListener('click', () => {
+    // While the multipart upload is in flight there is no captureId yet
+    // (the server hands it back on the 202). Aborting on the client side
+    // means we just bump the run token so the upload promise's resolve
+    // becomes a no-op and tear down the UI back to the intro screen.
+    resetRun();
+    showPhase(Phase.INTRO);
+  });
   $('btn-cancel-processing').addEventListener('click', () => {
     cancelReconstruction(state.captureId);
     resetRun(); // abandon the in-flight pipeline so it cannot reappear
     resetScaleState();
     showPhase(Phase.INTRO);
   });
+
+  // Failure diagnostics. "What happened?" reveals the plain-English cause+fix
+  // (consent-gated — nothing shown or sent until the user asks).
+  const diagBtn = $('btn-diagnose');
+  if (diagBtn) {
+    diagBtn.addEventListener('click', () => {
+      state.errorDiagShown = true;
+      applyErrorDiagnostics();
+    });
+  }
+  // Collapsible "technical details" toggle (raw error string).
+  const detailsBtn = $('btn-error-details');
+  if (detailsBtn) {
+    detailsBtn.addEventListener('click', () => {
+      const wrap = $('error-technical');
+      if (wrap) wrap.hidden = !wrap.hidden;
+      applyErrorDiagnostics();
+    });
+  }
 
   // Viewer toolbar.
   $('btn-new-capture').addEventListener('click', () => {
@@ -1784,3 +2066,189 @@ document.addEventListener('DOMContentLoaded', () => {
       handleCaptureDeepLink(); // W2A: open ?capture= deep link
     });
 });
+
+
+// ============================================================================
+// Auth wiring (task #172) — sign-in + create account
+// ============================================================================
+
+const API_BASE_FOR_AUTH = (window.RAKU_API_BASE || 'https://api.rakuai.com');
+
+function _setAuthToken(token) {
+  try { localStorage.setItem('raku_access_token', token); } catch (e) { /* ignore */ }
+  applyAuthState();
+}
+
+function _clearAuthToken() {
+  try { localStorage.removeItem('raku_access_token'); } catch (e) { /* ignore */ }
+  applyAuthState();
+}
+
+function _parseJwt(token) {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    let p = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    while (p.length % 4) p += '=';
+    return JSON.parse(atob(p));
+  } catch (e) { return null; }
+}
+
+function applyAuthState() {
+  const t = _getAuthToken();
+  const signedOut = $('auth-state');
+  const signinBtn = $('btn-signin');
+  const registerBtn = $('btn-register');
+  const headerLink = $('header-signin-link');
+  if (!signedOut) return;
+  if (t) {
+    const payload = _parseJwt(t);
+    const who = payload && (payload.email || payload.sub) || 'signed in';
+    signedOut.textContent = t === null ? '' : (window.RakuI18n
+      ? window.RakuI18n.t('auth.signedInAs', { who }, 'Signed in as ' + who + '.')
+      : 'Signed in as ' + who + '.');
+    if (signinBtn) { signinBtn.textContent = window.RakuI18n ? window.RakuI18n.t('auth.signout', null, 'Sign out') : 'Sign out'; signinBtn.dataset.action = 'signout'; }
+    if (registerBtn) registerBtn.style.display = 'none';
+    if (headerLink) headerLink.textContent = window.RakuI18n ? window.RakuI18n.t('header.signout', null, 'Sign out') : 'Sign out';
+  } else {
+    signedOut.textContent = window.RakuI18n
+      ? window.RakuI18n.t('auth.signedOut', null, 'Not signed in - captures stay anonymous (3/day limit).')
+      : 'Not signed in - captures stay anonymous (3/day limit).';
+    if (signinBtn) { signinBtn.textContent = window.RakuI18n ? window.RakuI18n.t('auth.signin', null, 'Sign in') : 'Sign in'; signinBtn.dataset.action = 'signin'; }
+    if (registerBtn) registerBtn.style.display = '';
+    if (headerLink) headerLink.textContent = window.RakuI18n ? window.RakuI18n.t('header.signin', null, 'Sign in') : 'Sign in';
+  }
+}
+
+async function _postAuth(path, payload) {
+  const res = await fetch(`${API_BASE_FOR_AUTH}/api/v1/auth/${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    throw new Error(d.detail || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+function _bindAuth() {
+  const signinBtn = $('btn-signin');
+  const registerBtn = $('btn-register');
+  const headerLink = $('header-signin-link');
+  if (signinBtn) signinBtn.addEventListener('click', () => {
+    if (signinBtn.dataset.action === 'signout') { _clearAuthToken(); return; }
+    showPhase(Phase.SIGNIN);
+  });
+  if (registerBtn) registerBtn.addEventListener('click', () => showPhase(Phase.REGISTER));
+  if (headerLink) headerLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (_getAuthToken()) _clearAuthToken();
+    else showPhase(Phase.SIGNIN);
+  });
+  const linkGoReg = $('link-go-register');
+  const linkBack1 = $('link-back-to-intro');
+  const linkGoSign = $('link-go-signin');
+  const linkBack2 = $('link-register-back');
+  if (linkGoReg) linkGoReg.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.REGISTER); });
+  if (linkBack1) linkBack1.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.INTRO); });
+  if (linkGoSign) linkGoSign.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.SIGNIN); });
+  if (linkBack2) linkBack2.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.INTRO); });
+
+  const sf = $('signin-form');
+  if (sf) sf.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = $('signin-error');
+    if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+    try {
+      const email = $('signin-email').value.trim();
+      const password = $('signin-password').value;
+      const result = await _postAuth('login', { email, password });
+      if (result.access_token) { _setAuthToken(result.access_token); showPhase(Phase.INTRO); }
+    } catch (err) {
+      if (errEl) { errEl.hidden = false; errEl.textContent = err.message || 'Sign-in failed.'; }
+    }
+  });
+  const rf = $('register-form');
+  if (rf) rf.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = $('register-error');
+    if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+    try {
+      const email = $('register-email').value.trim();
+      const password = $('register-password').value;
+      const terms = $('register-terms').checked;
+      if (!terms) throw new Error('Please accept the terms.');
+      const result = await _postAuth('register', { email, password });
+      if (result.access_token) { _setAuthToken(result.access_token); showPhase(Phase.INTRO); }
+    } catch (err) {
+      if (errEl) { errEl.hidden = false; errEl.textContent = err.message || 'Registration failed.'; }
+    }
+  });
+
+  applyAuthState();
+}
+
+// Hook into the existing init path — bind auth alongside the other event wiring.
+if (typeof bindEvents === 'function') {
+  const _origBindEvents = bindEvents;
+  bindEvents = function() { _origBindEvents.apply(this, arguments); _bindAuth(); };
+}
+
+
+// ============================================================================
+// Phone vs Cloud compute backend toggle (task #174)
+// ============================================================================
+// User picks "cloud" (default) or "phone" (experimental WebGPU). The choice
+// is persisted to localStorage so we don't ask every visit, and appended to
+// the upload meta as `compute_backend` so the server can route appropriately
+// when the GPU lane lands. WebGPU is feature-detected — if absent, the
+// "phone" option is disabled and a fallback note is surfaced.
+
+const _COMPUTE_KEY = 'raku.compute_backend';
+
+function _hasWebGPU() {
+  try { return typeof navigator !== 'undefined' && 'gpu' in navigator; }
+  catch (e) { return false; }
+}
+
+function _getComputeBackend() {
+  try {
+    const v = localStorage.getItem(_COMPUTE_KEY);
+    if (v === 'phone' || v === 'cloud') return v;
+  } catch (e) { /* ignore */ }
+  return 'cloud';  // default
+}
+
+function _setComputeBackend(v) {
+  try { localStorage.setItem(_COMPUTE_KEY, v); } catch (e) { /* ignore */ }
+}
+
+function _bindComputeToggle() {
+  const toggle = document.getElementById('compute-toggle');
+  if (!toggle) return;
+  const radios = toggle.querySelectorAll('input[name="compute_backend"]');
+  const phoneRadio = toggle.querySelector('input[value="phone"]');
+  const fallbackNote = document.getElementById('compute-fallback-note');
+  const initial = _getComputeBackend();
+  // Hard-disable the phone option when WebGPU is missing.
+  if (!_hasWebGPU() && phoneRadio) {
+    phoneRadio.disabled = true;
+    if (fallbackNote) fallbackNote.hidden = false;
+    if (initial === 'phone') _setComputeBackend('cloud');
+  }
+  // Apply the saved choice + listen for changes.
+  for (const r of radios) {
+    r.checked = (r.value === _getComputeBackend());
+    r.addEventListener('change', () => {
+      if (r.checked) _setComputeBackend(r.value);
+    });
+  }
+}
+
+// Hook into bindEvents so the toggle lights up alongside the rest.
+if (typeof bindEvents === 'function') {
+  const _origBindEventsCompute = bindEvents;
+  bindEvents = function() { _origBindEventsCompute.apply(this, arguments); _bindComputeToggle(); };
+}

@@ -1,12 +1,21 @@
 # Claude Code Project Memory — rakuxr.github.io
 
+## Required reading (read this BEFORE anything else)
+
+**First:** [github.com/RakuXR/raku-agents/blob/main/AGENT-ONBOARDING.md](https://github.com/RakuXR/raku-agents/blob/main/AGENT-ONBOARDING.md)
+— the canonical fleet front door. It defines how `agents.yml`,
+`copilot-agent.json`, `raku-runtime/STRATEGY.md`,
+`docs/strategy/ROADMAP.md`, and `docs/strategy/TRACK-STATUS.md` interlock.
+
+After that, this repo's own specifics below.
+
 ## Repository Info
 - **Org**: RakuXR
 - **Repo**: rakuxr.github.io (GitHub Pages site)
 - **Live URL**: https://rakuai.com (production)
 - **Purpose**: Public website for RakuAI — the AI-native spatial runtime built for smart glasses. The platform LLM makers and smart-glasses manufacturers build with.
 - **Type**: Static HTML/CSS/JS (no build step — files deploy as-is)
-- **Master strategy**: `raku-governance/STRATEGY.md`
+- **Master strategy**: `raku-runtime/STRATEGY.md` (authoritative; the `raku-governance/STRATEGY.md` file is a pointer to it)
 
 ## Deployment Architecture
 
@@ -29,6 +38,8 @@ The `staging` branch and `/staging/` subdirectory are **deprecated** — review 
 
 ## Engineering rules
 
+- **No `fly.dev` URLs.** Fly.io is retired (Phase H4 close); production is Azure Container Apps exclusively. Any `*.fly.dev` reference is a bug.
+- **No PowerShell for cross-repo automation.** Use GitHub Contents/Trees API.
 - **Fake success is forbidden.** Code/UI that is not yet implemented must say so
   honestly — return an explicit error, show a documented "paused"/"unavailable"
   state, or fail loudly. It must never report success (or pretend a feature
@@ -90,7 +101,7 @@ This is a static site — no build step. All HTML/CSS/JS files deploy as-is.
 | `sitemap.xml` | SEO sitemap |
 | `404.html` | Custom 404 page |
 | `docs/` | Static documentation pages |
-| `ja/` | Japanese language pages |
+| `ja/` `es/` `fr/` `de/` `ko/` `pt-BR/` `zh-CN/` `zh-TW/` | Localized pages |
 | `tutorials/` | Tutorial pages |
 
 ## IP Protection Status
@@ -99,7 +110,7 @@ This is a static site — no build step. All HTML/CSS/JS files deploy as-is.
 - Pack manifests moved to authenticated CDN
 - schema.json, api-manifest.json stubbed
 - .well-known/ai-plugin.json removed
-- See `raku-governance/STRATEGY.md` for full IP audit
+- See `raku-runtime/STRATEGY.md` for full IP audit
 
 ## Phase Roadmap (Website)
 - **Phase 1** ✅: IP protection, marketing site cleanup
@@ -107,3 +118,7 @@ This is a static site — no build step. All HTML/CSS/JS files deploy as-is.
 - **Phase 3**: Browser game player (WebGL/WASM), shareable links
 - **Phase 4**: Discover page, community features, remix
 - **Phase 5**: XR deep links, platform-specific landing pages
+
+---
+
+Last canonical sync: 2026-05-30 (#238 sub-4). For cross-repo knowledge-transfer (KT), see `raku-agents/knowledge-transfer/` (canonical home; the former raku-api copy is being retired after 2026-06-30).

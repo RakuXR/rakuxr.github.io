@@ -200,7 +200,7 @@ canvas { display: block; width: 100%; height: 100%; }
 <div id="server-panel">
   <h4>Connect to Server</h4>
   <label for="srv-url">API URL</label>
-  <input type="text" id="srv-url" value="https://raku-api-staging.fly.dev" spellcheck="false">
+  <input type="text" id="srv-url" value="https://api.rakuai.com" spellcheck="false">
   <label for="srv-key">API Key (optional)</label>
   <input type="text" id="srv-key" placeholder="X-Raku-API-Key value" spellcheck="false">
   <div class="srv-actions">
@@ -400,7 +400,13 @@ async function serverCall(method, path, body) {
 
 // Restore server connection from localStorage on load
 (function restoreServerConnection() {
-  const savedUrl = localStorage.getItem('raku_server_url');
+  let savedUrl = localStorage.getItem('raku_server_url');
+  // Migrate away from the retired Fly host: drop stale saved values.
+  if (savedUrl && savedUrl.includes('fly.dev')) {
+    localStorage.removeItem('raku_server_url');
+    localStorage.removeItem('raku_server_key');
+    savedUrl = null;
+  }
   if (savedUrl) {
     document.getElementById('srv-url').value = savedUrl;
     const savedKey = localStorage.getItem('raku_server_key');

@@ -25,9 +25,9 @@
     <link rel="alternate" hreflang="zh-TW" href="https://rakuai.com/zh-TW/">
     <link rel="alternate" hreflang="es" href="https://rakuai.com/es/">
     <link rel="alternate" hreflang="x-default" href="https://rakuai.com/">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://raku-backend.fly.dev https://raku-backend-staging.fly.dev https://raku-api.fly.dev https://raku-api-staging.fly.dev https://hcaptcha.com https://*.hcaptcha.com; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com; img-src 'self' data: https:; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
     <link rel="stylesheet" href="../style.css">
-    <script src="https://js.hcaptcha.com/1/api.js" async defer crossorigin="anonymous"
+    <script src="https://js.hcaptcha.com/1/api.js?render=explicit&onload=__rakuOnHCaptchaLoad__" async defer crossorigin="anonymous"
             referrerpolicy="no-referrer"></script>
 </head>
 <body>
@@ -1036,6 +1036,9 @@
             <a href="../press.html#nvidia-inception" aria-label="NVIDIA Inception 成員 - read more on the press page" style="line-height: 0;">
                 <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 成員" width="160" height="40" style="height: 40px; width: auto; display: block;">
             </a>
+            <a href="../press.html#aws-activate" aria-label="基於 AWS 構建 — AWS Activate 參與者" style="line-height: 0;">
+                <img src="../branding/aws/powered-by-aws-white.png" alt="基於 AWS 構建" height="40" style="height: 40px; width: auto; display: block;">
+            </a>
         </div>
         <!-- nv-inception:end -->
 </footer>
@@ -1081,7 +1084,7 @@
                 autocomplete="new-password"
             >
             <div class="hcaptcha-wrapper">
-                <div class="h-captcha" data-sitekey="YOUR_HCAPTCHA_SITE_KEY" data-theme="dark" data-callback="onCaptchaPass" data-expired-callback="onCaptchaExpire"></div>
+                <div class="h-captcha" data-sitekey="" data-theme="dark" data-callback="onCaptchaPass" data-expired-callback="onCaptchaExpire"></div>
             </div>
             <p id="signup-error" class="modal-error" hidden></p>
             <button type="submit" id="signup-submit" class="btn btn-primary modal-submit" disabled>
@@ -1122,11 +1125,38 @@
 <div id="chat-sidebar-overlay" class="chat-sidebar-overlay" hidden></div>
 
 <script>
+// Inject hCaptcha site key from /js/public-config.js into the widget
+// and explicitly render via the SDK. Keys never live in HTML.
+(function () {
+    var cfg = window.RAKU_PUBLIC_CONFIG || {};
+    var key = cfg.hcaptcha_site_key;
+    if (!key || key === 'PLACEHOLDER_INJECT_AT_DEPLOY') return;
+    var widgets = document.querySelectorAll('.h-captcha');
+    var renderWidgets = function () {
+        if (!window.hcaptcha || typeof window.hcaptcha.render !== 'function') return;
+        for (var i = 0; i < widgets.length; i++) {
+            widgets[i].setAttribute('data-sitekey', key);
+            if (widgets[i].dataset.hcaptchaWidgetId) continue;
+            try {
+                window.hcaptcha.render(widgets[i], {sitekey: key});
+            } catch (e) {
+                console.warn('hcaptcha render failed', e);
+            }
+        }
+    };
+    if (window.hcaptcha && window.hcaptcha.render) {
+        renderWidgets();
+    } else {
+        window.__rakuOnHCaptchaLoad__ = renderWidgets;
+    }
+})();
+</script>
+    <script>
 /**
  * RakuAI Configuration (J.2)
  * Set RAKU_API_BASE to point to the backend API.
- * - Production: https://raku-backend.fly.dev
- * - Staging: https://raku-backend-staging.fly.dev
+ * - Production: https://api.rakuai.com
+ * - Staging: https://api.rakuai.com (no separate staging host)
  * - Local dev: http://localhost:8000
  * - Same-origin (default): '' (empty string)
  *
@@ -1151,8 +1181,8 @@ var RAKU_API_BASE = (function() {
     if (meta && meta.content) return meta.content;
     // Priority 4: detect environment from hostname
     if (localHost) return 'http://localhost:8000';
-    if (host === 'staging.rakuai.com') return 'https://raku-backend-staging.fly.dev';
-    if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://raku-backend.fly.dev';
+    if (host === 'staging.rakuai.com') return 'https://api.rakuai.com';
+    if (host === 'rakuai.com' || host === 'www.rakuai.com') return 'https://api.rakuai.com';
     // Default: same-origin (relative URLs)
     return '';
 })();
@@ -1165,7 +1195,7 @@ var RAKU_API_BASE = (function() {
     var API_BASE = window.RAKU_API_BASE || (function() {
         var h = window.location.hostname;
         if (h === 'localhost' || h === '127.0.0.1' || h === '') return 'http://localhost:8000';
-        if (h === 'staging.rakuai.com') return 'https://raku-api-staging.fly.dev';
+        if (h === 'staging.rakuai.com') return 'https://api.rakuai.com';
         return 'https://api.rakuai.com';
     })();
     if (__overrideAllowed && __qsApiBase) {

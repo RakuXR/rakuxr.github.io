@@ -8,6 +8,9 @@
     --accent: #6c5ce7;
     --accent-bright: #a388ff;
     --success: #00cec9;
+    /* Height of the fixed announcement bar; shared by body padding-top and the
+       sticky nav offset so they never drift apart. */
+    --banner-h: 36px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,7 +26,7 @@ body {
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
-    padding-top: 36px;
+    padding-top: var(--banner-h);
 }
 
 /* Beta Announcement Bar */
@@ -119,7 +122,9 @@ nav {
     border-bottom: 1px solid #222244;
     padding: 16px 0;
     position: sticky;
-    top: 0;
+    /* Stick below the fixed announcement bar (shares --banner-h with body's
+       padding-top), otherwise the nav slides up underneath the banner on scroll. */
+    top: var(--banner-h);
     z-index: 100;
 }
 
@@ -367,7 +372,7 @@ nav .nav-dashboard:hover {
 /* Hero */
 /* Hero Platform (B2B lead section) */
 .hero-platform {
-    padding: 100px 0 60px;
+    padding: 64px 0 48px;
     text-align: center;
     background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
 }
@@ -385,7 +390,7 @@ nav .nav-dashboard:hover {
 }
 
 .hero {
-    padding: 60px 0 48px;
+    padding: 48px 0 40px;
     text-align: center;
     background: var(--bg-primary);
     border-top: 1px solid rgba(108, 92, 231, 0.2);
@@ -444,7 +449,14 @@ nav .nav-dashboard:hover {
 .nav-studios-link { color: var(--accent-bright); font-weight: 600; }
 
 /* Sections */
-.section { padding: 80px 0; }
+.section { padding: 52px 0 64px; }
+
+/* First section after a hero sits tighter to the title above it */
+.hero + .section,
+.hero-platform + .section,
+.section--tight {
+    padding-top: 32px;
+}
 
 .section h2 {
     font-size: 2.2rem;
@@ -1978,6 +1990,10 @@ footer p {
     .hero h1 { font-size: 2rem; }
     .hero .subtitle { font-size: 1rem; }
     nav .nav-links { gap: 16px; font-size: 0.9rem; }
+    .section { padding: 40px 0 48px; }
+    .hero + .section,
+    .hero-platform + .section,
+    .section--tight { padding-top: 24px; }
     .section h2 { font-size: 1.8rem; }
     .steps { grid-template-columns: 1fr; }
     .features { grid-template-columns: 1fr; }

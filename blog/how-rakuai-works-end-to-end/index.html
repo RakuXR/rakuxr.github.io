@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>How RakuAI Works &#x2014; End to End &mdash; RakuAI Blog</title>
+    <meta name="description" content="How a phone scan becomes a 3D Gaussian splat that any LLM can drive as tools over multi-vendor MCP.">
+    <meta name="author" content="Kevin Griffin">
+    <link rel="canonical" href="https://rakuai.com/blog/how-rakuai-works-end-to-end/">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/blog/how-rakuai-works-end-to-end/">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/blog/how-rakuai-works-end-to-end/">
+    <link rel="alternate" type="application/rss+xml" title="RakuAI Blog" href="/blog/feed.xml">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="How RakuAI Works — End to End">
+    <meta property="og:description" content="How a phone scan becomes a 3D Gaussian splat that any LLM can drive as tools over multi-vendor MCP.">
+    <meta property="og:url" content="https://rakuai.com/blog/how-rakuai-works-end-to-end/">
+    <meta property="og:image" content="https://rakuai.com/blog/img/default-og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta property="article:published_time" content="2026-05-31T00:00:00+00:00">
+    <meta property="article:author" content="Kevin Griffin">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="How RakuAI Works — End to End">
+    <meta name="twitter:description" content="How a phone scan becomes a 3D Gaussian splat that any LLM can drive as tools over multi-vendor MCP.">
+    <meta name="twitter:image" content="https://rakuai.com/blog/img/default-og.png">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/blog/blog.css">
+    <link rel="stylesheet" href="/blog/syntax.css">
+</head>
+<body>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="/index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">Solutions</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="Solutions" hidden>
+                        <div class="col-heading" role="presentation">By audience</div>
+                        <div class="col-heading" role="presentation">Platform</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="/smart-glasses.html">For Smart-Glasses Manufacturers<span class="item-desc">Hardware OEM partner programme</span></a></li>
+                            <li role="none"><a role="menuitem" href="/llm-makers.html">For AI Labs<span class="item-desc">MCP runtime for foundation models</span></a></li>
+                            <li role="none"><a role="menuitem" href="/enterprise.html">For Enterprise<span class="item-desc">Deploy spatial AI at scale</span></a></li>
+                            <li role="none"><a role="menuitem" href="/creator.html">For Creators<span class="item-desc">Build &amp; publish spatial worlds</span></a></li>
+                            <li role="none"><a role="menuitem" href="/compare.html">Compare vs Unity / Unreal<span class="item-desc">The honest comparison</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="/spatial-engine.html">Spatial Engine<span class="item-desc">The runtime pillar</span></a></li>
+                            <li role="none"><a role="menuitem" href="/ai-systems.html">AI Systems<span class="item-desc">Orchestration &amp; permissions</span></a></li>
+                            <li role="none"><a role="menuitem" href="/xr-features.html">XR Features<span class="item-desc">Display, tracking, anchoring</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">Developers</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="Developers" hidden>
+                        <li role="none"><a role="menuitem" href="/docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="/mcp.html">MCP Server</a></li>
+                        <li role="none"><a role="menuitem" href="/sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="/api/">API Reference</a></li>
+                        <li role="none"><a role="menuitem" href="/templates.html">Templates</a></li>
+                        <li role="none"><a role="menuitem" href="/developers/">Developer Portal</a></li>
+                        <li role="none"><a role="menuitem" href="/developers/claude-desktop.html">Claude Desktop guide</a></li>
+                        <li role="none"><a role="menuitem" href="/developer-guide.html">Developer Guide</a></li>
+                        <li role="none"><a role="menuitem" href="/llm-guide.html">LLM Integration Guide</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">Resources</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="Resources" hidden>
+                        <li role="none"><a role="menuitem" href="/blog/">Blog</a></li>
+                        <li role="none"><a role="menuitem" href="/why-rakuai.html">Why RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="/press.html">Press Kit</a></li>
+                        <li role="none"><a role="menuitem" href="/discover.html">Discover</a></li>
+                        <li role="none"><a role="menuitem" href="/content-packs.html">Content Packs</a></li>
+                        <li role="none"><a role="menuitem" href="/docs.html">Documentation</a></li>
+                        <li role="none"><a role="menuitem" href="/contact.html">Contact</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="/pricing.html">Pricing</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="/blog/" aria-current="page">Blog</a>
+                </li>
+            </ul>
+            <a href="/developers/login.html" class="nav-signin">Sign In</a>
+            <a href="/ja/index.html" class="lang-toggle">楽AI<sup class="tm">&trade;</sup></a>
+        </div>
+    </div>
+</nav>
+
+<main class="blog-main">
+    <article class="post">
+        <header class="post-header">
+            <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
+            <h1>How RakuAI Works &mdash; End to End</h1>
+            <p class="post-meta">
+                <time datetime="2026-05-31T00:00:00+00:00">May 31, 2026</time><span class="post-meta-sep">&middot;</span><span class="post-author">Kevin Griffin</span>
+            </p>
+        </header>
+        <div class="post-body">
+<figure class="post-hero">
+<svg viewBox="0 0 1200 480" role="img" aria-label="Phone scan to 3D Gaussian splat to any LLM driving a spatial scene via MCP tools" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="e2e-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a0a1a"/><stop offset="0.5" stop-color="#111128"/><stop offset="1" stop-color="#0d0d20"/></linearGradient>
+    <linearGradient id="e2e-flow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6c5ce7"/><stop offset="0.5" stop-color="#a388ff"/><stop offset="1" stop-color="#00cec9"/></linearGradient>
+    <marker id="e2e-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#a388ff"/></marker>
+  </defs>
+  <rect width="1200" height="480" fill="url(#e2e-bg)"/>
+  <text x="600" y="52" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="32" font-weight="800">Scan it. Then talk to it.</text>
+  <text x="600" y="82" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">Phone video &#x2192; Gaussian splat &#x2192; any LLM drives it via MCP tools</text>
+  <g font-family="system-ui,sans-serif" text-anchor="middle" font-size="13">
+    <rect x="40" y="150" width="160" height="80" rx="12" fill="#16213a" stroke="#6c5ce7" stroke-width="2"/>
+    <text x="120" y="183" fill="#a388ff" font-weight="700" font-size="15">Capture</text>
+    <text x="120" y="202" fill="#c8c8e0">Phone video</text>
+    <text x="120" y="218" fill="#9090b0" font-size="11">30&ndash;60 s scan</text>
+    <line x1="200" y1="190" x2="268" y2="190" stroke="#a388ff" stroke-width="2" marker-end="url(#e2e-arrow)"/>
+    <rect x="270" y="150" width="160" height="80" rx="12" fill="#16213a" stroke="#7c6cf7" stroke-width="2"/>
+    <text x="350" y="183" fill="#a388ff" font-weight="700" font-size="15">Reconstruct</text>
+    <text x="350" y="202" fill="#c8c8e0">COLMAP SfM</text>
+    <text x="350" y="218" fill="#9090b0" font-size="11">point cloud</text>
+    <line x1="430" y1="190" x2="498" y2="190" stroke="#a388ff" stroke-width="2" marker-end="url(#e2e-arrow)"/>
+    <rect x="500" y="150" width="200" height="80" rx="12" fill="#16213a" stroke="#9880ff" stroke-width="2"/>
+    <text x="600" y="183" fill="#a388ff" font-weight="700" font-size="15">3D Gaussian Splat</text>
+    <text x="600" y="202" fill="#c8c8e0">splat trainer</text>
+    <text x="600" y="218" fill="#9090b0" font-size="11">.ply / .spz output</text>
+    <line x1="700" y1="190" x2="768" y2="190" stroke="#a388ff" stroke-width="2" marker-end="url(#e2e-arrow)"/>
+    <rect x="770" y="130" width="180" height="120" rx="12" fill="#16213a" stroke="url(#e2e-flow)" stroke-width="2.5"/>
+    <text x="860" y="165" fill="#a388ff" font-weight="700" font-size="15">MCP Runtime</text>
+    <text x="860" y="185" fill="#c8c8e0">17 native tools</text>
+    <text x="860" y="202" fill="#c8c8e0">+ ~9,500 passthrough</text>
+    <text x="860" y="219" fill="#9090b0" font-size="11">Azure api.rakuai.com</text>
+    <line x1="950" y1="190" x2="1018" y2="190" stroke="#00cec9" stroke-width="2" marker-end="url(#e2e-arrow)"/>
+    <rect x="1020" y="150" width="150" height="80" rx="12" fill="#16213a" stroke="#00cec9" stroke-width="2"/>
+    <text x="1095" y="183" fill="#00cec9" font-weight="700" font-size="15">Any LLM</text>
+    <text x="1095" y="202" fill="#c8c8e0">Claude / GPT</text>
+    <text x="1095" y="218" fill="#c8c8e0">Gemini / Copilot</text>
+  </g>
+  <g font-family="system-ui,sans-serif" font-size="11" fill="#6868a0" text-anchor="middle">
+    <text x="120" y="258">api.rakuai.com</text>
+    <text x="350" y="258">recon-worker</text>
+    <text x="600" y="258">GPU-accelerated (early access)</text>
+    <text x="860" y="272">18 DLLs / 30,738 exports</text>
+    <text x="1095" y="258">multi-vendor MCP</text>
+  </g>
+  <text x="600" y="335" text-anchor="middle" fill="#e84393" font-family="system-ui,sans-serif" font-size="14" font-weight="600">Inference-only. No game engine license. No custom integration per vendor.</text>
+  <text x="600" y="358" text-anchor="middle" fill="#7070a0" font-family="system-ui,sans-serif" font-size="12">NVIDIA Inception member &middot; Azure &middot; api.rakuai.com</text>
+</svg>
+<figcaption>The full pipeline: a phone scan becomes a 3D Gaussian splat, and any LLM that speaks MCP can query and manipulate it through a typed tool contract.</figcaption>
+</figure>
+
+<p class="post-hook">Scan a room with your phone. Thirty seconds later, a 3D Gaussian splat exists. Now ask Claude &mdash; or ChatGPT, or Gemini &mdash; to query it, annotate it, move things in it. That is the whole pitch. This post traces how each step actually works, end to end.</p>
+
+<p>This post pulls back to the full picture &mdash; what RakuAI is, how its pieces connect, and what the moat actually is when you trace it end to end. It is the explainer for a developer partner who wants to understand the architecture rather than the headline.</p>
+<h2 id="the-premise">The premise in one sentence</h2>
+<p>You scan a real place with a phone. The scan becomes a 3D Gaussian splat &mdash; a photorealistic reconstruction made of millions of tiny transparent ellipsoids. The splat is served through a runtime that exposes it as tools any LLM can call. The LLM can query the scene, reason about what it contains, and &mdash; under the right permissions &mdash; mutate it. No game engine license. No per-vendor integration. No model lock-in.</p>
+<p>That is the &ldquo;Scan it. Then talk to it.&rdquo; idea. Here is how each piece of that chain works.</p>
+<h2 id="step-1-capture">Step 1: Capture &mdash; phone video to raw frames</h2>
+<p>The entry point is a Progressive Web App at <a href="/capture-app/">rakuai.com/capture-app/</a>. It runs in a mobile browser with no install. The user records 30 to 60 seconds of video, walking slowly around the subject &mdash; a room, an object, a space worth preserving.</p>
+<p>The PWA bundles the video frames and uploads them to <code>POST /api/v1/capture</code> on the backend, which runs on Azure Container Apps at <code>api.rakuai.com</code>. The backend is a FastAPI service &mdash; ~9,500 REST endpoints &mdash; that authenticates the upload, records metadata (original filename, content-type, capture timestamp), and stores the raw input bundle to Azure Blob Storage.</p>
+<p>That part is live. The upload path works today, for anyone who signs up.</p>
+<h2 id="step-2-reconstruction">Step 2: Reconstruction &mdash; COLMAP feature extraction to point cloud</h2>
+<p>The backend dispatches a reconstruction job to a Container Apps job runner called <code>recon-worker</code>. The first thing it does is run COLMAP &mdash; the Structure from Motion library &mdash; across the uploaded frames. COLMAP identifies matching features across frames and computes camera positions, producing a sparse 3D point cloud.</p>
+<p>This step is CPU-bound and does not require a GPU. It runs today.</p>
+<h2 id="step-3-splat-training">Step 3: Splat training &mdash; a point cloud becomes a Gaussian splat</h2>
+<p>This is the compute-intensive step. The reconstruction worker feeds the COLMAP point cloud and the original frames into a 3D Gaussian Splatting trainer. The trainer fits millions of small 3D Gaussians to the scene &mdash; each Gaussian is an ellipsoid in 3D space with a position, orientation, scale, opacity, and view-dependent colour. The output is a <code>.ply</code> or <code>.spz</code> file stored to Azure Blob Storage alongside the input.</p>
+<p>This step is GPU-accelerated. GPU-accelerated splat training is rolling out in early access &mdash; the architecture is wired and we are bringing the GPU path online for capture accounts.</p>
+<h2 id="step-4-mcp-runtime">Step 4: The MCP runtime &mdash; 17 tools + ~9,500 passthrough endpoints</h2>
+<p>This is the part that makes the splat a live spatial object rather than a static file.</p>
+<p>The runtime is a C++ engine: 18 native DLLs, 30,738 exported functions across subsystems for physics, rendering, audio, tracking, multiplayer state, and AI orchestration, with cross-platform builds on Windows, Linux, and macOS.</p>
+<p><strong>17 native tools</strong> (5 read-only + 12 mutation) &mdash; the typed contract any external agent uses to interact with a scene. Read-only tools work in every environment. Mutation tools require explicit permission grants and are denied by default in production.</p>
+<p><strong>~9,500 passthrough endpoints</strong> &mdash; the full FastAPI surface of raku-api, exposed through the MCP relay. Any of the backend&rsquo;s routes can be reached through the relay, giving an LLM access to capture history, job status, scene metadata, and the full query surface of the backend.</p>
+<p>The MCP server is hosted at <code>api.rakuai.com</code> on Azure Container Apps. The relay for Claude Desktop, ChatGPT, and Gemini is live. The server speaks stdio transport, logs every call to an audit trail, and enforces per-session rate limits.</p>
+<h2 id="step-5-multi-vendor">Step 5: Multi-vendor LLM access &mdash; the actual moat</h2>
+<p>Any model that speaks Model Context Protocol can connect to the runtime and call tools against a captured scene without a custom integration. Claude, ChatGPT, Gemini, Copilot &mdash; the contract is the same for all of them.</p>
+<p>The runtime writes the contract once. The models adapt to the contract. When a new model lab ships an MCP client, it works against the runtime without any code change on our side. The runtime has no opinion about which model is on the other end. It keeps authority on physics, collision, scoring, rendering, and scene state. The model contributes queries and intent.</p>
+<p>This is the moat: faithful capture of the physical world, stored as a lossless 3D representation, queryable by any LLM that speaks an open protocol. Not locked to one model. Not locked to one use case. Not locked to one hardware vendor.</p>
+<h2 id="live-vs-roadmap">What is live today versus what is roadmap</h2>
+<p><strong>Live today:</strong></p>
+<ul>
+<li>Phone capture PWA, upload to Azure Blob</li>
+<li>COLMAP feature extraction and point cloud</li>
+<li>Backend infrastructure (FastAPI ~9,500 endpoints, job store, tier-aware rate limits)</li>
+<li>MCP runtime with 17 native tools + ~9,500 passthrough endpoints</li>
+<li>Hosted MCP relay for Claude, ChatGPT, Gemini</li>
+<li>Multi-vendor tool contract (stdio, deny-by-default, full audit log)</li>
+<li>Free tier and Pro Beta tier (Pro Beta is $0 during the beta period)</li>
+</ul>
+<p><strong>Early access (rolling out):</strong></p>
+<ul>
+<li>GPU-accelerated splat training</li>
+</ul>
+<p><strong>Roadmap (not yet shipped):</strong></p>
+<ul>
+<li>Live splat viewer in the capture PWA (three.js Gaussian splat renderer is wired; end-to-end demo requires a trained splat)</li>
+<li>Self-service production mutation grants</li>
+<li>Third-party adapter ecosystem (first-party reference adapters exist; broad ecosystem is roadmap)</li>
+</ul>
+<p>NVIDIA Inception member since May 2026.</p>
+<h2 id="inference-only">Why &ldquo;inference-only&rdquo; is not a limitation</h2>
+<p>The runtime does not train models. It does not fine-tune models. It does not require you to run a model inside it. The model you already have &mdash; whatever it is, wherever it lives, however it is licensed &mdash; connects through MCP and drives the runtime from outside.</p>
+<p>This is a deliberate architecture choice. Training and inference are separate concerns. The runtime is good at spatial physics, deterministic state management, multi-user synchronisation, and low-latency rendering. The model lab is good at reasoning, generation, and language. The MCP contract is the boundary between them. Neither side has to do the other&rsquo;s job.</p>
+<p>Inference-only also means no GPU residency requirement for serving. The compute-intensive step (splat training) is a one-time cost per capture. Everything after that is geometry and MCP queries &mdash; runs on the same Azure Container Apps instances that serve the API.</p>
+<h2 id="the-recap">The recap</h2>
+<p>The pipeline is: phone video &rarr; COLMAP &rarr; Gaussian splatting &rarr; Azure Blob &rarr; MCP runtime &rarr; any LLM. The capture, reconstruction, runtime, and multi-vendor MCP steps are live; GPU-accelerated splat training is rolling out in early access. The viewer to close the loop in the browser is the next milestone.</p>
+<p>If you want to try the capture end today, the PWA is at <a href="/capture-app/">rakuai.com/capture-app/</a>. If you want to drive a scene over MCP from Claude Desktop, the guide is at <a href="/developers/claude-desktop.html">/developers/claude-desktop.html</a>. If you want to understand the full tool surface, it is at <a href="/mcp.html">/mcp.html</a>.</p>
+<p>Scan it. Then talk to it.</p>
+<div class="post-cta">
+<h3>Try the capture pipeline</h3>
+<p>Scan a real space with your phone, then drive the result from any LLM that speaks MCP. Early access &mdash; GPU-accelerated splat training rolling out now.</p>
+<div class="cta-buttons">
+<a class="cta-btn cta-primary" href="/capture-app/">Capture a Scene</a>
+<a class="cta-btn cta-secondary" href="/mcp.html">MCP Tool Surface</a>
+</div>
+</div>
+        </div>
+        <ul class="post-tags"><li>architecture</li><li>mcp</li><li>capture</li><li>gaussian-splat</li><li>ai-native</li><li>explainer</li></ul>
+        <nav class="post-series-nav"><a class="nav-prev" href="/blog/supercharge-your-ai-in-the-real-world/" rel="prev">&larr; Supercharge Your AI in the Real World</a></nav>
+    </article>
+    <p class="post-back"><a href="/blog/">&larr; All posts</a></p>
+</main>
+
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>Solutions</h4>
+                <ul>
+                    <li><a href="/smart-glasses.html">Smart-Glasses Manufacturers</a></li>
+                    <li><a href="/llm-makers.html">AI Labs</a></li>
+                    <li><a href="/enterprise.html">Enterprise</a></li>
+                    <li><a href="/creator.html">Creators</a></li>
+                    <li><a href="/compare.html">Compare vs Unity / Unreal</a></li>
+                    <li><a href="/spatial-engine.html">Spatial Engine</a></li>
+                    <li><a href="/ai-systems.html">AI Systems</a></li>
+                    <li><a href="/xr-features.html">XR Features</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Developers</h4>
+                <ul>
+                    <li><a href="/docs.html">Documentation</a></li>
+                    <li><a href="/mcp.html">MCP Server</a></li>
+                    <li><a href="/sdk.html">SDK</a></li>
+                    <li><a href="/api/">API Reference</a></li>
+                    <li><a href="/templates.html">Templates</a></li>
+                    <li><a href="/developers/">Developer Portal</a></li>
+                    <li><a href="/developers/claude-desktop.html">Claude Desktop guide</a></li>
+                    <li><a href="/developer-guide.html">Developer Guide</a></li>
+                    <li><a href="/llm-guide.html">LLM Integration Guide</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="/blog/">Blog</a></li>
+                    <li><a href="/why-rakuai.html">Why RakuAI</a></li>
+                    <li><a href="/press.html">Press Kit</a></li>
+                    <li><a href="/discover.html">Discover</a></li>
+                    <li><a href="/content-packs.html">Content Packs</a></li>
+                    <li><a href="/docs.html">Documentation</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="/why-rakuai.html">About</a></li>
+                    <li><a href="/pricing.html">Pricing</a></li>
+                    <li><a href="/contact.html">Contact</a></li>
+                    <li><a href="mailto:partners@rakuai.com">Partners</a></li>
+                    <li><a href="/privacy.html">Privacy</a></li>
+                    <li><a href="/terms.html">Terms</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 Granted US Patents (Priority: July 2012) &bull; Powered by the RakuAI Engine</p>
+        <p class="trademark-notice">
+            RakuAI&trade; and RakuXR&trade; are trademarks of RakuAI, LLC.
+            <span class="kanji-logo">&#x697D;</span>AI and <span class="kanji-logo">&#x697D;</span>XR are stylized marks of RakuAI, LLC.
+            5 Granted US Patents (Priority: July 2012).
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:14px; margin: 20px 0 8px; opacity: 0.9;">
+            <a href="../../press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
+                <img src="../../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="40" style="height: 40px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script src="/js/nav-dropdown.js" defer></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+</body>
+</html>
