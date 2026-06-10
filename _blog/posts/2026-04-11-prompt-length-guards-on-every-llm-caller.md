@@ -1,7 +1,7 @@
 ---
 title: "Every LLM Caller Got Prompt-Length Guards Today"
 date: 2026-04-11
-author: Kevin Griffin
+author: RakuAI Team
 tags: [llm, security, audit, guardrails, weekend-build]
 description: "A 15x cost spike led to an audit of every place the runtime talks to an LLM — and five callers that could send unbounded prompts with no cap, no truncation, no defense. By Saturday afternoon every caller went through one shared guard, with per-call budgets, telemetry, and a CI check that blocks regressions. This is how a spatial runtime makes prompt-length discipline impossible to forget."
 series: learning-to-code-with-ai

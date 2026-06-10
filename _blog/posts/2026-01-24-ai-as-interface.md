@@ -1,7 +1,7 @@
 ---
 title: "How the Engine Talks to Any Model You Bring"
 date: 2026-01-24
-author: Kevin Griffin
+author: RakuAI Team
 tags: [architecture, ai-native, interfaces, runtime, weekend-build]
 description: "If AI is a runtime primitive inside your engine, are you locked to whichever model you wired in? No — the AI layer is exposed through interfaces, not imports. Six subsystems, a model-management API, a file format that names capabilities instead of models. Here is the boundary that lets RakuAI swap any model, any vendor, any inference path without touching a line of caller code — and why it keeps mattering more as the model market churns."
 series: learning-to-code-with-ai

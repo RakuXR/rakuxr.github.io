@@ -1,7 +1,7 @@
 ---
 title: "282 Commits, First Weekend on the Public Log"
 date: 2025-09-14
-author: Kevin Griffin
+author: RakuAI Team
 tags: [foundation, dev-workflow, agent-queue, ar-glasses, weekend-build]
 description: "Two days at the keyboard, autonomous agents grinding the issue queue underneath, and 282 commits in the runtime repo by Sunday night. The main loop, the latency tracker, the C API that lets the SDK link in - here is what shipped, what broke, and what the agent-driven loop looks like when it finally clicks. This is what it means to supercharge a one-human runtime team."
 series: learning-to-code-with-ai

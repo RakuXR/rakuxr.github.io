@@ -1,7 +1,7 @@
 ---
 title: "Hot-Reloading Game Design Like Code"
 date: 2026-03-01
-author: Kevin Griffin
+author: RakuAI Team
 tags: [architecture, ai-native, raku-files, dev-workflow, weekend-build]
 description: "Your experience is a file, not a binary. The .raku format is JSON — schema-versioned, diffable, hot-reloadable, with explicit hooks where the runtime AI plugs in every frame. Here is what a real one looks like, why JSON beats a custom DSL, and how 'game design reviewed in a pull request' became our actual workflow."
 series: learning-to-code-with-ai

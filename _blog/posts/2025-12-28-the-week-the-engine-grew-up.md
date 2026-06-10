@@ -1,7 +1,7 @@
 ---
 title: "The Weekend the Engine Grew Up"
 date: 2025-12-28
-author: Kevin Griffin
+author: RakuAI Team
 tags: [tflite, federated-sync, spatial-anchors, openxr, multi-repo, year-end, weekend-build]
 description: "A 276-commit weekend that landed TensorFlow Lite for on-device SLM inference, AES-256-GCM federated sync, OpenXR composition layers, Kalman-filtered anchor stabilization, and a hardware-abstraction layer for the optical channel. This is the weekend RakuAI stopped being a research project and grew the surface area of a real platform — the bones smart glasses and AI labs build on."
 series: learning-to-code-with-ai

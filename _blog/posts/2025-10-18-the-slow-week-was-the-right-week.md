@@ -1,7 +1,7 @@
 ---
 title: "Slowing the Agents Down on Purpose"
 date: 2025-10-18
-author: Kevin Griffin
+author: RakuAI Team
 tags: [reflection, dev-workflow, multi-repo, documentation, weekend-build]
 description: "Thirty-seven commits instead of eighty — on purpose. I cut the agent queue and slowed the pace so I could actually read what was landing, and the codebase came out cleaner for it. Here is the discipline that keeps an agent-built runtime coherent instead of a pile of clean-in-isolation PRs."
 series: learning-to-code-with-ai

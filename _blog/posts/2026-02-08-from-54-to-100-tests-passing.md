@@ -1,7 +1,7 @@
 ---
 title: "From 54% to 100% Tests Passing"
 date: 2026-02-08
-author: Kevin Griffin
+author: RakuAI Team
 tags: [tests, ctest, ecs, eye-tracking, telemetry, weekend-build]
 description: "54% to 100% in three weekends. The test runner does not care about your feelings, your star count, or your roadmap — it tells you exactly how much of your spatial runtime actually works. Here is how we walked the gap, root-cause by root-cause, and why pass rate is the most honest signal a partner can ask for."
 series: learning-to-code-with-ai

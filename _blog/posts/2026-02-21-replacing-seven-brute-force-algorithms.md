@@ -1,7 +1,7 @@
 ---
 title: "Replacing Seven O(N²) Algorithms on a Saturday"
 date: 2026-02-21
-author: Kevin Griffin
+author: RakuAI Team
 tags: [algorithms, physics, vision, model-loading, agent-failure-mode, weekend-build]
 description: "Seven O(N²) placeholders, one Saturday, and the production algorithms that turned a wobbling demo into a runtime that screams. This is how RakuAI turns AI-written code into engine-grade performance — and why an algorithmic audit is the fastest upgrade your spatial stack will ever get."
 series: learning-to-code-with-ai

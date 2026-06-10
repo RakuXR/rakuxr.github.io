@@ -1,7 +1,7 @@
 ---
 title: "The Weekend Visual Studio 2026 Hated Our Code"
 date: 2025-12-21
-author: Kevin Griffin
+author: RakuAI Team
 tags: [build, msvc, vs2026, openxr, debugging, dev-workflow, weekend-build]
 description: "Two hundred errors, six categories, twelve PRs, two days — and the first green x64 build in the runtime's history. This is the inside of bringing a cross-platform spatial engine onto MSVC 2026 Insiders, the six error classes that will hit any C++ codebase, and the agent-driven sweeps that fixed them. Three platforms, one runtime, ready to ship on Windows."
 series: learning-to-code-with-ai

@@ -1,7 +1,7 @@
 ---
 title: "Starting the Weekly Cadence"
 date: 2025-09-06
-author: Kevin Griffin
+author: RakuAI Team
 tags: [foundation, ar-glasses, patents, history, ai-native]
 description: "Day zero of the public log: repos live, agents working, and a smart-glasses spec on the desk as the forcing function for every decision downstream. The bet is simple - the most interesting AI experiences are spatial ones, anchored in the real places you stand in. This is the engine being built explicitly to take direction from your model, every frame."
 series: learning-to-code-with-ai

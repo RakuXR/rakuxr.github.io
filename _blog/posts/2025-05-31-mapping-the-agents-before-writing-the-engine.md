@@ -1,7 +1,7 @@
 ---
 title: "Mapping the Agents Before Writing the Engine"
 date: 2025-05-31
-author: Kevin Griffin
+author: RakuAI Team
 tags: [design, agents, governance, pre-build, weekend-build]
 description: "Before a single line of the spatial runtime existed, this Saturday mapped the agent fleet that would build it. Product, SDK, Studio, Marketing, Operations, AI strategy, plus a governance layer watching the watchers. This is how you supercharge a one-human team into a shipping engine company - the agents come before the architecture because the agents shape the architecture."
 series: learning-to-code-with-ai

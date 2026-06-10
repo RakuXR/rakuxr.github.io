@@ -1,7 +1,7 @@
 ---
 title: "The Find-Replace That Corrupted 300 Files"
 date: 2026-02-14
-author: Kevin Griffin
+author: RakuAI Team
 tags: [audit, security, find-replace, hmac, ai-failure-mode, weekend-build]
 description: "A deep audit pass turned up two things I did not enjoy: an over-broad find-replace that had quietly garbled identifiers across three hundred files, and a hardcoded licensing secret in a public source file. Both fixed in a day. This is the honest field guide to the failure modes an agent-driven codebase is most exposed to — and the guardrails that catch them."
 series: learning-to-code-with-ai

@@ -1,7 +1,7 @@
 ---
 title: "Scan it. Then talk to it. — RakuAI Capture for everyday spaces"
 date: 2026-05-31
-author: Kevin Griffin
+author: RakuAI Team
 tags: [capture, gaussian-splat, mcp, consumer, ai-assistant, everyday-spaces]
 description: "Scan a real room with your phone — no rig, no markers, no install — and get a 3D reconstruction your AI assistant can read, measure, and reason over via MCP. GPU splat training arriving within days. This is the Raku Capture story."
 series: learning-to-code-with-ai

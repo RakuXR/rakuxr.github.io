@@ -1,7 +1,7 @@
 ---
 title: "Sub-Millimeter Anchors and the Calligraphy Question"
 date: 2025-10-11
-author: Kevin Griffin
+author: RakuAI Team
 tags: [ar, anchoring, computer-vision, partnerships, calligraphy, weekend-build]
 description: "A brutal precision target from a partner conversation: sub-millimeter overlay drift on a sheet of calligraphy paper. By Saturday evening the runtime had a sub-millimeter anchor-pose API, real-time pen-tip tracking, and marker-based paper detection. This is the kind of precision that turns AR from a toy into a tutor."
 series: learning-to-code-with-ai

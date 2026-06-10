@@ -1,7 +1,7 @@
 ---
 title: "Supercharge Your AI in the Real World"
 date: 2026-05-23
-author: Kevin Griffin
+author: RakuAI Team
 tags: [positioning, mcp, smart-glasses, patents, ai-native, weekend-build]
 description: "The runtime your AI assistant inhabits when it needs to build, query, or simulate a spatial world. Five patents going back to 2012. Built for the thermal envelope of glasses. Multi-vendor by design. Here's why."
 series: learning-to-code-with-ai

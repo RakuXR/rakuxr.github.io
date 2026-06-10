@@ -1,7 +1,7 @@
 ---
 title: "Sketching the SDK Folder Structure on Paper"
 date: 2025-07-19
-author: Kevin Griffin
+author: RakuAI Team
 tags: [design, sdk, folder-structure, stubs, pre-build, weekend-build]
 description: "The folder structure is the org chart of the code - get it right early and every PR for two years lands in the right place. This Saturday drew the SDK's skeleton before any code existed: /apps, /modules, /assets, /docs, /config, plus module stubs that lock the contracts your agents build to. This is the discipline that keeps an AI-built spatial runtime coherent for years."
 series: learning-to-code-with-ai

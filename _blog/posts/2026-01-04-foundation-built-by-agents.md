@@ -1,7 +1,7 @@
 ---
 title: "The Weekend an Autonomous Agent Shipped Ten Subsystems"
 date: 2026-01-04
-author: Kevin Griffin
+author: RakuAI Team
 tags: [foundation, dev-workflow, ai-native, history, weekend-build]
 description: "139 commits overnight. Ten foundational subsystems shipped across one weekend, mostly by an autonomous agent running against a queue I keep filled. This is what it actually looks like when an engine's foundation is built BY agents, not bolted on FOR them — and why that choice shapes every architectural decision in the runtime your AI will inhabit."
 series: learning-to-code-with-ai

@@ -1,7 +1,7 @@
 ---
 title: "The Meshy Pipeline and the Robe That Broke Pose Estimation"
 date: 2026-04-18
-author: Kevin Griffin
+author: RakuAI Team
 tags: [meshy, asset-pipeline, generative-ai, content-packs, weekend-build]
 description: "Six weeks of feeding Meshy.ai through a seven-stage asset pipeline taught the team three things the API docs do not. Robes obscure the silhouette pose estimation needs. Japanese character names crash anything that pipes stdout to a file. And Meshy's remesh endpoint can vanish on you mid-sprint. This is the unglamorous reality of turning AI-generated assets into production-grade content for a spatial runtime."
 series: learning-to-code-with-ai

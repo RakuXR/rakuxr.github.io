@@ -1,7 +1,7 @@
 ---
 title: "Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday."
 date: 2026-01-17
-author: Kevin Griffin
+author: RakuAI Team
 tags: [debugging, demo, shooter, shader-cache, weekend-build]
 description: "Four unrelated bugs, zero overlapping subsystems, one Saturday. Pink missing-shader graphics. A score that double-counted. A hard XR-boot crash. A camera that refused to lock. This is the kind of integration failure that escapes every unit test — and the init-order, event-ownership, and boot-guardian discipline that turns a broken demo into a runtime partners can trust."
 series: learning-to-code-with-ai

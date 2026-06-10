@@ -1,7 +1,7 @@
 ---
 title: "Eight Demos, Zero Code: What the SDK Has to Be For"
 date: 2025-06-21
-author: Kevin Griffin
+author: RakuAI Team
 tags: [design, sdk, demos, pre-build, ar-glasses, weekend-build]
 description: "Eight canonical demos that prove what a spatial runtime is for - arena multiplayer, AR coaching, HUD designer, streamer mode, point-of-service overlay, companion HUD, aim trainer, multiplayer HUD sync. Zero code written, every one specified. The demos are the spec, and they are how RakuAI shows what your AI can do once it inhabits the real world."
 series: learning-to-code-with-ai

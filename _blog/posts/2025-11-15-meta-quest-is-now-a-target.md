@@ -1,7 +1,7 @@
 ---
 title: "Meta Quest Is Now a Target"
 date: 2025-11-15
-author: Kevin Griffin
+author: RakuAI Team
 tags: [meta-quest, horizon-os, openxr, passthrough, partnerships, ar-glasses, weekend-build]
 description: "Meta Quest is now a Raku target. OpenXR on Horizon OS, passthrough AR with composition layers, stereo rendering and 6DoF tracking — the engine now reaches one of the largest installed bases in spatial computing. Meet your users on the hardware they already own, then carry the same experience to glasses for free."
 series: learning-to-code-with-ai

@@ -1,7 +1,7 @@
 ---
 title: "The Saturday the Build Stopped Arguing"
 date: 2026-05-02
-author: Kevin Griffin
+author: RakuAI Team
 tags: [build-system, linux, ci, null-safety, weekend-build]
 description: "A run of cleanup commits that look unglamorous on the diff and feel transformative on the project. Eighteen DLLs green on Linux. Every LLM caller guarded against runaway prompt length. The /api/v2/ namespace renamed to /api/raku/ everywhere it appears. Null-pointer safety swept through the runtime. The build is finally something you can stop arguing with."
 series: learning-to-code-with-ai

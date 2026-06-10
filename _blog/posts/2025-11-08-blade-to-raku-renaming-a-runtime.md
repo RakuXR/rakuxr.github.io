@@ -1,7 +1,7 @@
 ---
 title: "Blade to Raku: A Saturday Rename Across the Codebase"
 date: 2025-11-08
-author: Kevin Griffin
+author: RakuAI Team
 tags: [rebrand, naming, ar-glasses, history, weekend-build]
 description: "The placeholder name finally came off. In a weekend, agents swept every reference across every repo from Blade and ar1-runtime to Raku — no build break, no compatibility break. The name means ease, comfort, and the human touch. The engineering finally caught up to the brand that was waiting for it."
 series: learning-to-code-with-ai

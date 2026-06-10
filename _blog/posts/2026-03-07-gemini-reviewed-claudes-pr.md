@@ -1,7 +1,7 @@
 ---
 title: "Gemini Reviewed Claude's PR. Thirty-Six Comments Later, It Was Better."
 date: 2026-03-07
-author: Kevin Griffin
+author: RakuAI Team
 tags: [multi-vendor, code-review, gemini, claude, partnerships, weekend-build]
 description: "Claude wrote eight subsystem PRs. Gemini reviewed them and left thirty-six comments — two of which were real thread-safety bugs that would have shipped. This is the multi-vendor review pattern earning its keep: different model, different blind spots, harder-to-fool code. The discipline signal serious partners should ask every engine team about."
 series: learning-to-code-with-ai
