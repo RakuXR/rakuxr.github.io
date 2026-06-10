@@ -22,10 +22,17 @@
     <meta name="twitter:title" content="RakuAI für Smart-Glasses-OEMs — Ein Runtime-Partner für die PWA-Ära der AR">
     <meta name="twitter:description" content="Was heute live ist vs. Q3 2026 vs. 2027. Funktionsmatrix über Meta Ray-Ban Display, Android XR und Apple Vision Pro. MCP-aus-der-Brille-Architektur.">
     <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <meta name="twitter:url" content="https://rakuai.com/de/smart-glasses.html">
     <link rel="canonical" href="https://rakuai.com/de/smart-glasses.html">
     <link rel="alternate" hreflang="en" href="https://rakuai.com/smart-glasses.html">
-    <link rel="alternate" hreflang="ja" href="https://rakuai.com/ja/smart-glasses.html">
     <link rel="alternate" hreflang="de" href="https://rakuai.com/de/smart-glasses.html">
+    <link rel="alternate" hreflang="es" href="https://rakuai.com/es/smart-glasses.html">
+    <link rel="alternate" hreflang="fr" href="https://rakuai.com/fr/smart-glasses.html">
+    <link rel="alternate" hreflang="ja" href="https://rakuai.com/ja/smart-glasses.html">
+    <link rel="alternate" hreflang="ko" href="https://rakuai.com/ko/smart-glasses.html">
+    <link rel="alternate" hreflang="pt-BR" href="https://rakuai.com/pt-BR/smart-glasses.html">
+    <link rel="alternate" hreflang="zh-CN" href="https://rakuai.com/zh-CN/smart-glasses.html">
+    <link rel="alternate" hreflang="zh-TW" href="https://rakuai.com/zh-TW/smart-glasses.html">
     <link rel="alternate" hreflang="x-default" href="https://rakuai.com/smart-glasses.html">
     <link rel="stylesheet" href="../style.css">
     <style>
@@ -37,7 +44,7 @@
             border-bottom: none;
         }
         .sg-hero {
-            padding: 96px 0 72px;
+            padding: 44px 0 48px;
             text-align: center;
         }
         .sg-hero .eyebrow {
@@ -485,11 +492,92 @@
             line-height: 1.5;
         }
 
+        /* Hero split: copy + inline SVG figure, side-by-side above the fold */
+        .sg-hero-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 44px;
+            align-items: center;
+            text-align: left;
+        }
+        .sg-hero-grid .sg-hero-copy { min-width: 0; }
+        .sg-hero-grid .subhead,
+        .sg-hero-grid .audience-line { max-width: none; margin-left: 0; margin-right: 0; }
+        .sg-hero-grid .sg-cta-row { justify-content: flex-start; }
+        .sg-hero-grid .sg-nvidia-badge { justify-content: flex-start; }
+        /* Hero figure: glasses silhouette + MCP-driven capability HUD */
+        .sg-hero-fig {
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+        }
+        .sg-hero-fig svg { width: 100%; height: auto; display: block; }
+        @media (max-width: 860px) {
+            .sg-hero-grid { grid-template-columns: 1fr; text-align: center; gap: 28px; }
+            .sg-hero-grid .subhead,
+            .sg-hero-grid .audience-line { margin-left: auto; margin-right: auto; }
+            .sg-hero-grid .sg-cta-row { justify-content: center; }
+            .sg-hero-grid .sg-nvidia-badge { justify-content: center; }
+            .sg-hero-fig { order: -1; max-width: 380px; }
+        }
+
+        /* OEM-integration carousel (dependency-free) */
+        .sg-carousel { max-width: 1040px; margin: 0 auto; position: relative; }
+        .sg-carousel-viewport {
+            overflow: hidden;
+            border: 1px solid #222244;
+            border-radius: 16px;
+            background: var(--bg-secondary);
+        }
+        .sg-carousel-track { display: flex; transition: transform 0.4s ease; }
+        @media (prefers-reduced-motion: reduce) {
+            .sg-carousel-track { transition: none; }
+        }
+        .sg-cslide {
+            flex: 0 0 100%;
+            box-sizing: border-box;
+            padding: 36px 40px 40px;
+        }
+        .sg-cslide .sg-step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff; font-weight: 800; font-size: 1.1rem;
+            margin-bottom: 14px;
+        }
+        .sg-cslide h3 { color: var(--accent-bright); font-size: 1.3rem; margin: 0 0 10px; }
+        .sg-cslide p { color: var(--text-secondary); line-height: 1.65; font-size: 0.98rem; margin: 0 0 16px; max-width: 760px; }
+        .sg-cslide ul { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 24px; }
+        .sg-cslide li { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; padding-left: 22px; position: relative; }
+        .sg-cslide li:before { content: "\2713"; color: var(--success); font-weight: 700; position: absolute; left: 0; }
+        .sg-cslide code { color: var(--accent-bright); font-size: 0.85em; }
+        .sg-carousel-controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+        .sg-carousel-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--accent-bright);
+            color: var(--accent-bright);
+            width: 40px; height: 40px; border-radius: 50%;
+            font-size: 1.1rem; cursor: pointer; line-height: 1;
+            transition: background 0.15s ease;
+        }
+        .sg-carousel-btn:hover, .sg-carousel-btn:focus-visible {
+            background: rgba(163, 136, 255, 0.15);
+            outline: 2px solid var(--accent-bright); outline-offset: 2px;
+        }
+        .sg-carousel-dots { display: flex; gap: 10px; }
+        .sg-cdot { width: 11px; height: 11px; border-radius: 50%; border: 1px solid var(--accent-bright); background: transparent; padding: 0; cursor: pointer; }
+        .sg-cdot[aria-selected="true"] { background: var(--accent-bright); }
+        .sg-cdot:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+
         @media (max-width: 768px) {
-            .sg-hero { padding: 64px 0 48px; }
+            .sg-hero { padding: 40px 0 36px; }
             .sg-section { padding: 56px 0; }
             .sg-coverage { padding: 22px 20px; }
             .sg-matrix th, .sg-matrix td { padding: 11px 12px; font-size: 0.88rem; }
+            .sg-cslide { padding: 26px 22px 30px; }
         }
         @media (max-width: 480px) {
             .sg-cta-row { flex-direction: column; align-items: stretch; }
@@ -574,27 +662,76 @@
 
 <section class="sg-hero">
     <div class="container">
+      <div class="sg-hero-grid">
+        <div class="sg-hero-copy">
         <span class="eyebrow">Für die Technik-Leads von Smart-Glasses-OEMs</span>
-        <h1>Ein Runtime-Partner für die PWA-Ära der AR-Brillen.</h1>
+        <h1>Das Spatial-Runtime, das Smart-Glasses-OEMs lizenzieren&mdash;statt es selbst zu bauen.</h1>
         <p class="subhead">
-            RakuAI ist ein Spatial-Runtime, gebaut für den Weg, auf dem deine Hardware heute tatsächlich ausgeliefert wird: eine installierbare Web-App aus der Brille, eine MCP-Schnittstelle, die die großen LLMs ansteuern können, und ein Thermal-/Latenz-Budget, abgestimmt auf am Kopf getragene Displays. Wir konkurrieren nicht mit deiner Hardware &mdash; wir sorgen dafür, dass die KI-Erlebnisse darauf früher live gehen.
+            RakuAI ist ein LLM-anbieterneutrales Spatial-Runtime, das OEMs lizenzieren statt es selbst zu bauen. <strong>Phase&nbsp;1 Beachhead: Meta Ray-Ban Display PWA</strong> &mdash; eine installierbare Web-App aus dem Browser der Brille, eine MCP-Oberfläche, die Claude, ChatGPT, Gemini oder Copilot steuern kann, und ein Thermal-/Latenz-Budget, abgestimmt auf am Kopf getragene Displays. <strong>Phase&nbsp;2 Roadmap: Android XR + natives SDK</strong> (Q3&nbsp;2026&ndash;2027). Wir konkurrieren nicht mit deiner Hardware &mdash; wir sorgen dafür, dass die KI-Erlebnisse darauf früher live gehen.
         </p>
         <p class="audience-line">
-            Diese Seite richtet sich an Ingenieure und Partnerschafts-Leads, die bei Meta, Samsung, Google und anderen, die 2026&ndash;2027 Brillen ausliefern, Runtime-Partner evaluieren. Sie bemüht sich um Ehrlichkeit darüber, was live ist, was in Arbeit ist und was Roadmap ist.
+            Geschrieben für Engineering- und Partnerschafts-Leads bei Meta, Samsung, Google, Xreal, Rokid und anderen, die 2026&ndash;2027 Brillen ausliefern. Ehrlich darüber, was ausgeliefert ist, was nur als Referenz existiert und was hardware-abhängig ist. Kein unterzeichneter OEM-Partner wird behauptet.
         </p>
 
-<div style="display: flex; justify-content: center; margin: 22px 0 4px;">
-    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Mitglied von NVIDIA Inception — zu den Details scrollen">
+<div class="sg-nvidia-badge" style="display: flex; margin: 22px 0 4px;">
+    <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="Mitglied von NVIDIA Inception und AWS Activate Teilnehmer — zu den Details scrollen">
         <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">Mitglied von</span>
         <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
-        <img src="../branding/aws/powered-by-aws-white.png" alt="Aufgebaut auf AWS" height="28" style="height: 28px; width: auto; display: block;">
+        <img src="../branding/aws/powered-by-aws-white.png" alt="AWS Activate" width="80" height="28" style="height: 28px; width: auto; display: block;">
         <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">Mehr lesen &darr;</span>
     </a>
 </div>
         <div class="sg-cta-row">
-            <a href="mailto:partnerships@rakuai.com?subject=Smart-glasses%20OEM%20capability%20inquiry" class="sg-btn-primary">E-Mail an partnerships@rakuai.com &rarr;</a>
-            <a href="#capability-matrix" class="sg-btn-secondary">Direkt zur Funktionsmatrix &darr;</a>
+            <a href="mailto:partnerships@rakuai.com?subject=Smart-glasses%20OEM%20partnership%20inquiry" class="sg-btn-primary">OEM-Partnerschaft anfragen &rarr;</a>
+            <a href="#oem-phases" class="sg-btn-secondary">OEM-Phasen-Roadmap ansehen &darr;</a>
         </div>
+        </div><!-- /sg-hero-copy -->
+
+        <div class="sg-hero-fig">
+        <svg viewBox="0 0 720 300" width="100%" role="img" aria-labelledby="sgh-title sgh-desc" xmlns="http://www.w3.org/2000/svg">
+            <title id="sgh-title">MCP-gesteuerte räumliche Überlagerung auf Smart Glasses</title>
+            <desc id="sgh-desc">Ein Kopf mit Smart Glasses und einem räumlichen Heads-up-Display-Overlay. Die Brille zeigt ein MCP-gesteuertes Fähigkeits-HUD, das Antworten im realen Raum des Trägers verankert: ein Anker-Marker mit der Bezeichnung „Schlüssel", ein Szenenabfrageergebnis und ein MCP-Tool-Aufruf-Badge, das zeigt, wie ein LLM das RakuAI-Runtime von der Brille aus steuert.</desc>
+            <defs>
+                <linearGradient id="sgh-grad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <radialGradient id="sgh-glow" cx="0.5" cy="0.5" r="0.5">
+                    <stop offset="0" stop-color="#6c5ce7" stop-opacity="0.18"/>
+                    <stop offset="1" stop-color="#6c5ce7" stop-opacity="0"/>
+                </radialGradient>
+            </defs>
+            <ellipse cx="200" cy="150" rx="170" ry="140" fill="url(#sgh-glow)"/>
+            <g transform="translate(120,40)" stroke="#a388ff" fill="none">
+                <path d="M150,30 C95,30 60,72 60,128 C60,170 86,196 86,210 L86,232 C86,240 92,246 100,246 L150,246"
+                      stroke="#6c5ce7" stroke-width="2.4" fill="#15152e"/>
+                <path d="M86,150 C72,150 70,170 84,176" stroke="#6c5ce7" stroke-width="2"/>
+                <rect x="92" y="116" width="56" height="40" rx="10" stroke="url(#sgh-grad)" stroke-width="2.6" fill="#0d0d20"/>
+                <line x1="148" y1="132" x2="172" y2="128" stroke="url(#sgh-grad)" stroke-width="2.6"/>
+                <line x1="92" y1="130" x2="78" y2="132" stroke="#6c5ce7" stroke-width="2.2"/>
+                <line x1="148" y1="128" x2="320" y2="86" stroke="#00cec9" stroke-width="1.4" stroke-dasharray="4 5"/>
+                <line x1="148" y1="150" x2="320" y2="210" stroke="#00cec9" stroke-width="1.4" stroke-dasharray="4 5"/>
+            </g>
+            <g font-family="system-ui,sans-serif">
+                <rect x="420" y="58" width="252" height="184" rx="14" fill="#111128" stroke="url(#sgh-grad)" stroke-width="2"/>
+                <text x="442" y="86" fill="#e8e8f0" font-size="13" font-weight="700">Fähigkeits-HUD</text>
+                <text x="442" y="104" fill="#9090b0" font-size="10.5">MCP-gesteuert · weltraum-verankert</text>
+                <rect x="442" y="118" width="208" height="30" rx="7" fill="#0d0d20" stroke="#a388ff" stroke-width="1"/>
+                <circle cx="458" cy="133" r="4" fill="#00cec9"/>
+                <text x="470" y="137" fill="#a388ff" font-family="ui-monospace,monospace" font-size="11">scene_query("wo sind meine Schlüssel")</text>
+                <g transform="translate(458,168)">
+                    <line x1="-7" y1="0" x2="7" y2="0" stroke="#00cec9" stroke-width="1.6"/>
+                    <line x1="0" y1="-7" x2="0" y2="7" stroke="#00cec9" stroke-width="1.6"/>
+                    <circle r="5" fill="none" stroke="url(#sgh-grad)" stroke-width="2"/>
+                </g>
+                <text x="476" y="172" fill="#e8e8f0" font-size="11.5" font-weight="600">Anker: Kücheninsel</text>
+                <text x="476" y="188" fill="#9090b0" font-size="10.5">links von der Obstschale &middot; 0,6&nbsp;mm</text>
+                <rect x="442" y="204" width="208" height="26" rx="7" fill="#0d0d20" stroke="#222244" stroke-width="1"/>
+                <text x="546" y="221" text-anchor="middle" fill="#00cec9" font-size="11" font-weight="600">in der Brille zurückgesprochen</text>
+            </g>
+        </svg>
+        </div>
+      </div><!-- /sg-hero-grid -->
     </div>
 </section>
 
@@ -668,6 +805,181 @@
         </div>
     </div>
 </section>
+
+<!-- OEM Platform Phases: Phase 1 beachhead + Phase 2 roadmap + Phase 3 fan-out -->
+<section class="sg-section" id="oem-phases">
+    <div class="container">
+        <h2>Drei Phasen. Ein Lizenzmodell.</h2>
+        <p class="sg-subtitle">
+            Die Go-to-Market-Strategie ist nach Plattformreife gestaffelt &mdash; nicht nach RakuAIs Zeitplan. Wir treffen dein Gerät auf den öffentlichen Oberflächen, die es bereits bereitstellt, und vertiefen die Integration, sobald du bereit bist.
+        </p>
+
+        <div class="sg-roadmap" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+
+            <div class="sg-roadmap-col q3">
+                <h3>Phase 1 &mdash; Beachhead</h3>
+                <p class="when">Meta Ray-Ban Display PWA &middot; Ziel Q3 2026</p>
+                <ul>
+                    <li><strong>Einstieg:</strong> Installierbare PWA aus dem eingebetteten Browser der Brille &mdash; keine App-Store-Hürde, kein SDK-Install auf deinem Gerät</li>
+                    <li><strong>MCP-Oberfläche:</strong> 17 native Tools + 6 universelle Passthrough-Tools, live für Claude, ChatGPT, Gemini, Copilot</li>
+                    <li><strong>Capture:</strong> Begleit-Telefon als Kamera heute; direktes Capture aus der Brille, wenn die Frame-API des OEM verfügbar ist <em>(hardware-abhängig)</em></li>
+                    <li><strong>Architektur:</strong> Telefon als Compute (Telefon übernimmt KI/Physik, Brille zeigt an + trackt)</li>
+                    <li><strong>Ehrliches Label:</strong> PWA-Pfad ist referenzbereit; kein Co-Marketing oder Vorinstallation mit Meta vereinbart</li>
+                </ul>
+            </div>
+
+            <div class="sg-roadmap-col q3">
+                <h3>Phase 2 &mdash; Plattform</h3>
+                <p class="when">Android XR + natives SDK &middot; 2027</p>
+                <ul>
+                    <li><strong>Einstieg:</strong> Derselbe PWA-Pfad verallgemeinert sich über die standardisierte Chrome-Oberfläche von Android XR</li>
+                    <li><strong>Natives SDK:</strong> raku-runtime als native DLLs mit einer OpenXR-kompatiblen Session-Schicht &mdash; in den Compositor, Hand-Tracking-Pipeline oder Display-Treiber des OEM eingebunden</li>
+                    <li><strong>SDK-Docs-Ziel:</strong> Partner-grade Docs Q4 2026; 8&ndash;12 Entwickler-Wochen Integrationsaufwand</li>
+                    <li><strong>Partner:</strong> Samsung Galaxy XR + Android XR Lizenznehmer; Xreal, Rokid, Vision Pro Browser mit demselben gestaffelten Angebot</li>
+                    <li><strong>Ehrliches Label:</strong> Android XR Launch-Fenster abhängig vom Plattformplan; kein unterzeichneter OEM</li>
+                </ul>
+            </div>
+
+            <div class="sg-roadmap-col later">
+                <h3>Phase 3 &mdash; Fan-out</h3>
+                <p class="when">Xreal / Rokid / Galaxy XR / Vision Pro &middot; 2027+</p>
+                <ul>
+                    <li>Long-Tail-Geräteunterstützung über den Browser-Pfad</li>
+                    <li>Offline-/Unterbrechungsresilienz für Brillen mit niedrigeren Spezifikationen</li>
+                    <li>Wiederholbarer Selbst-Qualifizierungs-Prozess &rarr; PWA-Pilot &rarr; SDK-Pipeline</li>
+                    <li>Co-vermarktete Launch-App für einen Tier&nbsp;3 strategischen Partner</li>
+                    <li>NVIDIA Inception Warm Intros in das XR-OEM-Ökosystem BD</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <p class="sg-roadmap-note">
+            <strong>NVIDIA Inception Netzwerk</strong>: RakuAI wurde im Mai 2026 in NVIDIA Inception aufgenommen. Dieses Netzwerk bietet Warm Intros in das XR-Hardware-Ökosystem &mdash; viele Brillen-OEMs und ihre Silizium-/Optiklieferanten sind Inception-Mitglieder oder NVIDIA-Partner.
+        </p>
+
+    </div>
+</section>
+
+<!-- OEM integration steps carousel -->
+<section class="sg-section">
+    <div class="container">
+        <h2>OEM-Integration, Schritt für Schritt.</h2>
+        <p class="sg-subtitle">Wische durch den Weg vom ersten Gespräch bis zur gemeinsamen Auslieferung. Kein SDK-Lock-in &mdash; wir treffen dein Gerät auf den öffentlichen Web-Oberflächen, die es bereits bereitstellt.</p>
+
+        <div class="sg-carousel" id="sg-carousel">
+            <div class="sg-carousel-viewport">
+                <div class="sg-carousel-track" role="group" aria-label="OEM-Integrationsschritte">
+
+                    <section class="sg-cslide" role="tabpanel" aria-roledescription="Folie" aria-label="Schritt 1 von 5: Verbinden" id="sg-cslide-0">
+                        <span class="sg-step-num" aria-hidden="true">1</span>
+                        <h3>Über die PWA verbinden</h3>
+                        <p>RakuAI installiert sich als PWA von der Web-Oberfläche deines Geräts &mdash; keine App-Store-Hürde. Deine Brille lädt <code>rakuai.com/capture-app/</code> und das Runtime ist live.</p>
+                        <ul>
+                            <li>Installierbare Web-App, heute</li>
+                            <li>WebXR / WebGPU Client-Pfad</li>
+                            <li>Kein nativer Shell-Start erforderlich</li>
+                        </ul>
+                    </section>
+
+                    <section class="sg-cslide" role="tabpanel" aria-roledescription="Folie" aria-label="Schritt 2 von 5: Steuern" id="sg-cslide-1" aria-hidden="true">
+                        <span class="sg-step-num" aria-hidden="true">2</span>
+                        <h3>Mit beliebigem LLM über MCP steuern</h3>
+                        <p>Claude, ChatGPT, Gemini oder Copilot steuern das Runtime über die 17 nativen MCP-Tools &mdash; über eine stdio-Brücke zum Begleitgerät oder über HTTPS zum gehosteten MCP.</p>
+                        <ul>
+                            <li>17 native MCP-Tools (5 read-only + 12 mutation)</li>
+                            <li>6 <code>xr_</code> Adapter-Tools für Brillen-Flows</li>
+                            <li>Anbieterneutral &mdash; der Träger wählt das LLM</li>
+                        </ul>
+                    </section>
+
+                    <section class="sg-cslide" role="tabpanel" aria-roledescription="Folie" aria-label="Schritt 3 von 5: Erfassen" id="sg-cslide-2" aria-hidden="true">
+                        <span class="sg-step-num" aria-hidden="true">3</span>
+                        <h3>Den Raum des Trägers erfassen</h3>
+                        <p>Frames + IMU fließen zur Cloud-Rekonstruktion und kommen in Minuten als erkundbares Gaussian Splat zurück &mdash; heute vom Begleit-Telefon, direkt aus der Brille wenn deine Kamera-API verfügbar ist <em>(hardware-abhängig: OEM Frame-Source-API erforderlich)</em>.</p>
+                        <ul>
+                            <li>GLOMAP + Brush Rekonstruktion, <code>.spz</code> Ausgabe</li>
+                            <li>Begleit-Telefon-Capture jetzt verfügbar</li>
+                            <li>Direkt aus der Brille auf dem Q3 2026 Pfad</li>
+                        </ul>
+                    </section>
+
+                    <section class="sg-cslide" role="tabpanel" aria-roledescription="Folie" aria-label="Schritt 4 von 5: Budget" id="sg-cslide-3" aria-hidden="true">
+                        <span class="sg-step-num" aria-hidden="true">4</span>
+                        <h3>In das Thermalbudget passen</h3>
+                        <p>Telefon als Compute hält die Brille kühl: das Telefon übernimmt Physik und KI, die Brille rendert und trackt, der Link überträgt Szenen-Deltas &mdash; kein Video. Drei Thermalmodi passen sich dem Gerät an.</p>
+                        <ul>
+                            <li>18&nbsp;ms Motion-to-Photon-Ziel</li>
+                            <li>~20&nbsp;Hz Szenen-Delta-Sync, 400&ndash;1400&nbsp;B</li>
+                            <li>Performance / Balanced / Low-Power Modi</li>
+                        </ul>
+                    </section>
+
+                    <section class="sg-cslide" role="tabpanel" aria-roledescription="Folie" aria-label="Schritt 5 von 5: Ausliefern" id="sg-cslide-4" aria-hidden="true">
+                        <span class="sg-step-num" aria-hidden="true">5</span>
+                        <h3>Gemeinsam unter NDA ausliefern</h3>
+                        <p>Mutual-NDA-Zugang zu den <code>xr_</code> Adapter-Tools, dem Capture-from-Glasses-Preview und der WebGPU-Splat-Pipeline &mdash; mit einem Pfad zu einer co-vermarkteten Launch-Experience für dein Gerät.</p>
+                        <ul>
+                            <li>OEM SDK Preview unter NDA</li>
+                            <li>Architektur-Level Patent-Lizenzierung verfügbar</li>
+                            <li>Mutual NDA in Tagen, nicht Wochen</li>
+                        </ul>
+                    </section>
+
+                </div>
+            </div>
+
+            <div class="sg-carousel-controls">
+                <button type="button" class="sg-carousel-btn" data-dir="-1" aria-label="Vorheriger Schritt" aria-controls="sg-carousel">&#8249;</button>
+                <div class="sg-carousel-dots" role="tablist" aria-label="Integrationsschritt wählen">
+                    <button type="button" class="sg-cdot" role="tab" aria-selected="true"  aria-controls="sg-cslide-0" aria-label="Schritt 1: Verbinden"></button>
+                    <button type="button" class="sg-cdot" role="tab" aria-selected="false" aria-controls="sg-cslide-1" aria-label="Schritt 2: Mit MCP steuern"></button>
+                    <button type="button" class="sg-cdot" role="tab" aria-selected="false" aria-controls="sg-cslide-2" aria-label="Schritt 3: Erfassen"></button>
+                    <button type="button" class="sg-cdot" role="tab" aria-selected="false" aria-controls="sg-cslide-3" aria-label="Schritt 4: Thermalbudget"></button>
+                    <button type="button" class="sg-cdot" role="tab" aria-selected="false" aria-controls="sg-cslide-4" aria-label="Schritt 5: Gemeinsam ausliefern"></button>
+                </div>
+                <button type="button" class="sg-carousel-btn" data-dir="1" aria-label="Nächster Schritt" aria-controls="sg-carousel">&#8250;</button>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+(function () {
+    var root = document.getElementById('sg-carousel');
+    if (!root) return;
+    var track = root.querySelector('.sg-carousel-track');
+    var slides = Array.prototype.slice.call(root.querySelectorAll('.sg-cslide'));
+    var dots = Array.prototype.slice.call(root.querySelectorAll('.sg-cdot'));
+    var arrows = Array.prototype.slice.call(root.querySelectorAll('.sg-carousel-btn'));
+    var current = 0;
+
+    function go(i, focusDot) {
+        current = (i + slides.length) % slides.length;
+        track.style.transform = 'translateX(' + (-current * 100) + '%)';
+        // Slides are positioned by translateX inside a flex track; toggling
+        // `hidden` collapses them out of the track and blanks the viewport.
+        // Use aria-hidden + inert for a11y while keeping them laid out.
+        slides.forEach(function (s, n) {
+            s.setAttribute('aria-hidden', n === current ? 'false' : 'true');
+            s.inert = (n !== current);
+        });
+        dots.forEach(function (d, n) {
+            d.setAttribute('aria-selected', n === current ? 'true' : 'false');
+        });
+        if (focusDot) { dots[current].focus(); }
+    }
+
+    dots.forEach(function (d, n) { d.addEventListener('click', function () { go(n, true); }); });
+    arrows.forEach(function (a) {
+        a.addEventListener('click', function () { go(current + parseInt(a.getAttribute('data-dir'), 10), true); });
+    });
+    root.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { go(current - 1, true); }
+        else if (e.key === 'ArrowRight') { go(current + 1, true); }
+    });
+    go(0, false);
+})();
+</script>
 
 <!-- MCP-from-glasses architecture -->
 <section class="sg-section">
@@ -1114,6 +1426,19 @@
     <p style="max-width: 720px; margin: 14px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
         NVIDIA Inception ist ein kostenloses Programm für KI-Startups; die Mitgliedschaft von RakuAI bedeutet nicht, dass NVIDIA die Produkte von RakuAI befürwortet. Mehr unter <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color: var(--text-secondary);">nvidia.com/startups</a>.
     </p>
+    <!-- aws-credibility:start -->
+    <div class="container" style="display:flex; align-items:flex-start; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 20px;">
+        <a href="../press.html#aws-activate" style="line-height: 0;" aria-label="AWS Activate Teilnehmer — mehr auf der Presseseite">
+            <img src="../branding/aws/powered-by-aws-white.png" alt="Aufgebaut auf AWS" width="200" height="72" style="height: 44px; width: auto;">
+        </a>
+        <p style="max-width: 640px; margin: 0; color: var(--text-secondary); font-size: 0.95rem; text-align: center;">
+            RakuAI ist <strong>auf AWS aufgebaut</strong> und <strong>AWS Activate</strong>-Teilnehmer. Die Produktionsrekonstruktion läuft heute auf Azure; AWS GPU-Kapazität (G5 / G6e) ist auf unserer Roadmap, ehrlich gegatelt bis die Quote verfügbar ist.
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 10px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        „AWS" und „AWS Activate" sind Marken von Amazon.com, Inc. oder seinen Tochtergesellschaften. RakuAIs Teilnahme impliziert nicht, dass AWS die Produkte von RakuAI befürwortet.
+    </p>
+    <!-- aws-credibility:end -->
 </section>
 
 <footer>
