@@ -57,10 +57,15 @@ TMP_QR=""
 if [ -f "$DEST/qr-capture-app.svg" ]; then
   TMP_QR=$(mktemp); cp "$DEST/qr-capture-app.svg" "$TMP_QR"
 fi
+TMP_DEBUG=""
+if [ -f "$DEST/capture_debug.js" ]; then
+  TMP_DEBUG=$(mktemp); cp "$DEST/capture_debug.js" "$TMP_DEBUG"
+fi
 
 # --- mirror canonical verbatim --------------------------------------------
 # rsync --delete prunes files removed upstream so the mirror never keeps stale
-# assets. README.md / qr-capture-app.svg are excluded: they are mirror-only.
+# assets. README.md / qr-capture-app.svg / capture_debug.js are excluded:
+# they are mirror-only.
 mkdir -p "$DEST"
 if ! command -v rsync >/dev/null 2>&1; then
   echo "error: rsync is required (cp cannot prune stale files)." >&2
@@ -68,11 +73,13 @@ if ! command -v rsync >/dev/null 2>&1; then
   exit 1
 fi
 rsync -a --delete --exclude README.md --exclude qr-capture-app.svg \
+  --exclude capture_debug.js \
   "$SRC"/ "$DEST"/
 
 # --- restore the mirror-only files ----------------------------------------
 if [ -n "$TMP_README" ]; then cp "$TMP_README" "$DEST/README.md"; rm -f "$TMP_README"; fi
 if [ -n "$TMP_QR" ]; then cp "$TMP_QR" "$DEST/qr-capture-app.svg"; rm -f "$TMP_QR"; fi
+if [ -n "$TMP_DEBUG" ]; then cp "$TMP_DEBUG" "$DEST/capture_debug.js"; rm -f "$TMP_DEBUG"; fi
 
 # --- apply the deterministic hosting adaptations --------------------------
 python3 "$ADAPT" "$DEST"

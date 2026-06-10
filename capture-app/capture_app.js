@@ -1077,7 +1077,16 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
     const spark = await importCdn(SPARK_CDN_URL, 'spark');
     const { SplatMesh } = spark;
 
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+    // preserveDrawingBuffer: WebKit/Safari clears the drawing buffer after
+    // compositing, so any canvas readback (toDataURL, getImageData, drawImage)
+    // returns transparent black. Enabling preserveDrawingBuffer keeps the last
+    // frame in the buffer so screenshots, sharing, and automated tests can read
+    // back pixel data. The minor perf cost is acceptable for a mobile PWA.
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: false,
+      preserveDrawingBuffer: true,
+    });
     renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
     resizeRendererToCanvas(renderer, canvas);
 

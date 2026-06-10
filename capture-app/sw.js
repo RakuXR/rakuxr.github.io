@@ -15,7 +15,7 @@
 //
 // Mirrors web/player/sw.js conventions.
 
-const CACHE_VERSION = 'raku-capture-v4';
+const CACHE_VERSION = 'raku-capture-v5';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 
 const SHELL_URLS = [
@@ -105,7 +105,14 @@ self.addEventListener('fetch', (event) => {
 async function staleWhileRevalidate(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
-  const fetchPromise = fetch(request)
+  // Revalidate with a *clean* Request built from just the URL. WebKit's SW
+  // fetch implementation can trigger spurious "access control checks" errors
+  // when the original request carries cache-mode directives (e.g.
+  // { cache: 'no-cache' } from i18n.js / capture_app.js). A plain Request
+  // avoids carrying those directives into the SW-internal fetch while still
+  // hitting the network for a fresh copy.
+  const revalidateReq = new Request(request.url);
+  const fetchPromise = fetch(revalidateReq)
     .then((response) => {
       if (response && response.ok) cache.put(request, response.clone());
       return response;
