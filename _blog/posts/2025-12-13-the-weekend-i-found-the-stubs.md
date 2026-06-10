@@ -1,7 +1,7 @@
 ---
 title: "The Saturday I Found the Stubs"
 date: 2025-12-13
-author: Kevin Griffin
+author: RakuAI Team
 tags: [unit-tests, stubs, technical-debt, best-practices, weekend-build]
 description: "Forty-seven functions claimed to do real work. Forty-seven were returning placeholders. This is the Saturday I went looking for the stubs the agents had quietly landed — and built the audit, the tests, and the discipline that turns agent-coded into agent-trusted. The honesty that makes a spatial runtime safe to build on."
 series: learning-to-code-with-ai

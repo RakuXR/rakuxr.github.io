@@ -1,7 +1,7 @@
 ---
 title: "Six MCP Tools, and What the Adapters Unlock Next (now 17)"
 date: 2026-05-09
-author: Kevin Griffin
+author: RakuAI Team
 tags: [mcp, model-context-protocol, partners, adapters, ai-native, weekend-build]
 description: "The runtime has been speaking Model Context Protocol since late March. It started with six tools over stdio transport, deny-by-default permissions, full audit log -- and has since grown to 17 native MCP tools. The server is the boundary any external agent uses to drive the engine. This post is the six-tool snapshot and what the next layer of real adapters and partner integrations unlocks. This is the MCP runtime LLM makers build against."
 series: learning-to-code-with-ai

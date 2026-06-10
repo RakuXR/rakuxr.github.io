@@ -1,7 +1,7 @@
 ---
 title: "Validating Hardware Before the Silicon Shows Up"
 date: 2025-10-05
-author: Kevin Griffin
+author: RakuAI Team
 tags: [ar-glasses, hardware, thermal, ci, ar2-gen1, weekend-build]
 description: "Pivot the product target from AR1+ to AR2 Gen1, then ship the thermal-validation, Wi-Fi 7 stability, and sensor bring-up harness for hardware that isn't on the desk yet. When the silicon arrives, validation begins on day one instead of day ninety. This is how RakuAI ships on your hardware faster than its competitors - the expensive part is already paid."
 series: learning-to-code-with-ai

@@ -1,7 +1,7 @@
 ---
 title: "One Saturday Before the First Commit"
 date: 2025-08-23
-author: Kevin Griffin
+author: RakuAI Team
 tags: [design, pre-build, ar-glasses, patents, weekend-build]
 description: "The last Saturday before the repos open - three months of design work behind it. Agent roster locked. Demo suite specified. SDK folder structure drawn. API surface drafted. A decade-old patent estate ready to be the foundation. This is what it looks like to design a spatial runtime to fit its team before a single line ships."
 series: learning-to-code-with-ai

@@ -1,7 +1,7 @@
 ---
 title: "Two Months Public, Years Under the Hood"
 date: 2025-11-01
-author: Kevin Griffin
+author: RakuAI Team
 tags: [reflection, architecture, ar-glasses, multi-repo, agent-workflow, weekend-build]
 description: "Two months of a public engineering log, years of work under the hood. A quiet Saturday to take stock: a cross-platform C++ AR runtime with AI baked into the simulation step, an architecture that has settled, and a December production-readiness milestone in sight. This is what an AI-native spatial runtime looks like when it stops being a mission statement and becomes a repo."
 series: learning-to-code-with-ai

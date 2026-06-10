@@ -1,7 +1,7 @@
 ---
 title: "OpenXR Is the Skeleton, Dual-Link Radios Are the Nerve"
 date: 2025-11-30
-author: Kevin Griffin
+author: RakuAI Team
 tags: [openxr, rf-optical, ar-glasses, openxr-extensions, oss-standards, weekend-build]
 description: "A real bet on standards this weekend. By Sunday night the runtime had its OpenXR backbone — graphics binding, frame lifecycle, action sync — plus a dual-mode RF / optical link manager that switches radios on the fly without the app ever noticing. Adopt the standard where it exists; build where it doesn't; be ready to adopt again when it catches up."
 series: learning-to-code-with-ai

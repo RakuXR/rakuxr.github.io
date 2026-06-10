@@ -1,7 +1,7 @@
 ---
 title: "Built to Take Direction from ChatGPT, Claude, and Gemini"
 date: 2025-11-23
-author: Kevin Griffin
+author: RakuAI Team
 tags: [llm, partnerships, voice-pipeline, openxr, xr-assistant, ai-native, weekend-build]
 description: "The weekend the engine learned to take direction from any cloud LLM — as a runtime concern, not a chat panel. By Sunday the XRAssistantService streamed model intent through the voice pipeline, eye-tracked foveation shipped, and Wi-Fi 7 offloaded rendering had a real host. ChatGPT can drive it. Claude can drive it. Gemini can drive it. That is the whole point."
 series: learning-to-code-with-ai

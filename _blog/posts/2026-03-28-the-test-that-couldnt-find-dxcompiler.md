@@ -1,7 +1,7 @@
 ---
 title: "The Test That Couldn't Find dxcompiler.dll"
 date: 2026-03-28
-author: Kevin Griffin
+author: RakuAI Team
 tags: [debugging, windows, msvc, dll-loading, abi, weekend-build]
 description: "Eight tests, one Windows error code, one missing shader-compiler DLL the runtime could not boot without. The fix turned a hard load-time dependency into a graceful, observable fallback — so the engine runs anywhere, not just on a fully-equipped developer workstation. Portability is a feature partners pay for."
 series: learning-to-code-with-ai

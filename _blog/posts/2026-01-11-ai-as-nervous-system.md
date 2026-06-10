@@ -1,7 +1,7 @@
 ---
 title: "AI as Nervous System, Not AI as Factory"
 date: 2026-01-11
-author: Kevin Griffin
+author: RakuAI Team
 tags: [architecture, positioning, ai-native, spatial-computing]
 description: "Most engines that say 'AI-native' in 2026 mean they bolted on a chat panel. RakuAI is built differently — AI is a runtime primitive in the loop on every frame, closer to a nervous system than a factory. If you read one piece on what 'AI-native' actually means at the architecture layer, make it this one."
 series: learning-to-code-with-ai

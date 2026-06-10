@@ -1,7 +1,7 @@
 ---
 title: "The Bottleneck Was Never Typing"
 date: 2026-03-15
-author: Kevin Griffin
+author: RakuAI Team
 tags: [dev-workflow, ai-native, parallel-agents, worktrees, weekend-build]
 description: "Five agents, five branches, one codebase, one weekend: 112 commits. The bottleneck is no longer typing — it is deciding which four problems are worth four parallel attempts, and which two results are good enough to keep. The job stopped being senior IC and became tech lead of a team that never sleeps."
 series: learning-to-code-with-ai

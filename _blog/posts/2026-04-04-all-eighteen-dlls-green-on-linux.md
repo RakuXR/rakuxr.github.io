@@ -1,7 +1,7 @@
 ---
 title: "All Eighteen DLLs Green on Linux"
 date: 2026-04-04
-author: Kevin Griffin
+author: RakuAI Team
 tags: [build, linux, symbol-visibility, cross-platform, ci, weekend-build]
 description: "347 untagged functions across eighteen native libraries, hidden by a symbol-visibility default, breaking the Linux build one undefined-reference at a time. Traced to root, swept clean, and locked behind a CI guard that fails any PR that drops a public symbol. Linux is now a first-class target — and the codebase is more honest on every platform."
 series: learning-to-code-with-ai

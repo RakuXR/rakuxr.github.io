@@ -1,7 +1,7 @@
 ---
 title: "When the Demo Crashed Silently"
 date: 2026-01-31
-author: Kevin Griffin
+author: RakuAI Team
 tags: [debugging, error-logging, ux, placeholder-mode, weekend-build]
 description: "Worse than a crash: a demo that did not crash, did not error, and also did not work. Dead input. A placeholder scene wearing the costume of a finished game. Logs that said nothing. This is the Saturday I made the engine refuse to fail silently — the loud-failure, grep-able-error, audit-by-adjacency discipline that keeps a spatial runtime honest with the people building on it."
 series: learning-to-code-with-ai

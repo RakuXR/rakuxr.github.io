@@ -1,7 +1,7 @@
 ---
 title: "Catching the SDK Up Before It Could Drift"
 date: 2025-09-20
-author: Kevin Griffin
+author: RakuAI Team
 tags: [sdk, unity, unreal, parity, multi-repo, dev-workflow, weekend-build]
 description: "Every multi-repo project dies the same way - one repo races ahead, the other quietly rots. This Saturday wired Unity and Unreal HelloAR to behave identically and built the parity-testing gate that makes the gap impossible. This is the discipline that keeps a spatial runtime and its bindings coherent for years, so your binding choice never locks you out of a feature."
 series: learning-to-code-with-ai

@@ -1,7 +1,7 @@
 ---
 title: "Claude Writes, Gemini Reviews, ChatGPT Rubber-Ducks"
 date: 2025-12-06
-author: Kevin Griffin
+author: RakuAI Team
 tags: [dev-workflow, multi-vendor, ai-tools, code-review, weekend-build]
 description: "Three months in, the dev workflow has settled into a multi-vendor rhythm: Claude writes the runtime, Gemini reviews the diffs, ChatGPT rubber-ducks the architecture, Copilot autocompletes. The single most important rule — the model that writes a PR cannot be the model that reviews it. This is the workflow building an AI-native runtime, and the posture the runtime itself takes toward models."
 series: learning-to-code-with-ai

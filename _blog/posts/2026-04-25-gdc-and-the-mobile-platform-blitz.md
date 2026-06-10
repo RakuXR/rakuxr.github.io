@@ -1,7 +1,7 @@
 ---
 title: "Looking Back at GDC and the Mobile Platform Blitz"
 date: 2026-04-25
-author: Kevin Griffin
+author: RakuAI Team
 tags: [gdc, ios, android, demos, spatial-audio, weekend-build]
 description: "Late March 2026 was the GDC eve release and a two-platform mobile push that landed in the same week. Here is what shipped, what broke forty-eight hours before I flew out, and which fixes look small on the diff but kept the laptop demo from going sideways in front of strangers. This is what shipping a spatial runtime at conference speed actually looks like."
 series: learning-to-code-with-ai

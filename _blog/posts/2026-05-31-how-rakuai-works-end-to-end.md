@@ -1,7 +1,7 @@
 ---
 title: "How RakuAI Works — End to End"
 date: 2026-05-31
-author: Kevin Griffin
+author: RakuAI Team
 tags: [architecture, mcp, capture, gaussian-splat, ai-native, explainer]
 description: "Phone scan to 3D Gaussian splat to any LLM driving it as tools over multi-vendor MCP. The honest end-to-end account: what ships today, what is gated on GPU credits, and why the inference-only runtime is the moat."
 series: learning-to-code-with-ai

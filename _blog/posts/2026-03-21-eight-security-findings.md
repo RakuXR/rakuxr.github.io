@@ -1,7 +1,7 @@
 ---
 title: "Eight Security Findings on a Saturday Morning"
 date: 2026-03-21
-author: Kevin Griffin
+author: RakuAI Team
 tags: [security, audit, due-diligence, enterprise, weekend-build]
 description: "An enterprise partner's security team ran due diligence on our API surface and came back with eight critical and high findings. Every one had a fix landing by Saturday night. Here are the categories, the new permanent guardrails, and the failure modes an agent-driven runtime has to defend against on purpose."
 series: learning-to-code-with-ai
