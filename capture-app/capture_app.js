@@ -1139,16 +1139,24 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
     // space and render black. Once the splat geometry is ready, recenter it on
     // the origin and size the orbit to fit its bounding box.
     splats.initialized.then(() => {
+      if (!running) return; // viewer torn down before the geometry was ready
       const box = splats.getBoundingBox(false);
       const center = box.getCenter(new THREE.Vector3());
       const size = box.getSize(new THREE.Vector3());
-      // rotation.x = π negates local Y,Z — cancel centroid accordingly
-      splats.position.set(-center.x, center.y, center.z);
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      // Guard non-finite bounds: empty or degenerate geometry yields Infinity,
+      // which would poison cam.radius/position with NaN and freeze the camera
+      // (Math.min/max propagate NaN). On bad bounds we keep the default framing.
+      if (Number.isFinite(center.x) && Number.isFinite(center.y) && Number.isFinite(center.z)) {
+        // rotation.x = π negates local Y,Z — cancel centroid accordingly
+        splats.position.set(-center.x, center.y, center.z);
+      }
+      const maxDim = Math.max(size.x, size.y, size.z);
       const fit = (maxDim / 2) / Math.tan((camera.fov * Math.PI / 180) / 2);
-      cam.radius = fit * 1.6;
-      cam.minRadius = fit * 0.4;
-      cam.maxRadius = fit * 4;
+      if (Number.isFinite(fit) && fit > 0) {
+        cam.radius = fit * 1.6;
+        cam.minRadius = fit * 0.4;
+        cam.maxRadius = fit * 4;
+      }
     }).catch(() => { /* keep default framing */ });
 
     const onResize = () => resizeRendererToCanvas(renderer, canvas);
