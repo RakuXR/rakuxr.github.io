@@ -632,10 +632,12 @@ function resetScaleState() {
  */
 async function beginCapture() {
   // Request the DeviceOrientation permission FIRST, while we are still inside
-  // the capture button's user-gesture task (iOS 13+ requires that). Fire and
-  // forget — the listener is attached later in startCoverageTracking(); if the
-  // user denies, the coverage ring just stays hidden.
-  ensureOrientationPermission();
+  // the capture button's user-gesture task (iOS 13+ requires that). Await it so
+  // the motion prompt and the camera prompt are sequential, not overlapping —
+  // simultaneous permission prompts can conflict or be silently rejected on
+  // iOS Safari. The listener is attached later in startCoverageTracking(); if
+  // the user denies, the coverage ring just stays hidden.
+  await ensureOrientationPermission();
   const ok = await requestCamera();
   if (!ok) return; // requestCamera() already surfaced the error screen
   showPhase(Phase.CAPTURE);
@@ -865,7 +867,7 @@ function _headingFromEvent(e) {
   // zero may be arbitrary, but the RELATIVE sweep across sectors is all we need.
   let h = (typeof e.webkitCompassHeading === 'number') ? e.webkitCompassHeading
         : (typeof e.alpha === 'number') ? e.alpha : null;
-  if (h === null || !isFinite(h)) return null;
+  if (h === null || !Number.isFinite(h)) return null;
   return ((h % 360) + 360) % 360;
 }
 
@@ -946,11 +948,13 @@ function _handleOrientation(e) {
   const sector = Math.floor(h / SECTOR_DEG) % COVERAGE_SECTORS;
   const first = !_orientationActive;
   _orientationActive = true;
-  _currentSector = sector;
-  _coveredSectors.add(sector);
-  // deviceorientation fires ~60 Hz; only repaint when the faced sector changes
-  // (covered set + hint only change on a sector boundary crossing).
+  // deviceorientation fires ~60 Hz; only update the covered set + repaint when
+  // the faced sector actually changes — _currentSector, _coveredSectors and the
+  // directional hint only change on a sector-boundary crossing, so the writes
+  // on every intervening event are redundant.
   if (first || sector !== _lastPaintedSector) {
+    _currentSector = sector;
+    _coveredSectors.add(sector);
     _lastPaintedSector = sector;
     updateCoverageRing();
   }
