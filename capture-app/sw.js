@@ -57,12 +57,20 @@ function isDemoAsset(url) {
 }
 
 async function demoCacheFirst(request) {
-  const cache = await caches.open(DEMO_CACHE);
-  // Match by URL string (not the Request) so a Range-carrying availability
-  // probe still hits the cached full response. Serving a complete 200 to a
-  // ranged request is spec-permitted (a server MAY ignore Range).
-  const cached = await cache.match(request.url);
-  if (cached) return cached;
+  // Cache Storage can be disabled or throw (Safari/Firefox private browsing,
+  // strict policies). A cache failure must degrade to plain network, never
+  // kill the fetch handler while the device is online.
+  let cache = null;
+  try {
+    cache = await caches.open(DEMO_CACHE);
+    // Match by URL string (not the Request) so a Range-carrying availability
+    // probe still hits the cached full response. Serving a complete 200 to a
+    // ranged request is spec-permitted (a server MAY ignore Range).
+    const cached = await cache.match(request.url);
+    if (cached) return cached;
+  } catch (err) {
+    console.warn('[RakuCapture SW] demo cache unavailable, network only:', err);
+  }
 
   let response;
   try {
@@ -77,7 +85,7 @@ async function demoCacheFirst(request) {
   }
   // Cache only complete, successful, readable responses. 206 partials (the
   // app's ranged probe) and opaque/error responses pass through uncached.
-  if (response && response.status === 200) {
+  if (cache && response && response.status === 200) {
     try {
       await cache.put(request.url, response.clone());
       await trimDemoCache(cache);
