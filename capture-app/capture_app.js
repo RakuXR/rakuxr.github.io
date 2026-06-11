@@ -1134,6 +1134,23 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
     splats.rotation.x = Math.PI;
     scene.add(splats);
 
+    // Real captures from COLMAP/Brush land at arbitrary world coordinates and
+    // scale, so the fixed radius-2.8 orbit around the origin can point at empty
+    // space and render black. Once the splat geometry is ready, recenter it on
+    // the origin and size the orbit to fit its bounding box.
+    splats.initialized.then(() => {
+      const box = splats.getBoundingBox(false);
+      const center = box.getCenter(new THREE.Vector3());
+      const size = box.getSize(new THREE.Vector3());
+      // rotation.x = π negates local Y,Z — cancel centroid accordingly
+      splats.position.set(-center.x, center.y, center.z);
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const fit = (maxDim / 2) / Math.tan((camera.fov * Math.PI / 180) / 2);
+      cam.radius = fit * 1.6;
+      cam.minRadius = fit * 0.4;
+      cam.maxRadius = fit * 4;
+    }).catch(() => { /* keep default framing */ });
+
     const onResize = () => resizeRendererToCanvas(renderer, canvas);
     window.addEventListener('resize', onResize);
     const detachControls = attachViewerControls(canvas, cam);
@@ -1143,7 +1160,8 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
       if (!running) return; // teardown stops the loop
       if (cam.autoRotate) cam.theta += 0.0016;
       cam.phi = Math.max(0.18, Math.min(Math.PI - 0.18, cam.phi));
-      cam.radius = Math.max(0.7, Math.min(8, cam.radius));
+      const lo = cam.minRadius || 0.7, hi = cam.maxRadius || 8;
+      cam.radius = Math.max(lo, Math.min(hi, cam.radius));
 
       const sinPhi = Math.sin(cam.phi);
       camera.aspect = (canvas.clientWidth || 1) / (canvas.clientHeight || 1);
