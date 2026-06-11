@@ -570,6 +570,63 @@
       background: rgba(240,180,41,0.08); color: var(--warn, #f0b429);
       font-size: 0.85rem;
     }
+
+    /* Booth demo mode (?demo=) — sample picker + honest demo badge. */
+    .demo-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--warn);
+      background: rgba(14,14,20,0.8);
+      border: 1px solid var(--warn);
+      border-radius: 6px;
+      padding: 4px 10px;
+      letter-spacing: 0.4px;
+    }
+    /* Overlaid on the viewer canvas (top-right; viewer-note owns top-left). */
+    #viewer-demo-badge {
+      position: absolute;
+      top: 14px; right: 14px;
+      z-index: 2;
+    }
+    #viewer-demo-badge[hidden] { display: none; }
+    .demo-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      max-width: 420px;
+    }
+    .demo-option {
+      appearance: none;
+      text-align: left;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: border-color .15s, background .15s;
+    }
+    .demo-option:hover { border-color: var(--accent); }
+    .demo-option:focus-visible { outline: 2px solid var(--accent); }
+    .demo-option-name { font-weight: 600; }
+    .demo-option-desc { color: var(--muted); font-size: 12px; }
+    .demo-note { color: var(--muted); font-size: 13px; max-width: 440px; line-height: 1.5; }
+    .demo-status { color: var(--warn); font-size: 13px; max-width: 440px; line-height: 1.5; }
+    .demo-status[hidden] { display: none; }
+    /* Demo mode hides booth-irrelevant chrome: auth, the compute-backend
+       toggle, and the external SuperSplat editor button. display:none (not
+       DOM removal) keeps every element id stable for the mirror sync. */
+    body.demo-mode #intro-auth,
+    body.demo-mode #compute-toggle,
+    body.demo-mode #header-signin-link,
+    body.demo-mode #btn-cleanup { display: none !important; }
 </style>
 </head>
 
@@ -680,6 +737,22 @@
       </p>
     </section>
 
+    <!-- PHASE: booth demo (?demo=1 / ?demo=<sampleId>) ------------------------ -->
+    <!-- Booth-grade demo flow (AWE USA 2026). Renders ONLY the pre-baked
+         sample splats from samples/manifest.json — no camera, no upload, no
+         reconstruction API calls. The badge + lead are deliberately honest
+         that nothing here is a live scan (live phone-scan -> splat is
+         unavailable while the GPU worker is down). capture_app.js owns the
+         picker (#demo-samples) and the status line (#demo-status). -->
+    <section class="screen" id="screen-demo" hidden>
+      <span class="demo-badge" data-i18n="demo.badge">Demo &mdash; pre-captured sample</span>
+      <h1 data-i18n="demo.heading">Explore a sample capture</h1>
+      <p class="lead" data-i18n="demo.lead">Pick a pre-captured sample scene and explore it in 3D &mdash; drag to orbit, scroll or pinch to zoom. These are pre-baked samples, not live scans: live phone-scan reconstruction is paused right now.</p>
+      <p class="demo-status" id="demo-status" hidden></p>
+      <div class="demo-options" id="demo-samples"></div>
+      <p class="demo-note" data-i18n="demo.offlineNote">Each sample is cached on this device after its first view, so the demo keeps working offline.</p>
+    </section>
+
     <!-- PHASE: guided capture (live camera) ---------------------------------- -->
     <div id="camera-stage" hidden>
       <video id="camera-video" playsinline muted autoplay></video>
@@ -784,6 +857,9 @@
            change to match the real viewer status. viewer-note starts hidden;
            the app reveals it only for the offline placeholder. -->
       <span class="viewer-note" id="viewer-note" hidden>Spark viewer seam &mdash; see loadSplatViewer()</span>
+      <!-- Honest booth-demo badge: revealed by enterDemoMode() only, so a
+           pre-baked sample is never mistaken for a live scan. -->
+      <span class="demo-badge" id="viewer-demo-badge" hidden data-i18n="demo.badge">Demo &mdash; pre-captured sample</span>
       <canvas id="viewer-canvas"></canvas>
       <div class="viewer-toolbar">
         <span class="progress-label" id="viewer-meta">Splat ready</span>
