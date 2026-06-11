@@ -2526,12 +2526,12 @@ function renderDemoPicker() {
 async function _probeDemoSplat(url) {
   let timer = null;
   try {
-    const ctrl = new AbortController();
-    timer = setTimeout(() => ctrl.abort(), 8000);
+    const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    if (ctrl) timer = setTimeout(() => ctrl.abort(), 8000);
     const resp = await fetch(url, {
       method: 'GET',
       headers: { Range: 'bytes=0-0' },
-      signal: ctrl.signal,
+      signal: ctrl ? ctrl.signal : undefined,
     });
     // Release the stream — the probe only needs the status line.
     resp.body?.cancel().catch(() => { /* best-effort */ });
@@ -2543,6 +2543,26 @@ async function _probeDemoSplat(url) {
   }
 }
 
+/**
+ * Sync the ?demo= query param to the current demo view (a sample id, or '1'
+ * for the picker) without a navigation, so the address bar is always a
+ * correct deep link for Share. Best-effort: history can be unavailable or
+ * throw in embedded contexts, and the URL is cosmetic there.
+ */
+function _setDemoUrlParam(value) {
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set('demo', value);
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+    // Keep the error screen's exit link in step: its href is seeded from the
+    // STARTUP query string in enterDemoMode, so without this a reload via
+    // "Back to start" would resurrect whatever ?demo= the page was opened
+    // with rather than the state the user actually left.
+    const exitErr = $('btn-exit-error');
+    if (exitErr) exitErr.setAttribute('href', url.pathname + url.search + url.hash);
+  } catch (err) { /* best-effort — Share falls back to the entry URL */ }
+}
+
 /** Open one pre-baked sample in the existing interactive Spark viewer. */
 async function openDemoSample(sample) {
   const run = resetRun();
@@ -2552,6 +2572,9 @@ async function openDemoSample(sample) {
   state.splatUrl = null;
   state.cleanupSplatUrl = null;
   _setDemoStatus(null);
+  // Keep the address bar a true deep link to the open sample, so Share (which
+  // shares the page URL in demo mode) shares this sample, not the picker.
+  _setDemoUrlParam(sample.id);
 
   showPhase(Phase.READY);
   state.viewerStatus = 'loading';
@@ -2608,14 +2631,22 @@ async function enterDemoMode() {
   if (backBtn) {
     backBtn.setAttribute('data-i18n', 'demo.backToSamples');
     backBtn.textContent = t('demo.backToSamples', null, 'Back to samples');
-    backBtn.addEventListener('click', () => { showPhase(Phase.DEMO); });
+    backBtn.addEventListener('click', () => {
+      _setDemoUrlParam('1'); // back on the picker — share the picker, not the last sample
+      showPhase(Phase.DEMO);
+    });
   }
   // The error screen's exits also return to the demo picker / demo URL.
   const retryBtn = $('btn-retry');
-  if (retryBtn) retryBtn.addEventListener('click', () => { showPhase(Phase.DEMO); });
+  if (retryBtn) {
+    retryBtn.addEventListener('click', () => {
+      _setDemoUrlParam('1'); // also lands on the picker
+      showPhase(Phase.DEMO);
+    });
+  }
   const exitErr = $('btn-exit-error');
   if (exitErr) {
-    try { exitErr.setAttribute('href', './' + window.location.search); }
+    try { exitErr.setAttribute('href', window.location.pathname + window.location.search + window.location.hash); }
     catch (err) { /* keep the default href */ }
   }
 
