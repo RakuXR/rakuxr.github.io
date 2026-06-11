@@ -2559,7 +2559,7 @@ function _setDemoUrlParam(value) {
     // "Back to start" would resurrect whatever ?demo= the page was opened
     // with rather than the state the user actually left.
     const exitErr = $('btn-exit-error');
-    if (exitErr) exitErr.setAttribute('href', './' + url.search + url.hash);
+    if (exitErr) exitErr.setAttribute('href', url.pathname + url.search + url.hash);
   } catch (err) { /* best-effort — Share falls back to the entry URL */ }
 }
 
@@ -2646,7 +2646,7 @@ async function enterDemoMode() {
   }
   const exitErr = $('btn-exit-error');
   if (exitErr) {
-    try { exitErr.setAttribute('href', './' + window.location.search); }
+    try { exitErr.setAttribute('href', window.location.pathname + window.location.search + window.location.hash); }
     catch (err) { /* keep the default href */ }
   }
 
