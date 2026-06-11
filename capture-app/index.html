@@ -283,6 +283,60 @@
       align-self: center;
     }
 
+    /* Live capture status: frame counter + directional coverage ring */
+    .capture-status {
+      align-self: stretch;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .capture-status[hidden] { display: none; }
+    .frame-counter {
+      background: rgba(14,14,20,0.78);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 14px;
+      min-width: 96px;
+    }
+    .frame-counter-line { line-height: 1; }
+    .frame-count {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      transition: color .2s;
+    }
+    .frame-target { font-size: 15px; color: var(--muted); }
+    .frame-quality { font-size: 12px; margin-top: 4px; color: var(--muted); }
+    /* Quality tiers: red < 10, yellow 10-19, green 20+ (task #2). */
+    .frame-counter.q-low .frame-count { color: var(--accent2, #ff6b6b); }
+    .frame-counter.q-mid .frame-count { color: var(--warn, #f0b429); }
+    .frame-counter.q-good .frame-count { color: var(--ok, #3ec97a); }
+
+    .coverage-ring {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .coverage-ring[hidden] { display: none; }
+    .coverage-ring svg { display: block; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5)); }
+    /* Sector states are toggled via class on each <path> by capture_app.js. */
+    .ring-sector { fill: rgba(255,255,255,0.14); transition: fill .25s; }
+    .ring-sector.covered { fill: var(--ok, #3ec97a); }
+    .ring-sector.current { fill: var(--accent, #6c63ff); }
+    .coverage-ring-hint {
+      background: rgba(14,14,20,0.78);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px 8px;
+      font-size: 11px;
+      max-width: 140px;
+      text-align: center;
+    }
+    .coverage-ring-hint:empty { display: none; }
+
     /* Scale-reference picker (metric-scale calibration step) */
     .scale-options {
       display: flex;
@@ -767,6 +821,25 @@
       <div class="scale-frame" id="scale-frame" hidden>
         <div class="scale-reticle" id="scale-reticle"></div>
         <div class="scale-frame-label" id="scale-frame-label">Hold the reference steady in the frame</div>
+      </div>
+      <!-- Live capture status: real frame counter + directional coverage ring.
+           capture_app.js owns all text/state here (updateCaptureProgress,
+           updateCoverageRing); it is shown only during the room sweep and the
+           ring appears only once real device-orientation data arrives, so the
+           directional hints are never fabricated. -->
+      <div class="capture-status" id="capture-status" hidden>
+        <div class="frame-counter" id="frame-counter">
+          <div class="frame-counter-line">
+            <span class="frame-count" id="frame-count">0</span><span class="frame-target" id="frame-target">/20</span>
+          </div>
+          <div class="frame-quality" id="frame-quality">Keep scanning&hellip;</div>
+        </div>
+        <div class="coverage-ring" id="coverage-ring" hidden>
+          <svg viewBox="-50 -50 100 100" width="76" height="76" aria-hidden="true">
+            <g id="coverage-ring-sectors"></g>
+          </svg>
+          <span class="coverage-ring-hint" id="coverage-ring-hint"></span>
+        </div>
       </div>
       <div class="capture-hint" id="capture-hint">Hold steady to begin&hellip;</div>
         <div>

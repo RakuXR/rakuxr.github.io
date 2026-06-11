@@ -631,6 +631,11 @@ function resetScaleState() {
  * normal room sweep. A skip goes straight to the sweep.
  */
 async function beginCapture() {
+  // Request the DeviceOrientation permission FIRST, while we are still inside
+  // the capture button's user-gesture task (iOS 13+ requires that). Fire and
+  // forget — the listener is attached later in startCoverageTracking(); if the
+  // user denies, the coverage ring just stays hidden.
+  ensureOrientationPermission();
   const ok = await requestCamera();
   if (!ok) return; // requestCamera() already surfaced the error screen
   showPhase(Phase.CAPTURE);
@@ -724,6 +729,12 @@ function startCaptureLoop() {
   state.coverage = 0;
   state.capturedFrames = [];
   updateCoverage(0);
+  // Reveal the live capture status (real frame counter + directional coverage)
+  // and start tracking camera orientation for the coverage ring.
+  const statusEl = $('capture-status');
+  if (statusEl) statusEl.hidden = false;
+  updateCaptureProgress();
+  startCoverageTracking();
   $('btn-finish-capture').disabled = true;
 
   // Heuristic coverage tick. Real impl: SLAM/pose-spread from the frames.
@@ -733,6 +744,7 @@ function startCaptureLoop() {
     state.coverage = Math.min(1, state.coverage + 0.04 + Math.random() * 0.02);
     captureKeyframe();
     updateCoverage(state.coverage);
+    updateCaptureProgress(); // surface the real, growing keyframe count
     if (state.coverage >= 0.6) $('btn-finish-capture').disabled = false;
     if (state.coverage >= 1) stopCaptureLoop();
   }, 400);
@@ -740,6 +752,7 @@ function startCaptureLoop() {
 
 function stopCaptureLoop() {
   if (coverageTimer) { clearInterval(coverageTimer); coverageTimer = null; }
+  stopCoverageTracking(); // detach the deviceorientation listener
 }
 
 // Offscreen canvas reused for every keyframe grab.
@@ -787,6 +800,200 @@ function updateCoverage(coverage) {
     li.classList.toggle('done', i < stepIdx);
     li.classList.toggle('active', i === stepIdx && stepIdx < steps.length);
   });
+}
+
+// ============================================================================
+// Live capture feedback — real frame counter + directional coverage guidance
+// ============================================================================
+// Two HONEST, additive signals shown during the room sweep, layered on top of
+// the existing (heuristic) coverage bar:
+//
+//   1. Frame counter — the REAL number of keyframes queued for upload
+//      (state.capturedFrames.length), with a red/yellow/green quality tier:
+//      red < 10, yellow 10-19, green 20+ (the "good coverage" goal).
+//
+//   2. Directional coverage — which yaw sectors the camera has actually swept,
+//      derived from real DeviceOrientation events. The ring AND its directional
+//      hints appear ONLY once usable orientation data has arrived, so a device
+//      with no motion sensor (or with the permission denied) never sees a
+//      fabricated direction — the frame counter still works on its own. This
+//      keeps the feature within the honesty rule: no invented signal.
+
+const FRAME_TARGET = 20;            // "good coverage" keyframe goal (quality tiers)
+const COVERAGE_SECTORS = 8;         // 8 yaw sectors of 45° each
+const SECTOR_DEG = 360 / COVERAGE_SECTORS;
+
+// Module-local coverage-tracking state — purely UI, kept out of `state`.
+let _coveredSectors = new Set();    // sector indices 0..7 the camera has faced
+let _currentSector = null;          // sector the camera faces right now
+let _lastPaintedSector = null;      // last sector we repainted the ring for
+let _orientationActive = false;     // true once a usable orientation event landed
+let _headingSense = 1;              // +1 compass (CW heading), -1 alpha (CCW)
+let _onDeviceOrientation = null;    // bound listener, for clean removal
+
+/**
+ * Frame counter — render the REAL queued-keyframe count with its quality tier.
+ * Called every capture tick and on a locale switch (relocalizeDynamic).
+ */
+function updateCaptureProgress() {
+  const counter = $('frame-counter');
+  const countEl = $('frame-count');
+  const targetEl = $('frame-target');
+  const qualEl = $('frame-quality');
+  const n = state.capturedFrames.length;
+  if (countEl) countEl.textContent = String(n);
+  if (targetEl) {
+    targetEl.textContent =
+      '/' + FRAME_TARGET + ' ' + t('capture.framesUnit', null, 'frames');
+  }
+  if (counter) {
+    // red < 10, yellow 10-19, green 20+ .
+    counter.classList.toggle('q-low', n < 10);
+    counter.classList.toggle('q-mid', n >= 10 && n < FRAME_TARGET);
+    counter.classList.toggle('q-good', n >= FRAME_TARGET);
+  }
+  if (qualEl) {
+    qualEl.textContent = n >= FRAME_TARGET
+      ? t('capture.goodCoverage', null, 'Good coverage!')
+      : t('capture.keepScanning', null, 'Keep scanning…');
+  }
+}
+
+/** Compass-style heading (deg, 0..360) from an orientation event, or null. */
+function _headingFromEvent(e) {
+  // iOS exposes a true compass heading; elsewhere `alpha` is the yaw. Alpha's
+  // zero may be arbitrary, but the RELATIVE sweep across sectors is all we need.
+  let h = (typeof e.webkitCompassHeading === 'number') ? e.webkitCompassHeading
+        : (typeof e.alpha === 'number') ? e.alpha : null;
+  if (h === null || !isFinite(h)) return null;
+  return ((h % 360) + 360) % 360;
+}
+
+/** Build the 8 ring-sector <path> nodes once (idempotent). */
+function buildCoverageRing() {
+  const host = $('coverage-ring-sectors');
+  if (!host || host.childElementCount) return; // already built
+  const rIn = 24, rOut = 44, gapDeg = 3; // small gap between adjacent sectors
+  const pt = (r, aDeg) => {
+    const a = aDeg * Math.PI / 180;
+    return `${(r * Math.sin(a)).toFixed(2)} ${(-r * Math.cos(a)).toFixed(2)}`;
+  };
+  for (let i = 0; i < COVERAGE_SECTORS; i++) {
+    const a0 = i * SECTOR_DEG + gapDeg;
+    const a1 = (i + 1) * SECTOR_DEG - gapDeg;
+    const large = (a1 - a0) > 180 ? 1 : 0;
+    const d = `M${pt(rOut, a0)} A${rOut} ${rOut} 0 ${large} 1 ${pt(rOut, a1)} ` +
+              `L${pt(rIn, a1)} A${rIn} ${rIn} 0 ${large} 0 ${pt(rIn, a0)} Z`;
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('class', 'ring-sector');
+    path.dataset.sector = String(i);
+    host.appendChild(path);
+  }
+}
+
+/** Repaint the ring's sector fills + the directional hint from covered set. */
+function updateCoverageRing() {
+  const ring = $('coverage-ring');
+  if (!ring) return;
+  // Honesty gate: with no real orientation data we keep the ring hidden so a
+  // direction is never fabricated.
+  if (!_orientationActive) { ring.hidden = true; return; }
+  ring.hidden = false;
+  buildCoverageRing();
+  document.querySelectorAll('#coverage-ring-sectors .ring-sector').forEach((p) => {
+    const i = Number(p.dataset.sector);
+    p.classList.toggle('covered', _coveredSectors.has(i));
+    p.classList.toggle('current', i === _currentSector);
+  });
+  const hintEl = $('coverage-ring-hint');
+  if (hintEl) hintEl.textContent = _coverageHint();
+}
+
+/** Directional text hint toward the nearest uncovered sector. */
+function _coverageHint() {
+  if (_coveredSectors.size >= COVERAGE_SECTORS) {
+    return t('capture.coverageComplete', null, 'All around — great coverage!');
+  }
+  if (_currentSector === null) return '';
+  // Nearest uncovered sector by signed sector distance in (-4 .. 4].
+  let best = null, bestAbs = Infinity;
+  for (let i = 0; i < COVERAGE_SECTORS; i++) {
+    if (_coveredSectors.has(i)) continue;
+    let d = i - _currentSector;
+    while (d > COVERAGE_SECTORS / 2) d -= COVERAGE_SECTORS;
+    while (d <= -COVERAGE_SECTORS / 2) d += COVERAGE_SECTORS;
+    if (Math.abs(d) < bestAbs) { bestAbs = Math.abs(d); best = d; }
+  }
+  if (best === null) return '';
+  if (bestAbs >= COVERAGE_SECTORS / 2) {
+    return t('capture.turnAround', null, 'Turn around to cover the other side');
+  }
+  // Physical clockwise rotation = "turn right". Compass heading increases
+  // clockwise (_headingSense +1); raw alpha increases counter-clockwise
+  // (_headingSense -1), so multiply the sector delta by the sense to get the
+  // real-world turn direction.
+  return (_headingSense * best) > 0
+    ? t('capture.turnRight', null, 'Try turning right')
+    : t('capture.turnLeft', null, 'Try turning left');
+}
+
+/** DeviceOrientation handler: map heading -> sector, mark covered, repaint. */
+function _handleOrientation(e) {
+  const h = _headingFromEvent(e);
+  if (h === null) return;
+  _headingSense = (typeof e.webkitCompassHeading === 'number') ? 1 : -1;
+  const sector = Math.floor(h / SECTOR_DEG) % COVERAGE_SECTORS;
+  const first = !_orientationActive;
+  _orientationActive = true;
+  _currentSector = sector;
+  _coveredSectors.add(sector);
+  // deviceorientation fires ~60 Hz; only repaint when the faced sector changes
+  // (covered set + hint only change on a sector boundary crossing).
+  if (first || sector !== _lastPaintedSector) {
+    _lastPaintedSector = sector;
+    updateCoverageRing();
+  }
+}
+
+/**
+ * Ask for the DeviceOrientation permission (iOS 13+ gates the sensor behind a
+ * user-gesture prompt). Returns a promise that resolves to 'granted'/'denied';
+ * platforms without the gate resolve 'granted'. Best-effort — a denial just
+ * leaves the ring hidden.
+ */
+function ensureOrientationPermission() {
+  try {
+    const DOE = typeof window !== 'undefined' && window.DeviceOrientationEvent;
+    if (DOE && typeof DOE.requestPermission === 'function') {
+      return DOE.requestPermission().catch(() => 'denied');
+    }
+  } catch (e) { /* ignore — no gating here */ }
+  return Promise.resolve('granted');
+}
+
+/** Begin directional-coverage tracking for a fresh capture. */
+function startCoverageTracking() {
+  _coveredSectors = new Set();
+  _currentSector = null;
+  _lastPaintedSector = null;
+  _orientationActive = false;
+  _headingSense = 1;
+  updateCoverageRing(); // stays hidden until the first real event arrives
+  if (typeof window === 'undefined' || !('DeviceOrientationEvent' in window)) return;
+  _onDeviceOrientation = _handleOrientation;
+  // Attach regardless of the permission result: if it was denied the event
+  // simply never fires and the ring stays hidden (honest — no fake direction).
+  window.addEventListener('deviceorientation', _onDeviceOrientation);
+}
+
+/** Stop directional-coverage tracking and detach the listener. */
+function stopCoverageTracking() {
+  if (_onDeviceOrientation) {
+    window.removeEventListener('deviceorientation', _onDeviceOrientation);
+    _onDeviceOrientation = null;
+  }
+  _orientationActive = false;
 }
 
 // ============================================================================
@@ -1073,7 +1280,7 @@ function cancelReconstruction(captureId) {
  * @param {string} splatUrl .spz/.sog asset URL on cdn.raku.games
  * @returns {Promise<()=>void>} teardown — stops the render loop + listeners
  */
-async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
+async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus) {
   // When trackStatus is true this is the REAL capture viewer: record the
   // viewer status in `state` so relocalizeDynamic() can re-render the toolbar
   // on a locale switch. The intro preview passes false — it must not touch the
@@ -1138,7 +1345,14 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets) {
     // scale, so the fixed radius-2.8 orbit around the origin can point at empty
     // space and render black. Once the splat geometry is ready, recenter it on
     // the origin and size the orbit to fit its bounding box.
-    splats.initialized.then(() => {
+    //
+    // autoFocus gates this: it runs ONLY for genuine CAPTURE results (the splat
+    // came back from the reconstruction API). The intro sample and the booth
+    // demo samples are curated public splats already centred at the origin and
+    // sized for the hardcoded radius-2.8 orbit — recentering/refitting them
+    // pushes the camera far out and renders them tiny (PR #1610 regression). So
+    // those paths pass autoFocus=false and keep the known-good default framing.
+    if (autoFocus) splats.initialized.then(() => {
       if (!running) return; // viewer torn down before the geometry was ready
       const box = splats.getBoundingBox(false);
       const center = box.getCenter(new THREE.Vector3());
@@ -1583,8 +1797,10 @@ async function loadSplatViewerInto(canvas, url) {
   // text can never paint on the page.
   const sink = { meta: document.createElement('span'), note: document.createElement('span') };
   // trackStatus = false: the intro preview must not touch the capture
-  // viewer's shared status state either.
-  return loadSplatViewer(canvas, url, false, sink);
+  // viewer's shared status state either. autoFocus = false: the sample is a
+  // curated, origin-centred splat sized for the default radius-2.8 orbit, so
+  // it must keep the known-good framing rather than be recentered/refit.
+  return loadSplatViewer(canvas, url, false, sink, false);
 }
 
 // ============================================================================
@@ -1680,7 +1896,7 @@ async function runPipeline() {
     state.cleanupSplatUrl = state.splatUrl; // the 'Clean up' button acts on this
     state.viewerStatus = 'loading';
     state.viewerOfflineFile = null;
-    const teardown = await loadSplatViewer($('viewer-canvas'), state.splatUrl, true);
+    const teardown = await loadSplatViewer($('viewer-canvas'), state.splatUrl, true, null, true);
     if (run !== state.runToken) {
       teardown(); // user left while the splat was loading
       return;
@@ -1958,7 +2174,7 @@ async function reopenCapture(entry) {
     state.viewerStatus = 'loading';
     try {
       const teardown = await loadSplatViewer(
-        $('viewer-canvas'), entry.splatUrl, true);
+        $('viewer-canvas'), entry.splatUrl, true, null, true);
       if (run !== state.runToken) { teardown(); return; }
       state.viewerTeardown = teardown;
     } catch (err) {
@@ -1992,7 +2208,7 @@ async function reopenCapture(entry) {
     } catch (err) { /* non-fatal */ }
     showPhase(Phase.READY);
     state.cleanupSplatUrl = state.splatUrl;
-    const teardown = await loadSplatViewer($('viewer-canvas'), state.splatUrl, true);
+    const teardown = await loadSplatViewer($('viewer-canvas'), state.splatUrl, true, null, true);
     if (run !== state.runToken) { teardown(); return; }
     state.viewerTeardown = teardown;
   } catch (err) {
@@ -2191,6 +2407,8 @@ function relocalizeDynamic() {
       // Re-renders #coverage-label and #capture-hint at the live coverage, and
       // the in-camera scale sub-step overlay label when that sub-step is up.
       updateCoverage(state.coverage);
+      updateCaptureProgress();  // frame counter + quality text in the new locale
+      updateCoverageRing();     // directional coverage hint in the new locale
       applyScaleFrameLabel();
       break;
 
@@ -2623,7 +2841,10 @@ async function openDemoSample(sample) {
   try {
     // Same viewer path as a finished scan; a Spark/three CDN miss degrades to
     // the labelled 2D placeholder via cdn_fallback.js, which is also honest.
-    const teardown = await loadSplatViewer($('viewer-canvas'), sample.url, true);
+    // autoFocus = false: booth demo samples are the same curated, origin-centred
+    // public splats as the intro preview, sized for the default orbit — only a
+    // real capture result (arbitrary world coords) needs the recenter/refit.
+    const teardown = await loadSplatViewer($('viewer-canvas'), sample.url, true, null, false);
     if (run !== state.runToken) { teardown(); return; }
     state.viewerTeardown = teardown;
   } catch (err) {
