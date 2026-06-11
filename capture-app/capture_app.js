@@ -146,6 +146,7 @@ const Phase = Object.freeze({
   INTRO: 'intro',
   SIGNIN: 'signin',
   REGISTER: 'register',
+  DEMO: 'demo',
   GUIDE: 'guide',
   SCALE: 'scale',
   CAPTURE: 'capture',
@@ -185,6 +186,7 @@ const state = {
   procStartedAt: null,    // performance.now() when processing (post-upload) began -> elapsed timer
   procElapsedMs: 0,       // elapsed ms in the current processing run, snapshot for the renderer
   procSlowHint: false,    // 10-min+ : the existing "still working" reassurance is active
+  gpuWorkerDown: null,    // advisory /recon/availability result for this run: null=unknown, true=no worker online
   introSampleName: null,  // label of the intro preview sample, for its caption
 
   // ---- metric-scale calibration ------------------------------------------
@@ -207,6 +209,7 @@ const screens = {
   [Phase.INTRO]: 'screen-intro',
   [Phase.SIGNIN]: 'screen-signin',
   [Phase.REGISTER]: 'screen-register',
+  [Phase.DEMO]: 'screen-demo',
   [Phase.GUIDE]: 'screen-guide',
   [Phase.SCALE]: 'screen-scale',
   [Phase.CAPTURE]: 'camera-stage',
@@ -247,6 +250,19 @@ function showPhase(phase) {
  * messages that have no locale key (e.g. a raw server `detail`); such text is
  * shown verbatim and cannot be re-localized.
  */
+/**
+ * The backend's worker-down error suggests "try phone GPU mode instead", but
+ * the server cannot know this browser's capabilities. When the text suggests
+ * phone GPU mode and WebGPU is absent here, append the honest device-side
+ * caveat so the suggestion isn't a dead end (the compute toggle hard-disables
+ * the phone option for the same reason).
+ */
+function _phoneGpuSuggestionNote(text) {
+  if (!text || !/phone gpu mode/i.test(text) || _hasWebGPU()) return text;
+  return text + ' ' + t('error.phoneGpuUnsupported', null,
+    'Note: phone GPU mode is not supported by this browser.');
+}
+
 function showError(message) {
   let text;
   if (message && typeof message === 'object') {
@@ -270,7 +286,7 @@ function showError(message) {
   state.errorDiagShown = false;
   const techWrap = $('error-technical');
   if (techWrap) techWrap.hidden = true;
-  $('error-message').textContent = text;
+  $('error-message').textContent = _phoneGpuSuggestionNote(text);
   applyErrorDiagnostics();
   showPhase(Phase.ERROR);
 }
@@ -351,13 +367,15 @@ function diagnoseFailureKey(rawError, lastStage) {
 function applyErrorMessage() {
   const el = $('error-message');
   if (!el) return;
+  let text;
   if (state.errorMessageKey) {
-    el.textContent = t(state.errorMessageKey, state.errorMessageParams);
+    text = t(state.errorMessageKey, state.errorMessageParams);
   } else if (state.errorMessageText != null) {
-    el.textContent = state.errorMessageText; // literal text — not localizable
+    text = state.errorMessageText; // literal text — not localizable
   } else {
-    el.textContent = t('error.generic', null, 'Something went wrong.');
+    text = t('error.generic', null, 'Something went wrong.');
   }
+  el.textContent = _phoneGpuSuggestionNote(text);
   applyErrorDiagnostics();
 }
 
@@ -857,6 +875,14 @@ function _getAuthToken() {
  */
 function uploadCapture(frames, onProgress) {
   return new Promise((resolve, reject) => {
+    // Booth demo mode (?demo=) must NEVER call the capture API. The demo flow
+    // does not route here, but if it somehow did, fail loudly and honestly
+    // rather than uploading anything (CLAUDE.md: fake success is forbidden).
+    if (_demoMode()) {
+      reject(new Error(t('demo.noLiveCapture', null,
+        'Demo mode: live capture and reconstruction are disabled — nothing was uploaded.')));
+      return;
+    }
     if (!frames || !frames.length) {
       reject(new Error(t('error.noFrames', null,
         'No frames were captured — try scanning the room again.')));
@@ -951,6 +977,12 @@ function uploadCapture(frames, onProgress) {
  * @returns {Promise<string|null>} splat URL, or null if aborted/cancelled
  */
 async function pollReconstruction(captureId, onProgress, shouldAbort) {
+  // Demo mode never has a live reconstruction job — refuse loudly (see
+  // uploadCapture's matching guard) instead of polling the API.
+  if (_demoMode()) {
+    throw new Error(t('demo.noLiveCapture', null,
+      'Demo mode: live capture and reconstruction are disabled — nothing was uploaded.'));
+  }
   const POLL_MS = 2000;
   // CPU SfM on big scenes can legitimately take 20+ min. Set the ceiling at
   // 30 min so the client doesn't kill a job that is still making progress.
@@ -1024,7 +1056,7 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
 
 /** Best-effort cancellation of an in-flight reconstruction job. */
 function cancelReconstruction(captureId) {
-  if (!captureId) return;
+  if (!captureId || _demoMode()) return; // demo mode never touches the API
   fetch(`${API_BASE}/api/v1/capture/${captureId}`, { method: 'DELETE' }).catch(() => {});
 }
 
@@ -1398,6 +1430,10 @@ async function loadSampleManifest() {
  * intro keeps its static copy and the preview panel stays hidden.
  */
 async function initIntroPreview() {
+  // Booth demo mode replaces the intro entirely; the stacked demo listeners
+  // route INTRO-bound buttons straight back to Phase.DEMO, so skip the
+  // manifest fetch the transient INTRO would otherwise kick off.
+  if (_demoMode()) return;
   const panel = $('intro-preview');
   const canvas = $('intro-preview-canvas');
   if (!panel || !canvas) return; // preview is optional UI
@@ -1529,12 +1565,41 @@ async function loadSplatViewerInto(canvas, url) {
 // Orchestration — run the pipeline after capture finishes
 // ============================================================================
 
+/**
+ * Advisory pre-dispatch probe of GET /capture/recon/availability. The server
+ * already fails a doomed job honestly (~30s claim timeout), but without this
+ * the user watches an estimated progress bar the platform knows is going
+ * nowhere. Best-effort and non-blocking: any error leaves the state unknown
+ * and the flow untouched — the warning only ever ADDS honesty, never gates.
+ */
+function _checkReconAvailability(run) {
+  let timer = null;
+  const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+  if (ctrl) timer = setTimeout(() => ctrl.abort(), 6000);
+  fetch(`${API_BASE}/api/v1/capture/recon/availability`, {
+    method: 'GET',
+    signal: ctrl ? ctrl.signal : undefined,
+  })
+    .then((resp) => (resp.ok ? resp.json() : null))
+    .then((data) => {
+      if (run !== state.runToken || !data) return;
+      if (data.available === false) {
+        state.gpuWorkerDown = true;
+        applyProcessingLabels();
+      }
+    })
+    .catch(() => { /* advisory only — unknown stays unknown */ })
+    .finally(() => { if (timer) clearTimeout(timer); });
+}
+
 async function runPipeline() {
   // Take a run token; if the user navigates away, resetRun() bumps it and the
   // stale-token checks below abandon this run without touching the new UI.
   const run = resetRun();
   try {
     state.uploadPct = null;          // null until the first progress event
+    state.gpuWorkerDown = null;
+    _checkReconAvailability(run);
     showPhase(Phase.UPLOADING);
     setFill('upload-fill', 0);
     applyUploadLabel();              // 'Preparing…' in the active locale
@@ -1705,7 +1770,13 @@ function applyProcessingLabels() {
     if (labelEl) labelEl.textContent = t('processing.labelDefault', null, 'This usually takes a minute or two…');
     if (trackEl) trackEl.classList.remove('is-indeterminate');
     if (elapsedEl) elapsedEl.textContent = '';
-    if (noticeEl) { noticeEl.textContent = ''; noticeEl.hidden = true; }
+    if (noticeEl) {
+      // The worker-down warning applies even before the first stage report.
+      const notice = state.gpuWorkerDown ? t('processing.gpuWorkerDown', null,
+        'Heads-up: no cloud GPU worker is online right now — this capture will likely fail until one comes back.') : '';
+      noticeEl.textContent = notice;
+      noticeEl.hidden = !notice;
+    }
     return;
   }
 
@@ -1768,9 +1839,14 @@ function applyProcessingLabels() {
   }
 
   // Honest, escalating "limited compute" notice — only during reconstruction.
+  // A known-down GPU worker outranks every reassurance: do not reassure a
+  // user about a job the platform already knows has no worker to run it.
   if (noticeEl) {
     let notice = '';
-    if (isRecon) {
+    if (state.gpuWorkerDown) {
+      notice = t('processing.gpuWorkerDown', null,
+        'Heads-up: no cloud GPU worker is online right now — this capture will likely fail until one comes back.');
+    } else if (isRecon) {
       if (state.procSlowHint) {
         // 10-min+ : reuse the existing strongest reassurance.
         notice = t('processing.slowHint', null,
@@ -1873,6 +1949,8 @@ async function reopenCapture(entry) {
     state.procStartedAt = performance.now();
     state.procElapsedMs = 0;
     state.procSlowHint = false;
+    state.gpuWorkerDown = null;
+    _checkReconAvailability(run);
     showPhase(Phase.PROCESSING);
     state.splatUrl = await pollReconstruction(
       entry.captureId,
@@ -2069,6 +2147,13 @@ function relocalizeDynamic() {
       // Fully static (data-i18n) — i18n.js already handled it. Nothing to do.
       break;
 
+    case Phase.DEMO:
+      // Booth demo: re-render the JS-owned status line + the sample picker's
+      // size hints in the new locale (heading/lead/badge are data-i18n).
+      applyDemoStatus();
+      renderDemoPicker();
+      break;
+
     case Phase.SCALE:
       // The picker option labels are JS-built (from the reference table), so
       // re-render them in the new locale. i18n.js already handled the static
@@ -2114,9 +2199,17 @@ document.addEventListener('DOMContentLoaded', () => {
         window.RakuI18n.onChange(relocalizeDynamic);
       }
       bindEvents();
-      showPhase(Phase.INTRO);
-      initIntroPreview();
-      handleCaptureDeepLink(); // W2A: open ?capture= deep link
+      if (_demoMode()) {
+        // Booth demo (?demo=1 / ?demo=<sampleId>): pre-baked samples only —
+        // no sign-in, no camera, no capture/reconstruction API calls. The
+        // ?capture= deep link is deliberately ignored here: re-opening a
+        // capture would poll the live API. See the demo section below.
+        enterDemoMode();
+      } else {
+        showPhase(Phase.INTRO);
+        initIntroPreview();
+        handleCaptureDeepLink(); // W2A: open ?capture= deep link
+      }
     });
 });
 
@@ -2304,4 +2397,242 @@ function _bindComputeToggle() {
 if (typeof bindEvents === 'function') {
   const _origBindEventsCompute = bindEvents;
   bindEvents = function() { _origBindEventsCompute.apply(this, arguments); _bindComputeToggle(); };
+}
+
+
+// ============================================================================
+// Booth demo mode (?demo=1 / ?demo=<sampleId>) — AWE USA 2026
+// ============================================================================
+// A booth-grade, offline-tolerant flow that renders ONLY the pre-baked sample
+// splats from samples/manifest.json. While demo mode is active:
+//   - sign-in / register and the compute-backend toggle are hidden
+//     (body.demo-mode CSS in index.html);
+//   - the capture/reconstruction API is NEVER called — uploadCapture /
+//     pollReconstruction carry explicit guards that fail loudly if reached;
+//   - the viewer shows an honest "Demo — pre-captured sample" badge so a
+//     sample is never mistaken for a live scan;
+//   - the "Clean up" (external SuperSplat editor) button is hidden;
+//   - "New capture" is repurposed as "Back to samples".
+//
+// Offline tolerance is sw.js's job (raku-demo-splats-v1 cache-first lane for
+// the sample splats + the pinned Spark/three viewer modules): a device that
+// loaded a sample once while online can replay it offline. An uncached sample
+// on an offline device surfaces an explicit, localized message — never a
+// blank canvas, never fake success (CLAUDE.md honesty rule).
+//
+// Zero behavior change when ?demo is absent: every entry point checks
+// _demoMode() and the normal flow is untouched.
+
+/** Parse the ?demo= query param once. null = not in demo mode. */
+function _parseDemoParam() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('demo')) return null;
+    const v = (params.get('demo') || '').trim();
+    // ?demo / ?demo=1 / ?demo=true -> sample picker; ?demo=<id> -> that sample.
+    if (v === '' || v === '1' || v === 'true') return { sampleId: null };
+    return { sampleId: v };
+  } catch (err) {
+    return null; // no URLSearchParams / malformed URL -> normal mode
+  }
+}
+
+const DEMO = _parseDemoParam();
+
+/** True when the page was opened with ?demo=… (booth demo mode). */
+function _demoMode() { return DEMO !== null; }
+
+// JS-owned demo state (module-local; the picker is rebuilt from these on a
+// locale switch via relocalizeDynamic's Phase.DEMO case).
+let _demoSamples = null;       // Array<sample> from samples/manifest.json
+let _demoStatus = null;        // { key, params } of the current status message
+
+/** Set (or clear, with null) the demo picker's status line, by i18n key. */
+function _setDemoStatus(key, params) {
+  _demoStatus = key ? { key: key, params: params || null } : null;
+  applyDemoStatus();
+}
+
+/** Render the demo status line in the active locale. */
+function applyDemoStatus() {
+  const el = $('demo-status');
+  if (!el) return;
+  if (_demoStatus) {
+    el.hidden = false;
+    el.textContent = t(_demoStatus.key, _demoStatus.params);
+  } else {
+    el.hidden = true;
+    el.textContent = '';
+  }
+}
+
+/**
+ * Fetch ALL samples from samples/manifest.json (the intro preview's
+ * loadSampleManifest() returns only the default pick). The manifest is part
+ * of the sw.js shell pre-cache, so this works offline after one online visit.
+ * Returns null when unreachable/malformed — the caller surfaces an explicit,
+ * localized message, never a silent empty picker.
+ */
+async function _loadDemoSamples() {
+  if (_demoSamples) return _demoSamples;
+  try {
+    const resp = await fetch(SAMPLES_MANIFEST_URL);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const samples = (Array.isArray(data && data.samples) ? data.samples : [])
+      .filter((s) => s && s.id && s.url);
+    if (!samples.length) return null;
+    _demoSamples = samples;
+    return samples;
+  } catch (err) {
+    console.warn('[RakuCapture] demo: sample manifest unavailable:', err);
+    return null;
+  }
+}
+
+/** Build the sample-picker buttons. Idempotent; re-run on locale change. */
+function renderDemoPicker() {
+  const host = $('demo-samples');
+  if (!host || !_demoSamples) return;
+  host.textContent = '';
+  _demoSamples.forEach((sample) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'demo-option';
+    const name = document.createElement('span');
+    name.className = 'demo-option-name';
+    name.textContent = sample.label || sample.id;
+    const desc = document.createElement('span');
+    desc.className = 'demo-option-desc';
+    desc.textContent = sample.approxSize
+      ? t('demo.sampleSize', { size: sample.approxSize },
+          sample.approxSize + ' download — cached for offline replay after the first view')
+      : '';
+    btn.appendChild(name);
+    btn.appendChild(desc);
+    btn.addEventListener('click', () => openDemoSample(sample));
+    host.appendChild(btn);
+  });
+}
+
+/**
+ * Honest availability pre-flight for a sample splat: a 1-byte ranged GET.
+ * Online it answers from the network (206/200); offline it answers from
+ * sw.js's raku-demo-splats-v1 cache if the sample was viewed once before
+ * (the SW serves cached demo assets cache-first, ignoring the Range header,
+ * which HTTP permits). If neither works, the caller shows an explicit
+ * localized message instead of handing the viewer a URL that renders blank.
+ */
+async function _probeDemoSplat(url) {
+  let timer = null;
+  try {
+    const ctrl = new AbortController();
+    timer = setTimeout(() => ctrl.abort(), 8000);
+    const resp = await fetch(url, {
+      method: 'GET',
+      headers: { Range: 'bytes=0-0' },
+      signal: ctrl.signal,
+    });
+    // Release the stream — the probe only needs the status line.
+    resp.body?.cancel().catch(() => { /* best-effort */ });
+    return { ok: resp.ok || resp.status === 206, status: resp.status };
+  } catch (err) {
+    return { ok: false, error: err };
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+/** Open one pre-baked sample in the existing interactive Spark viewer. */
+async function openDemoSample(sample) {
+  const run = resetRun();
+  state.captureId = null;
+  // splatUrl/cleanupSplatUrl stay null: 'Clean up' is hidden in demo mode and
+  // 'Share' then shares the page URL (the ?demo= deep link), not the asset.
+  state.splatUrl = null;
+  state.cleanupSplatUrl = null;
+  _setDemoStatus(null);
+
+  showPhase(Phase.READY);
+  state.viewerStatus = 'loading';
+  state.viewerOfflineFile = null;
+  applyViewerStatus();
+
+  const probe = await _probeDemoSplat(sample.url);
+  if (run !== state.runToken) return;
+  if (!probe.ok) {
+    // Back to the picker with an explicit, localized reason — never a blank
+    // canvas, never fake success.
+    showPhase(Phase.DEMO);
+    const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+    _setDemoStatus(
+      offline ? 'demo.splatUnavailableOffline' : 'demo.splatUnreachable',
+      { name: sample.label || sample.id });
+    return;
+  }
+
+  try {
+    // Same viewer path as a finished scan; a Spark/three CDN miss degrades to
+    // the labelled 2D placeholder via cdn_fallback.js, which is also honest.
+    const teardown = await loadSplatViewer($('viewer-canvas'), sample.url, true);
+    if (run !== state.runToken) { teardown(); return; }
+    state.viewerTeardown = teardown;
+  } catch (err) {
+    if (run !== state.runToken) return;
+    console.warn('[RakuCapture] demo: viewer failed:', err);
+    showPhase(Phase.DEMO);
+    _setDemoStatus('demo.splatUnreachable', { name: sample.label || sample.id });
+  }
+}
+
+/**
+ * Enter booth demo mode. Called from the DOMContentLoaded handler INSTEAD of
+ * the normal intro/deep-link startup when ?demo= is present.
+ */
+async function enterDemoMode() {
+  document.body.classList.add('demo-mode');
+  // Show the demo screen synchronously so the intro (auth, compute toggle,
+  // capture CTA) never flashes while the manifest loads.
+  showPhase(Phase.DEMO);
+
+  // Honest badge over the viewer canvas — a sample is never a live scan.
+  const badge = $('viewer-demo-badge');
+  if (badge) badge.hidden = false;
+
+  // Repurpose 'New capture' as 'Back to samples'. bindEvents' original
+  // listener (registered first) still resets the run + shows INTRO; this
+  // second listener immediately routes onward to the demo picker, so the net
+  // effect is "reset, then back to the sample picker". Swapping the data-i18n
+  // key keeps the new label correct across locale switches.
+  const backBtn = $('btn-new-capture');
+  if (backBtn) {
+    backBtn.setAttribute('data-i18n', 'demo.backToSamples');
+    backBtn.textContent = t('demo.backToSamples', null, 'Back to samples');
+    backBtn.addEventListener('click', () => { showPhase(Phase.DEMO); });
+  }
+  // The error screen's exits also return to the demo picker / demo URL.
+  const retryBtn = $('btn-retry');
+  if (retryBtn) retryBtn.addEventListener('click', () => { showPhase(Phase.DEMO); });
+  const exitErr = $('btn-exit-error');
+  if (exitErr) {
+    try { exitErr.setAttribute('href', './' + window.location.search); }
+    catch (err) { /* keep the default href */ }
+  }
+
+  const samples = await _loadDemoSamples();
+  if (!samples) {
+    // Explicit failure: offline with no cached shell, or a malformed
+    // manifest. The picker stays empty and says exactly why.
+    _setDemoStatus('demo.manifestError');
+    return;
+  }
+  renderDemoPicker();
+
+  if (DEMO.sampleId) {
+    const pick = samples.find((s) => s.id === DEMO.sampleId);
+    if (pick) { openDemoSample(pick); return; }
+    // Unknown id in the URL: say so and fall back to the picker — do not
+    // silently substitute a different sample.
+    _setDemoStatus('demo.unknownSample', { id: DEMO.sampleId });
+  }
 }

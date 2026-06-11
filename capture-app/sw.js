@@ -13,10 +13,90 @@
 // cdn.raku.games are intentionally NOT cached here (they are large and handled
 // by the viewer/HTTP cache); reconstruction API calls are never cached.
 //
+// EXCEPTION — booth demo mode (?demo=, AWE USA 2026): the pre-baked sample
+// splats listed in samples/manifest.json and the pinned Spark/three viewer
+// modules get a dedicated cache-first lane (DEMO_CACHE below) so a booth
+// device that loaded the demo once while online can replay it fully offline.
+// Only the enumerated URLs/prefixes are eligible; API calls are never cached.
+//
 // Mirrors web/player/sw.js conventions.
 
-const CACHE_VERSION = 'raku-capture-v5';
+const CACHE_VERSION = 'raku-capture-v6';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
+
+// ---------------------------------------------------------------------------
+// Booth demo cache (offline replay of the pre-baked sample splats)
+// ---------------------------------------------------------------------------
+// Cache-first with a hard entry cap. Versioned independently of the shell
+// cache so a shell bump does not evict ~40 MB of warmed splats; old demo
+// cache versions are cleaned in activate.
+const DEMO_CACHE = 'raku-demo-splats-v1';
+
+// FIFO entry cap. 3 sample splats (~42 MB total) + 2 viewer modules (~6 MB)
+// fit comfortably; the cap bounds growth if the manifest grows.
+const DEMO_CACHE_MAX_ENTRIES = 8;
+
+// The pinned viewer modules needed to render offline. Keep in sync with
+// THREE_CDN_URL / SPARK_CDN_URL in capture_app.js + the index.html importmap.
+const DEMO_CDN_MODULE_URLS = [
+  'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js',
+  'https://cdn.jsdelivr.net/npm/@sparkjsdev/spark@0.1.10/dist/spark.module.js',
+];
+
+// Allowlisted sample-splat URL prefixes — the verified hosts/paths of every
+// entry in samples/manifest.json (re-verified 2026-06-07). Keep in sync when
+// the manifest changes hosts (e.g. the planned cdn.raku.games migration).
+const DEMO_SPLAT_URL_PREFIXES = [
+  'https://sparkjs.dev/assets/splats/',
+  'https://storage.googleapis.com/forge-dev-public/',
+];
+
+function isDemoAsset(url) {
+  if (DEMO_CDN_MODULE_URLS.indexOf(url.href) !== -1) return true;
+  return DEMO_SPLAT_URL_PREFIXES.some((p) => url.href.startsWith(p));
+}
+
+async function demoCacheFirst(request) {
+  const cache = await caches.open(DEMO_CACHE);
+  // Match by URL string (not the Request) so a Range-carrying availability
+  // probe still hits the cached full response. Serving a complete 200 to a
+  // ranged request is spec-permitted (a server MAY ignore Range).
+  const cached = await cache.match(request.url);
+  if (cached) return cached;
+
+  let response;
+  try {
+    response = await fetch(request);
+  } catch (err) {
+    // Offline and not cached -> explicit failure, never a fake success. The
+    // app maps this to a localized "open it once while online" message.
+    return new Response('Demo asset offline and not cached', {
+      status: 503,
+      statusText: 'Service Unavailable',
+    });
+  }
+  // Cache only complete, successful, readable responses. 206 partials (the
+  // app's ranged probe) and opaque/error responses pass through uncached.
+  if (response && response.status === 200) {
+    try {
+      await cache.put(request.url, response.clone());
+      await trimDemoCache(cache);
+    } catch (err) {
+      // Quota/clone failure must not break the render itself.
+      console.warn('[RakuCapture SW] demo cache put failed:', err);
+    }
+  }
+  return response;
+}
+
+// FIFO-ish cap: the Cache API has no eviction policy, so drop the oldest
+// entries (cache.keys() preserves insertion order) beyond the cap.
+async function trimDemoCache(cache) {
+  const keys = await cache.keys();
+  for (let i = 0; i < keys.length - DEMO_CACHE_MAX_ENTRIES; i++) {
+    await cache.delete(keys[i]);
+  }
+}
 
 const SHELL_URLS = [
   './',
@@ -64,7 +144,11 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((names) =>
       Promise.all(
         names
-          .filter((n) => n.startsWith('raku-capture-') && n !== SHELL_CACHE)
+          .filter(
+            (n) =>
+              (n.startsWith('raku-capture-') && n !== SHELL_CACHE) ||
+              (n.startsWith('raku-demo-splats-') && n !== DEMO_CACHE)
+          )
           .map((n) => caches.delete(n))
       )
     )
@@ -80,7 +164,16 @@ self.addEventListener('fetch', (event) => {
 
   if (event.request.method !== 'GET') return;
 
-  // Never intercept cross-origin (Spark/three CDN, cdn.raku.games splats,
+  // Booth demo assets (sample splats + pinned viewer modules): cache-first so
+  // the ?demo= flow replays offline after one online view. Checked before the
+  // cross-origin passthrough below because these are all cross-origin URLs;
+  // only the enumerated allowlist above is eligible.
+  if (isDemoAsset(url)) {
+    event.respondWith(demoCacheFirst(event.request));
+    return;
+  }
+
+  // Never intercept other cross-origin requests (cdn.raku.games splats,
   // reconstruction API). Let the network/HTTP cache handle those.
   if (url.origin !== self.location.origin) return;
 
