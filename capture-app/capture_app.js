@@ -154,10 +154,14 @@ const SUPERSPLAT_EDITOR_URL = 'https://superspl.at/editor';
 // Sample-splat manifest (real public room-scale splats) for the intro preview.
 const SAMPLES_MANIFEST_URL = './samples/manifest.json';
 
-// Opening orbit yaw for the intro sample splat. A quarter-turn (π/2) past the
-// default 0.6 yaw so the sample room (the fireplace) faces the camera straight
-// on for the first frame, instead of being viewed ~90° off to the side.
-const INTRO_SAMPLE_THETA = 0.6 + Math.PI / 2;
+// Opening orbit yaw for the intro sample splat. 0.6 rad is the original,
+// known-good framing that shows the fireplace opening at a slight, acceptable
+// angle. An earlier attempt added a π/2 quarter-turn to "straighten" it, but
+// that overshot and swung the camera ~180° around to the back of the room.
+// The real culprit was the auto-focus reframing the sample; now that
+// auto-focus is gated to genuine capture results only (loadSplatViewer's
+// autoFocus flag, false for the intro sample), 0.6 looks right again.
+const INTRO_SAMPLE_THETA = 0.6;
 
 // Capture tuning.
 // Upper bound on frames sent per capture — a safety ceiling so a runaway scan
@@ -933,6 +937,7 @@ const SECTOR_DEG = 360 / COVERAGE_SECTORS;
 
 // Module-local coverage-tracking state — purely UI, kept out of `state`.
 let _coveredSectors = new Set();    // sector indices 0..7 the camera has faced
+let _sectorVisits = new Map();      // sector index -> times faced (>=2 = revisited)
 let _currentSector = null;          // sector the camera faces right now
 let _lastPaintedSector = null;      // last sector we repainted the ring for
 let _orientationActive = false;     // true once a usable orientation event landed
@@ -1016,6 +1021,9 @@ function updateCoverageRing() {
   document.querySelectorAll('#coverage-ring-sectors .ring-sector').forEach((p) => {
     const i = Number(p.dataset.sector);
     p.classList.toggle('covered', _coveredSectors.has(i));
+    // Revisited = faced 2+ times. A brighter fill tells the user "you've already
+    // swept this direction" vs a never-covered sector, so they spread out.
+    p.classList.toggle('revisited', (_sectorVisits.get(i) || 0) >= 2);
     p.classList.toggle('current', i === _currentSector);
   });
   const hintEl = $('coverage-ring-hint');
@@ -1065,6 +1073,7 @@ function _handleOrientation(e) {
   if (first || sector !== _lastPaintedSector) {
     _currentSector = sector;
     _coveredSectors.add(sector);
+    _sectorVisits.set(sector, (_sectorVisits.get(sector) || 0) + 1);
     _lastPaintedSector = sector;
     updateCoverageRing();
   }
@@ -1089,6 +1098,7 @@ function ensureOrientationPermission() {
 /** Begin directional-coverage tracking for a fresh capture. */
 function startCoverageTracking() {
   _coveredSectors = new Set();
+  _sectorVisits = new Map();
   _currentSector = null;
   _lastPaintedSector = null;
   _orientationActive = false;
