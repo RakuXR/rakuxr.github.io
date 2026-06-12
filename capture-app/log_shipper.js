@@ -30,7 +30,15 @@
 //   - immediately on ERROR-level entries and on capture state transitions
 //     (capture_app.js calls shipNow());
 //   - on pagehide / visibilitychange:hidden via navigator.sendBeacon (the
-//     only delivery path that survives a closing tab).
+//     only delivery path that survives a closing tab). pagehide is treated
+//     as "maybe coming back": iOS puts the page in the back/forward cache
+//     and later restores it (pageshow with persisted=true), so the flush
+//     must never permanently stop the shipper;
+//   - on pageshow (persisted) / visibilitychange:visible the shipper
+//     RE-ARMS via resume(): any fetch orphaned by the freeze is abandoned
+//     (iOS never settles a fetch it killed on bfcache entry — left alone it
+//     wedges `inFlight` true and silently kills all future shipping), the
+//     ship timer restarts, and retained entries re-ship.
 //
 // HONEST FAILURE HANDLING (CLAUDE.md: fake success is forbidden):
 //   - entries are removed from the queue ONLY after an HTTP 2xx response;
@@ -181,6 +189,8 @@ export function createLogShipper(opts) {
   let degraded = false;
   let nextAllowedAt = 0;          // backoff gate (epoch ms)
   let inFlight = false;
+  let flightGen = 0;              // bumped by resume() to orphan a dead flight
+  let resumeLock = false;         // same-tick double-resume guard (see resume())
   let stopped = false;
   let timer = null;
   const degradedListeners = [];
@@ -256,6 +266,7 @@ export function createLogShipper(opts) {
     });
     const body = JSON.stringify(buildPayload(batch.entries));
     inFlight = true;
+    const gen = flightGen; // resume() bumps this to orphan a frozen flight
     let p;
     try {
       p = fetchFn(url, {
@@ -268,6 +279,11 @@ export function createLogShipper(opts) {
       p = Promise.reject(err);
     }
     return Promise.resolve(p).then((resp) => {
+      // A flight orphaned by resume() must not touch shipper state: its
+      // entries stayed queued (they re-ship; the server dedupes by seq if
+      // this response means they actually landed) and a NEWER flight may
+      // own `inFlight` now.
+      if (gen !== flightGen) return false;
       inFlight = false;
       if (resp && resp.ok) {
         // The capped batch INTENTIONALLY elided middle entries; the whole
@@ -280,6 +296,7 @@ export function createLogShipper(opts) {
       onFailure('HTTP ' + (resp ? resp.status : 'no-response'));
       return false;
     }, (err) => {
+      if (gen !== flightGen) return false; // orphaned — see above
       inFlight = false;
       onFailure(err && err.message ? err.message : String(err));
       return false;
@@ -349,11 +366,46 @@ export function createLogShipper(opts) {
     if (timer !== null) { clearTimeoutFn(timer); timer = null; }
   }
 
+  /**
+   * Re-arm after a bfcache restore (pageshow persisted=true) or a return to
+   * visibility — the inverse of the pagehide flush. iOS kills any in-flight
+   * fetch when the page enters the back/forward cache and NEVER settles it
+   * after restore; left alone that wedges `inFlight` true and every future
+   * shipNow() no-ops — shipping is silently dead. resume() orphans such a
+   * flight (its eventual settle, if any, is ignored via the generation
+   * check) and its entries stay queued: if the POST actually landed, the
+   * per-page-load `seq` lets the server dedupe the re-ship — never a lost
+   * batch, never a fake ack. Also reverses stop(): a page restored from the
+   * bfcache is observably not gone, so a pagehide-motivated stop was
+   * premature. Idempotent; honest state (degraded flag, backoff gate) is
+   * deliberately NOT reset — only a real 2xx clears those.
+   */
+  function resume() {
+    // pageshow(persisted) and visibilitychange:visible typically BOTH fire
+    // on an iOS bfcache restore, in the same tick. Only the first call may
+    // orphan a wedged flight — without this lock the second call would
+    // orphan the healthy re-ship the first one just started (duplicate
+    // sends, churn). The lock clears on the next microtask, so two distinct
+    // restores can never share it.
+    if (inFlight && !resumeLock) {
+      resumeLock = true;
+      Promise.resolve().then(() => { resumeLock = false; });
+      flightGen += 1;
+      inFlight = false;
+    }
+    stopped = false;
+    if (timer !== null) { clearTimeoutFn(timer); timer = null; }
+    // Re-ship retained entries promptly (the page may be backgrounded again
+    // soon); shipNow() still honors the backoff gate and re-schedules.
+    if (queue.length) shipNow('resume');
+  }
+
   return {
     enqueue,
     shipNow,
     flushBeacon,
     stop,
+    resume,
     setSessionId: (id) => { sessionId = id || null; },
     setCaptureId: (id) => { captureId = id || null; },
     onDegraded: (fn) => { if (typeof fn === 'function') degradedListeners.push(fn); },
@@ -367,26 +419,57 @@ export function createLogShipper(opts) {
       sessionId: sessionId,
       captureId: captureId,
       enabled: enabled,
+      inFlight: inFlight,
+      stopped: stopped,
     }),
   };
 }
 
 /**
- * Wire the page-lifecycle flush: pagehide + visibilitychange:hidden are the
- * documented last-chance moments to hand logs to sendBeacon before the tab
- * dies. Feature-detected; a headless context is a no-op.
+ * Wire the page lifecycle, both directions:
+ *
+ *   - pagehide + visibilitychange:hidden — the documented last-chance
+ *     moments to hand logs to sendBeacon before the tab dies. The flush
+ *     never stops the shipper: on iOS pagehide usually means "frozen into
+ *     the back/forward cache", not "gone".
+ *   - pageshow (event.persisted=true) — the bfcache restore. The shipper
+ *     re-arms via resume(); `hooks.onResume(why)` then lets the caller
+ *     re-arm UI (the debug panel re-renders its entry list).
+ *   - visibilitychange:visible — belt-and-braces resume for the iOS
+ *     app-switch path where no pageshow fires. resume() is idempotent, so
+ *     double-firing is harmless.
+ *
+ * Feature-detected; a headless context is a no-op.
+ *
+ * @param {object} shipper            createLogShipper() instance
+ * @param {Window} [win]              window override (tests)
+ * @param {Document} [doc]            document override (tests)
+ * @param {{onResume?:Function}} [hooks] called AFTER shipper.resume() with
+ *                                    'bfcache-restore' | 'visible'
  */
-export function attachLogShipperLifecycle(shipper, win, doc) {
+export function attachLogShipperLifecycle(shipper, win, doc, hooks) {
   const w = win || (typeof window !== 'undefined' ? window : null);
   const d = doc || (typeof document !== 'undefined' ? document : null);
+  const onResume = (hooks && typeof hooks.onResume === 'function')
+    ? hooks.onResume : null;
+  const resume = (why) => {
+    try { shipper.resume(); } catch (err) { /* defensive */ }
+    if (onResume) {
+      try { onResume(why); } catch (err) { /* a bad hook never kills resume */ }
+    }
+  };
   try {
     if (w && typeof w.addEventListener === 'function') {
       w.addEventListener('pagehide', () => { shipper.flushBeacon(); });
+      w.addEventListener('pageshow', (e) => {
+        if (e && e.persisted) resume('bfcache-restore');
+      });
     }
     if (d && typeof d.addEventListener === 'function') {
       d.addEventListener('visibilitychange', () => {
         if (d.visibilityState === 'hidden') shipper.flushBeacon();
+        else if (d.visibilityState === 'visible') resume('visible');
       });
     }
-  } catch (err) { /* lifecycle flush is best-effort */ }
+  } catch (err) { /* lifecycle wiring is best-effort */ }
 }
