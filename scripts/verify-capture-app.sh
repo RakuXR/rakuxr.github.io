@@ -64,13 +64,11 @@ trap cleanup EXIT INT TERM
 
 # Verbatim canonical copy, minus the two mirror-only files...
 rsync -a --delete --exclude README.md --exclude qr-capture-app.svg \
-  --exclude capture_debug.js \
   "$SRC"/ "$EXPECTED"/
 # ...carry the committed mirror-only files into the expected tree so the diff
 # below ignores them (they are intentionally NOT canonical)...
 [ -f "$COMMITTED/README.md" ] && cp "$COMMITTED/README.md" "$EXPECTED/README.md"
 [ -f "$COMMITTED/qr-capture-app.svg" ] && cp "$COMMITTED/qr-capture-app.svg" "$EXPECTED/qr-capture-app.svg"
-[ -f "$COMMITTED/capture_debug.js" ] && cp "$COMMITTED/capture_debug.js" "$EXPECTED/capture_debug.js"
 # ...then apply the same deterministic hosting adaptations.
 python3 "$ADAPT" "$EXPECTED"
 
@@ -86,9 +84,15 @@ echo "============================================================"
 echo "The committed capture-app/ does not match what regenerating it"
 echo "from canonical raku-runtime/web/capture/ produces."
 echo ""
-echo "Fix it - do NOT hand-edit capture-app/:"
-echo "  * canonical changed?   -> run scripts/sync-capture-app.sh and commit"
-echo "  * a new hosting tweak? -> add it to scripts/capture-app-adaptations.py"
+echo "Fix it - do NOT hand-edit capture-app/. Regenerate the mirror with:"
+echo ""
+echo "  sh scripts/sync-capture-app.sh /path/to/raku-runtime   # local checkout"
+echo "  sh scripts/sync-capture-app.sh                         # or auto-clone canonical main"
+echo "  git add capture-app && git commit"
+echo ""
+echo "If the public host genuinely needs a NEW hosting tweak, add it to"
+echo "scripts/capture-app-adaptations.py (deterministic + idempotent), then"
+echo "re-run the sync script and commit both."
 echo ""
 echo "Drift (- expected/canonical, + committed/mirror):"
 echo "------------------------------------------------------------"

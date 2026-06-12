@@ -63,6 +63,8 @@ import {
 
 import {
   METADATA_FILENAME,
+  SENSOR_APP_VERSION,
+  detectClientPlatform,
   ensureMotionPermission,
   startSensorCapture,
   stopSensorCapture,
@@ -71,6 +73,34 @@ import {
   buildCaptureMetadata,
   prewarmCaptureSession,
 } from './sensor_metadata.js';
+
+// ============================================================================
+// Diagnostics modules — debug logger + client-log shipper
+// ============================================================================
+// debug_log.js owns the on-device log panel (F2 / DEBUG button) and the log
+// hygiene rules (data:-URI eliding, status-poll dedupe); log_shipper.js
+// batches every logged entry to POST /api/v1/capture/client-logs so failed
+// captures are diagnosable server-side. Both are wired in initDiagnostics()
+// (DOMContentLoaded) and every call site degrades to a no-op if init failed.
+
+import { createDebugLog, createPollDeduper } from './debug_log.js';
+import { createLogShipper, attachLogShipperLifecycle } from './log_shipper.js';
+
+// ============================================================================
+// Movement / parallax gating — motion_check.js
+// ============================================================================
+// Estimates whether the user actually TRANSLATED during the sweep (IMU
+// linear-acceleration energy + a frame-parallax heuristic). Pure rotation in
+// place yields zero-baseline captures that reconstruct into "starburst"
+// splats, so the capture UI warns (and the coverage meter caps) when the
+// signals confidently say "no translation". Honest degrade: when neither
+// signal has data, confidence is 0 and the gate stays out of the way.
+
+import {
+  createMotionEstimator,
+  computeCoverage,
+  lowMovementGate,
+} from './motion_check.js';
 
 // ============================================================================
 // i18n shim
@@ -134,9 +164,58 @@ function detectApiBase() {
 }
 
 const API_BASE = detectApiBase();
-// Hand the resolved API base to the debug overlay (capture_debug.js, loaded
-// first) so it probes GPU-worker availability against the right host.
-if (window.RakuDebug) window.RakuDebug.apiBase = API_BASE;
+
+// ============================================================================
+// Diagnostics — debug logger + client-log shipping
+// ============================================================================
+// Created in initDiagnostics() (from the DOMContentLoaded handler — _demoMode()
+// reads the module-level DEMO const, which is initialized further down this
+// file, so this cannot run at import time). Every logging call site goes
+// through dbg(), which is a silent no-op until init succeeds — diagnostics
+// must never be able to break capture.
+
+let DBG = null;          // createDebugLog() instance
+let _logShipper = null;  // createLogShipper() instance
+
+/** Append a debug-log entry (no-op until initDiagnostics() has run). */
+function dbg(level, message) {
+  if (DBG) DBG.log(level, message);
+}
+
+function initDiagnostics() {
+  try {
+    DBG = createDebugLog({ t: t });
+    // Demo mode never talks to the capture API — local panel only.
+    _logShipper = createLogShipper({
+      apiBase: API_BASE,
+      enabled: !_demoMode(),
+      client: {
+        ua: (typeof navigator !== 'undefined' && navigator.userAgent) || '',
+        app_version: SENSOR_APP_VERSION,
+        platform: detectClientPlatform(),
+      },
+    });
+    // Every appended (already data:-URI-sanitized) entry is queued to ship.
+    DBG.onEntry((entry) => _logShipper.enqueue(entry));
+    // Honest shipping health: after repeated failures the shipper backs off
+    // and the panel says diagnostics are NOT reaching the server, pointing at
+    // the Copy button — never silent, never fake success.
+    _logShipper.onDegraded((isDegraded) => {
+      DBG.setShipStatus(isDegraded
+        ? t('debug.shipFailed', null,
+            'diagnostics not reaching server — use Copy to share logs')
+        : null);
+    });
+    attachLogShipperLifecycle(_logShipper);
+    dbg('STATE',
+      'Capture debug logger ready — F2 or the DEBUG button toggles this panel'
+      + (_demoMode() ? ' (demo mode: server log shipping disabled)' : ''));
+  } catch (err) {
+    console.warn('[RakuCapture] diagnostics init failed:', err);
+    DBG = null;
+    _logShipper = null;
+  }
+}
 
 // Spark renderer pinned CDN module URL. Spark is an MIT-licensed 3D Gaussian
 // splat renderer for three.js (https://github.com/sparkjsdev/spark).
@@ -246,6 +325,14 @@ const state = {
   cameraSnapshot: null,   // snapshotCameraSettings() result for this sweep
   uploadedFrameSize: null,// {width,height} of the as-uploaded (downscaled) JPEGs
   pendingFrameBlobs: 0,   // in-flight async toBlob() conversions (drained pre-upload)
+
+  // ---- movement / parallax gating (motion_check.js) ----------------------
+  // movementScore 0..1 = how much real translation the IMU + frame-parallax
+  // signals saw this sweep; movementConfidence 0..1 = how much that score can
+  // be trusted (0 = no usable signal — the gate then stays out of the way and
+  // the uploaded meta reports the score as null, never a fake number).
+  movementScore: 0,
+  movementConfidence: 0,
 };
 
 // DOM lookup helper ----------------------------------------------------------
@@ -268,9 +355,12 @@ const screens = {
 function showPhase(phase) {
   const leavingIntro = state.phase === Phase.INTRO && phase !== Phase.INTRO;
   const enteringIntro = state.phase !== Phase.INTRO && phase === Phase.INTRO;
-  // Debug overlay hook (capture_debug.js): record every state-machine
-  // transition. No-op when the debug logger is not loaded.
-  if (window.RakuDebug) window.RakuDebug.state(state.phase, phase);
+  if (phase !== state.phase) {
+    dbg('STATE', 'phase ' + state.phase + ' -> ' + phase);
+    // Capture state transitions are the moments worth having server-side
+    // promptly — flush the pending log batch now rather than on the timer.
+    if (_logShipper) _logShipper.shipNow('state-transition');
+  }
   state.phase = phase;
   for (const [p, elId] of Object.entries(screens)) {
     const el = $(elId);
@@ -326,6 +416,8 @@ function showError(message) {
     state.errorRaw = message || null;
     text = message || t('error.generic', null, 'Something went wrong.');
   }
+  dbg('ERROR', text + (state.errorRaw && state.errorRaw !== text
+    ? ' | raw: ' + state.errorRaw : ''));
   // Snapshot the stage we were in when it failed (drives stage-aware rules),
   // and reset the consent-gated diagnosis + collapsible details for this error.
   state.errorStage = state.procStage || null;
@@ -679,8 +771,15 @@ function resetScaleState() {
 async function beginCapture() {
   // Fire-and-forget GPU pre-warm the moment the user starts a scan, so a
   // reconstruction worker can be spinning up during the room sweep. Silently
-  // tolerates 404 (endpoint rolling out in parallel) and never blocks.
-  if (!_demoMode()) prewarmCaptureSession(API_BASE, _getAuthToken());
+  // tolerates 404 (endpoint rolling out in parallel) and never blocks. When
+  // the endpoint answers with a session_id, the client-log shipper picks it
+  // up so the server can join client logs to the session.
+  if (!_demoMode()) {
+    prewarmCaptureSession(API_BASE, _getAuthToken(), (sessionId) => {
+      dbg('NET', 'capture session started: session_id=' + sessionId);
+      if (_logShipper) _logShipper.setSessionId(sessionId);
+    });
+  }
 
   // Request the DeviceOrientation + DeviceMotion permissions FIRST, while we
   // are still inside the capture button's user-gesture task (iOS 13+ requires
@@ -784,6 +883,44 @@ function getHints() {
 
 let coverageTimer = null;
 
+// ---- movement estimation plumbing (motion_check.js) ------------------------
+// One estimator per sweep. The devicemotion listener feeds it gravity-FREE
+// linear acceleration (e.acceleration — distinct from sensor_metadata.js's
+// accelerationIncludingGravity gravity-direction record); the coverage tick
+// feeds it ~48 px grayscale downsamples of consecutive keyframes for the
+// parallax heuristic. Everything fails soft: no sensor / no getImageData →
+// the estimator simply reports confidence 0.
+
+let _motionEstimator = null;
+let _onMotionCheck = null;     // bound devicemotion listener, for clean removal
+let _motionCheckLastT = null;  // performance.now() of the previous IMU sample
+
+const PARALLAX_FRAME_W = 48;   // downscale width for the parallax heuristic
+const _parallaxCanvas = document.createElement('canvas');
+
+/** Feed one downscaled grayscale frame to the parallax tracker (best-effort). */
+function _sampleParallaxFrame(video) {
+  if (!_motionEstimator || !video || !video.videoWidth) return;
+  try {
+    const w = PARALLAX_FRAME_W;
+    const h = Math.max(16, Math.round(video.videoHeight * (w / video.videoWidth)));
+    _parallaxCanvas.width = w;
+    _parallaxCanvas.height = h;
+    const ctx = _parallaxCanvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx || typeof ctx.getImageData !== 'function') return; // headless env
+    ctx.drawImage(video, 0, 0, w, h);
+    const img = ctx.getImageData(0, 0, w, h);
+    const d = img.data;
+    const gray = new Float64Array(w * h);
+    for (let i = 0, p = 0; i < gray.length; i++, p += 4) {
+      gray[i] = 0.299 * d[p] + 0.587 * d[p + 1] + 0.114 * d[p + 2];
+    }
+    _motionEstimator.addFrameGray(gray, w, h);
+  } catch (err) {
+    // Parallax stays unavailable — the estimator's confidence reflects it.
+  }
+}
+
 function startCaptureLoop() {
   stopCaptureLoop();   // clear any prior interval before starting a fresh one
   state.coverage = 0;
@@ -796,6 +933,24 @@ function startCaptureLoop() {
   state.cameraSnapshot = snapshotCameraSettings(state.mediaStream);
   state.pendingFrameBlobs = 0;
   startSensorCapture();
+  // Fresh movement estimator + linear-acceleration listener for this sweep.
+  state.movementScore = 0;
+  state.movementConfidence = 0;
+  _motionEstimator = createMotionEstimator();
+  _motionCheckLastT = null;
+  if (typeof window !== 'undefined' && 'DeviceMotionEvent' in window) {
+    _onMotionCheck = (e) => {
+      const nowT = performance.now();
+      const dt = _motionCheckLastT == null ? null : nowT - _motionCheckLastT;
+      _motionCheckLastT = nowT;
+      if (dt != null && _motionEstimator) {
+        // e.acceleration is gravity-free linear acceleration; null on devices
+        // without a gyro (the tracker ignores null — confidence stays 0).
+        _motionEstimator.addMotionSample(e.acceleration || null, dt);
+      }
+    };
+    window.addEventListener('devicemotion', _onMotionCheck);
+  }
   updateCoverage(0);
   // Reveal the live capture status (real frame counter + directional coverage)
   // and start tracking camera orientation for the coverage ring.
@@ -804,18 +959,36 @@ function startCaptureLoop() {
   updateCaptureProgress();
   startCoverageTracking();
   $('btn-finish-capture').disabled = true;
+  dbg('STATE', 'capture sweep started');
 
-  // Heuristic coverage tick. Real impl: SLAM/pose-spread from the frames.
-  // This stub advances steadily so all guidance states are exercised; each
-  // tick also grabs a real keyframe so there is genuine footage to upload.
+  // Coverage tick. Each tick grabs a real keyframe; coverage is now an
+  // HONEST function of what was actually measured — frames captured, yaw
+  // sectors swept (when orientation data exists) and real translation (when
+  // the movement signals have confidence) — replacing the old random-
+  // increment stub. See motion_check.js computeCoverage() for the policy.
   coverageTimer = setInterval(() => {
-    state.coverage = Math.min(1, state.coverage + 0.04 + Math.random() * 0.02);
     captureKeyframe();
+    _sampleParallaxFrame($('camera-video'));
+    if (_motionEstimator) {
+      const mv = _motionEstimator.evaluate();
+      state.movementScore = mv.movementScore;
+      state.movementConfidence = mv.confidence;
+    }
+    state.coverage = computeCoverage({
+      frameCount: state.capturedFrames.length,
+      frameTarget: FRAME_TARGET,
+      sectorsCovered: _coveredSectors.size,
+      sectorsTotal: COVERAGE_SECTORS,
+      orientationActive: _orientationActive,
+      movementScore: state.movementScore,
+      movementConfidence: state.movementConfidence,
+    });
     updateCoverage(state.coverage);
     updateCaptureProgress(); // surface the real, growing keyframe count
+    applyMovementGuidance(); // low-movement hint + amber meter, when gated
     if (state.coverage >= 0.6) $('btn-finish-capture').disabled = false;
-    // Do NOT stop the loop when the heuristic coverage bar hits 100%. A full
-    // bar means "you have enough to finish" — not "we're done". Hallways and
+    // Do NOT stop the loop when the coverage bar hits 100%. A full bar means
+    // "you have enough to finish" — not "we're done". Hallways and
     // multi-room scans need to keep adding frames (and filling the directional
     // coverage ring) until the user taps Finish capture. The loop runs until
     // stopCaptureLoop() is called from the Finish handler (or capped at
@@ -827,6 +1000,66 @@ function stopCaptureLoop() {
   if (coverageTimer) { clearInterval(coverageTimer); coverageTimer = null; }
   stopCoverageTracking(); // detach the deviceorientation listener
   stopSensorCapture();    // detach the IMU (devicemotion/orientation) listeners
+  if (_onMotionCheck && typeof window !== 'undefined') {
+    window.removeEventListener('devicemotion', _onMotionCheck);
+    _onMotionCheck = null;
+  }
+  // state.movementScore / movementConfidence keep their last value — the
+  // upload meta reads them after the loop stops. _motionEstimator is replaced
+  // wholesale at the next sweep start.
+}
+
+/**
+ * True while the "you turned in place" gate should fire: the sweep otherwise
+ * looks complete but the movement signals confidently report no translation.
+ * With confidence 0 (sensor/parallax unavailable) this is ALWAYS false — the
+ * UI then degrades to the pre-gate behavior plus an honest notice (see
+ * applyMovementGuidance), never a fabricated verdict.
+ */
+function _movementGateActive() {
+  return lowMovementGate({
+    frameCount: state.capturedFrames.length,
+    frameTarget: FRAME_TARGET,
+    sectorsCovered: _coveredSectors.size,
+    sectorsTotal: COVERAGE_SECTORS,
+    orientationActive: _orientationActive,
+    movementScore: state.movementScore,
+    movementConfidence: state.movementConfidence,
+  });
+}
+
+/**
+ * Movement guidance overlay on the live capture UI: while the low-movement
+ * gate is active the hint line tells the user to step sideways and the
+ * coverage meter turns amber (it is simultaneously capped at ~60% by
+ * computeCoverage). When movement simply cannot be measured (confidence 0)
+ * and the frame goal is reached, an honest "can't measure movement here"
+ * notice shows instead — current behavior plus a notice, never a fake gate.
+ * Re-run on every tick and on locale switches (relocalizeDynamic).
+ */
+function applyMovementGuidance() {
+  const fill = $('coverage-fill');
+  const hintEl = $('capture-hint');
+  const gate = _movementGateActive();
+  if (fill) fill.style.background = gate ? '#f0b429' : '';
+  if (!hintEl) return;
+  if (gate) {
+    hintEl.textContent = t('capture.lowMovement', null,
+      "Step sideways and keep scanning — turning in place can't be reconstructed");
+    if (!applyMovementGuidance._logged) {
+      applyMovementGuidance._logged = true;
+      dbg('STATE', 'low-movement gate active (score '
+        + state.movementScore.toFixed(2) + ', confidence '
+        + state.movementConfidence.toFixed(2) + ')');
+    }
+  } else if (state.movementConfidence <= 0
+      && state.capturedFrames.length >= FRAME_TARGET) {
+    hintEl.textContent = t('capture.movementUnknown', null,
+      "Movement can't be measured on this device — be sure to step sideways "
+      + 'while scanning, not just turn in place.');
+  } else {
+    applyMovementGuidance._logged = false;
+  }
 }
 
 // Offscreen canvas reused for every keyframe grab.
@@ -1253,6 +1486,15 @@ function uploadCapture(frames, onProgress) {
     // hold-still sub-step — their IMU data carries no sweep information).
     // FastAPI ignores unknown multipart fields, so this is safe to send even
     // before the server consumes it.
+    // Movement gating result (motion_check.js): when confidence is 0 the
+    // score is reported as null — an unmeasurable movement is never sent as
+    // a number the backend could mistake for "measured zero movement".
+    const movementMeta = {
+      score: state.movementConfidence > 0
+        ? Math.round(state.movementScore * 1000) / 1000 : null,
+      confidence: Math.round(state.movementConfidence * 1000) / 1000,
+    };
+
     let sensorMetadata = null;
     try {
       sensorMetadata = buildCaptureMetadata({
@@ -1260,6 +1502,7 @@ function uploadCapture(frames, onProgress) {
         frameRecords: state.frameMeta,
         cameraSettings: state.cameraSnapshot,
         uploadedFrameSize: state.uploadedFrameSize,
+        movement: movementMeta,
       });
       form.append(
         'capture_metadata',
@@ -1284,6 +1527,10 @@ function uploadCapture(frames, onProgress) {
         frameCount: frames.length + scaleFrames.length,
         roomFrameCount: frames.length,
         coverage: state.coverage,
+        // Movement gate result for the backend quality checks: null score =
+        // could not be measured (movement_confidence 0), NOT zero movement.
+        movement_score: movementMeta.score,
+        movement_confidence: movementMeta.confidence,
         scaleReference: scaleReference,
         // Advisory flag: a capture_metadata.json part is attached (lets the
         // server branch without sniffing the multipart body).
@@ -1309,9 +1556,16 @@ function uploadCapture(frames, onProgress) {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const data = JSON.parse(xhr.responseText);
+          dbg('NET', 'POST /api/v1/capture -> ' + xhr.status
+            + ' capture_id=' + data.capture_id);
+          // Tag the log shipper as soon as the id exists, so every batch from
+          // here on (incl. reconstruction-failure batches) carries it.
+          if (_logShipper) _logShipper.setCaptureId(data.capture_id);
           if (onProgress) onProgress(1);
           resolve(data.capture_id);
         } catch (err) {
+          dbg('ERROR', 'POST /api/v1/capture -> ' + xhr.status
+            + ' but the response body was unreadable');
           reject(new Error(t('error.uploadUnreadable', null,
             'Upload succeeded but the response was unreadable.')));
         }
@@ -1319,11 +1573,19 @@ function uploadCapture(frames, onProgress) {
         let detail = t('error.uploadFailedHttp', { status: xhr.status },
           `Upload failed (HTTP ${xhr.status}).`);
         try { detail = JSON.parse(xhr.responseText).detail || detail; } catch (e) {}
+        dbg('ERROR', 'POST /api/v1/capture -> HTTP ' + xhr.status + ' ' + detail);
         reject(new Error(detail));
       }
     };
-    xhr.onerror = () => reject(new Error(t('error.uploadNetwork', null,
-      'Network error during upload.')));
+    xhr.onerror = () => {
+      dbg('ERROR', 'POST /api/v1/capture network error');
+      reject(new Error(t('error.uploadNetwork', null,
+        'Network error during upload.')));
+    };
+    dbg('NET', 'POST /api/v1/capture (' + frames.length + ' room frames + '
+      + scaleFrames.length + ' scale frames, movement_score='
+      + movementMeta.score + ', movement_confidence='
+      + movementMeta.confidence + ')');
     xhr.send(form);
   });
 }
@@ -1358,6 +1620,11 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
   const SLOW_HINT_MS = 10 * 60 * 1000;
   const started = performance.now();
   let consecutiveFailures = 0;
+  // Poll-log dedupe (debug_log.js): the 2 s poll loop logs the FULL body only
+  // when status/phase/error change, progress moves >= 5 points, or 30 s have
+  // passed — otherwise a one-line "status unchanged" entry. Local to this
+  // call so every reconstruction run gets a fresh dedupe window.
+  const pollDedupe = createPollDeduper();
 
   while (performance.now() - started < MAX_MS) {
     if (shouldAbort && shouldAbort()) return null;
@@ -1369,13 +1636,25 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
       if (resp.ok) {
         job = await resp.json();
         consecutiveFailures = 0;
+        const d = pollDedupe.next(job, Date.now());
+        dbg('POLL', d.full
+          ? 'GET /capture/' + captureId + '/status -> ' + JSON.stringify(job)
+          : d.line);
       } else if (resp.status === 404) {
         gone = true;
+        dbg('NET', 'GET /capture/' + captureId + '/status -> 404 (job gone)');
       } else {
         consecutiveFailures += 1;
+        dbg('NET', 'GET /capture/' + captureId + '/status -> HTTP '
+          + resp.status + ' (failure ' + consecutiveFailures + '/'
+          + MAX_CONSECUTIVE_FAILURES + ')');
       }
     } catch (err) {
       consecutiveFailures += 1;
+      dbg('NET', 'status poll failed: '
+        + (err && err.message ? err.message : String(err))
+        + ' (failure ' + consecutiveFailures + '/'
+        + MAX_CONSECUTIVE_FAILURES + ')');
     }
 
     if (shouldAbort && shouldAbort()) return null;
@@ -2455,6 +2734,25 @@ function bindEvents() {
   });
 
   $('btn-finish-capture').addEventListener('click', async () => {
+    // Low-movement gate: warn — never hard-block. A confidently-low movement
+    // score means reconstruction will likely fail (zero-parallax starburst),
+    // so route the finish through an explicit confirm. Declining keeps the
+    // capture loop running so the user can step sideways and keep scanning.
+    // With movementConfidence 0 the gate never fires (unknown ≠ no movement);
+    // and if confirm() itself is unavailable we proceed with a logged warning
+    // rather than dead-ending the button.
+    if (_movementGateActive()) {
+      const msg = t('capture.lowMovementConfirm', null,
+        'Low movement detected — reconstruction will likely fail. '
+        + 'Tap OK to finish anyway, or Cancel to keep scanning.');
+      const canConfirm = typeof window !== 'undefined'
+        && typeof window.confirm === 'function';
+      const proceed = canConfirm ? window.confirm(msg) : true;
+      dbg('STATE', 'low-movement finish confirm: '
+        + (canConfirm ? (proceed ? 'finish anyway' : 'keep scanning')
+                      : 'confirm unavailable — proceeding with warning'));
+      if (!proceed) return; // capture loop is still running — keep scanning
+    }
     stopCaptureLoop();
     stopCamera(); // safe pre-drain: pending toBlob()s read the offscreen canvas, not the stream
     await awaitPendingFrameBlobs(); // include the trailing keyframe + its meta record
@@ -2579,6 +2877,7 @@ function relocalizeDynamic() {
       updateCoverage(state.coverage);
       updateCaptureProgress();  // frame counter + quality text in the new locale
       updateCoverageRing();     // directional coverage hint in the new locale
+      applyMovementGuidance();  // low-movement / unmeasurable-movement hints
       applyScaleFrameLabel();
       break;
 
@@ -2612,6 +2911,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (window.RakuI18n && typeof window.RakuI18n.onChange === 'function') {
         window.RakuI18n.onChange(relocalizeDynamic);
       }
+      initDiagnostics(); // debug logger + client-log shipping (no-op on failure)
       bindEvents();
       if (_demoMode()) {
         // Booth demo (?demo=1 / ?demo=<sampleId>): pre-baked samples only —

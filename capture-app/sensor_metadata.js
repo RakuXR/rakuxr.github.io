@@ -19,9 +19,17 @@
 //     "camera":  { "width", "height", "focal_length_px",
 //                  "intrinsics_source",                          // track-settings|device-lookup|none
 //                  "device_model_hint", "zoom" },
+//     "movement": { "score", "confidence" },                    // additive (see below)
 //     "frames": [{ "index", "filename", "t_ms", "pose",
 //                  "imu": { "gravity", "rotation_rate", "orientation_quat" } }]
 //   }
+//
+//   - `movement` (ADDITIVE, schema_version unchanged): the client-side
+//     translation/parallax estimate from motion_check.js. `score` is 0..1
+//     (how much real camera translation the sweep showed) or null when it
+//     could not be measured; `confidence` is 0..1 and is 0 exactly when
+//     score is null. The backend quality gate can use it to predict
+//     zero-baseline ("starburst") failures before burning GPU time.
 //
 //   - `frames[].filename` matches the as-uploaded multipart part filename
 //     (`frame_<index>.jpg`) so the worker can join metadata to images.
@@ -274,6 +282,9 @@ export function snapshotCameraSettings(stream) {
  * @param {object|null} opts.cameraSettings  snapshotCameraSettings() result
  * @param {{width:number,height:number}|null} opts.uploadedFrameSize  dims of the
  *        as-uploaded (downscaled) JPEGs — preferred over native track dims
+ * @param {{score:number|null, confidence:number}|null} [opts.movement]
+ *        motion_check.js translation estimate; omitted -> honest
+ *        { score: null, confidence: 0 } (unknown, never fabricated)
  * @returns {object} the schema_version 1 metadata object
  */
 export function buildCaptureMetadata(opts) {
@@ -319,6 +330,15 @@ export function buildCaptureMetadata(opts) {
       device_model_hint: _deviceModelHint,
       zoom: Number.isFinite(cam.zoom) ? cam.zoom : null,
     },
+    // Translation/parallax estimate (motion_check.js). score null +
+    // confidence 0 = could not be measured — explicit, never a fake zero.
+    movement: (o.movement && typeof o.movement === 'object')
+      ? {
+          score: typeof o.movement.score === 'number' ? o.movement.score : null,
+          confidence: typeof o.movement.confidence === 'number'
+            ? o.movement.confidence : 0,
+        }
+      : { score: null, confidence: 0 },
     frames: frames,
   };
 }
@@ -332,8 +352,12 @@ export function buildCaptureMetadata(opts) {
  *
  * @param {string} apiBase   e.g. https://api.rakuai.com
  * @param {string|null} authToken  bearer token when signed in, else null
+ * @param {(sessionId:string)=>void} [onSession]  called (best-effort) with the
+ *        server-issued session_id when the response carries one — used by the
+ *        client-log shipper to join client logs to the capture session. Never
+ *        called when the endpoint is missing/erroring or has no session_id.
  */
-export function prewarmCaptureSession(apiBase, authToken) {
+export function prewarmCaptureSession(apiBase, authToken, onSession) {
   try {
     if (!apiBase || typeof fetch !== 'function') return;
     const headers = { 'Content-Type': 'application/json' };
@@ -345,7 +369,15 @@ export function prewarmCaptureSession(apiBase, authToken) {
       keepalive: true,
     }).then((resp) => {
       // 404 = endpoint not rolled out yet; anything non-OK is equally fine.
-      if (resp && resp.ok) console.info('[RakuCapture] recon pre-warm acknowledged');
+      if (resp && resp.ok) {
+        console.info('[RakuCapture] recon pre-warm acknowledged');
+        if (typeof onSession === 'function') {
+          resp.json().then((data) => {
+            const sid = data && (data.session_id || data.sessionId);
+            if (sid) onSession(String(sid));
+          }).catch(() => { /* no usable body — session stays unknown */ });
+        }
+      }
     }).catch(() => { /* advisory only — never surfaces */ });
   } catch (e) { /* never break capture for a pre-warm */ }
 }

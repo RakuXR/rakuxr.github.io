@@ -101,61 +101,32 @@ def fix_sw_scope(path):
 
 
 
-# (4) capture_debug.js debug overlay (mirror-only tooling). The standalone
-# capture_debug.js file is PRESERVED by sync/verify (like README.md), and the
-# two integration points are injected here so the mirror stays reproducible
-# from canonical + deterministic adaptations (never a silent hand-edit):
-#   - index.html: a <script src="./capture_debug.js"> tag, loaded first.
-#   - capture_app.js: two RakuDebug hooks (apiBase + state-transition), each a
-#     no-op when window.RakuDebug is absent (i.e. on canonical without the file).
-DEBUG_I18N_ANCHOR = ('  <!-- i18n runtime. Classic script, loaded BEFORE the '
-                     'app module so')
-DEBUG_SCRIPT_BLOCK = (
-    '  <!-- Debug log overlay. Classic script, loaded FIRST (before i18n.js and the\n'
-    '       app module) so its fetch / XHR / EventSource interceptors are installed\n'
-    '       before any app code runs \u2014 no network call or state transition is missed.\n'
-    '       Installs window.RakuDebug; a persistent DEBUG button (F2) toggles a\n'
-    '       dark, scrollable, copyable log panel on every screen of the flow. -->\n'
-    '  <script src="./capture_debug.js"></script>\n\n')
-
-APP_APIBASE_ANCHOR = 'const API_BASE = detectApiBase();\n'
-APP_APIBASE_HOOK = (
-    '// Hand the resolved API base to the debug overlay (capture_debug.js, loaded\n'
-    '// first) so it probes GPU-worker availability against the right host.\n'
-    'if (window.RakuDebug) window.RakuDebug.apiBase = API_BASE;\n')
-
-APP_STATE_ANCHOR = ('  const enteringIntro = state.phase !== Phase.INTRO && '
-                    'phase === Phase.INTRO;\n')
-APP_STATE_HOOK = (
-    '  // Debug overlay hook (capture_debug.js): record every state-machine\n'
-    '  // transition. No-op when the debug logger is not loaded.\n'
-    '  if (window.RakuDebug) window.RakuDebug.state(state.phase, phase);\n')
+# (4) debug_log.js Copy-export header. Canonical debug_log.js (which replaced
+# the retired mirror-only capture_debug.js overlay) copies the bare entry list
+# to the clipboard. The hosted operator workflow pastes that export into bug
+# reports and expects the "Raku Capture debug log" header (timestamp, UA, URL,
+# entry count) the old overlay produced \u2014 prepend it here so the export stays
+# self-identifying.
+DBGCOPY_OLD = '      const text = formatEntries();\n'
+DBGCOPY_NEW = (
+    '      // Hosted-mirror adaptation: prepend the self-identifying header\n'
+    '      // (timestamp, UA, URL, entry count) the bug-report workflow expects.\n'
+    "      const text = 'Raku Capture debug log \\u2014 ' + new Date().toISOString() +\n"
+    "        '\\nUA: ' + ((typeof navigator !== 'undefined' && navigator.userAgent) || '') +\n"
+    "        '\\nURL: ' + ((typeof location !== 'undefined' && location.href) || '') +\n"
+    "        '\\nentries: ' + entries.length +\n"
+    "        '\\n' + '-'.repeat(60) + '\\n' +\n"
+    "        formatEntries() + '\\n';\n")
 
 
-def inject_debug_script(path):
+def fix_debug_copy_header(path):
     text = _read(path)
-    if 'capture_debug.js' in text:
+    if DBGCOPY_NEW in text:
         return  # already adapted (idempotent)
-    if DEBUG_I18N_ANCHOR not in text:
-        sys.exit('error: i18n runtime <script> anchor not found in index.html '
-                 '- canonical layout changed; update capture-app-adaptations.py')
-    _write(path, text.replace(DEBUG_I18N_ANCHOR,
-                              DEBUG_SCRIPT_BLOCK + DEBUG_I18N_ANCHOR, 1))
-
-
-def inject_app_debug_hooks(path):
-    text = _read(path)
-    if 'window.RakuDebug' in text:
-        return  # already adapted (idempotent)
-    for anchor, hook, label in (
-        (APP_APIBASE_ANCHOR, APP_APIBASE_HOOK, 'API_BASE'),
-        (APP_STATE_ANCHOR, APP_STATE_HOOK, 'showPhase'),
-    ):
-        if anchor not in text:
-            sys.exit('error: capture_app.js %s anchor not found - canonical '
-                     'changed; update capture-app-adaptations.py' % label)
-        text = text.replace(anchor, anchor + hook, 1)
-    _write(path, text)
+    if DBGCOPY_OLD not in text:
+        sys.exit('error: debug_log.js Copy-handler line not found - canonical '
+                 'debug_log.js changed; update capture-app-adaptations.py')
+    _write(path, text.replace(DBGCOPY_OLD, DBGCOPY_NEW, 1))
 
 
 def main():
@@ -165,8 +136,7 @@ def main():
     inject_csp(dest + '/index.html', INDEX_CSP, 'index.html')
     inject_csp(dest + '/help.html', HELP_CSP, 'help.html')
     fix_sw_scope(dest + '/sw.js')
-    inject_debug_script(dest + '/index.html')
-    inject_app_debug_hooks(dest + '/capture_app.js')
+    fix_debug_copy_header(dest + '/debug_log.js')
     print('Applied hosting adaptations to ' + dest)
 
 

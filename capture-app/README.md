@@ -22,6 +22,28 @@ capture-app/  ==  raku-runtime/web/capture/   (verbatim)
 is committed; the `Verify capture-app sync` GitHub Action runs it on every
 push and PR. **Drift fails the build** — silent divergence is impossible.
 
+## How this deploys
+
+```
+raku-runtime/web/capture/  (canonical — all app changes land HERE first)
+        │  scripts/sync-capture-app.sh /path/to/raku-runtime
+        ▼
+scripts/capture-app-adaptations.py  (deterministic hosting adaptations:
+        │   CSP for index.html/help.html, sw.js subpath scope fix,
+        │   debug_log.js Copy-export header)
+        ▼
+capture-app/  (this directory — committed on a feature branch)
+        │  PR into main  (verify-capture-app-sync.yml gates the diff
+        │   against raku-runtime MAIN — merge canonical first)
+        ▼
+GitHub Pages → https://rakuai.com/capture-app/
+```
+
+There is no build step: the synced files deploy as-is when the PR merges.
+Because the drift check compares against raku-runtime **main**, a mirror sync
+taken from a canonical feature branch goes red until that branch merges —
+sequence the raku-runtime PR first.
+
 ### Pulling canonical changes into the mirror
 
 From the repo root:
@@ -38,6 +60,15 @@ Review the diff, then commit.
 If the public host genuinely needs to differ from canonical (e.g. a new CSP
 directive), add the change to `scripts/capture-app-adaptations.py` so it is
 deterministic and reproducible. Never hand-edit files in `capture-app/`.
+
+### Debug panel
+
+The in-app debug panel (F2 / the floating DEBUG button, with Copy-to-clipboard
+export and server log shipping) is canonical: `debug_log.js` + `log_shipper.js`.
+The former mirror-only `capture_debug.js` overlay is retired; the one piece of
+it the hosted app keeps is the "Raku Capture debug log" export header
+(timestamp / UA / URL / entry count), re-applied to `debug_log.js`'s Copy
+output by `scripts/capture-app-adaptations.py`.
 
 ## Subpath notes
 
