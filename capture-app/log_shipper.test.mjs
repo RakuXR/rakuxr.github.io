@@ -162,6 +162,14 @@ await test('byte cap measures UTF-8 bytes, not UTF-16 chars (Japanese logs)', ()
   assert.ok(entries.length < 400, 'oversized multibyte batch was actually reduced');
 });
 
+await test('degenerate maxEntries <= 0 terminates (no infinite loop)', () => {
+  // Regression: with maxEntries 0, once head+tail are empty the marker alone
+  // kept the count above the cap forever. The loop must terminate.
+  const { entries, dropped } = capBatch(mkEntries(5), { maxEntries: 0 });
+  assert.equal(dropped, 5, 'all real entries dropped');
+  assert.ok(entries.length <= 1, 'at most the marker remains');
+});
+
 await test('utf8Length counts multibyte correctly', () => {
   assert.equal(utf8Length('abc'), 3);
   assert.equal(utf8Length('日本語'), 9);

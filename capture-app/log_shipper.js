@@ -124,8 +124,11 @@ export function capBatch(entries, opts) {
     }], tail);
   };
 
-  // Entry-count cap (the marker itself counts toward the cap).
-  while (head.length + tail.length + (dropped ? 1 : 0) > maxEntries) dropOne();
+  // Entry-count cap (the marker itself counts toward the cap). The
+  // head+tail>0 guard keeps a degenerate maxEntries <= 0 from spinning
+  // forever once everything droppable is gone (the marker alone remains).
+  while (head.length + tail.length + (dropped ? 1 : 0) > maxEntries
+         && head.length + tail.length > 0) dropOne();
 
   // Byte cap. Re-stringifying after every single drop is O(n^2); drop ~10%
   // per iteration to bound the cost.
