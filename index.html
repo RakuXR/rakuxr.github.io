@@ -120,12 +120,14 @@
       /* Constellation nodes are links; .hf-hit is an oversized invisible
          circle so the tap target stays finger-friendly on phones. */
       .hero-figure a.hf-node { cursor: pointer; }
-      .hero-figure a.hf-node .hf-hit { fill: transparent; stroke: none; }
+      .hero-figure a.hf-node .hf-hit { fill: none; pointer-events: fill; stroke: none; }
+      /* Focus indication lives on the node circle (stroke + glow) because
+         CSS outline on SVG <a> renders inconsistently, notably in Safari. */
       .hero-figure a.hf-node:hover circle:not(.hf-hit),
-      .hero-figure a.hf-node:focus-visible circle:not(.hf-hit) { stroke-width: 3; }
+      .hero-figure a.hf-node:focus-visible circle:not(.hf-hit) { stroke-width: 3.5; filter: brightness(1.4); }
       .hero-figure a.hf-node:hover text,
       .hero-figure a.hf-node:focus-visible text { fill: #e8e8f0; }
-      .hero-figure a.hf-node:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+      .hero-figure a.hf-node:focus-visible { outline: none; }
       @keyframes hf-dash { to { stroke-dashoffset: -56; } }
       @keyframes hf-pulse { 0%,100% { opacity: 0.35; } 50% { opacity: 1; } }
       @keyframes hf-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
