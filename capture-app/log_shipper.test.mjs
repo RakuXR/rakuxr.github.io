@@ -13,6 +13,10 @@
 //   - entries leave the queue ONLY on an HTTP 2xx ack, repeated failures
 //     degrade loudly (onDegraded -> the panel flag) with capped backoff,
 //     and recovery re-ships the retained entries. No fake success, ever;
+//   - the user-initiated "Send log" push (shipAll + the panel button) ships
+//     the COMPLETE retained log as one user_flagged batch, reaches "Sent ✓"
+//     only on a real 2xx, re-enables honestly on failure, and re-arms when
+//     the next capture sweep starts;
 //   - an iOS app-switch (pagehide into the bfcache -> pageshow persisted)
 //     cannot kill diagnostics: a fetch the freeze orphaned is abandoned
 //     (inFlight cannot stick), retained entries re-ship on resume, the
@@ -22,6 +26,7 @@
 import assert from 'node:assert/strict';
 import {
   elideDataUris, describeBytes, createPollDeduper, createDebugLog,
+  MAX_LOG_ENTRIES,
 } from './debug_log.js';
 import {
   capBatch, truncateMessage, createLogShipper, utf8Length,
@@ -340,6 +345,111 @@ await test('flushBeacon without a beacon API reports false (never fakes delivery
 });
 
 // ---------------------------------------------------------------------------
+console.log('shipAll (user-initiated "Send log" push):');
+
+await test('shipAll sends ALL supplied entries with user_flagged and fresh monotonic seqs', async () => {
+  const h = makeHarness(ok200);
+  h.shipper.setSessionId('sess_7');
+  // Two entries already shipped + acked through the regular pipeline...
+  h.shipper.enqueue({ t_ms: 10, level: 'STATE', message: 'old one' });
+  h.shipper.enqueue({ t_ms: 20, level: 'NET', message: 'old two' });
+  await h.shipper.shipNow('test');
+  assert.equal(h.shipper.getState().queued, 0, 'regular batch acked');
+  // ...the user push re-sends them anyway: one complete self-contained batch.
+  const res = await h.shipper.shipAll({
+    entries: [
+      { t_ms: 10, level: 'STATE', message: 'old one' },
+      { t_ms: 20, level: 'NET', message: 'old two' },
+      { t_ms: 30, level: 'INFO', message: 'user pushed log from device' },
+    ],
+    flagged: true,
+  });
+  assert.deepEqual(res, { ok: true, status: 200 });
+  assert.equal(h.calls.length, 2);
+  const body = h.calls[1].body;
+  assert.equal(body.user_flagged, true, 'top-level user_flagged present');
+  assert.equal(body.session_id, 'sess_7');
+  assert.equal(body.entries.length, 3, 'every supplied entry shipped');
+  // Fresh seqs continue the page-load counter (2 used by the regular batch)
+  // — the overlap is intentional and must not be deduped away.
+  assert.deepEqual(body.entries.map((e) => e.seq), [3, 4, 5]);
+  assert.equal(body.entries[2].message, 'user pushed log from device');
+  // The regular batch carried NO flag.
+  assert.equal('user_flagged' in h.calls[0].body, false);
+});
+
+await test('shipAll respects the batch caps via capBatch (middle-drop + marker)', async () => {
+  const h = makeHarness(ok200);
+  const res = await h.shipper.shipAll({ entries: mkEntries(700), flagged: true });
+  assert.equal(res.ok, true);
+  const body = h.calls[0].body;
+  assert.ok(body.entries.length <= MAX_BATCH_ENTRIES, 'entry cap respected');
+  assert.ok(body.entries.find((e) => /elided client-side/.test(e.message)),
+    'middle-drop marker present');
+  assert.ok(utf8Length(JSON.stringify(body)) <= MAX_BATCH_BYTES,
+    'whole body fits the byte budget');
+});
+
+await test('shipAll resolves ok:false on non-2xx and on a rejected fetch (no fake success)', async () => {
+  const h = makeHarness(fail500);
+  const r1 = await h.shipper.shipAll({ entries: mkEntries(2), flagged: true });
+  assert.equal(r1.ok, false);
+  assert.equal(r1.detail, 'HTTP 500');
+  const s = createLogShipper({
+    apiBase: 'https://api.test', client: { ua: '', app_version: '', platform: 'other' },
+    fetchFn: () => Promise.reject(new Error('network down')),
+    setTimeoutFn: () => null, clearTimeoutFn: () => {},
+  });
+  const r2 = await s.shipAll({ entries: mkEntries(2), flagged: true });
+  assert.equal(r2.ok, false);
+  assert.equal(r2.detail, 'network down');
+});
+
+await test('shipAll on a disabled shipper (demo) or with no entries is an honest no-op', async () => {
+  let calls = 0;
+  const s = createLogShipper({
+    apiBase: 'https://api.test', client: { ua: '', app_version: '', platform: 'other' },
+    enabled: false,
+    fetchFn: () => { calls += 1; return Promise.resolve(ok200()); },
+    setTimeoutFn: () => null, clearTimeoutFn: () => {},
+  });
+  assert.deepEqual(await s.shipAll({ entries: mkEntries(3), flagged: true }),
+    { ok: false, detail: 'disabled' });
+  const s2 = createLogShipper({
+    apiBase: 'https://api.test', client: { ua: '', app_version: '', platform: 'other' },
+    fetchFn: () => { calls += 1; return Promise.resolve(ok200()); },
+    setTimeoutFn: () => null, clearTimeoutFn: () => {},
+  });
+  assert.deepEqual(await s2.shipAll({ entries: [], flagged: true }),
+    { ok: false, detail: 'no entries' });
+  assert.equal(calls, 0, 'no POST in either case');
+});
+
+await test('shipAll is orthogonal: queue, backoff, and degraded flag are untouched', async () => {
+  // Regular pipeline fails into degraded+backoff; shipAll succeeds anyway
+  // (a deliberate user tap is allowed during backoff) WITHOUT clearing the
+  // degraded flag — only the regular pipeline's own 2xx may do that.
+  // Calls 1..DEGRADE_AFTER_FAILURES are the regular pipeline (fail); the
+  // later call (the shipAll push) succeeds.
+  const h = makeHarness((n) => (n <= DEGRADE_AFTER_FAILURES ? fail500() : ok200()));
+  h.shipper.enqueue({ t_ms: 1, level: 'NET', message: 'stuck' });
+  for (let i = 0; i < DEGRADE_AFTER_FAILURES; i++) {
+    h.advance(MAX_BACKOFF_MS + 1);
+    await h.shipper.shipNow('test');
+  }
+  const before = h.shipper.getState();
+  assert.equal(before.degraded, true);
+  assert.equal(before.queued, 1);
+  const res = await h.shipper.shipAll({ entries: mkEntries(2), flagged: true });
+  assert.equal(res.ok, true, 'user push delivered despite the backoff window');
+  const after = h.shipper.getState();
+  assert.equal(after.degraded, true, 'shipAll never fakes recovery');
+  assert.equal(after.queued, 1, 'regular queue untouched');
+  assert.equal(after.consecutiveFailures, before.consecutiveFailures);
+  assert.equal(after.nextAllowedAt, before.nextAllowedAt, 'backoff gate untouched');
+});
+
+// ---------------------------------------------------------------------------
 // iOS app-switch / bfcache resume (field bug: user switches to another app
 // mid-reconstruction; on return the shipper is wedged and the panel is dead).
 // ---------------------------------------------------------------------------
@@ -564,15 +674,17 @@ function makePanelDoc() {
   };
 }
 
-function makePanelFixture() {
+function makePanelFixture(send) {
   const doc = makePanelDoc();
   let nowMs = 0;
-  const dlog = createDebugLog({ doc, now: () => nowMs });
+  const dlog = createDebugLog({ doc, now: () => nowMs, send });
   return {
     doc, dlog, advance: (ms) => { nowMs += ms; },
     panel: () => doc.body.find((n) => n.id === 'debug-log-panel'),
     list: () => doc.body.find((n) => n.id === 'debug-log-list'),
     closeBtn: () => doc.body.find((n) => n.id === 'btn-debug-close'),
+    sendBtn: () => doc.body.find((n) => n.id === 'btn-debug-send'),
+    sendHint: () => doc.body.find((n) => n.id === 'debug-send-hint'),
   };
 }
 
@@ -622,6 +734,128 @@ await test('Close works via delegation from the panel root (survives resume)', (
   f.dlog.toggle(true);
   panel.dispatch('click', { target: f.list() });
   assert.equal(panel.hidden, false);
+});
+
+// ---------------------------------------------------------------------------
+// "Send log" button state machine (idle -> Sending… -> Sent ✓ | honest retry).
+// ---------------------------------------------------------------------------
+console.log('Send log button (user-initiated full-log push):');
+
+await test('no send transport -> no Send button (never a button that fakes a push)', () => {
+  const f = makePanelFixture(); // no send fn
+  f.dlog.log('STATE', 'x');
+  f.dlog.toggle(true);
+  assert.equal(f.sendBtn(), null);
+});
+
+await test('Send log: idle -> Sending… -> Sent ✓ on ok:true; greyed until resetSendState()', async () => {
+  let resolveSend = null;
+  const shipped = [];
+  const f = makePanelFixture((entries) => {
+    shipped.push(entries);
+    return new Promise((res) => { resolveSend = res; });
+  });
+  f.dlog.log('STATE', 'one');
+  f.dlog.toggle(true);
+  const btn = f.sendBtn();
+  assert.ok(btn, 'Send button exists when a transport is wired');
+  assert.equal(btn.disabled, false);
+  assert.equal(btn.textContent, 'Send log');
+  btn.dispatch('click', { target: btn });
+  assert.equal(btn.disabled, true, 'disabled while in flight');
+  assert.equal(btn.textContent, 'Sending…');
+  resolveSend({ ok: true });
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(btn.disabled, true, 'stays disabled after the ack');
+  assert.equal(btn.textContent, 'Sent ✓');
+  // A second tap while sent is a no-op (no second push).
+  btn.dispatch('click', { target: btn });
+  assert.equal(shipped.length, 1);
+  // The next capture sweep re-arms the button (capture_app.js hook).
+  f.dlog.resetSendState();
+  assert.equal(btn.disabled, false);
+  assert.equal(btn.textContent, 'Send log');
+});
+
+await test('Send log failure: button re-enabled with the honest hint; never "Sent"', async () => {
+  const f = makePanelFixture(() => Promise.resolve({ ok: false, detail: 'HTTP 503' }));
+  f.dlog.log('NET', 'x');
+  f.dlog.toggle(true);
+  const btn = f.sendBtn();
+  btn.dispatch('click', { target: btn });
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(btn.disabled, false, 're-enabled so the user can retry');
+  assert.equal(btn.textContent, 'Send log');
+  const hint = f.sendHint();
+  assert.equal(hint.hidden, false);
+  assert.ok(/use Copy/.test(hint.textContent), hint.textContent);
+  // A rejected send promise behaves the same (no fake success).
+  const f2 = makePanelFixture(() => Promise.reject(new Error('offline')));
+  f2.dlog.log('NET', 'y');
+  f2.dlog.toggle(true);
+  const btn2 = f2.sendBtn();
+  btn2.dispatch('click', { target: btn2 });
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(btn2.disabled, false);
+  assert.notEqual(btn2.textContent, 'Sent ✓');
+});
+
+await test('Send pushes ALL retained entries, ending with the user-pushed marker', async () => {
+  const shipped = [];
+  const f = makePanelFixture((entries) => {
+    shipped.push(entries);
+    return Promise.resolve({ ok: true });
+  });
+  f.dlog.log('STATE', 'one');
+  f.dlog.log('NET', 'two');
+  f.dlog.toggle(true);
+  f.sendBtn().dispatch('click', { target: f.sendBtn() });
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(shipped.length, 1);
+  const batch = shipped[0];
+  assert.equal(batch.length, 3, 'both retained entries + the marker');
+  assert.equal(batch[0].message, 'one');
+  assert.equal(batch[1].message, 'two');
+  assert.equal(batch[2].level, 'INFO');
+  assert.equal(batch[2].message, 'user pushed log from device');
+});
+
+await test('ring-buffer overflow: the push leads with an honest dropped-entries marker', async () => {
+  const shipped = [];
+  const f = makePanelFixture((entries) => {
+    shipped.push(entries);
+    return Promise.resolve({ ok: true });
+  });
+  const over = 5;
+  for (let i = 0; i < MAX_LOG_ENTRIES + over; i++) f.dlog.log('POLL', 'e' + i);
+  f.dlog.toggle(true);
+  f.sendBtn().dispatch('click', { target: f.sendBtn() });
+  await Promise.resolve(); await Promise.resolve();
+  const batch = shipped[0];
+  // over + 1: logging the user-pushed marker into the full ring evicted one
+  // more old entry before the snapshot was taken.
+  assert.ok(/^\[6 older log entries already dropped from memory/.test(batch[0].message),
+    batch[0].message);
+  assert.equal(batch[batch.length - 1].message, 'user pushed log from device');
+  // marker + the full retained ring (the push itself is the ring's newest entry)
+  assert.equal(batch.length, 1 + MAX_LOG_ENTRIES);
+});
+
+await test('a capture reset during an in-flight send supersedes its late ack', async () => {
+  let resolveSend = null;
+  const f = makePanelFixture(() => new Promise((res) => { resolveSend = res; }));
+  f.dlog.log('STATE', 'x');
+  f.dlog.toggle(true);
+  const btn = f.sendBtn();
+  btn.dispatch('click', { target: btn });
+  assert.equal(btn.textContent, 'Sending…');
+  f.dlog.resetSendState(); // new capture sweep started mid-flight
+  assert.equal(btn.disabled, false);
+  resolveSend({ ok: true }); // late ack for the OLD session's push
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(btn.textContent, 'Send log',
+    'late ack may not latch Sent ✓ for the new session');
+  assert.equal(btn.disabled, false);
 });
 
 await test('end-to-end: log -> hide(beacon) -> restore -> panel re-renders and shipping resumes', async () => {
@@ -678,6 +912,20 @@ await test('double resume in one tick orphans the zombie once, not the new fligh
   await Promise.resolve(); await Promise.resolve();
   assert.equal(s.getState().queued, 0, 'ack from the re-ship drained the queue');
   assert.equal(s.getState().inFlight, false);
+});
+
+await test('shipAll tolerates null/primitive entries (boundary hardening)', async () => {
+  const sent = [];
+  const s = createLogShipper({
+    apiBase: 'https://api.test', client: { ua: '', app_version: '', platform: 'other' },
+    fetchFn: (u, init) => { sent.push(JSON.parse(init.body)); return Promise.resolve({ ok: true, status: 202 }); },
+    setTimeoutFn: () => null, clearTimeoutFn: () => {},
+  });
+  const r = await s.shipAll({ entries: [null, 'oops', { t_ms: 5, level: 'NET', message: 'real' }], flagged: true });
+  assert.equal(r.ok, true);
+  assert.equal(sent[0].entries.length, 3);
+  assert.equal(sent[0].entries[2].message, 'real');
+  assert.equal(sent[0].entries[0].level, 'INFO');
 });
 
 console.log(`\n${passed} passed`);

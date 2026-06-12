@@ -184,7 +184,16 @@ function dbg(level, message) {
 
 function initDiagnostics() {
   try {
-    DBG = createDebugLog({ t: t });
+    // The panel's "Send log" button pushes the ENTIRE retained log as one
+    // user_flagged batch (shipAll() resolves ok:true only on a real HTTP 2xx
+    // — the button never claims "Sent" without a server ack). `_logShipper`
+    // is read lazily: the tap always happens after init completes.
+    DBG = createDebugLog({
+      t: t,
+      send: (logEntries) => _logShipper
+        ? _logShipper.shipAll({ entries: logEntries, flagged: true })
+        : Promise.resolve({ ok: false, detail: 'shipper unavailable' }),
+    });
     // Demo mode never talks to the capture API — local panel only.
     _logShipper = createLogShipper({
       apiBase: API_BASE,
@@ -938,6 +947,10 @@ function startCaptureLoop() {
   stopCaptureLoop();   // clear any prior interval before starting a fresh one
   state.coverage = 0;
   state.capturedFrames = [];
+  // A new capture sweep invalidates the debug panel's "Sent ✓" latch — logs
+  // from THIS sweep have not been pushed yet, so re-enable Send log here
+  // with the rest of the per-capture state resets.
+  if (DBG && typeof DBG.resetSendState === 'function') DBG.resetSendState();
   // Lane A: fresh per-frame sensor bookkeeping for this sweep. The camera
   // settings are snapshotted NOW, while the track is live — after stopCamera()
   // getSettings() returns {} and the intrinsics hints would be lost.
