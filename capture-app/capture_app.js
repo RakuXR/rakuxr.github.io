@@ -206,7 +206,20 @@ function initDiagnostics() {
             'diagnostics not reaching server — use Copy to share logs')
         : null);
     });
-    attachLogShipperLifecycle(_logShipper);
+    // pagehide/hidden flush the beacon; pageshow(persisted)/visible RE-ARM:
+    // the shipper has already resume()d (un-wedging any fetch iOS froze in
+    // the bfcache) — here we rebuild the panel from the retained in-memory
+    // entries (an iOS restore can blank the rendered lines) and leave a real
+    // log line so the field log records that the resume happened. That entry
+    // also restarts the ship cadence even when the beacon drained the queue.
+    attachLogShipperLifecycle(_logShipper, undefined, undefined, {
+      onResume: (why) => {
+        if (DBG) {
+          DBG.rerender();
+          DBG.log('STATE', 'page resumed (' + why + ') — diagnostics re-armed');
+        }
+      },
+    });
     dbg('STATE',
       'Capture debug logger ready — F2 or the DEBUG button toggles this panel'
       + (_demoMode() ? ' (demo mode: server log shipping disabled)' : ''));

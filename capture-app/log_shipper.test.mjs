@@ -12,14 +12,20 @@
 //   - batches respect the 500-entry / 256 KB caps via middle-drop + marker;
 //   - entries leave the queue ONLY on an HTTP 2xx ack, repeated failures
 //     degrade loudly (onDegraded -> the panel flag) with capped backoff,
-//     and recovery re-ships the retained entries. No fake success, ever.
+//     and recovery re-ships the retained entries. No fake success, ever;
+//   - an iOS app-switch (pagehide into the bfcache -> pageshow persisted)
+//     cannot kill diagnostics: a fetch the freeze orphaned is abandoned
+//     (inFlight cannot stick), retained entries re-ship on resume, the
+//     panel re-renders from the in-memory entries, and Close — delegated
+//     from the never-replaced panel root — keeps working.
 
 import assert from 'node:assert/strict';
 import {
-  elideDataUris, describeBytes, createPollDeduper,
+  elideDataUris, describeBytes, createPollDeduper, createDebugLog,
 } from './debug_log.js';
 import {
   capBatch, truncateMessage, createLogShipper, utf8Length,
+  attachLogShipperLifecycle,
   MAX_BATCH_ENTRIES, MAX_BATCH_BYTES, MAX_MESSAGE_CHARS,
   DEGRADE_AFTER_FAILURES, MAX_BACKOFF_MS, CLIENT_LOGS_PATH,
 } from './log_shipper.js';
@@ -331,6 +337,347 @@ await test('flushBeacon without a beacon API reports false (never fakes delivery
   s.enqueue({ t_ms: 1, level: 'STATE', message: 'x' });
   assert.equal(s.flushBeacon(), false);
   assert.equal(s.getState().queued, 1);
+});
+
+// ---------------------------------------------------------------------------
+// iOS app-switch / bfcache resume (field bug: user switches to another app
+// mid-reconstruction; on return the shipper is wedged and the panel is dead).
+// ---------------------------------------------------------------------------
+console.log('bfcache / app-switch resume:');
+
+/** Fake window+document that record listeners and can fire lifecycle events. */
+function makeLifecycleEnv() {
+  const listeners = { win: {}, doc: {} };
+  const reg = (map) => (type, fn) =>
+    (map[type] || (map[type] = [])).push(fn);
+  const win = { addEventListener: reg(listeners.win) };
+  const doc = { visibilityState: 'visible', addEventListener: reg(listeners.doc) };
+  const fire = (where, type, ev) => {
+    for (const fn of (listeners[where][type] || []).slice()) fn(ev || {});
+  };
+  return { win, doc, fire };
+}
+
+await test('pagehide flushes the beacon but does NOT stop the shipper', () => {
+  const sent = [];
+  const s = createLogShipper({
+    apiBase: 'https://api.test', client: { ua: '', app_version: '', platform: 'other' },
+    fetchFn: () => Promise.resolve(ok200()),
+    beaconFn: (url, body) => { sent.push(body); return true; },
+    setTimeoutFn: () => null, clearTimeoutFn: () => {},
+  });
+  const env = makeLifecycleEnv();
+  attachLogShipperLifecycle(s, env.win, env.doc);
+  s.enqueue({ t_ms: 1, level: 'STATE', message: 'before hide' });
+  env.fire('win', 'pagehide', { persisted: true });
+  assert.equal(sent.length, 1, 'beacon flushed on pagehide');
+  assert.equal(s.getState().queued, 0, 'accepted beacon genuinely drained the queue');
+  assert.equal(s.getState().stopped, false, 'pagehide must not stop the shipper');
+  // Logging keeps working while hidden / after restore.
+  assert.equal(typeof s.enqueue({ t_ms: 2, level: 'NET', message: 'after hide' }), 'number');
+});
+
+await test('a fetch orphaned by the bfcache freeze cannot wedge shipping (inFlight unsticks)', async () => {
+  // iOS kills in-flight fetches on bfcache entry and never settles them
+  // after restore. Pre-fix, that left inFlight=true forever and every later
+  // shipNow() no-opped — shipping was silently dead after resume.
+  let settleZombie = null;
+  let calls = 0;
+  const bodies = [];
+  const s = createLogShipper({
+    apiBase: 'https://api.test', client: { ua: '', app_version: '', platform: 'other' },
+    fetchFn: (url, opts) => {
+      calls += 1;
+      bodies.push(JSON.parse(opts.body));
+      if (calls === 1) return new Promise((res) => { settleZombie = res; });
+      return Promise.resolve(ok200());
+    },
+    beaconFn: null,
+    setTimeoutFn: () => null, clearTimeoutFn: () => {},
+  });
+  const env = makeLifecycleEnv();
+  attachLogShipperLifecycle(s, env.win, env.doc);
+
+  s.enqueue({ t_ms: 1, level: 'NET', message: 'frozen mid-flight' });
+  s.shipNow('test'); // never settles — the zombie flight
+  assert.equal(s.getState().inFlight, true, 'flight is pending');
+  assert.equal(await s.shipNow('test'), false, 'second ship blocked while in flight');
+
+  env.fire('win', 'pageshow', { persisted: true }); // bfcache restore
+  // resume() un-wedged inFlight and immediately re-shipped the retained
+  // entry (fetch #2) — pre-fix, the zombie flight blocked this forever.
+  assert.equal(calls, 2, 'retained entry re-shipped after resume');
+  await Promise.resolve(); await Promise.resolve(); // let the 2xx ack land
+  assert.equal(s.getState().inFlight, false, 'replacement flight settled');
+  assert.equal(s.getState().queued, 0);
+  assert.equal(bodies[1].entries[0].seq, bodies[0].entries[0].seq,
+    're-ship carries the same seq so the server can dedupe');
+
+  // The zombie finally settling must not corrupt state or double-ack.
+  settleZombie(ok200());
+  await Promise.resolve(); await Promise.resolve();
+  const st = s.getState();
+  assert.equal(st.queued, 0);
+  assert.equal(st.inFlight, false);
+  assert.equal(st.consecutiveFailures, 0);
+  // ...and shipping still works afterwards.
+  s.enqueue({ t_ms: 9, level: 'NET', message: 'post-resume entry' });
+  assert.equal(await s.shipNow('test'), true);
+  assert.equal(s.getState().queued, 0);
+});
+
+await test('entries retained by a REJECTED beacon re-ship after pageshow(persisted)', async () => {
+  let fetched = [];
+  const s = createLogShipper({
+    apiBase: 'https://api.test', client: { ua: '', app_version: '', platform: 'other' },
+    fetchFn: (url, opts) => {
+      fetched.push(JSON.parse(opts.body));
+      return Promise.resolve(ok200());
+    },
+    beaconFn: () => false, // UA refused the beacon — nothing shipped
+    setTimeoutFn: () => null, clearTimeoutFn: () => {},
+  });
+  const env = makeLifecycleEnv();
+  attachLogShipperLifecycle(s, env.win, env.doc);
+  s.enqueue({ t_ms: 1, level: 'ERROR', message: 'kept across the hide' });
+  await Promise.resolve(); await Promise.resolve(); // let the ERROR fast-ship ack
+  s.enqueue({ t_ms: 2, level: 'STATE', message: 'second kept entry' });
+  const before = s.getState().queued;
+  env.fire('win', 'pagehide', { persisted: true });
+  assert.equal(s.getState().queued, before, 'rejected beacon left the queue intact');
+  env.fire('win', 'pageshow', { persisted: true });
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(s.getState().queued, 0, 'retained entries shipped on resume');
+  const last = fetched[fetched.length - 1];
+  assert.equal(last.entries[last.entries.length - 1].message, 'second kept entry');
+});
+
+await test('pageshow WITHOUT persisted does not fire a resume; visible does (belt-and-braces)', () => {
+  const s = createLogShipper({
+    apiBase: 'https://api.test', client: { ua: '', app_version: '', platform: 'other' },
+    fetchFn: () => Promise.resolve(ok200()), beaconFn: () => true,
+    setTimeoutFn: () => null, clearTimeoutFn: () => {},
+  });
+  const env = makeLifecycleEnv();
+  const resumes = [];
+  attachLogShipperLifecycle(s, env.win, env.doc, { onResume: (why) => resumes.push(why) });
+  env.fire('win', 'pageshow', { persisted: false }); // a normal first load
+  assert.deepEqual(resumes, []);
+  env.fire('win', 'pageshow', { persisted: true });
+  assert.deepEqual(resumes, ['bfcache-restore']);
+  env.doc.visibilityState = 'hidden';
+  env.fire('doc', 'visibilitychange', {});
+  assert.deepEqual(resumes, ['bfcache-restore'], 'hidden flushes, never resumes');
+  env.doc.visibilityState = 'visible';
+  env.fire('doc', 'visibilitychange', {});
+  assert.deepEqual(resumes, ['bfcache-restore', 'visible']);
+});
+
+await test('stop() is reversed by resume(): a stopped flag cannot stick across a restore', async () => {
+  const s = createLogShipper({
+    apiBase: 'https://api.test', client: { ua: '', app_version: '', platform: 'other' },
+    fetchFn: () => Promise.resolve(ok200()), beaconFn: null,
+    setTimeoutFn: () => null, clearTimeoutFn: () => {},
+  });
+  s.stop();
+  assert.equal(s.getState().stopped, true);
+  assert.equal(s.enqueue({ t_ms: 1, level: 'NET', message: 'dropped' }), null,
+    'stopped shipper drops entries (documented)');
+  s.resume();
+  assert.equal(s.getState().stopped, false, 'resume un-sticks stop()');
+  assert.equal(typeof s.enqueue({ t_ms: 2, level: 'NET', message: 'lives' }), 'number');
+  assert.equal(await s.shipNow('test'), true);
+});
+
+await test('resume() does NOT fake recovery: degraded flag and backoff survive it', async () => {
+  const h = makeHarness(fail500);
+  const flags = [];
+  h.shipper.onDegraded((d) => flags.push(d));
+  h.shipper.enqueue({ t_ms: 1, level: 'NET', message: 'x' });
+  for (let i = 0; i < DEGRADE_AFTER_FAILURES; i++) {
+    h.advance(MAX_BACKOFF_MS + 1);
+    await h.shipper.shipNow('test');
+  }
+  assert.deepEqual(flags, [true]);
+  const callsBefore = h.calls.length;
+  h.shipper.resume(); // inside the backoff window
+  await Promise.resolve();
+  assert.equal(h.calls.length, callsBefore, 'backoff gate still respected on resume');
+  assert.equal(h.shipper.getState().degraded, true,
+    'only a real 2xx clears degraded — resume() never does');
+});
+
+// ---------------------------------------------------------------------------
+// Debug panel resume: re-render from retained entries + delegated Close.
+// ---------------------------------------------------------------------------
+console.log('debug panel resume (re-render + delegated Close):');
+
+/**
+ * A minimal document for createDebugLog: nodes with children / listeners /
+ * textContent-clears-children semantics (like the real DOM and the
+ * tests/capture-pwa harness). Clicks on descendants do not bubble — a test
+ * simulates a bubbled click by dispatching on the panel root with the real
+ * target, which is exactly what delegation relies on in a browser.
+ */
+function makePanelDoc() {
+  class El {
+    constructor(tag) {
+      this.tagName = String(tag).toUpperCase();
+      this.id = ''; this.hidden = false; this.type = '';
+      this._text = ''; this.style = {}; this.children = [];
+      this.parentNode = null; this._listeners = {}; this._attrs = {};
+    }
+    get textContent() { return this._text; }
+    set textContent(v) { this._text = v == null ? '' : String(v); this.children = []; }
+    setAttribute(k, v) { this._attrs[k] = String(v); }
+    appendChild(c) {
+      if (c.parentNode) c.parentNode.removeChild(c);
+      c.parentNode = this; this.children.push(c); return c;
+    }
+    removeChild(c) {
+      const i = this.children.indexOf(c);
+      if (i >= 0) this.children.splice(i, 1);
+      c.parentNode = null; return c;
+    }
+    addEventListener(t, fn) {
+      (this._listeners[t] || (this._listeners[t] = [])).push(fn);
+    }
+    dispatch(t, ev) {
+      for (const fn of (this._listeners[t] || []).slice()) {
+        fn(Object.assign({ type: t, target: this }, ev || {}));
+      }
+    }
+    find(pred) { // depth-first descendant search (test helper)
+      for (const c of this.children) {
+        if (pred(c)) return c;
+        const hit = c.find(pred);
+        if (hit) return hit;
+      }
+      return null;
+    }
+  }
+  const body = new El('body');
+  return {
+    body,
+    createElement: (t) => new El(t),
+    addEventListener: () => {},
+  };
+}
+
+function makePanelFixture() {
+  const doc = makePanelDoc();
+  let nowMs = 0;
+  const dlog = createDebugLog({ doc, now: () => nowMs });
+  return {
+    doc, dlog, advance: (ms) => { nowMs += ms; },
+    panel: () => doc.body.find((n) => n.id === 'debug-log-panel'),
+    list: () => doc.body.find((n) => n.id === 'debug-log-list'),
+    closeBtn: () => doc.body.find((n) => n.id === 'btn-debug-close'),
+  };
+}
+
+await test('rerender() rebuilds the entry list from retained in-memory entries', () => {
+  const f = makePanelFixture();
+  f.dlog.log('STATE', 'one'); f.dlog.log('NET', 'two'); f.dlog.log('ERROR', 'three');
+  f.dlog.toggle(true);
+  assert.equal(f.list().children.length, 3, 'panel rendered the retained entries');
+  // Simulate the iOS field blank-out: rendered lines vanish, memory intact.
+  f.list().textContent = '';
+  assert.equal(f.list().children.length, 0);
+  f.dlog.rerender();
+  assert.equal(f.list().children.length, 3, 'entries re-rendered after resume');
+  assert.ok(/ERROR three$/.test(f.list().children[2].textContent));
+  // New entries keep appending after the re-render.
+  f.dlog.log('POLL', 'four');
+  assert.equal(f.list().children.length, 4);
+});
+
+await test('rerender() preserves the ship-status flag and re-attaches a lost panel', () => {
+  const f = makePanelFixture();
+  f.dlog.log('NET', 'entry');
+  f.dlog.toggle(true);
+  f.dlog.setShipStatus('diagnostics not reaching server — use Copy to share logs');
+  const panel = f.panel();
+  f.doc.body.removeChild(panel); // restored page lost the node entirely
+  f.dlog.rerender();
+  assert.equal(panel.parentNode, f.doc.body, 'panel re-attached to the document');
+  const flag = f.doc.body.find((n) => n.id === 'debug-ship-status');
+  assert.equal(flag.hidden, false);
+  assert.ok(/not reaching server/.test(flag.textContent));
+});
+
+await test('Close works via delegation from the panel root (survives resume)', () => {
+  const f = makePanelFixture();
+  f.dlog.log('STATE', 'x');
+  f.dlog.toggle(true);
+  const panel = f.panel();
+  assert.equal(panel.hidden, false, 'panel open');
+  // The blank-out + re-render cycle must not affect the Close binding: it
+  // lives on the panel root, which is never replaced.
+  f.list().textContent = '';
+  f.dlog.rerender();
+  panel.dispatch('click', { target: f.closeBtn() }); // a bubbled Close tap
+  assert.equal(panel.hidden, true, 'Close dismissed the panel');
+  // A click elsewhere in the panel must NOT close it.
+  f.dlog.toggle(true);
+  panel.dispatch('click', { target: f.list() });
+  assert.equal(panel.hidden, false);
+});
+
+await test('end-to-end: log -> hide(beacon) -> restore -> panel re-renders and shipping resumes', async () => {
+  // The capture_app.js wiring in miniature: logger entries feed the shipper;
+  // lifecycle resume re-arms the shipper THEN re-renders the panel.
+  const f = makePanelFixture();
+  let calls = 0;
+  const s = createLogShipper({
+    apiBase: 'https://api.test', client: { ua: '', app_version: '', platform: 'other' },
+    fetchFn: () => { calls += 1; return new Promise(() => {}); }, // all zombies
+    beaconFn: () => false, // beacon refused — entries retained
+    setTimeoutFn: () => null, clearTimeoutFn: () => {},
+  });
+  f.dlog.onEntry((e) => s.enqueue(e));
+  const env = makeLifecycleEnv();
+  attachLogShipperLifecycle(s, env.win, env.doc, {
+    onResume: () => f.dlog.rerender(),
+  });
+
+  f.dlog.log('STATE', 'reconstruction running');
+  f.dlog.toggle(true);
+  s.shipNow('test'); // flight that the freeze will orphan
+  assert.equal(calls, 1);
+
+  env.fire('win', 'pagehide', { persisted: true });   // app switch (Spotify)
+  f.list().textContent = '';                          // iOS blanks the lines
+  env.fire('win', 'pageshow', { persisted: true });   // back to the PWA
+
+  assert.equal(f.list().children.length, 1, 'retained entry visible after resume');
+  assert.equal(calls, 2, 'shipping re-attempted after resume despite the zombie');
+  assert.equal(s.getState().queued, 1,
+    'honest: the zombie re-ship has NOT been acked, so the entry stays queued');
+  f.panel().dispatch('click', { target: f.closeBtn() });
+  assert.equal(f.panel().hidden, true, 'Close still works after resume');
+});
+
+await test('double resume in one tick orphans the zombie once, not the new flight', async () => {
+  // pageshow(persisted) + visibilitychange:visible both fire on an iOS
+  // restore. The second resume() must NOT orphan the healthy re-ship the
+  // first one started — its 2xx must still drain the queue.
+  let settlers = [];
+  const s = createLogShipper({
+    apiBase: 'https://api.test', client: { ua: '', app_version: '', platform: 'other' },
+    fetchFn: () => new Promise((res) => settlers.push(res)),
+    setTimeoutFn: () => null, clearTimeoutFn: () => {},
+  });
+  s.enqueue({ t_ms: 1, level: 'NET', message: 'a' });
+  s.shipNow('test');                 // zombie flight (never settled by iOS)
+  assert.equal(s.getState().inFlight, true);
+  s.resume();                        // orphans zombie, starts healthy re-ship
+  s.resume();                        // same tick: must NOT orphan the re-ship
+  assert.equal(settlers.length, 2, 'zombie + one healthy re-ship, no third');
+  settlers[1]({ ok: true, status: 202 });   // healthy flight acks
+  await Promise.resolve(); await Promise.resolve();
+  assert.equal(s.getState().queued, 0, 'ack from the re-ship drained the queue');
+  assert.equal(s.getState().inFlight, false);
 });
 
 console.log(`\n${passed} passed`);

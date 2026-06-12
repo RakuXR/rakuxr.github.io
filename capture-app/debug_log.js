@@ -141,7 +141,8 @@ export const MAX_LOG_ENTRIES = 400;
  * @param {Function} [opts.t]   i18n translate fn `(key, params, fallback)`
  * @param {Document} [opts.doc] document override (tests)
  * @param {Function} [opts.now] clock override (tests), default performance.now
- * @returns {{ log, onEntry, setShipStatus, toggle, getEntries, formatEntries }}
+ * @returns {{ log, onEntry, setShipStatus, toggle, rerender, getEntries,
+ *            formatEntries }}
  */
 export function createDebugLog(opts) {
   const o = opts || {};
@@ -277,11 +278,25 @@ export function createDebugLog(opts) {
 
     const closeBtn = doc.createElement('button');
     closeBtn.type = 'button';
+    closeBtn.id = 'btn-debug-close';
     closeBtn.textContent = tFn('debug.close', null, 'Close');
     closeBtn.style.cssText = 'font:inherit;padding:2px 10px;background:#1d1d2a;' +
       'color:#cfcfe0;border:1px solid #2a2a3a;border-radius:4px;';
-    closeBtn.addEventListener('click', () => toggle(false));
     header.appendChild(closeBtn);
+
+    // Close is bound by DELEGATION from the panel root, not on the button
+    // node: the root is created once and never replaced, so the binding
+    // survives an iOS bfcache restore even if the restored page mishandles
+    // bindings on descendant nodes (field bug: after an app switch the
+    // panel's Close did nothing). Manual ancestor walk — no closest()
+    // dependency, works in the headless test DOM too.
+    panel.addEventListener('click', (e) => {
+      let n = e && e.target;
+      while (n && n !== panel) {
+        if (n.id === 'btn-debug-close') { toggle(false); return; }
+        n = n.parentNode;
+      }
+    });
 
     listEl = doc.createElement('div');
     listEl.id = 'debug-log-list';
@@ -292,6 +307,33 @@ export function createDebugLog(opts) {
     panel.appendChild(header);
     panel.appendChild(listEl);
     doc.body.appendChild(panel);
+  }
+
+  /**
+   * Rebuild the panel's rendered state from the retained in-memory entries:
+   * re-attach the panel if the document lost it, re-render the entry list,
+   * and re-apply the ship-status flag. Used on page resume — an iOS bfcache
+   * restore has been observed to blank the rendered log lines while the
+   * in-memory `entries` ring buffer is fully intact. Idempotent and
+   * best-effort; a no-op until the panel has been built (a fresh toggle
+   * already renders from `entries`).
+   */
+  function rerender() {
+    try {
+      if (!panel || !doc || !doc.body) return;
+      if (!panel.parentNode) doc.body.appendChild(panel);
+      if (listEl) {
+        listEl.textContent = ''; // clears all child nodes
+        for (const e of entries) appendLine(e);
+        if (!panel.hidden && typeof listEl.scrollTo === 'function') {
+          try { listEl.scrollTo(0, 1e9); } catch (err) { /* cosmetic */ }
+        }
+      }
+      if (shipStatusEl) {
+        shipStatusEl.textContent = shipStatusText || '';
+        shipStatusEl.hidden = !shipStatusText;
+      }
+    } catch (err) { /* panel rendering is best-effort */ }
   }
 
   /** Show/hide the panel. `force` true/false pins the state; absent toggles. */
@@ -333,6 +375,7 @@ export function createDebugLog(opts) {
     onEntry,
     setShipStatus,
     toggle,
+    rerender,
     getEntries: () => entries.slice(),
     formatEntries,
   };
