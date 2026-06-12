@@ -53,6 +53,26 @@ import {
 } from './scale_calibration.js';
 
 // ============================================================================
+// Sensor metadata module (Lane A — capture→splat speed program)
+// ============================================================================
+// sensor_metadata.js owns per-frame IMU sampling (gravity, rotation rate,
+// orientation quaternion), best-effort camera intrinsics, the
+// capture_metadata.json builder (exact cross-lane schema), and the
+// fire-and-forget GPU pre-warm ping. Everything is feature-detected and
+// fails soft — capture never breaks when sensors are unavailable.
+
+import {
+  METADATA_FILENAME,
+  ensureMotionPermission,
+  startSensorCapture,
+  stopSensorCapture,
+  sensorFrameRecord,
+  snapshotCameraSettings,
+  buildCaptureMetadata,
+  prewarmCaptureSession,
+} from './sensor_metadata.js';
+
+// ============================================================================
 // i18n shim
 // ============================================================================
 // window.RakuI18n is installed by i18n.js (loaded before this module). The
@@ -200,6 +220,17 @@ const state = {
   scaleFrames: [],        // Array<Blob> — dedicated reference keyframes
   scaleDwellMs: 0,        // ms the reference was held in frame
   scaleSubstep: false,    // true while the in-camera scale sub-step is running
+
+  // ---- per-frame sensor metadata (Lane A) --------------------------------
+  // frameMeta is PARALLEL to capturedFrames: frameMeta[i] is the sensor record
+  // (t_ms, imu sample, pose placeholder) grabbed at the same drawImage() as
+  // capturedFrames[i]'s pixels. captureT0 anchors the monotonic per-frame
+  // timestamps; cameraSnapshot is taken while the track is still live (after
+  // stopCamera() getSettings() returns {}).
+  frameMeta: [],          // Array<object> — sensorFrameRecord() results
+  captureT0: null,        // performance.now() at capture-sweep start
+  cameraSnapshot: null,   // snapshotCameraSettings() result for this sweep
+  uploadedFrameSize: null,// {width,height} of the as-uploaded (downscaled) JPEGs
 };
 
 // DOM lookup helper ----------------------------------------------------------
@@ -631,13 +662,25 @@ function resetScaleState() {
  * normal room sweep. A skip goes straight to the sweep.
  */
 async function beginCapture() {
-  // Request the DeviceOrientation permission FIRST, while we are still inside
-  // the capture button's user-gesture task (iOS 13+ requires that). Await it so
-  // the motion prompt and the camera prompt are sequential, not overlapping —
-  // simultaneous permission prompts can conflict or be silently rejected on
-  // iOS Safari. The listener is attached later in startCoverageTracking(); if
-  // the user denies, the coverage ring just stays hidden.
+  // Fire-and-forget GPU pre-warm the moment the user starts a scan, so a
+  // reconstruction worker can be spinning up during the room sweep. Silently
+  // tolerates 404 (endpoint rolling out in parallel) and never blocks.
+  if (!_demoMode()) prewarmCaptureSession(API_BASE, _getAuthToken());
+
+  // Request the DeviceOrientation + DeviceMotion permissions FIRST, while we
+  // are still inside the capture button's user-gesture task (iOS 13+ requires
+  // that). Both calls are issued synchronously in the same gesture: on iOS
+  // they map to the SAME underlying "Motion & Orientation" grant, so the user
+  // sees a single prompt that unlocks both the coverage ring
+  // (deviceorientation) and the per-frame IMU metadata (devicemotion). Await
+  // them so the motion prompt and the camera prompt are sequential, not
+  // overlapping — simultaneous permission prompts can conflict or be silently
+  // rejected on iOS Safari. The listeners are attached later in
+  // startCoverageTracking() / startSensorCapture(); if the user denies, the
+  // coverage ring stays hidden and the IMU fields stay null.
+  const motionPermission = ensureMotionPermission();
   await ensureOrientationPermission();
+  await motionPermission;
   const ok = await requestCamera();
   if (!ok) return; // requestCamera() already surfaced the error screen
   showPhase(Phase.CAPTURE);
@@ -730,6 +773,13 @@ function startCaptureLoop() {
   stopCaptureLoop();   // clear any prior interval before starting a fresh one
   state.coverage = 0;
   state.capturedFrames = [];
+  // Lane A: fresh per-frame sensor bookkeeping for this sweep. The camera
+  // settings are snapshotted NOW, while the track is live — after stopCamera()
+  // getSettings() returns {} and the intrinsics hints would be lost.
+  state.frameMeta = [];
+  state.captureT0 = performance.now();
+  state.cameraSnapshot = snapshotCameraSettings(state.mediaStream);
+  startSensorCapture();
   updateCoverage(0);
   // Reveal the live capture status (real frame counter + directional coverage)
   // and start tracking camera orientation for the coverage ring.
@@ -755,6 +805,7 @@ function startCaptureLoop() {
 function stopCaptureLoop() {
   if (coverageTimer) { clearInterval(coverageTimer); coverageTimer = null; }
   stopCoverageTracking(); // detach the deviceorientation listener
+  stopSensorCapture();    // detach the IMU (devicemotion/orientation) listeners
 }
 
 // Offscreen canvas reused for every keyframe grab.
@@ -778,10 +829,21 @@ function captureKeyframe() {
   const ctx = _keyframeCanvas.getContext('2d');
   if (!ctx) return;
   ctx.drawImage(video, 0, 0, w, h);
+  // Lane A: snapshot the sensor record at drawImage() time — NOT in the async
+  // toBlob callback — so the IMU sample matches the pixels. toBlob is async:
+  // stash the current buckets so a late-arriving blob lands in the sweep it
+  // was grabbed for (mirrors the scale-keyframe guard), and push blob+record
+  // in the SAME callback so frameMeta[i] always describes capturedFrames[i]
+  // (and therefore the uploaded `frame_<i>.jpg`).
+  const record = sensorFrameRecord(state.captureT0);
+  state.uploadedFrameSize = { width: w, height: h }; // what the worker's SfM sees
+  const targetFrames = state.capturedFrames;
+  const targetMeta = state.frameMeta;
   _keyframeCanvas.toBlob(
     (blob) => {
-      if (blob && state.capturedFrames.length < MAX_KEYFRAMES) {
-        state.capturedFrames.push(blob);
+      if (blob && targetFrames.length < MAX_KEYFRAMES) {
+        targetFrames.push(blob);
+        targetMeta.push(record);
       }
     },
     'image/jpeg',
@@ -1122,6 +1184,35 @@ function uploadCapture(frames, onProgress) {
       dwellMs: state.scaleDwellMs,
     });
 
+    // Lane A: per-frame sensor metadata (timestamps, IMU samples, best-effort
+    // intrinsics) rides alongside the frames as its own multipart part,
+    // `capture_metadata.json`. The schema is the cross-lane contract with the
+    // capture endpoint + recon worker (see sensor_metadata.js header) — the
+    // worker joins frames[].filename to the `frame_<i>.jpg` parts above to
+    // skip/constrain COLMAP. Only ROOM frames are described; the scale_<i>.jpg
+    // reference frames are deliberately excluded (they are a different,
+    // hold-still sub-step — their IMU data carries no sweep information).
+    // FastAPI ignores unknown multipart fields, so this is safe to send even
+    // before the server consumes it.
+    let sensorMetadata = null;
+    try {
+      sensorMetadata = buildCaptureMetadata({
+        frameCount: frames.length,
+        frameRecords: state.frameMeta,
+        cameraSettings: state.cameraSnapshot,
+        uploadedFrameSize: state.uploadedFrameSize,
+      });
+      form.append(
+        'capture_metadata',
+        new Blob([JSON.stringify(sensorMetadata)], { type: 'application/json' }),
+        METADATA_FILENAME
+      );
+    } catch (err) {
+      // Sensor metadata must NEVER break an upload — frames alone still work.
+      console.warn('[RakuCapture] sensor metadata build failed:', err);
+      sensorMetadata = null;
+    }
+
     form.append(
       'meta',
       JSON.stringify({
@@ -1135,6 +1226,9 @@ function uploadCapture(frames, onProgress) {
         roomFrameCount: frames.length,
         coverage: state.coverage,
         scaleReference: scaleReference,
+        // Advisory flag: a capture_metadata.json part is attached (lets the
+        // server branch without sniffing the multipart body).
+        hasSensorMetadata: sensorMetadata !== null,
       })
     );
 
