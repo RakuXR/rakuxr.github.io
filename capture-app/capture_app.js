@@ -154,14 +154,15 @@ const SUPERSPLAT_EDITOR_URL = 'https://superspl.at/editor';
 // Sample-splat manifest (real public room-scale splats) for the intro preview.
 const SAMPLES_MANIFEST_URL = './samples/manifest.json';
 
-// Opening orbit yaw for the intro sample splat. 0.6 rad is the original,
-// known-good framing that shows the fireplace opening at a slight, acceptable
-// angle. An earlier attempt added a π/2 quarter-turn to "straighten" it, but
-// that overshot and swung the camera ~180° around to the back of the room.
-// The real culprit was the auto-focus reframing the sample; now that
-// auto-focus is gated to genuine capture results only (loadSplatViewer's
-// autoFocus flag, false for the intro sample), 0.6 looks right again.
-const INTRO_SAMPLE_THETA = 0.6;
+// Opening orbit yaw for the intro sample splat. 0.6 rad is the capture-result
+// default, but for the fireplace sample it opened on the room's side (gray
+// wall) instead of the fireplace. An earlier fix added a π/2 quarter-turn,
+// which overshot — but that was while auto-focus was still reframing the
+// sample. With auto-focus now gated to genuine capture results only
+// (loadSplatViewer's autoFocus flag, false for the intro sample), offset the
+// opening yaw by a half-turn (π) so the fireplace front is the first thing
+// that rotates into view as the orbit auto-rotates counter-clockwise.
+const INTRO_SAMPLE_THETA = 0.6 + Math.PI;  // half-turn from the 0.6 capture-result default
 
 // Capture tuning.
 // Upper bound on frames sent per capture — a safety ceiling so a runaway scan
@@ -1964,10 +1965,10 @@ async function loadSplatViewerInto(canvas, url) {
   // curated, origin-centred splat sized for the default radius-2.8 orbit, so
   // it must keep the known-good framing rather than be recentered/refit.
   //
-  // initialTheta: rotate the opening yaw a quarter-turn from the default so
-  // the sample (the fireplace room) faces the camera straight on for the
-  // first frame. The default 0.6 yaw left it viewed from the side. The orbit
-  // still auto-rotates from here, so this only fixes the starting angle.
+  // initialTheta: offset the opening yaw by a half-turn (π) from the default
+  // so the sample (the fireplace room) opens front-first rather than from the
+  // side. The default 0.6 yaw left it viewed from the side (gray wall). The
+  // orbit still auto-rotates from here, so this only fixes the starting angle.
   return loadSplatViewer(canvas, url, false, sink, false, INTRO_SAMPLE_THETA);
 }
 
