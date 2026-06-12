@@ -231,6 +231,7 @@ const state = {
   captureT0: null,        // performance.now() at capture-sweep start
   cameraSnapshot: null,   // snapshotCameraSettings() result for this sweep
   uploadedFrameSize: null,// {width,height} of the as-uploaded (downscaled) JPEGs
+  pendingFrameBlobs: 0,   // in-flight async toBlob() conversions (drained pre-upload)
 };
 
 // DOM lookup helper ----------------------------------------------------------
@@ -779,6 +780,7 @@ function startCaptureLoop() {
   state.frameMeta = [];
   state.captureT0 = performance.now();
   state.cameraSnapshot = snapshotCameraSettings(state.mediaStream);
+  state.pendingFrameBlobs = 0;
   startSensorCapture();
   updateCoverage(0);
   // Reveal the live capture status (real frame counter + directional coverage)
@@ -839,8 +841,10 @@ function captureKeyframe() {
   state.uploadedFrameSize = { width: w, height: h }; // what the worker's SfM sees
   const targetFrames = state.capturedFrames;
   const targetMeta = state.frameMeta;
+  state.pendingFrameBlobs++; // drained by awaitPendingFrameBlobs() pre-upload
   _keyframeCanvas.toBlob(
     (blob) => {
+      state.pendingFrameBlobs = Math.max(0, state.pendingFrameBlobs - 1);
       if (blob && targetFrames.length < MAX_KEYFRAMES) {
         targetFrames.push(blob);
         targetMeta.push(record);
@@ -849,6 +853,30 @@ function captureKeyframe() {
     'image/jpeg',
     0.72
   );
+}
+
+/**
+ * Wait for in-flight toBlob() keyframe conversions to settle before the
+ * upload snapshots state.capturedFrames. toBlob is async, so the frame
+ * grabbed on the last interval tick before "Finish capture" may still be
+ * compressing when the tap lands — without this drain that trailing frame
+ * (and its frameMeta record) would be silently dropped from the upload.
+ * Bounded: a callback that never fires (defensive — not an observed browser
+ * behavior) only delays the upload by maxWaitMs, never wedges it.
+ *
+ * @param {number} maxWaitMs hard cap on the drain wait
+ * @returns {Promise<void>}
+ */
+function awaitPendingFrameBlobs(maxWaitMs = 1500) {
+  if (!state.pendingFrameBlobs) return Promise.resolve();
+  const deadline = performance.now() + maxWaitMs;
+  return new Promise((resolve) => {
+    const tick = () => {
+      if (!state.pendingFrameBlobs || performance.now() >= deadline) resolve();
+      else setTimeout(tick, 25);
+    };
+    tick();
+  });
 }
 
 function updateCoverage(coverage) {
@@ -2383,9 +2411,10 @@ function bindEvents() {
     showPhase(Phase.INTRO);
   });
 
-  $('btn-finish-capture').addEventListener('click', () => {
+  $('btn-finish-capture').addEventListener('click', async () => {
     stopCaptureLoop();
-    stopCamera();
+    stopCamera(); // safe pre-drain: pending toBlob()s read the offscreen canvas, not the stream
+    await awaitPendingFrameBlobs(); // include the trailing keyframe + its meta record
     runPipeline();
   });
 
