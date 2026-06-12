@@ -24,11 +24,22 @@
 //     bytes; when over, MIDDLE entries are dropped (oldest context + newest
 //     events are the valuable ends) and one marker entry says how many were
 //     elided — the server is never silently missing data.
+//   - OPTIONAL top-level field `"user_flagged": true` — present ONLY on
+//     user-initiated pushes (the debug panel's "Send log" button ->
+//     shipAll()). Such a batch is the COMPLETE retained log, intentionally
+//     re-sending entries earlier batches may already have delivered, so it
+//     is self-contained. Backend lane: flagged batches should be surfaced
+//     to operators (notification / triage queue), not just stored — a user
+//     pressed a button asking a human to look. The endpoint ignores unknown
+//     fields safely, so this client can deploy ahead of the backend change.
 //
 // Shipping cadence:
 //   - every SHIP_INTERVAL_MS (10 s) while new entries are queued;
 //   - immediately on ERROR-level entries and on capture state transitions
 //     (capture_app.js calls shipNow());
+//   - on explicit user request via shipAll() (the panel's "Send log"
+//     button): one complete user_flagged batch, fetch-only — sendBeacon is
+//     NOT acceptable there because the button promises a server ack;
 //   - on pagehide / visibilitychange:hidden via navigator.sendBeacon (the
 //     only delivery path that survives a closing tab). pagehide is treated
 //     as "maybe coming back": iOS puts the page in the back/forward cache
@@ -304,6 +315,71 @@ export function createLogShipper(opts) {
   }
 
   /**
+   * USER-INITIATED full-log push (the debug panel's "Send log" button).
+   * Ships the caller-supplied entries — the panel's ENTIRE retained ring
+   * buffer, including entries already acked in earlier batches — as one
+   * self-contained batch carrying top-level `user_flagged: true`, so the
+   * server holds a complete log without stitching batches. Fresh seqs are
+   * assigned (continuing the page-load counter): the overlap with earlier
+   * batches is intentional and must NOT be deduped away.
+   *
+   * Resolves { ok:true, status } ONLY on a real HTTP 2xx ack;
+   * { ok:false, detail } for everything else — disabled shipper (demo
+   * mode), no transport, network error, non-2xx. Never throws, never uses
+   * sendBeacon (a beacon cannot return the ack this affordance promises).
+   *
+   * Deliberately ORTHOGONAL to steady-state shipping: it does not touch the
+   * queue, the inFlight latch, the backoff gate, or the degraded flag in
+   * either direction — a user push is allowed during backoff (one deliberate
+   * tap is not retry spam), and only the regular pipeline's own 2xx may
+   * clear degraded (resume()'s honesty rule applies here too).
+   *
+   * @param {{entries: Array<{t_ms,level,message}>, flagged?: boolean}} opts
+   * @returns {Promise<{ok: boolean, status?: number, detail?: string}>}
+   */
+  function shipAll(opts) {
+    const req = opts || {};
+    const src = Array.isArray(req.entries) ? req.entries : [];
+    if (!enabled) return Promise.resolve({ ok: false, detail: 'disabled' });
+    if (!fetchFn) return Promise.resolve({ ok: false, detail: 'no transport' });
+    if (!src.length) return Promise.resolve({ ok: false, detail: 'no entries' });
+    // Defensive at the API boundary: a null/primitive element must not
+    // TypeError the whole push — it becomes an empty INFO entry instead.
+    const withSeqs = src.map((raw) => {
+      const e = (raw && typeof raw === 'object') ? raw : {};
+      return {
+        seq: ++seq,
+        t_ms: typeof e.t_ms === 'number' ? e.t_ms : null,
+        level: String(e.level || 'INFO').toUpperCase(),
+        message: truncateMessage(e.message),
+      };
+    });
+    const batch = capBatch(withSeqs, {
+      maxEntries: MAX_BATCH_ENTRIES,
+      maxBytes: MAX_BATCH_BYTES - 2048, // envelope headroom
+    });
+    const payload = buildPayload(batch.entries);
+    if (req.flagged) payload.user_flagged = true;
+    let p;
+    try {
+      p = fetchFn(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      p = Promise.reject(err);
+    }
+    return Promise.resolve(p).then((resp) => {
+      if (resp && resp.ok) return { ok: true, status: resp.status };
+      return { ok: false, detail: 'HTTP ' + (resp ? resp.status : 'no-response') };
+    }, (err) => ({
+      ok: false,
+      detail: err && err.message ? err.message : String(err),
+    }));
+  }
+
+  /**
    * Queue one sanitized log entry {t_ms, level, message}. Assigns `seq`.
    * ERROR-level entries trigger an immediate ship attempt (still subject to
    * the backoff gate). Returns the assigned seq, or null when disabled.
@@ -403,6 +479,7 @@ export function createLogShipper(opts) {
   return {
     enqueue,
     shipNow,
+    shipAll,
     flushBeacon,
     stop,
     resume,

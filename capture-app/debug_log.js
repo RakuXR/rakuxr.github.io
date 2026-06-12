@@ -5,7 +5,10 @@
 // A small on-device diagnostics surface for the capture PWA: capture_app.js
 // appends NET / STATE / POLL / ERROR entries here; the panel is toggled with
 // F2 or the floating DEBUG button, and a Copy button puts the whole log on
-// the clipboard so a user can paste it into a bug report.
+// the clipboard so a user can paste it into a bug report. A "Send log"
+// button (present when opts.send is wired — see log_shipper.js shipAll())
+// pushes the ENTIRE retained log to the server in one user-flagged batch,
+// for when the log has grown too large to copy/paste.
 //
 // Log hygiene (the reason this module exists as more than console.log):
 //   1. `data:` URIs are elided before an entry is stored. A single
@@ -138,11 +141,15 @@ export const MAX_LOG_ENTRIES = 400;
  * exists, so the pure log() path still works headlessly.
  *
  * @param {object} [opts]
- * @param {Function} [opts.t]   i18n translate fn `(key, params, fallback)`
- * @param {Document} [opts.doc] document override (tests)
- * @param {Function} [opts.now] clock override (tests), default performance.now
- * @returns {{ log, onEntry, setShipStatus, toggle, rerender, getEntries,
- *            formatEntries }}
+ * @param {Function} [opts.t]    i18n translate fn `(key, params, fallback)`
+ * @param {Document} [opts.doc]  document override (tests)
+ * @param {Function} [opts.now]  clock override (tests), default performance.now
+ * @param {Function} [opts.send] user-initiated full-log push:
+ *   `(entries) => Promise<{ok:boolean, detail?:string}>` — wired by
+ *   capture_app.js to log_shipper.js shipAll(). When absent the panel has no
+ *   "Send log" button (demo/headless contexts lose nothing).
+ * @returns {{ log, onEntry, setShipStatus, toggle, rerender, resetSendState,
+ *            getEntries, formatEntries }}
  */
 export function createDebugLog(opts) {
   const o = opts || {};
@@ -151,6 +158,7 @@ export function createDebugLog(opts) {
   const doc = o.doc || (typeof document !== 'undefined' ? document : null);
   const now = o.now || (typeof performance !== 'undefined' && performance.now
     ? () => performance.now() : () => Date.now());
+  const sendFn = typeof o.send === 'function' ? o.send : null;
   const t0 = now();
 
   const entries = [];        // [{t_ms, level, message}] ring buffer
@@ -159,6 +167,11 @@ export function createDebugLog(opts) {
   let listEl = null;
   let shipStatusEl = null;
   let copyBtn = null;
+  let sendBtn = null;        // "Send log" — push the full retained log now
+  let sendHintEl = null;     // honest send-failure hint (own wrapped line)
+  let sendState = 'idle';    // 'idle' | 'sending' | 'sent'
+  let sendGen = 0;           // invalidates a superseded in-flight send's UI
+  let droppedFromMemory = 0; // entries the ring buffer evicted (push marker)
   let shipStatusText = null; // pending status set before the panel exists
 
   function formatEntry(e) {
@@ -191,6 +204,7 @@ export function createDebugLog(opts) {
     };
     entries.push(entry);
     if (entries.length > MAX_LOG_ENTRIES) {
+      droppedFromMemory += entries.length - MAX_LOG_ENTRIES;
       entries.splice(0, entries.length - MAX_LOG_ENTRIES);
     }
     for (const fn of listeners.slice()) {
@@ -213,6 +227,97 @@ export function createDebugLog(opts) {
       shipStatusEl.textContent = shipStatusText || '';
       shipStatusEl.hidden = !shipStatusText;
     }
+  }
+
+  // --- "Send log" button state machine --------------------------------------
+  // idle -> (tap) -> sending -> 2xx ack -> sent (greyed until the next capture
+  // sweep calls resetSendState()) | failure -> back to idle + an honest hint.
+  // Only send() resolving {ok:true} (a real HTTP 2xx, see shipAll()) reaches
+  // 'sent' — fake success is forbidden.
+
+  function sendLabel() {
+    if (sendState === 'sending') return tFn('debug.sending', null, 'Sending…');
+    if (sendState === 'sent') return tFn('debug.sent', null, 'Sent ✓');
+    return tFn('debug.send', null, 'Send log');
+  }
+
+  function applySendState() {
+    if (!sendBtn) return;
+    try {
+      sendBtn.disabled = sendState !== 'idle';
+      sendBtn.textContent = sendLabel();
+      sendBtn.style.opacity = sendState === 'idle' ? '1' : '0.55';
+    } catch (err) { /* panel rendering is best-effort */ }
+  }
+
+  function showSendHint(show) {
+    if (!sendHintEl) return;
+    try {
+      sendHintEl.hidden = !show;
+      sendHintEl.textContent = show
+        ? tFn('debug.sendFailed', null,
+            "couldn't reach server — try again or use Copy")
+        : '';
+    } catch (err) { /* hint rendering is cosmetic */ }
+  }
+
+  /**
+   * Re-arm the Send-log button for a new capture sweep. A "Sent ✓" latch
+   * refers to the PREVIOUS session's log, so capture_app.js calls this from
+   * the same place it resets the rest of its per-capture state
+   * (startCaptureLoop()). Also supersedes any in-flight send: a late ack for
+   * the old session may no longer flip the button to Sent.
+   */
+  function resetSendState() {
+    sendGen += 1;
+    sendState = 'idle';
+    applySendState();
+    showSendHint(false);
+  }
+
+  function onSendTap() {
+    if (sendState !== 'idle' || !sendFn) return;
+    // Logged BEFORE collecting, so it is the batch's final entry — the server
+    // sees exactly when/why this push happened and the panel shows it too.
+    log('INFO', 'user pushed log from device');
+    // Ship EVERYTHING currently retained, not just the shipper's unsent
+    // queue: the point of the button is one complete, self-contained batch
+    // even if earlier batches already landed (the server tolerates overlap).
+    const toShip = entries.slice();
+    if (droppedFromMemory > 0) {
+      toShip.unshift({
+        t_ms: null, level: 'INFO',
+        message: '[' + droppedFromMemory + ' older log entries already '
+          + 'dropped from memory (ring cap ' + MAX_LOG_ENTRIES
+          + ') — this push starts at the oldest retained entry]',
+      });
+    }
+    sendGen += 1;
+    const gen = sendGen;
+    sendState = 'sending';
+    applySendState();
+    showSendHint(false);
+    const settle = (ok) => {
+      if (gen !== sendGen) return; // superseded by resetSendState()
+      sendState = ok ? 'sent' : 'idle';
+      applySendState();
+      showSendHint(!ok);
+      if (!ok) {
+        // Brief hint: auto-clear after a few seconds. unref'd so a pending
+        // cosmetic timer never pins a Node test process.
+        try {
+          const id = setTimeout(() => {
+            if (gen === sendGen) showSendHint(false);
+          }, 6000);
+          if (id && typeof id.unref === 'function') id.unref();
+        } catch (err) { /* hint clearing is cosmetic */ }
+      }
+    };
+    let p;
+    try { p = sendFn(toShip); } catch (err) { p = Promise.reject(err); }
+    Promise.resolve(p).then(
+      (res) => settle(!!(res && res.ok)),
+      () => settle(false));
   }
 
   function buildPanel() {
@@ -276,6 +381,26 @@ export function createDebugLog(opts) {
     });
     header.appendChild(copyBtn);
 
+    // "Send log" — only when a send transport was wired (opts.send): the
+    // button promises a server-acknowledged push, so without a transport it
+    // must not exist at all rather than fake one.
+    if (sendFn) {
+      sendBtn = doc.createElement('button');
+      sendBtn.type = 'button';
+      sendBtn.id = 'btn-debug-send';
+      sendBtn.style.cssText = 'font:inherit;padding:2px 10px;background:#1d1d2a;' +
+        'color:#cfcfe0;border:1px solid #2a2a3a;border-radius:4px;';
+      sendBtn.addEventListener('click', onSendTap);
+      header.appendChild(sendBtn);
+      applySendState();
+      // The failure hint wraps onto its own header line (flex-wrap above).
+      sendHintEl = doc.createElement('span');
+      sendHintEl.id = 'debug-send-hint';
+      sendHintEl.style.cssText = 'color:#f0b429;flex-basis:100%;';
+      sendHintEl.hidden = true;
+      header.appendChild(sendHintEl);
+    }
+
     const closeBtn = doc.createElement('button');
     closeBtn.type = 'button';
     closeBtn.id = 'btn-debug-close';
@@ -333,6 +458,7 @@ export function createDebugLog(opts) {
         shipStatusEl.textContent = shipStatusText || '';
         shipStatusEl.hidden = !shipStatusText;
       }
+      applySendState(); // re-apply the Send-log label/disabled after a restore
     } catch (err) { /* panel rendering is best-effort */ }
   }
 
@@ -376,6 +502,7 @@ export function createDebugLog(opts) {
     setShipStatus,
     toggle,
     rerender,
+    resetSendState,
     getEntries: () => entries.slice(),
     formatEntries,
   };

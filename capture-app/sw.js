@@ -21,7 +21,7 @@
 //
 // Mirrors web/player/sw.js conventions.
 
-const CACHE_VERSION = 'raku-capture-v8';
+const CACHE_VERSION = 'raku-capture-v9';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 
 // ---------------------------------------------------------------------------
