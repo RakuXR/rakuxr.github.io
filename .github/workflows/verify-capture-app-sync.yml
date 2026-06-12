@@ -67,3 +67,12 @@ jobs:
       - name: Verify capture-app/ matches canonical
         run: |
           sh scripts/verify-capture-app.sh "$GITHUB_WORKSPACE/_canonical-raku-runtime"
+
+      # On drift, surface the exact fix as an annotation so a maintainer never
+      # has to dig through the log: regenerate the mirror, never hand-edit it.
+      - name: How to fix mirror drift
+        if: failure()
+        run: |
+          echo "::error::capture-app/ drifted from canonical raku-runtime/web/capture/ (see the 'MIRROR DRIFT DETECTED' diff above)."
+          echo "::error::Fix: sh scripts/sync-capture-app.sh /path/to/raku-runtime && git add capture-app && git commit  (do NOT hand-edit capture-app/)."
+          echo "::error::Note: this check compares against raku-runtime MAIN — if the mirror was synced from a not-yet-merged raku-runtime branch, merge that branch first."

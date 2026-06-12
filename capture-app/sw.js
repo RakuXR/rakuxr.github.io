@@ -21,7 +21,7 @@
 //
 // Mirrors web/player/sw.js conventions.
 
-const CACHE_VERSION = 'raku-capture-v7';
+const CACHE_VERSION = 'raku-capture-v8';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 
 // ---------------------------------------------------------------------------
@@ -115,6 +115,9 @@ const SHELL_URLS = [
   './sensor_metadata.js',
   './capture_history.js',
   './captures_view.js',
+  './debug_log.js',
+  './log_shipper.js',
+  './motion_check.js',
   './i18n.js',
   './locales/en.json',
   './locales/ja.json',
