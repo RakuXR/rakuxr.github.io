@@ -117,6 +117,15 @@
       .hero-figure .hf-pulse { animation: hf-pulse 3.2s ease-in-out infinite; transform-origin: center; }
       .hero-figure .hf-pulse-2 { animation: hf-pulse 3.2s ease-in-out 1.6s infinite; transform-origin: center; }
       .hero-figure .hf-orbit { animation: hf-float 5s ease-in-out infinite; }
+      /* Constellation nodes are links; .hf-hit is an oversized invisible
+         circle so the tap target stays finger-friendly on phones. */
+      .hero-figure a.hf-node { cursor: pointer; }
+      .hero-figure a.hf-node .hf-hit { fill: transparent; stroke: none; }
+      .hero-figure a.hf-node:hover circle:not(.hf-hit),
+      .hero-figure a.hf-node:focus-visible circle:not(.hf-hit) { stroke-width: 3; }
+      .hero-figure a.hf-node:hover text,
+      .hero-figure a.hf-node:focus-visible text { fill: #e8e8f0; }
+      .hero-figure a.hf-node:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
       @keyframes hf-dash { to { stroke-dashoffset: -56; } }
       @keyframes hf-pulse { 0%,100% { opacity: 0.35; } 50% { opacity: 1; } }
       @keyframes hf-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
@@ -358,9 +367,9 @@
         <!-- Hero figure: the platform constellation — ten platform strategies
              orbiting one spatial runtime core. Pure inline SVG/CSS (reuses the
              hf-* animation classes, so motion stays gated by prefers-reduced-motion). -->
-        <svg class="hero-figure" viewBox="0 0 480 440" role="img"
-             aria-label="Ten RakuAI platforms — Raku Capture, MCP Runtime, Developers and SDK, Enterprise, Robotics, Creators, Smart Glasses, Insurance, AI Labs, and Spatial Engine — orbiting one spatial runtime core."
+        <svg class="hero-figure" viewBox="0 0 480 440"
              xmlns="http://www.w3.org/2000/svg">
+            <title>Ten RakuAI platforms — Raku Capture, MCP Runtime, Developers and SDK, Enterprise, Robotics, Creators, Smart Glasses, Insurance, AI Labs, and Spatial Engine — orbiting one spatial runtime core. Each node links to its page.</title>
             <defs>
                 <linearGradient id="pc-grad" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0" stop-color="#6c5ce7"/><stop offset="1" stop-color="#00cec9"/>
@@ -395,56 +404,66 @@
             </g>
 
             <!-- platform nodes -->
-            <g>
-                <circle cx="240" cy="55" r="17" fill="#111128" stroke="#a388ff" stroke-width="2"/>
-                <text x="240" y="60" text-anchor="middle" font-size="13">📱</text>
-                <text x="240" y="28" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11" text-anchor="middle">Raku Capture</text>
-            </g>
-            <g>
-                <circle cx="349" cy="88" r="17" fill="#111128" stroke="#00cec9" stroke-width="2"/>
-                <text x="349" y="93" text-anchor="middle" font-size="13">🛠️</text>
-                <text x="349" y="61" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11" text-anchor="middle">MCP Runtime</text>
-            </g>
-            <g>
-                <circle cx="416" cy="173" r="17" fill="#111128" stroke="#ffb86b" stroke-width="2"/>
-                <text x="416" y="178" text-anchor="middle" font-size="13">💻</text>
-                <text x="416" y="146" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11" text-anchor="middle">Developers &amp; SDK</text>
-            </g>
-            <g>
-                <circle cx="416" cy="278" r="17" fill="#111128" stroke="#a388ff" stroke-width="2"/>
-                <text x="416" y="283" text-anchor="middle" font-size="13">🏢</text>
-                <text x="416" y="312" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11" text-anchor="middle">Enterprise</text>
-            </g>
-            <g>
-                <circle cx="349" cy="363" r="17" fill="#111128" stroke="#00cec9" stroke-width="2"/>
-                <text x="349" y="368" text-anchor="middle" font-size="13">🦾</text>
-                <text x="349" y="397" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11" text-anchor="middle">Robotics</text>
-            </g>
-            <g>
-                <circle cx="240" cy="395" r="17" fill="#111128" stroke="#ffb86b" stroke-width="2"/>
-                <text x="240" y="400" text-anchor="middle" font-size="13">🎨</text>
-                <text x="240" y="429" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11" text-anchor="middle">Creators</text>
-            </g>
-            <g>
-                <circle cx="131" cy="363" r="17" fill="#111128" stroke="#a388ff" stroke-width="2"/>
-                <text x="131" y="368" text-anchor="middle" font-size="13">🕶️</text>
-                <text x="131" y="397" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11" text-anchor="middle">Smart Glasses</text>
-            </g>
-            <g>
-                <circle cx="64" cy="278" r="17" fill="#111128" stroke="#00cec9" stroke-width="2"/>
-                <text x="64" y="283" text-anchor="middle" font-size="13">🛡️</text>
-                <text x="64" y="312" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11" text-anchor="middle">Insurance</text>
-            </g>
-            <g>
-                <circle cx="64" cy="173" r="17" fill="#111128" stroke="#ffb86b" stroke-width="2"/>
-                <text x="64" y="178" text-anchor="middle" font-size="13">🧪</text>
-                <text x="64" y="146" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11" text-anchor="middle">AI Labs</text>
-            </g>
-            <g>
-                <circle cx="131" cy="88" r="17" fill="#111128" stroke="#00cec9" stroke-width="2"/>
-                <text x="131" y="93" text-anchor="middle" font-size="13">🌐</text>
-                <text x="131" y="61" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11" text-anchor="middle">Spatial Engine</text>
-            </g>
+            <a class="hf-node" href="capture.html" aria-label="Raku Capture">
+                <circle class="hf-hit" cx="240" cy="55" r="34"/>
+                <circle cx="240" cy="55" r="20" fill="#111128" stroke="#a388ff" stroke-width="2"/>
+                <text x="240" y="61" text-anchor="middle" font-size="16">📱</text>
+                <text x="240" y="28" fill="#b8bce0" font-family="system-ui,sans-serif" font-size="13" text-anchor="middle">Raku Capture</text>
+            </a>
+            <a class="hf-node" href="mcp.html" aria-label="MCP Runtime">
+                <circle class="hf-hit" cx="349" cy="88" r="34"/>
+                <circle cx="349" cy="88" r="20" fill="#111128" stroke="#00cec9" stroke-width="2"/>
+                <text x="349" y="94" text-anchor="middle" font-size="16">🛠️</text>
+                <text x="349" y="61" fill="#b8bce0" font-family="system-ui,sans-serif" font-size="13" text-anchor="middle">MCP Runtime</text>
+            </a>
+            <a class="hf-node" href="sdk.html" aria-label="Developers and SDK">
+                <circle class="hf-hit" cx="416" cy="173" r="34"/>
+                <circle cx="416" cy="173" r="20" fill="#111128" stroke="#ffb86b" stroke-width="2"/>
+                <text x="416" y="179" text-anchor="middle" font-size="16">💻</text>
+                <text x="421" y="146" fill="#b8bce0" font-family="system-ui,sans-serif" font-size="13" text-anchor="end">Developers &amp; SDK</text>
+            </a>
+            <a class="hf-node" href="enterprise.html" aria-label="Enterprise">
+                <circle class="hf-hit" cx="416" cy="278" r="34"/>
+                <circle cx="416" cy="278" r="20" fill="#111128" stroke="#a388ff" stroke-width="2"/>
+                <text x="416" y="284" text-anchor="middle" font-size="16">🏢</text>
+                <text x="416" y="315" fill="#b8bce0" font-family="system-ui,sans-serif" font-size="13" text-anchor="middle">Enterprise</text>
+            </a>
+            <a class="hf-node" href="robotics.html" aria-label="Robotics">
+                <circle class="hf-hit" cx="349" cy="363" r="34"/>
+                <circle cx="349" cy="363" r="20" fill="#111128" stroke="#00cec9" stroke-width="2"/>
+                <text x="349" y="369" text-anchor="middle" font-size="16">🦾</text>
+                <text x="349" y="400" fill="#b8bce0" font-family="system-ui,sans-serif" font-size="13" text-anchor="middle">Robotics</text>
+            </a>
+            <a class="hf-node" href="creator.html" aria-label="Creators">
+                <circle class="hf-hit" cx="240" cy="395" r="34"/>
+                <circle cx="240" cy="395" r="20" fill="#111128" stroke="#ffb86b" stroke-width="2"/>
+                <text x="240" y="401" text-anchor="middle" font-size="16">🎨</text>
+                <text x="240" y="432" fill="#b8bce0" font-family="system-ui,sans-serif" font-size="13" text-anchor="middle">Creators</text>
+            </a>
+            <a class="hf-node" href="smart-glasses.html" aria-label="Smart Glasses">
+                <circle class="hf-hit" cx="131" cy="363" r="34"/>
+                <circle cx="131" cy="363" r="20" fill="#111128" stroke="#a388ff" stroke-width="2"/>
+                <text x="131" y="369" text-anchor="middle" font-size="16">🕶️</text>
+                <text x="131" y="400" fill="#b8bce0" font-family="system-ui,sans-serif" font-size="13" text-anchor="middle">Smart Glasses</text>
+            </a>
+            <a class="hf-node" href="insurance.html" aria-label="Insurance">
+                <circle class="hf-hit" cx="64" cy="278" r="34"/>
+                <circle cx="64" cy="278" r="20" fill="#111128" stroke="#00cec9" stroke-width="2"/>
+                <text x="64" y="284" text-anchor="middle" font-size="16">🛡️</text>
+                <text x="64" y="315" fill="#b8bce0" font-family="system-ui,sans-serif" font-size="13" text-anchor="middle">Insurance</text>
+            </a>
+            <a class="hf-node" href="llm-makers.html" aria-label="AI Labs">
+                <circle class="hf-hit" cx="64" cy="173" r="34"/>
+                <circle cx="64" cy="173" r="20" fill="#111128" stroke="#ffb86b" stroke-width="2"/>
+                <text x="64" y="179" text-anchor="middle" font-size="16">🧪</text>
+                <text x="59" y="146" fill="#b8bce0" font-family="system-ui,sans-serif" font-size="13" text-anchor="start">AI Labs</text>
+            </a>
+            <a class="hf-node" href="spatial-engine.html" aria-label="Spatial Engine">
+                <circle class="hf-hit" cx="131" cy="88" r="34"/>
+                <circle cx="131" cy="88" r="20" fill="#111128" stroke="#00cec9" stroke-width="2"/>
+                <text x="131" y="94" text-anchor="middle" font-size="16">🌐</text>
+                <text x="131" y="61" fill="#b8bce0" font-family="system-ui,sans-serif" font-size="13" text-anchor="middle">Spatial Engine</text>
+            </a>
                     </g>
 </svg>
     </div>
