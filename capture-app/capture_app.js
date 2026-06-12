@@ -154,8 +154,17 @@ const SUPERSPLAT_EDITOR_URL = 'https://superspl.at/editor';
 // Sample-splat manifest (real public room-scale splats) for the intro preview.
 const SAMPLES_MANIFEST_URL = './samples/manifest.json';
 
+// Opening orbit yaw for the intro sample splat. A quarter-turn (π/2) past the
+// default 0.6 yaw so the sample room (the fireplace) faces the camera straight
+// on for the first frame, instead of being viewed ~90° off to the side.
+const INTRO_SAMPLE_THETA = 0.6 + Math.PI / 2;
+
 // Capture tuning.
-const MAX_KEYFRAMES = 48;          // upper bound on frames sent per capture
+// Upper bound on frames sent per capture — a safety ceiling so a runaway scan
+// can't bloat the upload, NOT the "good coverage" goal (that's FRAME_TARGET=20).
+// Raised from 48 so hallways / multi-room scans can keep accumulating 30-50+
+// frames as the user keeps scanning past the goal.
+const MAX_KEYFRAMES = 150;         // upper bound on frames sent per capture
 const KEYFRAME_MAX_EDGE = 1280;    // downscale long edge before upload
 
 // ============================================================================
@@ -800,7 +809,12 @@ function startCaptureLoop() {
     updateCoverage(state.coverage);
     updateCaptureProgress(); // surface the real, growing keyframe count
     if (state.coverage >= 0.6) $('btn-finish-capture').disabled = false;
-    if (state.coverage >= 1) stopCaptureLoop();
+    // Do NOT stop the loop when the heuristic coverage bar hits 100%. A full
+    // bar means "you have enough to finish" — not "we're done". Hallways and
+    // multi-room scans need to keep adding frames (and filling the directional
+    // coverage ring) until the user taps Finish capture. The loop runs until
+    // stopCaptureLoop() is called from the Finish handler (or capped at
+    // MAX_KEYFRAMES so a runaway scan can't bloat the upload indefinitely).
   }, 400);
 }
 
@@ -902,7 +916,9 @@ function updateCoverage(coverage) {
 //
 //   1. Frame counter — the REAL number of keyframes queued for upload
 //      (state.capturedFrames.length), with a red/yellow/green quality tier:
-//      red < 10, yellow 10-19, green 20+ (the "good coverage" goal).
+//      red < 15, yellow 15-19, green 20+ (the "good coverage" goal). The count
+//      is NOT capped at the goal — the user keeps scanning past 20 for as long
+//      as they want; green just means "enough to finish whenever you like".
 //
 //   2. Directional coverage — which yaw sectors the camera has actually swept,
 //      derived from real DeviceOrientation events. The ring AND its directional
@@ -935,18 +951,22 @@ function updateCaptureProgress() {
   const n = state.capturedFrames.length;
   if (countEl) countEl.textContent = String(n);
   if (targetEl) {
-    targetEl.textContent =
-      '/' + FRAME_TARGET + ' ' + t('capture.framesUnit', null, 'frames');
+    // No hard "/20" cap — show the actual, ever-growing count (e.g. "32
+    // frames"). FRAME_TARGET is only the "good coverage" goal, not a ceiling:
+    // hallways and multi-room scans legitimately need 30-50+ frames, so the
+    // user keeps scanning as long as they want.
+    targetEl.textContent = ' ' + t('capture.framesUnit', null, 'frames');
   }
   if (counter) {
-    // red < 10, yellow 10-19, green 20+ .
-    counter.classList.toggle('q-low', n < 10);
-    counter.classList.toggle('q-mid', n >= 10 && n < FRAME_TARGET);
+    // Quality tier on the live count: red < 15, yellow 15-19, green 20+ (the
+    // FRAME_TARGET "good coverage" goal). Green never stops the capture.
+    counter.classList.toggle('q-low', n < 15);
+    counter.classList.toggle('q-mid', n >= 15 && n < FRAME_TARGET);
     counter.classList.toggle('q-good', n >= FRAME_TARGET);
   }
   if (qualEl) {
     qualEl.textContent = n >= FRAME_TARGET
-      ? t('capture.goodCoverage', null, 'Good coverage!')
+      ? t('capture.goodCoverage', null, 'Good coverage — tap Finish capture when ready')
       : t('capture.keepScanning', null, 'Keep scanning…');
   }
 }
@@ -1406,7 +1426,7 @@ function cancelReconstruction(captureId) {
  * @param {string} splatUrl .spz/.sog asset URL on cdn.raku.games
  * @returns {Promise<()=>void>} teardown — stops the render loop + listeners
  */
-async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus) {
+async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus, initialTheta) {
   // When trackStatus is true this is the REAL capture viewer: record the
   // viewer status in `state` so relocalizeDynamic() can re-render the toolbar
   // on a locale switch. The intro preview passes false — it must not touch the
@@ -1428,8 +1448,15 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus
   viewerStatus('loading');
   metaEl.textContent = t('viewer.metaLoading', null, 'Loading splat…');
 
-  // Spherical orbit camera state, shared with the input controller.
-  const cam = { theta: 0.6, phi: 1.3, radius: 2.8, autoRotate: true };
+  // Spherical orbit camera state, shared with the input controller. The
+  // starting yaw defaults to 0.6 (the capture-result framing); callers that
+  // need a different opening angle pass `initialTheta` — the intro sample
+  // splat does this so the fireplace faces the camera head-on on first paint
+  // (see loadSplatViewerInto), rather than starting ~90° off to the side.
+  const cam = {
+    theta: (typeof initialTheta === 'number') ? initialTheta : 0.6,
+    phi: 1.3, radius: 2.8, autoRotate: true,
+  };
 
   try {
     // Lane 3C: load the CDN modules through the resilience layer — a hard
@@ -1926,7 +1953,12 @@ async function loadSplatViewerInto(canvas, url) {
   // viewer's shared status state either. autoFocus = false: the sample is a
   // curated, origin-centred splat sized for the default radius-2.8 orbit, so
   // it must keep the known-good framing rather than be recentered/refit.
-  return loadSplatViewer(canvas, url, false, sink, false);
+  //
+  // initialTheta: rotate the opening yaw a quarter-turn from the default so
+  // the sample (the fireplace room) faces the camera straight on for the
+  // first frame. The default 0.6 yaw left it viewed from the side. The orbit
+  // still auto-rotates from here, so this only fixes the starting angle.
+  return loadSplatViewer(canvas, url, false, sink, false, INTRO_SAMPLE_THETA);
 }
 
 // ============================================================================
