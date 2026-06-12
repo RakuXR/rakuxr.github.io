@@ -53,6 +53,32 @@ works because every asset reference in the app is **relative** (`./sw.js`,
 
 No path rewriting is needed when syncing.
 
+## Sensor metadata + pre-warm (Lane A)
+
+At capture time the app records per-frame device sensor data — monotonic
+timestamps, IMU samples (`devicemotion` gravity + rotation rate,
+`deviceorientation` quaternion) and best-effort camera intrinsics hints — and
+uploads it as an extra `capture_metadata` multipart part (filename
+`capture_metadata.json`, `schema_version: 1`) alongside the frames, so the GPU
+reconstruction worker can skip/constrain COLMAP structure-from-motion.
+`frames[].filename` matches the uploaded `frame_<i>.jpg` part names.
+
+- **iOS Safari**: the IMU is permission-gated; `DeviceMotionEvent` /
+  `DeviceOrientationEvent.requestPermission()` are both requested inside the
+  capture-start tap (one shared "Motion & Orientation" prompt). A denial
+  leaves the IMU fields as explicit nulls — capture always proceeds.
+- **Android Chrome**: no motion permission gate; the UA-CH high-entropy
+  `model` is recorded as `device_model_hint` for a server-side intrinsics
+  lookup. WebXR 6DOF poses are a documented follow-up (`pose` is null today).
+- **Pre-warm**: starting a scan fires a fire-and-forget
+  `POST https://api.rakuai.com/api/v1/captures/session/start` so a GPU worker
+  can spin up during the sweep; 404/network failures are silently tolerated
+  (the endpoint rolls out in parallel). The hosted CSP already allows
+  `connect-src https://api.rakuai.com`, so no adaptation change was needed.
+
+Full schema + field notes: `raku-runtime/web/capture/README.md` → "Sensor
+metadata (capture_metadata.json)".
+
 ## Status — honest
 
 The capture -> upload -> status -> viewer loop is wired to the live `raku-api`
