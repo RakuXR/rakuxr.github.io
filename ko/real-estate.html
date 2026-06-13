@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>부동산을 위한 RakuAI — 모든 매물을 탐색하고 질문할 수 있는 3D 공간으로</title>
+    <meta name="description" content="300달러짜리 장비 없이 휴대폰으로 매물을 스캔하면, 구매자가 어떤 LLM으로든 질문할 수 있는 탐색 가능한 3D 가우시안 스플랫 워크스루로 바뀝니다. Matterport과 차별화: 휴대폰만으로 캡처, MCP를 통한 LLM 질의, 멀티 벤더. 정직하게, 매출 발생 전, 얼리 액세스 입장.">
+    <meta name="keywords" content="부동산 3D 투어, 휴대폰 매물 스캔, 가우시안 스플랫 부동산, Matterport 없는 가상 투어, LLM 질의 가능 매물, MCP 부동산 투어, 중개인 3D 워크스루, 특수 카메라 없는 3D 투어">
+    <meta property="og:title" content="부동산을 위한 RakuAI — 모든 매물을 탐색하고 질문할 수 있는 3D 공간으로">
+    <meta property="og:description" content="휴대폰 스캔 → 구매자가 어떤 LLM으로든 질문할 수 있는 탐색 가능한 3D 매물. 300달러짜리 장비가 아닌 휴대폰. MCP를 통한 LLM 질의. 멀티 벤더. 얼리 액세스.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/ko/real-estate.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="부동산을 위한 RakuAI — 모든 매물을 탐색하고 질문할 수 있는 3D 공간으로">
+    <meta name="twitter:description" content="휴대폰 스캔 → 구매자가 어떤 LLM으로든 질문할 수 있는 탐색 가능한 3D 매물. 300달러짜리 장비가 아닌 휴대폰. 멀티 벤더. 얼리 액세스.">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/ko/real-estate.html">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/real-estate.html">
+    <link rel="alternate" hreflang="ja" href="https://rakuai.com/ja/real-estate.html">
+    <link rel="alternate" hreflang="zh-TW" href="https://rakuai.com/zh-TW/real-estate.html">
+    <link rel="alternate" hreflang="zh-CN" href="https://rakuai.com/zh-CN/real-estate.html">
+    <link rel="alternate" hreflang="es" href="https://rakuai.com/es/real-estate.html">
+    <link rel="alternate" hreflang="fr" href="https://rakuai.com/fr/real-estate.html">
+    <link rel="alternate" hreflang="de" href="https://rakuai.com/de/real-estate.html">
+    <link rel="alternate" hreflang="ko" href="https://rakuai.com/ko/real-estate.html">
+    <link rel="alternate" hreflang="pt-BR" href="https://rakuai.com/pt-BR/real-estate.html">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/real-estate.html">
+        <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "RakuAI",
+        "url": "https://rakuai.com",
+        "logo": "https://rakuai.com/favicon.svg",
+        "description": "RakuAI for real estate: turn any listing into an explorable, askable 3D space with phone capture, Gaussian splats, and an MCP runtime.",
+        "memberOf": {"@type": "ProgramMembership", "programName": "NVIDIA Inception", "hostingOrganization": {"@type": "Organization", "name": "NVIDIA", "url": "https://www.nvidia.com"}}
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {"@type": "ListItem", "position": 1, "name": "RakuAI", "item": "https://rakuai.com/"},
+          {"@type": "ListItem", "position": 2, "name": "Real Estate", "item": "https://rakuai.com/ko/real-estate.html"}
+        ]
+      }
+    ]
+    </script>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .re-section {
+            padding: 72px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .re-section:last-of-type { border-bottom: none; }
+        .re-hero {
+            padding: 40px 0 56px;
+            text-align: center;
+        }
+        .re-hero .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            padding: 6px 14px;
+            border: 1px solid rgba(108, 92, 231, 0.45);
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+        .re-hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .re-hero .subhead {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            line-height: 1.65;
+            max-width: 820px;
+            margin: 0 0 24px;
+        }
+        .re-hero .audience-line {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 720px;
+            margin: 18px 0 0;
+            opacity: 0.85;
+            font-style: italic;
+        }
+        /* Hero split */
+        .re-hero-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 40px;
+            align-items: center;
+            text-align: left;
+        }
+        .re-hero-grid .re-hero-copy { min-width: 0; }
+        .re-hero-figure {
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            display: block;
+            height: auto;
+        }
+        .re-hero-figure svg { width: 100%; height: auto; display: block; }
+        .re-scan-beam {
+            transform-box: view-box;
+            transform-origin: 316px 250px;
+            animation: reScanSweep 2.8s ease-in-out infinite;
+        }
+        @keyframes reScanSweep {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(14deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .re-scan-beam { animation: none; transform: rotate(2deg); }
+        }
+        @media (max-width: 860px) {
+            .re-hero-grid { grid-template-columns: 1fr; text-align: center; gap: 28px; }
+            .re-hero-copy .subhead, .re-hero-copy .audience-line { margin-left: auto; margin-right: auto; }
+            .re-hero-figure { max-width: 360px; order: -1; }
+        }
+        .re-cta-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+        .re-btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .re-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4); }
+        .re-btn-secondary {
+            display: inline-block;
+            background: transparent;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.15s ease;
+        }
+        .re-btn-secondary:hover { background: rgba(163, 136, 255, 0.1); }
+        .re-section h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .re-section .re-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 760px;
+            margin: 0 auto 40px;
+        }
+
+        /* How it works steps */
+        .re-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .re-step {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 24px 24px;
+        }
+        .re-step .re-step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: rgba(108, 92, 231, 0.12);
+            color: var(--accent-bright);
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .re-step h4 { color: var(--text-primary); font-size: 1.05rem; margin-bottom: 6px; }
+        .re-step p { color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; margin: 0; }
+
+        /* Differentiation matrix */
+        .re-matrix-wrap {
+            max-width: 1000px;
+            margin: 0 auto;
+            overflow-x: auto;
+            border: 1px solid #222244;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+        .re-matrix { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 0.95rem; }
+        .re-matrix th, .re-matrix td {
+            padding: 14px 18px; text-align: left;
+            border-bottom: 1px solid #222244; vertical-align: top;
+        }
+        .re-matrix thead th {
+            background: rgba(108, 92, 231, 0.08);
+            color: var(--accent-bright);
+            font-weight: 700; font-size: 0.92rem; white-space: nowrap;
+        }
+        .re-matrix tbody th {
+            color: var(--text-primary); font-weight: 600;
+            background: rgba(255, 255, 255, 0.015); min-width: 200px;
+        }
+        .re-matrix td { color: var(--text-secondary); }
+        .re-matrix .yes { color: var(--success); font-weight: 600; }
+        .re-matrix tr:last-child th, .re-matrix tr:last-child td { border-bottom: none; }
+
+        /* ROI / use-case cards */
+        .re-usecases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .re-usecase {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 26px;
+        }
+        .re-usecase h3 { color: var(--accent-bright); font-size: 1.2rem; margin-bottom: 10px; }
+        .re-usecase p { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin: 0; }
+
+        /* Honest framing callout */
+        .re-honest {
+            max-width: 820px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-left: 4px solid var(--accent-bright);
+            border-radius: 8px;
+            padding: 24px 28px;
+        }
+        .re-honest h3 { color: var(--accent-bright); font-size: 1.15rem; margin-bottom: 10px; }
+        .re-honest ul { margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem; }
+        .re-honest li { margin-bottom: 8px; }
+
+        /* Cross-links */
+        .re-crosslinks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .re-crosslink {
+            display: block;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px 22px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: border-color 0.15s ease, transform 0.15s ease;
+        }
+        .re-crosslink:hover { border-color: var(--accent-bright); transform: translateY(-2px); }
+        .re-crosslink .label { color: var(--accent-bright); font-weight: 700; margin-bottom: 6px; font-size: 1rem; }
+        .re-crosslink .desc { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; }
+
+        /* Infographic carousel (dependency-free) */
+        .re-carousel { max-width: 920px; margin: 0 auto; position: relative; }
+        .re-carousel-viewport {
+            overflow: hidden;
+            border: 1px solid #222244;
+            border-radius: 14px;
+            background: var(--bg-secondary);
+        }
+        .re-carousel-track { display: flex; transition: transform 0.45s ease; }
+        @media (prefers-reduced-motion: reduce) { .re-carousel-track { transition: none; } }
+        .re-slide {
+            flex: 0 0 100%;
+            min-width: 100%;
+            box-sizing: border-box;
+            padding: 36px 40px;
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 28px;
+            align-items: center;
+        }
+        .re-slide .re-slide-art { width: 100%; height: auto; }
+        .re-slide .re-slide-art svg { width: 100%; height: auto; display: block; }
+        .re-slide h3 { color: var(--accent-bright); font-size: 1.25rem; margin: 0 0 10px; }
+        .re-slide p { color: var(--text-secondary); font-size: 0.98rem; line-height: 1.6; margin: 0; }
+        .re-slide .re-slide-step {
+            display: inline-block; font-size: 0.72rem; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--success); margin-bottom: 8px;
+        }
+        .re-carousel-controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+        .re-carousel-btn {
+            background: var(--bg-secondary); border: 1px solid #2c2c50;
+            color: var(--accent-bright); width: 42px; height: 42px;
+            border-radius: 999px; font-size: 1.1rem; cursor: pointer; line-height: 1;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .re-carousel-btn:hover { border-color: var(--accent-bright); }
+        .re-carousel-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        .re-carousel-dots { display: flex; gap: 10px; }
+        .re-carousel-dot {
+            width: 11px; height: 11px; border-radius: 999px;
+            border: 1px solid #3a3a66; background: transparent; padding: 0; cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .re-carousel-dot[aria-selected="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
+        .re-carousel-dot:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        @media (max-width: 620px) {
+            .re-slide { grid-template-columns: 1fr; padding: 28px 22px; text-align: center; gap: 16px; }
+            .re-slide .re-slide-art { max-width: 130px; margin: 0 auto; }
+        }
+
+        @media (max-width: 768px) {
+            .re-hero { padding: 28px 0 40px; }
+            .re-section { padding: 56px 0; }
+            .re-matrix th, .re-matrix td { padding: 11px 12px; font-size: 0.88rem; }
+        }
+        @media (max-width: 480px) {
+            .re-cta-row { flex-direction: column; align-items: stretch; }
+            .re-btn-primary, .re-btn-secondary { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    특허 5건 | 9,500개 이상의 API 엔드포인트 | 18개의 네이티브 DLL | AI 네이티브 공간 게임 엔진 — 지금 얼리 액세스 진행 중 <a href="spatial-engine.html">엔진 살펴보기 &rarr;</a>
+</div>
+
+<nav role="navigation" aria-label="Primary">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="메뉴 열기" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">솔루션</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="솔루션" hidden>
+                        <div class="col-heading" role="presentation">대상별</div>
+                        <div class="col-heading" role="presentation">플랫폼</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">스마트 글래스 제조사용<span class="item-desc">하드웨어 OEM 파트너 프로그램</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">AI 연구소용<span class="item-desc">파운데이션 모델용 MCP 런타임</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">엔터프라이즈용<span class="item-desc">공간 AI를 대규모로 배포</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">크리에이터용<span class="item-desc">공간 월드 제작 및 공개</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">로보틱스<span class="item-desc">로봇을 위한 영속적 공간 메모리</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">보험<span class="item-desc">휴대폰 스캔으로 내용물 목록 작성</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">Unity / Unreal 비교<span class="item-desc">정직한 비교</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">공간을 스캔하고 말을 거세요</span></a></li>
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">공간 엔진<span class="item-desc">런타임의 기둥</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI 시스템<span class="item-desc">오케스트레이션 및 권한</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR 기능<span class="item-desc">디스플레이, 트래킹, 앵커링</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">개발자</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="개발자" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">문서</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP 서버</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API 레퍼런스</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">템플릿</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">개발자 포털</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop 가이드</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">개발자 가이드</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM 통합 가이드</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">리소스</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="리소스" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">블로그</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">RakuAI를 선택하는 이유</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">보도 자료</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">디스커버</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">콘텐츠 팩</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">문서</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">문의하기</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">요금제</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">블로그</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">로그인</a>
+            <a href="../real-estate.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="re-hero">
+    <div class="container">
+        <div class="re-hero-grid">
+            <div class="re-hero-copy">
+                <span class="eyebrow">중개인, 중개법인 및 매물 팀을 위한 페이지</span>
+                <h1>모든 매물을 탐색 가능한 3D 공간으로.</h1>
+                <p class="subhead">
+                    300달러짜리 장비도, 특수 카메라도 없이 휴대폰으로 집을 스캔하면 &mdash; RakuAI가 탐색 가능한 3D 가우시안 스플랫 워크스루로 재구성합니다. 그러면 구매자는 영상 투어로는 할 수 없는 일을 할 수 있습니다: <strong>매물에 질문하기</strong> &mdash; "주방 아일랜드 폭이 얼마예요?", "안방은 어느 방향이에요?" &mdash; 여러분이나 여러분의 포털이 이미 사용하는 어떤 LLM이든, 우리의 MCP 서피스를 통해 답해 줍니다.
+                </p>
+                <p class="audience-line">
+                    이것은 RakuAI의 대표 버티컬이며, 우리는 이를 공개적으로 만들어 가고 있습니다. 아래 페이지는 오늘 출시된 것과 로드맵에 있는 것을 정직하게 구분합니다. 우리는 매출 발생 전 단계이며, 얼리 액세스 중개인과 파일럿 중개법인을 찾고 있습니다 &mdash; 완성된 제품이라고 주장하지 않습니다.
+                </p>
+                <div class="re-cta-row">
+                    <a href="mailto:partnerships@rakuai.com?subject=Real%20estate%20early%20access" class="re-btn-primary">얼리 액세스 신청 &rarr;</a>
+                    <a href="#how-it-works" class="re-btn-secondary">작동 방식 보기 &darr;</a>
+                </div>
+            </div>
+            <div class="re-hero-figure" aria-hidden="true">
+                <!-- Phone scanning a house -> explorable 3D splat -> ask-the-listing chat -->
+                <svg viewBox="0 0 360 320" role="img" xmlns="http://www.w3.org/2000/svg">
+                    <title>집을 스캔하는 휴대폰이, 구매자가 질문할 수 있는 탐색 가능한 3D 공간으로 바뀌는 모습</title>
+                    <defs>
+                        <linearGradient id="reSky" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#1a1a3a"/>
+                            <stop offset="1" stop-color="#11112a"/>
+                        </linearGradient>
+                        <linearGradient id="reScan" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#a388ff" stop-opacity="0.55"/>
+                            <stop offset="1" stop-color="#a388ff" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- scene frame -->
+                    <rect x="22" y="22" width="236" height="184" rx="12" fill="url(#reSky)" stroke="#2c2c50"/>
+                    <!-- house silhouette -->
+                    <polygon points="80,150 80,98 140,58 200,98 200,150" fill="#23244a" stroke="#3a3a66"/>
+                    <polygon points="72,100 140,52 208,100" fill="none" stroke="#a388ff" stroke-width="2"/>
+                    <rect x="118" y="116" width="26" height="34" fill="#16162e" stroke="#3a3a66"/>
+                    <rect x="156" y="112" width="22" height="22" fill="#16162e" stroke="#3a3a66"/>
+                    <!-- splat point cloud over the house -->
+                    <g fill="#6c5ce7">
+                        <circle cx="100" cy="110" r="3" opacity="0.85"/><circle cx="120" cy="92" r="2.5" opacity="0.7"/>
+                        <circle cx="140" cy="74" r="3" opacity="0.85"/><circle cx="166" cy="92" r="2.5" opacity="0.7"/>
+                        <circle cx="186" cy="112" r="3" opacity="0.8"/><circle cx="150" cy="132" r="2.4" opacity="0.6"/>
+                    </g>
+                    <!-- scan sweep beam from phone (CSS-animated; paused under prefers-reduced-motion) -->
+                    <polygon class="re-scan-beam" points="316,250 196,44 244,44" fill="url(#reScan)"/>
+                    <!-- phone -->
+                    <g>
+                        <rect x="292" y="196" width="48" height="92" rx="10" fill="#16162e" stroke="#a388ff" stroke-width="2"/>
+                        <rect x="298" y="206" width="36" height="60" rx="4" fill="#0a0a1a"/>
+                        <circle cx="316" cy="278" r="3.5" fill="#3a3a66"/>
+                    </g>
+                    <!-- ask-the-listing chat bubble -->
+                    <g>
+                        <rect x="40" y="232" width="180" height="74" rx="10" fill="#16162e" stroke="#2c2c50"/>
+                        <circle cx="58" cy="252" r="7" fill="#00cec9"/>
+                        <rect x="74" y="246" width="120" height="7" rx="3.5" fill="#3a3a66"/>
+                        <rect x="74" y="260" width="92" height="6" rx="3" fill="#2c2c50"/>
+                        <text x="56" y="294" fill="#9090b0" font-family="monospace" font-size="10">"아일랜드 폭이 얼마예요?"</text>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Infographic carousel: scan -> splat -> explore -> ask -->
+<section class="re-section" id="flow-carousel" style="padding-top:0;border-bottom:1px solid #222244;">
+    <div class="container">
+        <h2>휴대폰 워크스루에서, 구매자가 대화할 수 있는 매물까지.</h2>
+        <p class="re-subtitle">플랫폼의 나머지 부분을 구동하는 것과 동일한 Raku Capture 파이프라인 &mdash; 한 단계씩. 화살표, 점, 또는 키보드를 사용하세요.</p>
+        <div class="re-carousel" data-carousel>
+            <div class="re-carousel-viewport">
+                <div class="re-carousel-track" data-carousel-track role="group" aria-roledescription="carousel" aria-label="매물이 탐색 가능하고 질문할 수 있는 3D 공간이 되는 과정">
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="1단계/4단계: 휴대폰으로 스캔">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="44" y="18" width="40" height="84" rx="9" fill="#16162e" stroke="#a388ff" stroke-width="2"/><rect x="50" y="28" width="28" height="56" rx="3" fill="#0a0a1a"/><circle cx="64" cy="94" r="3.5" fill="#3a3a66"/><path d="M30 60 H14 M90 60 H106 M64 18 V6" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round" opacity="0.7"/></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">1단계</span>
+                            <h3>휴대폰으로 스캔</h3>
+                            <p>이미 주머니에 있는 휴대폰으로 집을 둘러보세요. 삼각대도, 300달러짜리 캡처 장비도, 특수 카메라도, 교육일도 필요 없습니다.</p>
+                        </div>
+                    </div>
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="2단계/4단계: 3D 스플랫으로 재구성">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="24" width="88" height="72" rx="10" fill="#1a1a3a" stroke="#2c2c50"/><polygon points="40,80 40,54 60,42 80,54 80,80" fill="#23244a" stroke="#3a3a66"/><g fill="#6c5ce7"><circle cx="50" cy="60" r="3"/><circle cx="60" cy="48" r="2.6"/><circle cx="72" cy="60" r="3"/></g></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">2단계</span>
+                            <h3>3D 스플랫으로 재구성</h3>
+                            <p>프레임과 모션이 클라우드에서 3D 가우시안 스플랫으로 재구성됩니다 &mdash; 이어 붙인 파노라마가 아니라, 매끄럽고 실사에 가까운 공간 모델입니다.</p>
+                        </div>
+                    </div>
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="3단계/4단계: 구매자가 브라우저에서 탐색">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="24" width="84" height="60" rx="6" fill="#16162e" stroke="#2c2c50"/><rect x="18" y="24" width="84" height="14" rx="6" fill="#23244a"/><circle cx="28" cy="31" r="2.5" fill="#3a3a66"/><circle cx="36" cy="31" r="2.5" fill="#3a3a66"/><polygon points="42,74 42,52 60,42 78,52 78,74" fill="#23244a" stroke="#6c5ce7"/><path d="M44 96 h32 M50 96 v8 M70 96 v8" stroke="#3a3a66" stroke-width="3" stroke-linecap="round"/></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">3단계</span>
+                            <h3>구매자가 브라우저에서 탐색</h3>
+                            <p>링크 하나만 공유하세요. 구매자는 헤드셋도, 앱 설치도, 예약된 방문도 없이 어떤 기기에서든 자기 속도로 공간을 둘러봅니다.</p>
+                        </div>
+                    </div>
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="4단계/4단계: 매물에 무엇이든 질문">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="30" width="70" height="42" rx="9" fill="#16162e" stroke="#2c2c50"/><path d="M32 72 l-2 12 l16 -10 z" fill="#16162e" stroke="#2c2c50"/><circle cx="34" cy="51" r="4" fill="#00cec9"/><circle cx="52" cy="51" r="4" fill="#a388ff"/><circle cx="70" cy="51" r="4" fill="#6c5ce7"/></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">4단계</span>
+                            <h3>매물에 무엇이든 질문</h3>
+                            <p>우리의 MCP 서피스를 통해, LLM이 실제 스캔에 근거해 질문에 답합니다 &mdash; 치수, 방향, 방 안에 무엇이 있는지. 멀티 벤더: Claude, ChatGPT, Gemini, Copilot 모두 구동할 수 있습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="re-carousel-controls">
+                <button type="button" class="re-carousel-btn" data-carousel-prev aria-label="이전 슬라이드">&larr;</button>
+                <div class="re-carousel-dots" role="tablist" aria-label="슬라이드 선택" data-carousel-dots data-dot-class="re-carousel-dot"></div>
+                <button type="button" class="re-carousel-btn" data-carousel-next aria-label="다음 슬라이드">&rarr;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How it works (3-step) -->
+<section class="re-section" id="how-it-works">
+    <div class="container">
+        <h2>작동 방식.</h2>
+        <p class="re-subtitle">손에 든 휴대폰에서 공유 가능하고 질문할 수 있는 매물까지 세 단계. RakuAI 전반에서 쓰이는 것과 동일한 Raku Capture 코어입니다 &mdash; 부동산은 새 엔진이 아니라 출력물 위에 씌운 래퍼입니다.</p>
+        <div class="re-steps">
+            <div class="re-step">
+                <span class="re-step-num">1</span>
+                <h4>스캔</h4>
+                <p>화면 안내에 따라 휴대폰으로 집을 둘러보세요. 캡처는 공간당 몇 분이면 끝나며, 이미 가지고 있지 않은 장비는 필요 없습니다.</p>
+            </div>
+            <div class="re-step">
+                <span class="re-step-num">2</span>
+                <h4>재구성 및 공개</h4>
+                <p>RakuAI가 스캔을 탐색 가능한 3D 가우시안 스플랫으로 재구성하고, 매물 페이지·이메일·포털에 넣을 수 있는 공유 링크 하나를 제공합니다.</p>
+            </div>
+            <div class="re-step">
+                <span class="re-step-num">3</span>
+                <h4>탐색 및 질문</h4>
+                <p>구매자가 브라우저에서 공간을 둘러보고 평범한 말로 질문하면 &mdash; MCP 서피스를 통해 어떤 LLM이든 스캔에 근거해 답합니다.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Differentiation vs Matterport -->
+<section class="re-section" id="why-rakuai">
+    <div class="container">
+        <h2>Matterport 투어와는 어떻게 다른가.</h2>
+        <p class="re-subtitle">3D 매물 투어는 새로운 것이 아닙니다. 새로운 것은 그것을 휴대폰으로 해내고, 공간이 질문에 답하게 하며, 결코 한 벤더에 묶이지 않는다는 점입니다.</p>
+        <div class="re-matrix-wrap" role="region" aria-label="RakuAI가 기존 3D 투어와 어떻게 비교되는지">
+            <table class="re-matrix">
+                <thead>
+                    <tr>
+                        <th scope="col"></th>
+                        <th scope="col">일반적인 3D 투어 (예: Matterport)</th>
+                        <th scope="col">부동산을 위한 RakuAI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">캡처 하드웨어</th>
+                        <td>대개 전용 카메라나 약 300달러 이상의 장비, 또는 유료 스캔 기사 방문이 필요</td>
+                        <td><span class="yes">이미 가지고 있는 휴대폰</span> &mdash; 특수 카메라 불필요</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">재구성</th>
+                        <td>파노라마 / 메시 워크스루</td>
+                        <td>3D 가우시안 스플랫 &mdash; 더 매끄럽고 실사에 가까운 탐색</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">공간에 질문하기</th>
+                        <td>기본 지원 없음 &mdash; 뷰어일 뿐, Q&amp;A 서피스가 아님</td>
+                        <td><span class="yes">가능</span> &mdash; MCP를 통한 LLM 질의, 스캔에 근거함</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">어떤 AI가 답하는가</th>
+                        <td>해당 없음 또는 단일 벤더</td>
+                        <td><span class="yes">멀티 벤더</span> &mdash; Claude, ChatGPT, Gemini, Copilot 중 선택</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">종속성</th>
+                        <td>하나의 플랫폼과 뷰어에 묶임</td>
+                        <td>중립적이고 표준 기반인 MCP 서피스; 원하는 모델을 직접 연결</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="re-subtitle" style="margin-top:18px;font-size:0.9rem;opacity:0.8;">
+            이 비교는 일반적으로 공개된 워크플로우를 반영한 것이며 벤치마크가 아닙니다; 다른 제품의 기능과 가격은 변할 수 있습니다. 우리는 우리가 지향하며 만들어 가는 차이점을 짚었고, 아직 완성되지 않은 부분에 대해서는 아래에서 정직하게 밝힙니다.
+        </p>
+    </div>
+</section>
+
+<!-- ROI / who it's for -->
+<section class="re-section" id="for-agents">
+    <div class="container">
+        <h2>중개인과 중개법인이 주목하는 이유.</h2>
+        <p class="re-subtitle">핵심은 "더 화려한 투어"가 아닙니다. 헛걸음 방문을 줄이고, 구매자를 사전 선별하는 매물을 만들며, 럭셔리 매물뿐 아니라 모든 매물에 적용할 만큼 낮은 캡처 비용을 실현하는 것입니다.</p>
+        <div class="re-usecases">
+            <div class="re-usecase">
+                <h3>럭셔리뿐 아니라 모든 매물에</h3>
+                <p>캡처가 유료 스캔 기사 방문이 아니라 휴대폰 워크스루가 되면, 몰입형 투어는 더 이상 고가 주택에만 배정하는 항목이 아닙니다. 한계 비용이 거의 0에 가까워지므로 전체 매물에 적용할 수 있습니다.</p>
+            </div>
+            <div class="re-usecase">
+                <h3>의향이 낮은 방문 감소</h3>
+                <p>공간을 직접 탐색하고 기본적인 질문에 미리 답을 얻을 수 있는 구매자는 스스로 선별되는 경향이 있습니다. 실제로 진행하는 대면 방문은 이미 가상으로 둘러본 사람들과의 만남입니다.</p>
+            </div>
+            <div class="re-usecase">
+                <h3>새벽 2시에도 답하는 매물</h3>
+                <p>"차고에 차 두 대 들어가나요?" "침실은 어느 방향이에요?" 매물이 스캔에 근거해 이런 질문에 스스로 답합니다 &mdash; 영업 시간에만이 아니라 구매자가 실제로 둘러보는 바로 그 순간에.</p>
+            </div>
+            <div class="re-usecase">
+                <h3>당신의 AI, 당신의 포털</h3>
+                <p>중립적인 MCP 서피스이기 때문에, 중개법인이나 포털은 매물의 Q&amp;A를 이미 비용을 지불하는 어떤 LLM이든 자사 브랜드로 연결할 수 있습니다 &mdash; 강제적인 벤더 전환 없이.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Honest framing -->
+<section class="re-section" id="honest">
+    <div class="container">
+        <h2>오늘 무엇이 실제이고, 무엇이 아닌가.</h2>
+        <p class="re-subtitle">우리는 차라리 덜 약속하는 쪽을 택합니다. RakuAI는 매출 발생 전이며 이 버티컬은 초기 단계입니다. 다음은 출시된 것과 로드맵 사이의 정직한 경계선입니다.</p>
+        <div class="re-honest">
+            <h3>오늘 출시되어 있는 것</h3>
+            <ul>
+                <li>휴대폰 기반 캡처와 클라우드 3D 가우시안 스플랫 재구성 (Raku Capture 플로우).</li>
+                <li>MCP 서피스를 통한 장면 질의 &mdash; LLM이 재구성된 공간을 둘러보고 그에 대한 질문에 답할 수 있습니다.</li>
+                <li>멀티 LLM 지원: Claude, ChatGPT, Gemini, Copilot 모두 런타임을 구동할 수 있습니다.</li>
+            </ul>
+        </div>
+        <div class="re-honest" style="margin-top: 18px;">
+            <h3>진행 중 / 로드맵</h3>
+            <ul>
+                <li>구매자, 중개인, 포털에 맞춰 다듬어진 부동산 전용 매물 뷰어와 원클릭 공유 링크.</li>
+                <li>매물 수준의 Q&amp;A 템플릿(치수, 방향, 비품, "포함 사항")과 포털 및 MLS 인접 사이트용 임베드 가능한 위젯.</li>
+                <li>중개인/중개법인 계정, 매물별 관리, 그리고 구매자가 무엇을 묻는지에 대한 분석.</li>
+            </ul>
+        </div>
+        <div class="re-honest" style="margin-top: 18px;">
+            <h3>아직 갖추지 못한 것</h3>
+            <ul>
+                <li>유료 부동산 고객. 우리는 매출 발생 전이며 얼리 액세스 중개인과 파일럿 중개법인을 찾고 있습니다 &mdash; 우리에게 없는 체결 고객을 주장하지 않습니다.</li>
+                <li>오늘 바로 켤 수 있는 MLS/포털 통합; 통합은 현재 파일럿별 작업입니다.</li>
+                <li>측정 보증. LLM이 스캔에서 보고하는 치수는 구매자 편의를 위한 추정값이며, 측량이나 감정평가가 아닙니다.</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="re-section" id="early-access">
+    <div class="container">
+        <h2>얼리 액세스 중개인 또는 파일럿 중개법인이 되어 주세요.</h2>
+        <p class="re-subtitle">이것은 우리가 승부를 거는 버티컬이며, 실제로 사용할 사람들과 함께 만들어 갑니다. 얼리 액세스 기간에는 비용이 없습니다 &mdash; 대신 스캔할 실제 매물과 정직한 피드백을 부탁드립니다.</p>
+        <div class="re-usecases" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+            <div class="re-usecase">
+                <h3>개인 중개인</h3>
+                <p>실제 매물을 스캔해 탐색 가능하고 질문할 수 있는 결과물을 직접 보고 싶으신가요? 활동 지역과 가장 먼저 시작할 매물을 알려 주세요. 얼리 액세스 플로우에 연결해 드리고, 오늘 무엇이 작동하는지 솔직하게 말씀드리겠습니다.</p>
+                <p style="margin-top:14px;"><a href="mailto:partnerships@rakuai.com?subject=Real%20estate%20early%20access%20%E2%80%94%20agent" class="re-btn-secondary" style="display:inline-block;">얼리 액세스 신청 &rarr;</a></p>
+            </div>
+            <div class="re-usecase">
+                <h3>중개법인 및 포털</h3>
+                <p>모든 매물에 자사 AI와 브랜드로 연결된 휴대폰 캡처 3D 투어를 함께 제공하고 싶으신가요? 파일럿 범위를 함께 정해 봅시다 &mdash; 무엇을 통합하고, 어떤 LLM에 연결하며, 사례 연구로 무엇을 측정할지.</p>
+                <p style="margin-top:14px;"><a href="mailto:partnerships@rakuai.com?subject=Real%20estate%20pilot%20%E2%80%94%20brokerage%2Fportal" class="re-btn-secondary" style="display:inline-block;">파일럿 논의하기 &rarr;</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Cross-links -->
+<section class="re-section">
+    <div class="container">
+        <h2>더 깊이 보기.</h2>
+        <p class="re-subtitle">사람들이 그다음으로 가장 많이 읽는 페이지들입니다.</p>
+        <div class="re-crosslinks">
+            <a href="capture.html" class="re-crosslink">
+                <div class="label">Raku Capture &rarr;</div>
+                <div class="desc">이것이 기반으로 삼는 휴대폰 스캔 플로우 &mdash; 공간을 스캔한 뒤 말을 거세요.</div>
+            </a>
+            <a href="mcp.html" class="re-crosslink">
+                <div class="label">MCP 서버 &rarr;</div>
+                <div class="desc">어떤 LLM이든 장면을 둘러보고 그에 대한 질문에 답하게 해주는 중립적인 MCP 서피스. 2026년 3월부터 프로덕션.</div>
+            </a>
+            <a href="compare.html" class="re-crosslink">
+                <div class="label">정직한 비교 &rarr;</div>
+                <div class="desc">RakuAI의 접근 방식이 대안들과 어떻게 견주어지는지, 과장 없이.</div>
+            </a>
+            <a href="../privacy.html" class="re-crosslink">
+                <div class="label">개인정보처리방침 &rarr;</div>
+                <div class="desc">집을 스캔하는 일은 민감합니다. 캡처 데이터를 어떻게 처리하는지, 스캔을 삭제하는 방법.</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- NVIDIA Inception validation strip -->
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 32px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception 멤버 - 프레스 페이지에서 자세히 보기">
+            <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 멤버" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <a href="press.html#aws-activate" style="line-height: 0;" aria-label="AWS Activate 참가자 - 프레스 페이지에서 자세히 보기">
+            <img src="../branding/aws/powered-by-aws-white.png" alt="AWS 기반 구축" width="200" height="72" style="height: 44px; width: auto;">
+        </a>
+        <p style="max-width: 640px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            RakuAI는 <strong>NVIDIA Inception</strong> 멤버입니다. <a href="capture.html" style="color: var(--accent-bright);">Raku Capture</a>에서 제공하는 것과 동일한, NVIDIA 가속 3D 가우시안 스플래팅 스택이 매물을 위에서 설명한 탐색 가능하고 질문할 수 있는 공간으로 재구성합니다. <a href="press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">자세히 보기 &rarr;</a>
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 14px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        NVIDIA Inception은 AI 스타트업을 위한 무료 프로그램입니다. RakuAI의 멤버십은 NVIDIA가 RakuAI의 제품을 보증함을 의미하지 않습니다. 자세한 내용은 <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color: var(--text-secondary);">nvidia.com/startups</a>에서 확인하세요.
+    </p>
+    <!-- aws-credibility:start -->
+    <div class="container" style="display:flex; align-items:flex-start; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 20px;">
+        <p style="max-width: 720px; margin: 0; color: var(--text-secondary); font-size: 0.95rem; text-align: center;">
+            RakuAI는 <strong>AWS 기반으로 구축</strong>되었으며 <strong>AWS Activate</strong> 참가자입니다. 프로덕션 재구성은 현재 Azure에서 실행됩니다; AWS GPU 용량(G5 / G6e)은 로드맵에 있으며, 쿼터가 확보될 때까지 정직하게 보류 상태입니다.
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 10px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        &ldquo;AWS&rdquo; 및 &ldquo;AWS Activate&rdquo;는 Amazon.com, Inc. 또는 그 계열사의 상표입니다. RakuAI의 참여는 AWS가 RakuAI의 제품을 보증함을 의미하지 않습니다.
+    </p>
+    <!-- aws-credibility:end -->
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>솔루션</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">스마트 글래스 제조사</a></li>
+                    <li><a href="llm-makers.html">AI 연구소</a></li>
+                    <li><a href="enterprise.html">엔터프라이즈</a></li>
+                    <li><a href="creator.html">크리에이터</a></li>
+                    <li><a href="compare.html">Unity / Unreal 비교</a></li>
+                    <li><a href="spatial-engine.html">공간 엔진</a></li>
+                    <li><a href="ai-systems.html">AI 시스템</a></li>
+                    <li><a href="xr-features.html">XR 기능</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>개발자</h4>
+                <ul>
+                    <li><a href="docs.html">문서</a></li>
+                    <li><a href="mcp.html">MCP 서버</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="../api/">API 레퍼런스</a></li>
+                    <li><a href="templates.html">템플릿</a></li>
+                    <li><a href="developers/">개발자 포털</a></li>
+                    <li><a href="../developers/claude-desktop.html">Claude Desktop 가이드</a></li>
+                    <li><a href="developer-guide.html">개발자 가이드</a></li>
+                    <li><a href="llm-guide.html">LLM 통합 가이드</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>리소스</h4>
+                <ul>
+                    <li><a href="../blog/">블로그</a></li>
+                    <li><a href="why-rakuai.html">RakuAI를 선택하는 이유</a></li>
+                    <li><a href="press.html">보도 자료</a></li>
+                    <li><a href="../discover.html">디스커버</a></li>
+                    <li><a href="content-packs.html">콘텐츠 팩</a></li>
+                    <li><a href="docs.html">문서</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>회사</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">회사 소개</a></li>
+                    <li><a href="pricing.html">요금제</a></li>
+                    <li><a href="contact.html">문의하기</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">파트너</a></li>
+                    <li><a href="../privacy.html">개인정보처리방침</a></li>
+                    <li><a href="../terms.html">이용약관</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 미국 특허 5건 취득(우선일: 2012년 7월) &bull; RakuAI 엔진 기반</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 및 RakuXR&trade;는 RakuAI, LLC의 상표입니다.
+            <span class="kanji-logo">&#x697D;</span>AI 및 <span class="kanji-logo">&#x697D;</span>XR는 RakuAI, LLC의 스타일링된 마크입니다.
+            미국 특허 5건 취득(우선일: 2012년 7월).
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; margin:20px 0 8px; opacity:0.9;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception 멤버 - 프레스 페이지에서 자세히 보기" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 멤버" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+            <a href="../press.html#aws-activate" aria-label="AWS 기반 구축 — AWS Activate 참가자" style="line-height: 0;">
+                <img src="../branding/aws/powered-by-aws-white.png" alt="AWS 기반 구축" width="120" height="43" style="height: 36px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script>
+/* Self-contained, dependency-free infographic carousel.
+   Accessible: arrow buttons, dot tablist, keyboard (Left/Right/Home/End).
+   Reduced-motion handled in CSS. */
+(function () {
+    function initCarousel(root) {
+        var track = root.querySelector('[data-carousel-track]');
+        if (!track) return;
+        var slides = Array.prototype.slice.call(track.children);
+        var dotsWrap = root.querySelector('[data-carousel-dots]');
+        var prev = root.querySelector('[data-carousel-prev]');
+        var next = root.querySelector('[data-carousel-next]');
+        if (!slides.length) return;
+        var index = 0;
+        var dots = slides.map(function (slide, i) {
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = dotsWrap.getAttribute('data-dot-class') || 're-carousel-dot';
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', '슬라이드 ' + (i + 1) + '(으)로 이동');
+            dot.addEventListener('click', function () { go(i, true); });
+            dotsWrap.appendChild(dot);
+            return dot;
+        });
+        function go(i, focusDot) {
+            index = (i + slides.length) % slides.length;
+            track.style.transform = 'translateX(' + (-index * 100) + '%)';
+            slides.forEach(function (s, n) { s.setAttribute('aria-hidden', n === index ? 'false' : 'true'); });
+            dots.forEach(function (d, n) {
+                d.setAttribute('aria-selected', n === index ? 'true' : 'false');
+                d.tabIndex = n === index ? 0 : -1;
+            });
+            if (focusDot && dots[index]) dots[index].focus();
+        }
+        if (prev) prev.addEventListener('click', function () { go(index - 1, false); });
+        if (next) next.addEventListener('click', function () { go(index + 1, false); });
+        dotsWrap.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1, true); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1, true); }
+            else if (e.key === 'Home') { e.preventDefault(); go(0, true); }
+            else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1, true); }
+        });
+        go(0, false);
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-carousel]'), initCarousel);
+    });
+})();
+</script>
+<script src="/js/public-config.js"></script>
+<script src="/js/api-client.js"></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+
+
+<script src="/js/nav-dropdown.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>

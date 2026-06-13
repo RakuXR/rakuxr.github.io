@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.hcaptcha.com https://newassets.hcaptcha.com; style-src 'self' 'unsafe-inline' https://newassets.hcaptcha.com https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; form-action https://formspree.io 'self'; connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.rakuai.com https://hcaptcha.com https://*.hcaptcha.com https://formspree.io; frame-src https://hcaptcha.com https://newassets.hcaptcha.com; base-uri 'self'; object-src 'none';">
+    <title>面向不動產的 RakuAI — 讓任何物件成為可探索、可提問的 3D 空間</title>
+    <meta name="description" content="用手機掃描物件 — 不需要 300 美元的設備 — 即可將其轉化為可探索的 3D 高斯潑濺導覽，買家還能透過任何 LLM 向物件提問。與 Matterport 不同：純手機擷取、可透過 MCP 由 LLM 查詢、多廠商。誠實、尚未營收、搶先體驗定位。">
+    <meta name="keywords" content="不動產 3D 導覽, 手機物件掃描, 高斯潑濺不動產, 無需 Matterport 的虛擬導覽, 可 LLM 查詢的物件, MCP 物件導覽, 房仲 3D 走訪, 無需特殊相機的 3D 導覽">
+    <meta property="og:title" content="面向不動產的 RakuAI — 讓任何物件成為可探索、可提問的 3D 空間">
+    <meta property="og:description" content="手機掃描 → 可探索的 3D 物件，買家可透過任何 LLM 提問。用手機，而非 300 美元的設備。可透過 MCP 由 LLM 查詢。多廠商。搶先體驗。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://rakuai.com/zh-TW/real-estate.html">
+    <meta property="og:image" content="https://rakuai.com/og-default.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="RakuAI">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="面向不動產的 RakuAI — 讓任何物件成為可探索、可提問的 3D 空間">
+    <meta name="twitter:description" content="手機掃描 → 可探索的 3D 物件，買家可透過任何 LLM 提問。用手機，而非 300 美元的設備。多廠商。搶先體驗。">
+    <meta name="twitter:image" content="https://rakuai.com/og-default.png">
+    <link rel="canonical" href="https://rakuai.com/zh-TW/real-estate.html">
+    <link rel="alternate" hreflang="en" href="https://rakuai.com/real-estate.html">
+    <link rel="alternate" hreflang="ja" href="https://rakuai.com/ja/real-estate.html">
+    <link rel="alternate" hreflang="zh-TW" href="https://rakuai.com/zh-TW/real-estate.html">
+    <link rel="alternate" hreflang="zh-CN" href="https://rakuai.com/zh-CN/real-estate.html">
+    <link rel="alternate" hreflang="es" href="https://rakuai.com/es/real-estate.html">
+    <link rel="alternate" hreflang="fr" href="https://rakuai.com/fr/real-estate.html">
+    <link rel="alternate" hreflang="de" href="https://rakuai.com/de/real-estate.html">
+    <link rel="alternate" hreflang="ko" href="https://rakuai.com/ko/real-estate.html">
+    <link rel="alternate" hreflang="pt-BR" href="https://rakuai.com/pt-BR/real-estate.html">
+    <link rel="alternate" hreflang="x-default" href="https://rakuai.com/real-estate.html">
+        <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "RakuAI",
+        "url": "https://rakuai.com",
+        "logo": "https://rakuai.com/favicon.svg",
+        "description": "RakuAI for real estate: turn any listing into an explorable, askable 3D space with phone capture, Gaussian splats, and an MCP runtime.",
+        "memberOf": {"@type": "ProgramMembership", "programName": "NVIDIA Inception", "hostingOrganization": {"@type": "Organization", "name": "NVIDIA", "url": "https://www.nvidia.com"}}
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {"@type": "ListItem", "position": 1, "name": "RakuAI", "item": "https://rakuai.com/zh-TW/"},
+          {"@type": "ListItem", "position": 2, "name": "不動產", "item": "https://rakuai.com/zh-TW/real-estate.html"}
+        ]
+      }
+    ]
+    </script>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .re-section {
+            padding: 72px 0;
+            border-bottom: 1px solid #222244;
+        }
+        .re-section:last-of-type { border-bottom: none; }
+        .re-hero {
+            padding: 40px 0 56px;
+            text-align: center;
+        }
+        .re-hero .eyebrow {
+            display: inline-block;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-bright);
+            padding: 6px 14px;
+            border: 1px solid rgba(108, 92, 231, 0.45);
+            border-radius: 999px;
+            margin-bottom: 18px;
+        }
+        .re-hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.6rem);
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent-bright), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .re-hero .subhead {
+            color: var(--text-secondary);
+            font-size: 1.15rem;
+            line-height: 1.65;
+            max-width: 820px;
+            margin: 0 0 24px;
+        }
+        .re-hero .audience-line {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            max-width: 720px;
+            margin: 18px 0 0;
+            opacity: 0.85;
+            font-style: italic;
+        }
+        /* Hero split */
+        .re-hero-grid {
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 40px;
+            align-items: center;
+            text-align: left;
+        }
+        .re-hero-grid .re-hero-copy { min-width: 0; }
+        .re-hero-figure {
+            width: 100%;
+            max-width: 440px;
+            margin: 0 auto;
+            display: block;
+            height: auto;
+        }
+        .re-hero-figure svg { width: 100%; height: auto; display: block; }
+        .re-scan-beam {
+            transform-box: view-box;
+            transform-origin: 316px 250px;
+            animation: reScanSweep 2.8s ease-in-out infinite;
+        }
+        @keyframes reScanSweep {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(14deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .re-scan-beam { animation: none; transform: rotate(2deg); }
+        }
+        @media (max-width: 860px) {
+            .re-hero-grid { grid-template-columns: 1fr; text-align: center; gap: 28px; }
+            .re-hero-copy .subhead, .re-hero-copy .audience-line { margin-left: auto; margin-right: auto; }
+            .re-hero-figure { max-width: 360px; order: -1; }
+        }
+        .re-cta-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+        .re-btn-primary {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .re-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108, 92, 231, 0.4); }
+        .re-btn-secondary {
+            display: inline-block;
+            background: transparent;
+            color: var(--accent-bright);
+            border: 1px solid var(--accent-bright);
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background 0.15s ease;
+        }
+        .re-btn-secondary:hover { background: rgba(163, 136, 255, 0.1); }
+        .re-section h2 {
+            font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+            color: var(--accent-bright);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .re-section .re-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 760px;
+            margin: 0 auto 40px;
+        }
+
+        /* How it works steps */
+        .re-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .re-step {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 24px 24px;
+        }
+        .re-step .re-step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: rgba(108, 92, 231, 0.12);
+            color: var(--accent-bright);
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .re-step h4 { color: var(--text-primary); font-size: 1.05rem; margin-bottom: 6px; }
+        .re-step p { color: var(--text-secondary); font-size: 0.92rem; line-height: 1.6; margin: 0; }
+
+        /* Differentiation matrix */
+        .re-matrix-wrap {
+            max-width: 1000px;
+            margin: 0 auto;
+            overflow-x: auto;
+            border: 1px solid #222244;
+            border-radius: 12px;
+            background: var(--bg-secondary);
+        }
+        .re-matrix { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 0.95rem; }
+        .re-matrix th, .re-matrix td {
+            padding: 14px 18px; text-align: left;
+            border-bottom: 1px solid #222244; vertical-align: top;
+        }
+        .re-matrix thead th {
+            background: rgba(108, 92, 231, 0.08);
+            color: var(--accent-bright);
+            font-weight: 700; font-size: 0.92rem; white-space: nowrap;
+        }
+        .re-matrix tbody th {
+            color: var(--text-primary); font-weight: 600;
+            background: rgba(255, 255, 255, 0.015); min-width: 200px;
+        }
+        .re-matrix td { color: var(--text-secondary); }
+        .re-matrix .yes { color: var(--success); font-weight: 600; }
+        .re-matrix tr:last-child th, .re-matrix tr:last-child td { border-bottom: none; }
+
+        /* ROI / use-case cards */
+        .re-usecases {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .re-usecase {
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 12px;
+            padding: 26px 26px;
+        }
+        .re-usecase h3 { color: var(--accent-bright); font-size: 1.2rem; margin-bottom: 10px; }
+        .re-usecase p { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; margin: 0; }
+
+        /* Honest framing callout */
+        .re-honest {
+            max-width: 820px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-left: 4px solid var(--accent-bright);
+            border-radius: 8px;
+            padding: 24px 28px;
+        }
+        .re-honest h3 { color: var(--accent-bright); font-size: 1.15rem; margin-bottom: 10px; }
+        .re-honest ul { margin: 0; padding-left: 20px; color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem; }
+        .re-honest li { margin-bottom: 8px; }
+
+        /* Cross-links */
+        .re-crosslinks {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+        .re-crosslink {
+            display: block;
+            background: var(--bg-secondary);
+            border: 1px solid #222244;
+            border-radius: 10px;
+            padding: 20px 22px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: border-color 0.15s ease, transform 0.15s ease;
+        }
+        .re-crosslink:hover { border-color: var(--accent-bright); transform: translateY(-2px); }
+        .re-crosslink .label { color: var(--accent-bright); font-weight: 700; margin-bottom: 6px; font-size: 1rem; }
+        .re-crosslink .desc { color: var(--text-secondary); font-size: 0.88rem; line-height: 1.5; }
+
+        /* Infographic carousel (dependency-free) */
+        .re-carousel { max-width: 920px; margin: 0 auto; position: relative; }
+        .re-carousel-viewport {
+            overflow: hidden;
+            border: 1px solid #222244;
+            border-radius: 14px;
+            background: var(--bg-secondary);
+        }
+        .re-carousel-track { display: flex; transition: transform 0.45s ease; }
+        @media (prefers-reduced-motion: reduce) { .re-carousel-track { transition: none; } }
+        .re-slide {
+            flex: 0 0 100%;
+            min-width: 100%;
+            box-sizing: border-box;
+            padding: 36px 40px;
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 28px;
+            align-items: center;
+        }
+        .re-slide .re-slide-art { width: 100%; height: auto; }
+        .re-slide .re-slide-art svg { width: 100%; height: auto; display: block; }
+        .re-slide h3 { color: var(--accent-bright); font-size: 1.25rem; margin: 0 0 10px; }
+        .re-slide p { color: var(--text-secondary); font-size: 0.98rem; line-height: 1.6; margin: 0; }
+        .re-slide .re-slide-step {
+            display: inline-block; font-size: 0.72rem; letter-spacing: 1.5px;
+            text-transform: uppercase; color: var(--success); margin-bottom: 8px;
+        }
+        .re-carousel-controls { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 18px; }
+        .re-carousel-btn {
+            background: var(--bg-secondary); border: 1px solid #2c2c50;
+            color: var(--accent-bright); width: 42px; height: 42px;
+            border-radius: 999px; font-size: 1.1rem; cursor: pointer; line-height: 1;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .re-carousel-btn:hover { border-color: var(--accent-bright); }
+        .re-carousel-btn:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        .re-carousel-dots { display: flex; gap: 10px; }
+        .re-carousel-dot {
+            width: 11px; height: 11px; border-radius: 999px;
+            border: 1px solid #3a3a66; background: transparent; padding: 0; cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .re-carousel-dot[aria-selected="true"] { background: var(--accent-bright); border-color: var(--accent-bright); }
+        .re-carousel-dot:focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 2px; }
+        @media (max-width: 620px) {
+            .re-slide { grid-template-columns: 1fr; padding: 28px 22px; text-align: center; gap: 16px; }
+            .re-slide .re-slide-art { max-width: 130px; margin: 0 auto; }
+        }
+
+        @media (max-width: 768px) {
+            .re-hero { padding: 28px 0 40px; }
+            .re-section { padding: 56px 0; }
+            .re-matrix th, .re-matrix td { padding: 11px 12px; font-size: 0.88rem; }
+        }
+        @media (max-width: 480px) {
+            .re-cta-row { flex-direction: column; align-items: stretch; }
+            .re-btn-primary, .re-btn-secondary { text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="beta-announcement-bar">
+    5 項專利 | 9,500+ 個 API 端點 | 18 個原生 DLL | AI 原生的空間遊戲引擎 — 現已開放搶先體驗 <a href="spatial-engine.html">探索引擎 &rarr;</a>
+</div>
+
+<nav role="navigation" aria-label="主導覽">
+    <div class="container">
+        <a href="index.html" class="logo">RAKUAI<sup class="tm">&trade;</sup></a>
+        <button type="button" class="nav-mobile-toggle" aria-label="開啟選單" aria-expanded="false" aria-controls="nav-primary">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="nav-primary">
+            <ul class="nav-primary" role="menubar">
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-solutions" role="menuitem">解決方案</button>
+                    <div class="nav-dropdown-panel solutions" id="panel-solutions" role="menu" aria-label="解決方案" hidden>
+                        <div class="col-heading" role="presentation">依對象</div>
+                        <div class="col-heading" role="presentation">平台</div>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="smart-glasses.html">為智慧眼鏡製造商<span class="item-desc">硬體 OEM 合作夥伴計畫</span></a></li>
+                            <li role="none"><a role="menuitem" href="llm-makers.html">為 AI 實驗室<span class="item-desc">基礎模型的 MCP 執行階段</span></a></li>
+                            <li role="none"><a role="menuitem" href="enterprise.html">為企業<span class="item-desc">大規模部署空間 AI</span></a></li>
+                            <li role="none"><a role="menuitem" href="creator.html">為創作者<span class="item-desc">建構並發佈空間世界</span></a></li>
+                            <li role="none"><a role="menuitem" href="robotics.html">機器人<span class="item-desc">為機器人提供的持久空間記憶</span></a></li>
+                            <li role="none"><a role="menuitem" href="insurance.html">保險<span class="item-desc">手機掃描生成物品清單</span></a></li>
+                            <li role="none"><a role="menuitem" href="compare.html">與 Unity / Unreal 比較<span class="item-desc">誠實的對照</span></a></li>
+                        </ul>
+                        <ul class="col" role="group">
+                            <li role="none"><a role="menuitem" href="capture.html">Raku Capture<span class="item-desc">掃描一個空間，再與它對話</span></a></li>
+                            <li role="none"><a role="menuitem" href="spatial-engine.html">空間引擎<span class="item-desc">執行階段支柱</span></a></li>
+                            <li role="none"><a role="menuitem" href="ai-systems.html">AI 系統<span class="item-desc">編排與權限</span></a></li>
+                            <li role="none"><a role="menuitem" href="xr-features.html">XR 功能<span class="item-desc">顯示、追蹤、錨定</span></a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-developers" role="menuitem">開發者</button>
+                    <ul class="nav-dropdown-panel" id="panel-developers" role="menu" aria-label="開發者" hidden>
+                        <li role="none"><a role="menuitem" href="docs.html">文件</a></li>
+                        <li role="none"><a role="menuitem" href="mcp.html">MCP 伺服器</a></li>
+                        <li role="none"><a role="menuitem" href="sdk.html">SDK</a></li>
+                        <li role="none"><a role="menuitem" href="../api/">API 參考</a></li>
+                        <li role="none"><a role="menuitem" href="templates.html">範本</a></li>
+                        <li role="none"><a role="menuitem" href="developers/">開發者入口網站</a></li>
+                        <li role="none"><a role="menuitem" href="../developers/claude-desktop.html">Claude Desktop 指南</a></li>
+                        <li role="none"><a role="menuitem" href="developer-guide.html">開發者指南</a></li>
+                        <li role="none"><a role="menuitem" href="llm-guide.html">LLM 整合指南</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item has-dropdown" role="none">
+                    <button type="button" class="nav-dropdown" aria-haspopup="true" aria-expanded="false" aria-controls="panel-resources" role="menuitem">資源</button>
+                    <ul class="nav-dropdown-panel" id="panel-resources" role="menu" aria-label="資源" hidden>
+                        <li role="none"><a role="menuitem" href="../blog/">部落格</a></li>
+                        <li role="none"><a role="menuitem" href="why-rakuai.html">為何選擇 RakuAI</a></li>
+                        <li role="none"><a role="menuitem" href="press.html">媒體資料庫</a></li>
+                        <li role="none"><a role="menuitem" href="../discover.html">探索</a></li>
+                        <li role="none"><a role="menuitem" href="content-packs.html">內容包</a></li>
+                        <li role="none"><a role="menuitem" href="docs.html">文件</a></li>
+                        <li role="none"><a role="menuitem" href="contact.html">聯絡我們</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="pricing.html">定價</a>
+                </li>
+                <li class="nav-item" role="none">
+                    <a role="menuitem" href="../blog/">部落格</a>
+                </li>
+            </ul>
+            <a href="developers/login.html" class="nav-signin">登入</a>
+            <a href="../real-estate.html" class="lang-toggle">EN</a>
+        </div>
+    </div>
+</nav>
+
+<section class="re-hero">
+    <div class="container">
+        <div class="re-hero-grid">
+            <div class="re-hero-copy">
+                <span class="eyebrow">為房仲、仲介公司與物件團隊而寫</span>
+                <h1>讓任何物件成為可探索的 3D 空間。</h1>
+                <p class="subhead">
+                    用手機掃描一處物件 &mdash; 不需要 300 美元的設備、不需要特殊相機 &mdash; RakuAI 就會將其重建為可探索的 3D 高斯潑濺導覽。接著，買家便能做到影片導覽做不到的事：<strong>向物件提問</strong> &mdash;「廚房中島有多寬？」、「主臥朝哪個方向？」&mdash; 由你或你的入口網站已在使用的任一 LLM 透過我們的 MCP 介面回答。
+                </p>
+                <p class="audience-line">
+                    這是 RakuAI 的旗艦垂直領域，而我們正以公開的方式打造它。下方頁面誠實說明今日已交付的部分與藍圖上的部分。我們尚未營收，正在尋找搶先體驗的房仲與試行的仲介公司 &mdash; 並非宣稱已是完成的產品。
+                </p>
+                <div class="re-cta-row">
+                    <a href="mailto:partnerships@rakuai.com?subject=Real%20estate%20early%20access" class="re-btn-primary">申請搶先體驗 &rarr;</a>
+                    <a href="#how-it-works" class="re-btn-secondary">了解運作方式 &darr;</a>
+                </div>
+            </div>
+            <div class="re-hero-figure" aria-hidden="true">
+                <!-- 手機掃描房屋 -> 可探索的 3D 潑濺 -> 向物件提問的對話 -->
+                <svg viewBox="0 0 360 320" role="img" xmlns="http://www.w3.org/2000/svg">
+                    <title>一支手機掃描一間住家，轉化為買家可提問的可探索 3D 空間</title>
+                    <defs>
+                        <linearGradient id="reSky" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#1a1a3a"/>
+                            <stop offset="1" stop-color="#11112a"/>
+                        </linearGradient>
+                        <linearGradient id="reScan" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#a388ff" stop-opacity="0.55"/>
+                            <stop offset="1" stop-color="#a388ff" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <!-- scene frame -->
+                    <rect x="22" y="22" width="236" height="184" rx="12" fill="url(#reSky)" stroke="#2c2c50"/>
+                    <!-- house silhouette -->
+                    <polygon points="80,150 80,98 140,58 200,98 200,150" fill="#23244a" stroke="#3a3a66"/>
+                    <polygon points="72,100 140,52 208,100" fill="none" stroke="#a388ff" stroke-width="2"/>
+                    <rect x="118" y="116" width="26" height="34" fill="#16162e" stroke="#3a3a66"/>
+                    <rect x="156" y="112" width="22" height="22" fill="#16162e" stroke="#3a3a66"/>
+                    <!-- splat point cloud over the house -->
+                    <g fill="#6c5ce7">
+                        <circle cx="100" cy="110" r="3" opacity="0.85"/><circle cx="120" cy="92" r="2.5" opacity="0.7"/>
+                        <circle cx="140" cy="74" r="3" opacity="0.85"/><circle cx="166" cy="92" r="2.5" opacity="0.7"/>
+                        <circle cx="186" cy="112" r="3" opacity="0.8"/><circle cx="150" cy="132" r="2.4" opacity="0.6"/>
+                    </g>
+                    <!-- scan sweep beam from phone (CSS-animated; paused under prefers-reduced-motion) -->
+                    <polygon class="re-scan-beam" points="316,250 196,44 244,44" fill="url(#reScan)"/>
+                    <!-- phone -->
+                    <g>
+                        <rect x="292" y="196" width="48" height="92" rx="10" fill="#16162e" stroke="#a388ff" stroke-width="2"/>
+                        <rect x="298" y="206" width="36" height="60" rx="4" fill="#0a0a1a"/>
+                        <circle cx="316" cy="278" r="3.5" fill="#3a3a66"/>
+                    </g>
+                    <!-- ask-the-listing chat bubble -->
+                    <g>
+                        <rect x="40" y="232" width="170" height="74" rx="10" fill="#16162e" stroke="#2c2c50"/>
+                        <circle cx="58" cy="252" r="7" fill="#00cec9"/>
+                        <rect x="74" y="246" width="120" height="7" rx="3.5" fill="#3a3a66"/>
+                        <rect x="74" y="260" width="92" height="6" rx="3" fill="#2c2c50"/>
+                        <text x="56" y="294" fill="#9090b0" font-family="monospace" font-size="10">「中島有多寬？」</text>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Infographic carousel: scan -> splat -> explore -> ask -->
+<section class="re-section" id="flow-carousel" style="padding-top:0;border-bottom:1px solid #222244;">
+    <div class="container">
+        <h2>從手機走訪，到買家可以對話的物件。</h2>
+        <p class="re-subtitle">驅動平台其餘部分的同一條 Raku Capture 管線 — 一次一個步驟。使用方向鍵、點點或鍵盤操作。</p>
+        <div class="re-carousel" data-carousel>
+            <div class="re-carousel-viewport">
+                <div class="re-carousel-track" data-carousel-track role="group" aria-roledescription="carousel" aria-label="一處物件如何成為可探索、可提問的 3D 空間">
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="步驟 1 / 4：用手機掃描">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="44" y="18" width="40" height="84" rx="9" fill="#16162e" stroke="#a388ff" stroke-width="2"/><rect x="50" y="28" width="28" height="56" rx="3" fill="#0a0a1a"/><circle cx="64" cy="94" r="3.5" fill="#3a3a66"/><path d="M30 60 H14 M90 60 H106 M64 18 V6" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round" opacity="0.7"/></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">步驟 1</span>
+                            <h3>用手機掃描</h3>
+                            <p>拿著口袋裡早就有的手機走訪物件。不需要三腳架、不需要 300 美元的擷取設備、不需要特殊相機，也不需要訓練日。</p>
+                        </div>
+                    </div>
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="步驟 2 / 4：重建為 3D 潑濺">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="16" y="24" width="88" height="72" rx="10" fill="#1a1a3a" stroke="#2c2c50"/><polygon points="40,80 40,54 60,42 80,54 80,80" fill="#23244a" stroke="#3a3a66"/><g fill="#6c5ce7"><circle cx="50" cy="60" r="3"/><circle cx="60" cy="48" r="2.6"/><circle cx="72" cy="60" r="3"/></g></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">步驟 2</span>
+                            <h3>重建為 3D 潑濺</h3>
+                            <p>影格與動作在雲端重建為一個 3D 高斯潑濺 &mdash; 一個平滑、趨近照片寫實的空間模型，而非拼接的全景。</p>
+                        </div>
+                    </div>
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="步驟 3 / 4：買家在瀏覽器中探索">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="24" width="84" height="60" rx="6" fill="#16162e" stroke="#2c2c50"/><rect x="18" y="24" width="84" height="14" rx="6" fill="#23244a"/><circle cx="28" cy="31" r="2.5" fill="#3a3a66"/><circle cx="36" cy="31" r="2.5" fill="#3a3a66"/><polygon points="42,74 42,52 60,42 78,52 78,74" fill="#23244a" stroke="#6c5ce7"/><path d="M44 96 h32 M50 96 v8 M70 96 v8" stroke="#3a3a66" stroke-width="3" stroke-linecap="round"/></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">步驟 3</span>
+                            <h3>買家在瀏覽器中探索</h3>
+                            <p>分享一條連結。買家以自己的步調、用任何裝置穿梭空間 &mdash; 不需要頭戴裝置、不需要安裝 App、不需要預約看屋。</p>
+                        </div>
+                    </div>
+                    <div class="re-slide" role="group" aria-roledescription="slide" aria-label="步驟 4 / 4：向物件提出任何問題">
+                        <div class="re-slide-art" aria-hidden="true">
+                            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><rect x="18" y="30" width="70" height="42" rx="9" fill="#16162e" stroke="#2c2c50"/><path d="M32 72 l-2 12 l16 -10 z" fill="#16162e" stroke="#2c2c50"/><circle cx="34" cy="51" r="4" fill="#00cec9"/><circle cx="52" cy="51" r="4" fill="#a388ff"/><circle cx="70" cy="51" r="4" fill="#6c5ce7"/></svg>
+                        </div>
+                        <div>
+                            <span class="re-slide-step">步驟 4</span>
+                            <h3>向物件提出任何問題</h3>
+                            <p>透過我們的 MCP 介面，LLM 以實際掃描為依據回答問題 &mdash; 尺寸、朝向、房間裡有什麼。多廠商：Claude、ChatGPT、Gemini 或 Copilot 皆可驅動。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="re-carousel-controls">
+                <button type="button" class="re-carousel-btn" data-carousel-prev aria-label="上一張">&larr;</button>
+                <div class="re-carousel-dots" role="tablist" aria-label="選擇投影片" data-carousel-dots data-dot-class="re-carousel-dot"></div>
+                <button type="button" class="re-carousel-btn" data-carousel-next aria-label="下一張">&rarr;</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How it works (3-step) -->
+<section class="re-section" id="how-it-works">
+    <div class="container">
+        <h2>運作方式。</h2>
+        <p class="re-subtitle">從手中的手機到一份可分享、可提問的物件，只需三個步驟。這就是貫穿 RakuAI 各處所使用的同一個 Raku Capture 核心 &mdash; 不動產只是套在輸出之上的一層包裝，而非全新引擎。</p>
+        <div class="re-steps">
+            <div class="re-step">
+                <span class="re-step-num">1</span>
+                <h4>掃描</h4>
+                <p>拿著手機走訪住家，螢幕上有引導。每個空間擷取只需數分鐘，所需的東西你早就有了。</p>
+            </div>
+            <div class="re-step">
+                <span class="re-step-num">2</span>
+                <h4>重建並發佈</h4>
+                <p>RakuAI 將掃描重建為可探索的 3D 高斯潑濺，並提供你一條可放入物件頁面、電子郵件或入口網站的單一分享連結。</p>
+            </div>
+            <div class="re-step">
+                <span class="re-step-num">3</span>
+                <h4>探索並提問</h4>
+                <p>買家在瀏覽器中走訪空間，並以白話提問 &mdash; 由任何 LLM 透過 MCP 介面、以掃描為依據回答。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Differentiation vs Matterport -->
+<section class="re-section" id="why-rakuai">
+    <div class="container">
+        <h2>這與 Matterport 導覽有何不同。</h2>
+        <p class="re-subtitle">3D 物件導覽並不新鮮。新鮮的是用手機完成它、讓空間回答問題，並且永不把你綁定在單一廠商。</p>
+        <div class="re-matrix-wrap" role="region" aria-label="RakuAI 與傳統 3D 導覽的比較">
+            <table class="re-matrix">
+                <thead>
+                    <tr>
+                        <th scope="col"></th>
+                        <th scope="col">典型 3D 導覽（例如 Matterport）</th>
+                        <th scope="col">面向不動產的 RakuAI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">擷取硬體</th>
+                        <td>通常需要專用相機或約 300 美元以上的設備，或一次付費的掃描技師到府</td>
+                        <td><span class="yes">你早就擁有的手機</span> &mdash; 無需特殊相機</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">重建</th>
+                        <td>全景／網格走訪</td>
+                        <td>3D 高斯潑濺 &mdash; 更平滑、更趨近照片寫實的導覽</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">向空間提問</th>
+                        <td>並非原生支援 &mdash; 它是一個檢視器，而非問答介面</td>
+                        <td><span class="yes">可以</span> &mdash; 可透過 MCP 由 LLM 查詢，以掃描為依據</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">由哪個 AI 回答</th>
+                        <td>不適用，或單一廠商</td>
+                        <td><span class="yes">多廠商</span> &mdash; Claude、ChatGPT、Gemini 或 Copilot，由你選擇</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">廠商綁定</th>
+                        <td>綁定於單一平台與檢視器</td>
+                        <td>中立、基於標準的 MCP 介面；自帶你的模型</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="re-subtitle" style="margin-top:18px;font-size:0.9rem;opacity:0.8;">
+            此對照反映的是公開且典型的工作流程，並非基準測試；其他產品的能力與定價會有所變動。我們指出正在朝其建構的差異，並在下方誠實說明尚未完成的部分。
+        </p>
+    </div>
+</section>
+
+<!-- ROI / who it's for -->
+<section class="re-section" id="for-agents">
+    <div class="container">
+        <h2>為何房仲與仲介公司在意。</h2>
+        <p class="re-subtitle">這個賣點不是「更花俏的導覽」。它是更少的無謂看屋、能預先篩選買家的物件，以及低到可以套用在每一個物件上的擷取成本 &mdash; 而不只是豪宅。</p>
+        <div class="re-usecases">
+            <div class="re-usecase">
+                <h3>每一個物件，不只是豪宅</h3>
+                <p>當擷取是一次手機走訪，而不是付費的掃描技師到府時，沉浸式導覽就不再是只為高端住宅保留的成本項目。邊際成本趨近於零，因此可以套用到整本物件冊。</p>
+            </div>
+            <div class="re-usecase">
+                <h3>更少低意願的看屋</h3>
+                <p>能探索空間並先得到基本問題解答的買家，往往會自我篩選。你實際安排的實體看屋，對象都是已經在虛擬走訪過的人。</p>
+            </div>
+            <div class="re-usecase">
+                <h3>凌晨兩點也能回答的物件</h3>
+                <p>「車庫放得下兩台車嗎？」「臥室朝哪個方向？」物件本身就以掃描為依據回答這些問題，無論買家是何時在瀏覽 &mdash; 而不只是辦公時間。</p>
+            </div>
+            <div class="re-usecase">
+                <h3>你的 AI、你的入口網站</h3>
+                <p>由於它是中立的 MCP 介面，仲介公司或入口網站可以將物件的問答接入它已在付費使用的任一 LLM，並以自己的品牌呈現 &mdash; 無需被迫更換廠商。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Honest framing -->
+<section class="re-section" id="honest">
+    <div class="container">
+        <h2>今日哪些是真的，哪些不是。</h2>
+        <p class="re-subtitle">我們寧可保守承諾。RakuAI 尚未營收，這個垂直領域還很早期。以下是已上線與藍圖之間誠實的分界。</p>
+        <div class="re-honest">
+            <h3>今日已交付</h3>
+            <ul>
+                <li>以手機進行的擷取與雲端 3D 高斯潑濺重建（Raku Capture 流程）。</li>
+                <li>透過 MCP 介面的場景查詢 &mdash; LLM 可巡遍已重建的空間並回答相關問題。</li>
+                <li>多 LLM 支援：Claude、ChatGPT、Gemini 與 Copilot 皆可驅動執行階段。</li>
+            </ul>
+        </div>
+        <div class="re-honest" style="margin-top: 18px;">
+            <h3>進行中／藍圖</h3>
+            <ul>
+                <li>一個精緻、不動產專屬的物件檢視器，以及為買家、房仲與入口網站調校的一鍵分享連結。</li>
+                <li>物件等級的問答範本（尺寸、朝向、固定裝置、「包含哪些項目」），以及供入口網站與 MLS 相關網站使用的可嵌入元件。</li>
+                <li>房仲／仲介公司帳號、逐物件的組織管理，以及買家提問內容的分析。</li>
+            </ul>
+        </div>
+        <div class="re-honest" style="margin-top: 18px;">
+            <h3>我們尚未具備的</h3>
+            <ul>
+                <li>付費的不動產客戶。我們尚未營收，正在尋找搶先體驗的房仲與試行的仲介公司 &mdash; 我們不會宣稱擁有並不存在的簽約客戶。</li>
+                <li>今日就能啟用的 MLS／入口網站整合；目前整合屬於逐案試行的工作。</li>
+                <li>量測保證。LLM 從掃描回報的尺寸是供買家參考的預估值，並非測量或鑑價。</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="re-section" id="early-access">
+    <div class="container">
+        <h2>成為搶先體驗的房仲或試行的仲介公司。</h2>
+        <p class="re-subtitle">這是我們押注的垂直領域，我們正與將會使用它的人一起打造。搶先體驗期間不收費 &mdash; 我們只請你提供真實物件供掃描，以及誠實的回饋。</p>
+        <div class="re-usecases" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+            <div class="re-usecase">
+                <h3>個別房仲</h3>
+                <p>想試著掃描一個真實在售物件，看看可探索、可提問的成果嗎？告訴我們你的市場，以及你會從哪個物件開始。我們會帶你進入搶先體驗流程，並直白說明今日哪些可行。</p>
+                <p style="margin-top:14px;"><a href="mailto:partnerships@rakuai.com?subject=Real%20estate%20early%20access%20%E2%80%94%20agent" class="re-btn-secondary" style="display:inline-block;">申請搶先體驗 &rarr;</a></p>
+            </div>
+            <div class="re-usecase">
+                <h3>仲介公司與入口網站</h3>
+                <p>想讓每一個物件都附帶一份手機擷取的 3D 導覽，並接上你自己的 AI 與品牌嗎？讓我們規劃一場試行 &mdash; 你會整合什麼、你會把它指向哪個 LLM，以及案例研究要衡量什麼。</p>
+                <p style="margin-top:14px;"><a href="mailto:partnerships@rakuai.com?subject=Real%20estate%20pilot%20%E2%80%94%20brokerage%2Fportal" class="re-btn-secondary" style="display:inline-block;">洽談試行 &rarr;</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Cross-links -->
+<section class="re-section">
+    <div class="container">
+        <h2>了解更深入。</h2>
+        <p class="re-subtitle">多數人接下來最常閱讀的頁面。</p>
+        <div class="re-crosslinks">
+            <a href="capture.html" class="re-crosslink">
+                <div class="label">Raku Capture &rarr;</div>
+                <div class="desc">本方案所立基的手機掃描流程 &mdash; 掃描一個空間，再與它對話。</div>
+            </a>
+            <a href="mcp.html" class="re-crosslink">
+                <div class="label">MCP 伺服器 &rarr;</div>
+                <div class="desc">讓任何 LLM 巡遍場景並回答相關問題的中立 MCP 介面。自 2026 年 3 月起正式上線。</div>
+            </a>
+            <a href="compare.html" class="re-crosslink">
+                <div class="label">誠實的對照 &rarr;</div>
+                <div class="desc">RakuAI 的做法與替代方案如何相比，沒有美化包裝。</div>
+            </a>
+            <a href="../privacy.html" class="re-crosslink">
+                <div class="label">隱私權 &rarr;</div>
+                <div class="desc">掃描住家屬於敏感行為。擷取資料如何處理，以及如何刪除一次掃描。</div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- NVIDIA Inception validation strip -->
+<section class="section" id="nvidia-inception" style="background: var(--bg-primary); border-top: 1px solid rgba(108,92,231,0.25); padding: 32px 0; scroll-margin-top: 80px;">
+    <div class="container" style="display:flex; align-items:center; gap: 24px; justify-content: center; flex-wrap: wrap;">
+        <a href="press.html#nvidia-inception" style="line-height: 0;" aria-label="NVIDIA Inception 成員 - 於媒體頁面閱讀更多">
+            <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 成員" width="200" height="86" style="height: 50px; width: auto;">
+        </a>
+        <a href="press.html#aws-activate" style="line-height: 0;" aria-label="AWS Activate 參與者 - 於媒體頁面閱讀更多">
+            <img src="../branding/aws/powered-by-aws-white.png" alt="基於 AWS 構建" width="200" height="72" style="height: 44px; width: auto;">
+        </a>
+        <p style="max-width: 640px; margin: 0; color: var(--text-secondary); font-size: 0.95rem;">
+            RakuAI 是 <strong>NVIDIA Inception</strong> 成員。我們在 <a href="capture.html" style="color: var(--accent-bright);">Raku Capture</a> 中交付、由 NVIDIA 加速的同一套 3D 高斯潑濺技術堆疊，正是將物件重建為上述可探索、可提問空間的核心。<a href="press.html#nvidia-inception" style="color: var(--accent-bright); white-space: nowrap;">閱讀更多 &rarr;</a>
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 14px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        NVIDIA Inception 是為 AI 新創提供的免費計畫；RakuAI 的會員資格不代表 NVIDIA 為 RakuAI 的產品背書。進一步了解請見 <a href="https://www.nvidia.com/en-us/startups/" target="_blank" rel="noopener" style="color: var(--text-secondary);">nvidia.com/startups</a>。
+    </p>
+    <!-- aws-credibility:start -->
+    <div class="container" style="display:flex; align-items:flex-start; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 20px;">
+        <p style="max-width: 720px; margin: 0; color: var(--text-secondary); font-size: 0.95rem; text-align: center;">
+            RakuAI <strong>基於 AWS 構建</strong>，並為 <strong>AWS Activate</strong> 參與者。生產環境的重建目前運行於 Azure；AWS GPU 容量（G5 / G6e）在我們的藍圖上，並誠實地在配額落地前先行限制。
+        </p>
+    </div>
+    <p style="max-width: 720px; margin: 10px auto 0; text-align: center; color: var(--text-secondary); font-size: 0.78rem; opacity: 0.75; padding: 0 16px;">
+        &ldquo;AWS&rdquo; 與 &ldquo;AWS Activate&rdquo; 為 Amazon.com, Inc. 或其關係企業之商標。RakuAI 的參與不代表 AWS 為 RakuAI 的產品背書。
+    </p>
+    <!-- aws-credibility:end -->
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>解決方案</h4>
+                <ul>
+                    <li><a href="capture.html">Raku Capture</a></li>
+                    <li><a href="smart-glasses.html">智慧眼鏡製造商</a></li>
+                    <li><a href="llm-makers.html">AI 實驗室</a></li>
+                    <li><a href="enterprise.html">企業</a></li>
+                    <li><a href="creator.html">創作者</a></li>
+                    <li><a href="compare.html">與 Unity / Unreal 比較</a></li>
+                    <li><a href="spatial-engine.html">空間引擎</a></li>
+                    <li><a href="ai-systems.html">AI 系統</a></li>
+                    <li><a href="xr-features.html">XR 功能</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>開發者</h4>
+                <ul>
+                    <li><a href="docs.html">文件</a></li>
+                    <li><a href="mcp.html">MCP 伺服器</a></li>
+                    <li><a href="sdk.html">SDK</a></li>
+                    <li><a href="../api/">API 參考</a></li>
+                    <li><a href="templates.html">範本</a></li>
+                    <li><a href="developers/">開發者入口網站</a></li>
+                    <li><a href="../developers/claude-desktop.html">Claude Desktop 指南</a></li>
+                    <li><a href="developer-guide.html">開發者指南</a></li>
+                    <li><a href="llm-guide.html">LLM 整合指南</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>資源</h4>
+                <ul>
+                    <li><a href="../blog/">部落格</a></li>
+                    <li><a href="why-rakuai.html">為何選擇 RakuAI</a></li>
+                    <li><a href="press.html">媒體資料庫</a></li>
+                    <li><a href="../discover.html">探索</a></li>
+                    <li><a href="content-packs.html">內容包</a></li>
+                    <li><a href="docs.html">文件</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>公司</h4>
+                <ul>
+                    <li><a href="why-rakuai.html">關於</a></li>
+                    <li><a href="pricing.html">定價</a></li>
+                    <li><a href="contact.html">聯絡我們</a></li>
+                    <li><a href="mailto:partnerships@rakuai.com">合作夥伴</a></li>
+                    <li><a href="../privacy.html">隱私權</a></li>
+                    <li><a href="../terms.html">服務條款</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-social">
+            <a href="https://github.com/RakuXR" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.linkedin.com/company/rakuai" target="_blank" rel="noopener">LinkedIn</a>
+        </div>
+        <p>&copy; 2026 RakuAI, LLC &bull; 5 項美國專利已核發（優先日：2012 年 7 月） &bull; 由 RakuAI 引擎驅動</p>
+        <p class="trademark-notice">
+            RakuAI&trade; 與 RakuXR&trade; 為 RakuAI, LLC 之商標。
+            <span class="kanji-logo">&#x697D;</span>AI 與 <span class="kanji-logo">&#x697D;</span>XR 為 RakuAI, LLC 之風格化標識。
+            5 項美國專利已核發（優先日：2012 年 7 月）。
+        </p>
+    </div>
+        <!-- nv-inception:start -->
+        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; margin:20px 0 8px; opacity:0.9;">
+            <a href="press.html#nvidia-inception" aria-label="NVIDIA Inception 成員 - 於媒體頁面閱讀更多" style="line-height: 0;">
+                <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception 成員" width="160" height="69" style="height: 40px; width: auto; display: block;">
+            </a>
+            <a href="press.html#aws-activate" aria-label="AWS Activate 參與者 - 於媒體頁面閱讀更多" style="line-height: 0;">
+                <img src="../branding/aws/powered-by-aws-white.png" alt="基於 AWS 構建" width="120" height="43" style="height: 36px; width: auto; display: block;">
+            </a>
+        </div>
+        <!-- nv-inception:end -->
+</footer>
+
+<script>
+/* Self-contained, dependency-free infographic carousel.
+   Accessible: arrow buttons, dot tablist, keyboard (Left/Right/Home/End).
+   Reduced-motion handled in CSS. */
+(function () {
+    function initCarousel(root) {
+        var track = root.querySelector('[data-carousel-track]');
+        if (!track) return;
+        var slides = Array.prototype.slice.call(track.children);
+        var dotsWrap = root.querySelector('[data-carousel-dots]');
+        var prev = root.querySelector('[data-carousel-prev]');
+        var next = root.querySelector('[data-carousel-next]');
+        if (!slides.length) return;
+        var index = 0;
+        var dots = slides.map(function (slide, i) {
+            var dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = dotsWrap.getAttribute('data-dot-class') || 're-carousel-dot';
+            dot.setAttribute('role', 'tab');
+            dot.setAttribute('aria-label', '前往投影片 ' + (i + 1));
+            dot.addEventListener('click', function () { go(i, true); });
+            dotsWrap.appendChild(dot);
+            return dot;
+        });
+        function go(i, focusDot) {
+            index = (i + slides.length) % slides.length;
+            track.style.transform = 'translateX(' + (-index * 100) + '%)';
+            slides.forEach(function (s, n) { s.setAttribute('aria-hidden', n === index ? 'false' : 'true'); });
+            dots.forEach(function (d, n) {
+                d.setAttribute('aria-selected', n === index ? 'true' : 'false');
+                d.tabIndex = n === index ? 0 : -1;
+            });
+            if (focusDot && dots[index]) dots[index].focus();
+        }
+        if (prev) prev.addEventListener('click', function () { go(index - 1, false); });
+        if (next) next.addEventListener('click', function () { go(index + 1, false); });
+        dotsWrap.addEventListener('keydown', function (e) {
+            if (e.key === 'ArrowRight') { e.preventDefault(); go(index + 1, true); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); go(index - 1, true); }
+            else if (e.key === 'Home') { e.preventDefault(); go(0, true); }
+            else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1, true); }
+        });
+        go(0, false);
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        Array.prototype.forEach.call(document.querySelectorAll('[data-carousel]'), initCarousel);
+    });
+})();
+</script>
+<script src="/js/public-config.js"></script>
+<script src="/js/api-client.js"></script>
+<script src="/js/auth-nav.js" defer></script>
+<script src="/js/lang-selector.js" defer></script>
+
+
+<script src="/js/nav-dropdown.js" defer></script>
+    <script src="/js/section-nav.js" defer></script>
+</body>
+</html>
