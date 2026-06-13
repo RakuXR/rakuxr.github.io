@@ -172,8 +172,10 @@
 
         /* MCP-from-robot diagram block */
         .sg-mcp-arch {
-            max-width: 1040px;
-            margin: 0 auto;
+            width: min(1265px, 96vw);
+            max-width: none;
+            margin-left: 50%;
+            transform: translateX(-50%);
         }
         .sg-mcp-arch .sg-mcp-note {
             max-width: 820px;
@@ -503,10 +505,10 @@
 
 <div style="display: flex; justify-content: center; margin: 22px 0 4px;">
     <a href="#nvidia-inception" style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.35); border-radius: 999px; text-decoration: none;" aria-label="NVIDIA Inception 成員 - 捲動查看詳情">
-        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.85rem; font-weight: 500; letter-spacing: 0.02em;">成員</span>
-        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="28" style="height: 28px; width: auto; display: block;">
-        <img src="../branding/aws/powered-by-aws-white.png" alt="基於 AWS 構建" height="28" style="height: 28px; width: auto; display: block;">
-        <span style="color: var(--accent-bright, #a388ff); font-size: 0.85rem; font-weight: 600;">閱讀更多 &darr;</span>
+        <span style="color: var(--text-secondary, #7a7a9a); font-size: 0.98rem; font-weight: 500; letter-spacing: 0.02em;">成員</span>
+        <img src="../branding/nvidia-inception-member.svg" alt="NVIDIA Inception" width="65" height="44" style="height: 44px; width: auto; display: block;">
+        <img src="../branding/aws/powered-by-aws-white.png" alt="基於 AWS 構建" height="44" style="height: 44px; width: auto; display: block;">
+        <span style="color: var(--accent-bright, #a388ff); font-size: 0.98rem; font-weight: 600;">閱讀更多 &darr;</span>
     </a>
 </div>
         <div class="sg-cta-row">
@@ -562,9 +564,9 @@
         </p>
 
         <div class="sg-mcp-arch">
-        <svg viewBox="0 0 1040 420" width="100%" style="max-width:1040px; height:auto; display:block;" role="img" aria-labelledby="rbmcp-title rbmcp-desc" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="0 0 1300 560" width="100%" style="max-width:1265px; height:auto; display:block;" role="img" aria-labelledby="rbmcp-title rbmcp-desc" xmlns="http://www.w3.org/2000/svg">
             <title id="rbmcp-title">機器人查詢自身場域的 MCP 架構圖</title>
-            <desc id="rbmcp-desc">機器人的規劃器透過機器人上的用戶端或雲端中繼，向 RakuAI 執行階段送出 MCP 請求；執行階段公開 17 個原生 MCP 工具（5 個唯讀加 12 個變更），其中場景記憶工具與機器人最相關，對每個場域擷取的場景進行空間推理，並回傳一個由規劃器據以行動的結構化答案。</desc>
+            <desc id="rbmcp-desc">機器人的規劃器透過機器人上的用戶端或雲端中繼，向 RakuAI 執行階段送出 MCP 請求。執行階段公開 17 個原生 MCP 工具：5 個唯讀場景查詢工具（第 1 階段機器人重點）加上 12 個經稽核的變更工具。執行階段對物理、碰撞與場景狀態握有權限。每一次呼叫皆經稽核。結構化答案會回傳給規劃器。</desc>
             <defs>
                 <linearGradient id="rbmcp-grad" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0" stop-color="#6c5ce7"/>
@@ -579,90 +581,93 @@
             </defs>
 
             <!-- Column 1: Robot -->
-            <rect x="30" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
-            <text x="140" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">機器人 + 規劃器</text>
+            <rect x="20" y="76.4" width="300" height="381.8" rx="17.8" fill="#111128" stroke="#6c5ce7" stroke-width="1.5"/>
+            <text x="170" y="117.1" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="22.5" font-weight="700">機器人 + 規劃器</text>
             <g stroke="#a388ff" stroke-width="1.6" fill="none">
-                <rect x="116" y="116" width="48" height="36" rx="6"/>
-                <line x1="140" y1="116" x2="140" y2="104"/>
-                <circle cx="140" cy="100" r="4"/>
-                <line x1="128" y1="152" x2="128" y2="168"/>
-                <line x1="152" y1="152" x2="152" y2="168"/>
+                <rect x="137.3" y="147.6" width="65.5" height="45.8" rx="7.6"/>
+                <line x1="170" y1="147.6" x2="170" y2="132.4"/>
+                <circle cx="170" cy="127.3" r="5.1"/>
+                <line x1="153.6" y1="193.5" x2="153.6" y2="213.8"/>
+                <line x1="186.4" y1="193.5" x2="186.4" y2="213.8"/>
             </g>
-            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
-                <text x="140" y="196" text-anchor="middle">你的感知</text>
-                <text x="140" y="212" text-anchor="middle">+ 任務規劃器 LLM</text>
-                <text x="140" y="244" text-anchor="middle" fill="#a388ff" font-weight="600">&quot;第 7 走道被</text>
-                <text x="140" y="260" text-anchor="middle" fill="#a388ff" font-weight="600">什麼擋住了？&quot;</text>
-                <text x="140" y="298" text-anchor="middle" fill="#00cec9" font-weight="600">&quot;一個棧板和一個人，</text>
-                <text x="140" y="314" text-anchor="middle" fill="#00cec9" font-weight="600">過去 4 小時內移動過。&quot;</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="17">
+                <text x="170" y="249.5" text-anchor="middle">你的感知</text>
+                <text x="170" y="269.8" text-anchor="middle">+ 任務規劃器 LLM</text>
+                <text x="170" y="310.5" text-anchor="middle" fill="#a388ff" font-weight="600">&quot;第 7 走道</text>
+                <text x="170" y="330.9" text-anchor="middle" fill="#a388ff" font-weight="600">是否暢通？到棧板距離？&quot;</text>
+                <text x="170" y="379.3" text-anchor="middle" fill="#00cec9" font-weight="600">{ clear: false,</text>
+                <text x="170" y="399.6" text-anchor="middle" fill="#00cec9" font-weight="600">distance_m: 1.43 }</text>
             </g>
 
             <!-- Column 2: Client -->
-            <rect x="290" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
-            <text x="400" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">MCP 用戶端</text>
-            <text x="400" y="112" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">機器人上（Jetson Orin）或雲端</text>
-            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
-                <text x="400" y="148" text-anchor="middle">ROS 2 / 機群管理掛勾</text>
-                <text x="400" y="170" text-anchor="middle">stdio MCP 橋接</text>
-                <text x="400" y="192" text-anchor="middle">JWT &rarr; 託管 MCP</text>
-                <text x="400" y="214" text-anchor="middle">離線 / 邊緣模式</text>
+            <rect x="344" y="76.4" width="300" height="381.8" rx="17.8" fill="#111128" stroke="#a388ff" stroke-width="1.5"/>
+            <text x="494" y="117.1" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="22.5" font-weight="700">MCP 用戶端</text>
+            <text x="494" y="142.5" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">機器人上（Jetson Orin）或雲端</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="17">
+                <text x="494" y="188.4" text-anchor="middle">ROS 2 / 機群管理掛勾</text>
+                <text x="494" y="216.4" text-anchor="middle">stdio MCP 橋接</text>
+                <text x="494" y="244.4" text-anchor="middle">JWT &#x2192; 託管 MCP</text>
+                <text x="494" y="272.4" text-anchor="middle">離線 / 邊緣模式</text>
             </g>
-            <rect x="316" y="240" width="168" height="92" rx="8" fill="#0d0d20" stroke="#222244" stroke-width="1"/>
-            <text x="400" y="262" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="11" font-weight="600">stdio | https</text>
-            <text x="400" y="282" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">請求／回應</text>
-            <text x="400" y="304" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">串流事件</text>
-            <text x="400" y="324" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">連線權杖流程</text>
+            <rect x="379.5" y="305.5" width="229.1" height="117.1" rx="10.2" fill="#0d0d20" stroke="#222244" stroke-width="1"/>
+            <text x="494" y="333.5" text-anchor="middle" fill="#a388ff" font-family="system-ui,sans-serif" font-size="16" font-weight="600">stdio | https</text>
+            <text x="494" y="358.9" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">請求 / 回應</text>
+            <text x="494" y="384.4" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">串流事件</text>
+            <text x="494" y="409.8" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">工作階段範圍權限</text>
 
             <!-- Column 3: MCP surface -->
-            <rect x="550" y="60" width="220" height="300" rx="14" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
-            <text x="660" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">RakuAI MCP</text>
-            <text x="660" y="105" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">場景記憶工具</text><text x="660" y="120" text-anchor="middle" fill="#7070a0" font-family="system-ui,sans-serif" font-size="10">（共 17 個原生 MCP 工具）</text>
-            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="11.5">
-                <text x="572" y="138">&middot; capture_create</text>
-                <text x="572" y="156">&middot; capture_status</text>
-                <text x="572" y="174">&middot; scene_query</text>
-                <text x="572" y="192">&middot; scene_describe</text>
-                <text x="572" y="210">&middot; capture_list</text>
-                <text x="572" y="228">&middot; capture_open</text>
+            <rect x="668" y="76.4" width="300" height="381.8" rx="17.8" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="818" y="108.2" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="22.5" font-weight="700">RakuAI MCP</text>
+            <text x="818" y="127.3" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="15">17 個原生工具 + 透傳</text>
+            <line x1="681.6" y1="137.5" x2="954.4" y2="137.5" stroke="#222244" stroke-width="1"/>
+            <text x="698" y="155.3" fill="#00cec9" font-family="system-ui,sans-serif" font-size="15" font-weight="700">唯讀（第 1 階段重點）</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">
+                <text x="698" y="175.6">&#x2022; scene_query</text>
+                <text x="698" y="196">&#x2022; scene_describe</text>
+                <text x="698" y="216.4">&#x2022; capture_list</text>
+                <text x="698" y="236.7">&#x2022; capture_status</text>
+                <text x="698" y="257.1">&#x2022; capture_open</text>
             </g>
-            <line x1="572" y1="244" x2="748" y2="244" stroke="#222244" stroke-width="1" stroke-dasharray="3,3"/>
-            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="11.5">
-                <text x="572" y="264">&middot; xr_get_session</text>
-                <text x="572" y="282">&middot; xr_set_head_pose</text>
-                <text x="572" y="300">&middot; xr_simulate_input</text>
-                <text x="572" y="318">&middot; xr_create_anchor</text>
-                <text x="572" y="336">&middot; xr_list_anchors</text>
-                <text x="572" y="354">&middot; xr_remove_anchor</text>
+            <line x1="681.6" y1="269.8" x2="954.4" y2="269.8" stroke="#222244" stroke-width="1" stroke-dasharray="3,3"/>
+            <text x="698" y="287.6" fill="#fdcb6e" font-family="system-ui,sans-serif" font-size="15" font-weight="700">變更（已稽核）</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">
+                <text x="698" y="308">&#x2022; xr_create_anchor</text>
+                <text x="698" y="328.4">&#x2022; xr_list_anchors</text>
+                <text x="698" y="348.7">&#x2022; xr_remove_anchor</text>
+                <text x="698" y="369.1">&#x2022; xr_get_session</text>
+                <text x="698" y="389.5">&#x2022; capture_create</text>
+                <text x="698" y="409.8">&#x2022; + 還有 7 個&#x2026;</text>
             </g>
 
             <!-- Column 4: Runtime + reasoning -->
-            <rect x="810" y="60" width="200" height="300" rx="14" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
-            <text x="910" y="92" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="15" font-weight="700">raku-runtime</text>
-            <text x="910" y="110" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">C++ 引擎</text>
-            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">
-                <text x="910" y="146" text-anchor="middle">空間推理</text>
-                <text x="910" y="166" text-anchor="middle">每個場域的 splat 儲存</text>
-                <text x="910" y="186" text-anchor="middle">錨點 + 姿態</text>
-                <text x="910" y="206" text-anchor="middle">場景差異歷史</text>
-                <text x="910" y="226" text-anchor="middle">約 9,500 個 API 端點</text>
-                <text x="910" y="246" text-anchor="middle">18 個原生 DLL</text>
+            <rect x="992" y="76.4" width="288" height="381.8" rx="17.8" fill="#111128" stroke="#00cec9" stroke-width="1.5"/>
+            <text x="1136" y="108.2" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="22.5" font-weight="700">raku-runtime</text>
+            <text x="1136" y="127.3" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">C++ 引擎 &mdash; 權限層</text>
+            <g fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">
+                <text x="1136" y="162.9" text-anchor="middle">物理 + 碰撞</text>
+                <text x="1136" y="188.4" text-anchor="middle">權限</text>
+                <text x="1136" y="218.9" text-anchor="middle">每個場域的 splat 儲存</text>
+                <text x="1136" y="244.4" text-anchor="middle">錨點 + 姿態歷史</text>
+                <text x="1136" y="269.8" text-anchor="middle">場景差異稽核日誌</text>
+                <text x="1136" y="295.3" text-anchor="middle">變更驗證</text>
             </g>
-            <text x="910" y="288" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="11" font-weight="600">結構化答案</text>
-            <text x="910" y="306" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">{ object_id, pose,</text>
-            <text x="910" y="322" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="11">&nbsp;&nbsp;changed_at, confidence }</text>
+            <text x="1136" y="346.2" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="16" font-weight="600">結構化答案</text>
+            <text x="1136" y="369.1" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">{ object_id, pose,</text>
+            <text x="1136" y="392" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">distance_m, changed_at,</text>
+            <text x="1136" y="414.9" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16">confidence }</text>
 
             <!-- Forward arrows (top, purple) -->
-            <line x1="250" y1="200" x2="287" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
-            <line x1="510" y1="200" x2="547" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
-            <line x1="770" y1="200" x2="807" y2="200" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
+            <line x1="320" y1="254.5" x2="342.2" y2="254.5" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
+            <line x1="644" y1="254.5" x2="666.2" y2="254.5" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
+            <line x1="968" y1="254.5" x2="990.2" y2="254.5" stroke="#a388ff" stroke-width="2" marker-end="url(#rbmcp-arr)"/>
 
             <!-- Reverse arrows (bottom, teal) -->
-            <line x1="287" y1="290" x2="250" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
-            <line x1="547" y1="290" x2="510" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
-            <line x1="807" y1="290" x2="770" y2="290" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
+            <line x1="342.2" y1="356.4" x2="320" y2="356.4" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
+            <line x1="666.2" y1="356.4" x2="644" y2="356.4" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
+            <line x1="990.2" y1="356.4" x2="968" y2="356.4" stroke="#00cec9" stroke-width="2" marker-end="url(#rbmcp-arr-back)"/>
 
             <!-- Bottom legend bar -->
-            <text x="520" y="400" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="12">MCP 請求流程 &mdash; 無論你的 LLM 是雲端的 Claude/GPT/Gemini，或是以 NIM 託管於本地端的開放權重模型，運作方式皆相同。</text>
+            <text x="650" y="534.5" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16.5">唯讀查詢不帶任何變更風險。變更呼叫在套用前會針對物理與權限進行驗證。所有呼叫皆經稽核。</text>
         </svg>
         </div>
 

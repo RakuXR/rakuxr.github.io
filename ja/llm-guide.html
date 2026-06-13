@@ -96,6 +96,56 @@
 </section>
 
 <section class="section">
+    <div class="container">
+        <figure style="max-width: 1274px; margin: 0 auto 8px;">
+        <svg viewBox="0 0 1274.4 330.4" width="100%" style="max-width:1274px; height:auto; display:block;" role="img" aria-labelledby="llmg-title" xmlns="http://www.w3.org/2000/svg">
+            <title id="llmg-title">統合ループ：任意の LLM が MCP アダプター経由でインテントを RakuAI ランタイムのシミュレーションステップに送り、ランタイムはシーン状態とメトリクスを毎フレーム LLM に返す。</title>
+            <defs>
+                <linearGradient id="llmg-grad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0" stop-color="#6c5ce7"/>
+                    <stop offset="1" stop-color="#00cec9"/>
+                </linearGradient>
+                <marker id="llmg-arrow" markerWidth="10.62" markerHeight="10.62" refX="8.26" refY="5.31" orient="auto-start-reverse">
+                    <path d="M1.18,1.18 L9.44,5.31 L1.18,9.44" fill="none" stroke="#00cec9" stroke-width="1.89" stroke-linecap="round" stroke-linejoin="round"/>
+                </marker>
+            </defs>
+
+            <!-- forward intent path -->
+            <line x1="320.96" y1="108.56" x2="434.24" y2="108.56" stroke="url(#llmg-grad)" stroke-width="2.36" marker-end="url(#llmg-arrow)"/>
+            <text x="377.6" y="94.4" text-anchor="middle" fill="#9090b0" font-family="ui-monospace,monospace" font-size="16.52">インテント</text>
+            <line x1="755.2" y1="108.56" x2="868.48" y2="108.56" stroke="url(#llmg-grad)" stroke-width="2.36" marker-end="url(#llmg-arrow)"/>
+            <text x="811.84" y="94.4" text-anchor="middle" fill="#9090b0" font-family="ui-monospace,monospace" font-size="16.52">ツール呼び出し</text>
+
+            <!-- return path -->
+            <line x1="868.48" y1="221.84" x2="202.96" y2="221.84" stroke="url(#llmg-grad)" stroke-width="2.36" marker-end="url(#llmg-arrow)" stroke-dasharray="4.72 5.9"/>
+            <line x1="944" y1="141.6" x2="944" y2="221.84" stroke="url(#llmg-grad)" stroke-width="2.36"/>
+            <line x1="188.8" y1="221.84" x2="188.8" y2="141.6" stroke="url(#llmg-grad)" stroke-width="2.36" marker-end="url(#llmg-arrow)"/>
+            <text x="637.2" y="210.04" text-anchor="middle" fill="#00cec9" font-family="ui-monospace,monospace" font-size="16.52">get_scene_state &#183; get_metrics（毎フレーム）</text>
+
+            <!-- Node: LLM -->
+            <rect x="56.64" y="56.64" width="264.32" height="103.84" rx="14.16" fill="#111128" stroke="#6c5ce7" stroke-width="1.77"/>
+            <text x="188.8" y="99.12" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="20.06" font-weight="600">任意の LLM</text>
+            <text x="188.8" y="125.08" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16.52">Claude &#183; ChatGPT</text>
+            <text x="188.8" y="145.14" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16.52">Gemini &#183; Copilot</text>
+
+            <!-- Node: MCP adapter -->
+            <rect x="434.24" y="56.64" width="320.96" height="103.84" rx="14.16" fill="#111128" stroke="#a388ff" stroke-width="1.77"/>
+            <text x="594.72" y="99.12" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="20.06" font-weight="600">MCP アダプター</text>
+            <text x="594.72" y="125.08" text-anchor="middle" fill="#9090b0" font-family="ui-monospace,monospace" font-size="16.52">JSON-Schema &#183; stdio</text>
+            <text x="594.72" y="145.14" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16.52">デフォルト拒否・監査ログ付き</text>
+
+            <!-- Node: runtime -->
+            <rect x="868.48" y="56.64" width="349.28" height="103.84" rx="14.16" fill="#15152e" stroke="url(#llmg-grad)" stroke-width="2.36"/>
+            <text x="1043.12" y="99.12" text-anchor="middle" fill="#e8e8f0" font-family="system-ui,sans-serif" font-size="20.06" font-weight="700">RakuAI ランタイム</text>
+            <text x="1043.12" y="125.08" text-anchor="middle" fill="#00cec9" font-family="system-ui,sans-serif" font-size="16.52">シミュレーションステップ &#183; シーングラフ</text>
+            <text x="1043.12" y="145.14" text-anchor="middle" fill="#9090b0" font-family="system-ui,sans-serif" font-size="16.52">18ms モーション・トゥ・フォトン</text>
+        </svg>
+        <figcaption style="text-align:center; color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px;">設計上モデル非依存：インテントが流れ込み、シーン状態とメトリクスが毎フレーム返ってくる。</figcaption>
+        </figure>
+    </div>
+</section>
+
+<section class="section">
     <div class="container" style="text-align: center; max-width: 600px; margin: 0 auto;">
         <p style="color: var(--text-secondary); margin-bottom: 32px; font-size: 1.1rem; line-height: 1.7;">
             このコンテンツはSDKアクセスで利用可能です。アクセスをリクエストして、完全なドキュメント、プロンプトテンプレート、検証ツールを入手してください。
