@@ -2129,23 +2129,31 @@ function ensureViewerOverlayStyle() {
 }
 function showViewerLoading(canvas) {
   if (typeof document === 'undefined') return null;
-  ensureViewerOverlayStyle();
-  const host = (canvas && canvas.parentElement) || document.body;
-  // getComputedStyle can return null (hidden iframe in Firefox, jsdom) — guard
-  // before reading .position so the viewer never crashes on overlay setup.
-  const hostStyle = (typeof getComputedStyle === 'function') ? getComputedStyle(host) : null;
-  if (host !== document.body && hostStyle && hostStyle.position === 'static') {
-    host.style.position = 'relative';
+  // The overlay is non-essential chrome: it must NEVER break the viewer load.
+  // Any DOM quirk (no head, innerHTML/querySelector unsupported in a test shim,
+  // getComputedStyle returning null) degrades to "no overlay", not a thrown
+  // error that would bubble out of loadSplatViewer and drop the capture to the
+  // error phase.
+  try {
+    ensureViewerOverlayStyle();
+    const host = (canvas && canvas.parentElement) || document.body;
+    const hostStyle = (typeof getComputedStyle === 'function') ? getComputedStyle(host) : null;
+    if (host !== document.body && hostStyle && hostStyle.position === 'static') {
+      host.style.position = 'relative';
+    }
+    const el = document.createElement('div');
+    el.className = 'raku-viewer-loading';
+    el.innerHTML =
+      '<div class="raku-viewer-spinner"></div>' +
+      '<div class="raku-viewer-loading-text"></div>';
+    const txt = el.querySelector('.raku-viewer-loading-text');
+    if (txt) txt.textContent = t('viewer.loadingScene', null, 'Loading your 3D scene…');
+    host.appendChild(el);
+    return el;
+  } catch (e) {
+    console.warn('[RakuCapture] viewer loading overlay unavailable:', e);
+    return null;
   }
-  const el = document.createElement('div');
-  el.className = 'raku-viewer-loading';
-  el.innerHTML =
-    '<div class="raku-viewer-spinner"></div>' +
-    '<div class="raku-viewer-loading-text"></div>';
-  el.querySelector('.raku-viewer-loading-text').textContent =
-    t('viewer.loadingScene', null, 'Loading your 3D scene…');
-  host.appendChild(el);
-  return el;
 }
 function updateViewerLoading(el, frac) {
   if (!el) return;
