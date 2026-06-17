@@ -1869,15 +1869,22 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus
     // bother awaiting — the chromeless intro preview returns its teardown
     // immediately, exactly as before.
     if (overlay || autoFocus) {
+      let watchdogId;
       try {
         await Promise.race([
           splats.initialized,
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('splat-load-timeout')), 45000)),
+          new Promise((_, reject) => {
+            watchdogId = setTimeout(
+              () => reject(new Error('splat-load-timeout')), 45000);
+          }),
         ]);
       } catch (loadErr) {
         console.warn('[RakuCapture] splat load slow/stalled:', loadErr);
         if (overlay) showViewerLoadingError(overlay);
+      } finally {
+        // Clear the watchdog when initialized wins the race, so we don't leave a
+        // 45s pending timer (resource leak / hangs test runners).
+        if (watchdogId) clearTimeout(watchdogId);
       }
 
       // Issue 2: floater-robust auto-framing for real captures only. autoFocus
@@ -2124,7 +2131,10 @@ function showViewerLoading(canvas) {
   if (typeof document === 'undefined') return null;
   ensureViewerOverlayStyle();
   const host = (canvas && canvas.parentElement) || document.body;
-  if (host !== document.body && getComputedStyle(host).position === 'static') {
+  // getComputedStyle can return null (hidden iframe in Firefox, jsdom) — guard
+  // before reading .position so the viewer never crashes on overlay setup.
+  const hostStyle = (typeof getComputedStyle === 'function') ? getComputedStyle(host) : null;
+  if (host !== document.body && hostStyle && hostStyle.position === 'static') {
     host.style.position = 'relative';
   }
   const el = document.createElement('div');
@@ -2170,6 +2180,10 @@ function computeSplatFraming(splats, THREE, camera, canvas) {
   const xs = [], ys = [], zs = [];
   splats.forEachSplat((idx, center) => {
     if ((idx & 3) !== 0) return;       // ~1/4 of splats is plenty for bounds
+    if (!center) return;
+    if (!Number.isFinite(center.x) || !Number.isFinite(center.y) || !Number.isFinite(center.z)) {
+      return;                          // skip NaN/Infinity — they poison median + distance
+    }
     xs.push(center.x); ys.push(center.y); zs.push(center.z);
   });
   const n = xs.length;
