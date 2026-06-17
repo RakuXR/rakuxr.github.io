@@ -1763,15 +1763,24 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus
   }
   viewerStatus('loading');
   metaEl.textContent = t('viewer.metaLoading', null, 'Loading splat…');
+  // Issues 1 & 4: a real loading overlay (spinner + "Loading your 3D scene… NN%")
+  // so the canvas is never a black void during the (often long) splat
+  // download/decode — on the first load AND on every "My Captures" reload (both
+  // come through here). Only the real capture viewer (trackStatus) gets it; the
+  // tiny chromeless intro preview must stay bare.
+  const overlay = trackStatus ? showViewerLoading(canvas) : null;
 
   // Spherical orbit camera state, shared with the input controller. The
   // starting yaw defaults to 0.6 (the capture-result framing); callers that
   // need a different opening angle pass `initialTheta` — the intro sample
   // splat does this so the fireplace faces the camera head-on on first paint
   // (see loadSplatViewerInto), rather than starting ~90° off to the side.
+  // `target` is the orbit look-at point; it stays at the origin (real captures
+  // are recentered there after load) and only moves when the user pans.
   const cam = {
     theta: (typeof initialTheta === 'number') ? initialTheta : 0.6,
     phi: 1.3, radius: 2.8, autoRotate: true,
+    target: { x: 0, y: 0, z: 0 },
   };
 
   try {
@@ -1801,7 +1810,18 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
 
-    const splats = new SplatMesh({ url: splatUrl });
+    const splats = new SplatMesh({
+      url: splatUrl,
+      // Drive the loading overlay's percentage when Spark reports download
+      // progress. If this SplatMesh build ignores onProgress the overlay simply
+      // shows the indeterminate spinner + label until splats.initialized — still
+      // a clean load state, never a black void.
+      onProgress: (e) => {
+        if (overlay && e && e.lengthComputable && e.total) {
+          updateViewerLoading(overlay, e.loaded / e.total);
+        }
+      },
+    });
     // Splats from the COLMAP/Brush pipeline carry a Y-down, Z-forward world
     // axis (OpenCV convention), whereas three.js uses Y-up, Z-backward.
     // Rotating the splat mesh 180° about X maps the data into three.js space so
@@ -1812,35 +1832,10 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus
 
     // Real captures from COLMAP/Brush land at arbitrary world coordinates and
     // scale, so the fixed radius-2.8 orbit around the origin can point at empty
-    // space and render black. Once the splat geometry is ready, recenter it on
-    // the origin and size the orbit to fit its bounding box.
-    //
-    // autoFocus gates this: it runs ONLY for genuine CAPTURE results (the splat
-    // came back from the reconstruction API). The intro sample and the booth
-    // demo samples are curated public splats already centred at the origin and
-    // sized for the hardcoded radius-2.8 orbit — recentering/refitting them
-    // pushes the camera far out and renders them tiny (PR #1610 regression). So
-    // those paths pass autoFocus=false and keep the known-good default framing.
-    if (autoFocus) splats.initialized.then(() => {
-      if (!running) return; // viewer torn down before the geometry was ready
-      const box = splats.getBoundingBox(false);
-      const center = box.getCenter(new THREE.Vector3());
-      const size = box.getSize(new THREE.Vector3());
-      // Guard non-finite bounds: empty or degenerate geometry yields Infinity,
-      // which would poison cam.radius/position with NaN and freeze the camera
-      // (Math.min/max propagate NaN). On bad bounds we keep the default framing.
-      if (Number.isFinite(center.x) && Number.isFinite(center.y) && Number.isFinite(center.z)) {
-        // rotation.x = π negates local Y,Z — cancel centroid accordingly
-        splats.position.set(-center.x, center.y, center.z);
-      }
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const fit = (maxDim / 2) / Math.tan((camera.fov * Math.PI / 180) / 2);
-      if (Number.isFinite(fit) && fit > 0) {
-        cam.radius = fit * 1.6;
-        cam.minRadius = fit * 0.4;
-        cam.maxRadius = fit * 4;
-      }
-    }).catch(() => { /* keep default framing */ });
+    // space and render black. The actual recenter + refit now happens AFTER we
+    // await splats.initialized (see the post-render-loop block below) so it can
+    // share that one await with the loading-overlay watchdog and use the
+    // floater-robust framing in computeSplatFraming.
 
     const onResize = () => resizeRendererToCanvas(renderer, canvas);
     window.addEventListener('resize', onResize);
@@ -1857,25 +1852,96 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus
       const sinPhi = Math.sin(cam.phi);
       camera.aspect = (canvas.clientWidth || 1) / (canvas.clientHeight || 1);
       camera.position.set(
-        cam.radius * sinPhi * Math.sin(cam.theta),
-        cam.radius * Math.cos(cam.phi),
-        cam.radius * sinPhi * Math.cos(cam.theta)
+        cam.target.x + cam.radius * sinPhi * Math.sin(cam.theta),
+        cam.target.y + cam.radius * Math.cos(cam.phi),
+        cam.target.z + cam.radius * sinPhi * Math.cos(cam.theta)
       );
-      camera.lookAt(0, 0, 0);
+      camera.lookAt(cam.target.x, cam.target.y, cam.target.z);
       camera.updateProjectionMatrix();
       renderer.render(scene, camera);
       requestAnimationFrame(frame);
     })();
 
+    // Issue 1: wait for the splat to ACTUALLY initialize before we drop the
+    // overlay, with a 45s watchdog so a stalled decode degrades to "show what we
+    // have" (the partial splat keeps rendering) instead of a forever-black
+    // screen. Only paths that have an overlay to hide or auto-framing to do
+    // bother awaiting — the chromeless intro preview returns its teardown
+    // immediately, exactly as before.
+    if (overlay || autoFocus) {
+      let watchdogId;
+      try {
+        await Promise.race([
+          splats.initialized,
+          new Promise((_, reject) => {
+            watchdogId = setTimeout(
+              () => reject(new Error('splat-load-timeout')), 45000);
+          }),
+        ]);
+      } catch (loadErr) {
+        console.warn('[RakuCapture] splat load slow/stalled:', loadErr);
+        if (overlay) showViewerLoadingError(overlay);
+      } finally {
+        // Clear the watchdog when initialized wins the race, so we don't leave a
+        // 45s pending timer (resource leak / hangs test runners).
+        if (watchdogId) clearTimeout(watchdogId);
+      }
+
+      // Issue 2: floater-robust auto-framing for real captures only. autoFocus
+      // gates this to genuine reconstruction results; curated samples keep their
+      // known-good default framing (PR #1610). computeSplatFraming uses a median
+      // centre + 90th-percentile radius so the radiating needle floaters don't
+      // blow up the bounds and load the object as a distant speck. It feeds the
+      // SAME recenter-to-origin model main already used (orbit stays about the
+      // origin; pan moves cam.target), falling back to the bounding box when the
+      // splat build does not expose forEachSplat.
+      if (autoFocus && running) {
+        try {
+          let center = null;
+          let distance = 0;
+          const fit = computeSplatFraming(splats, THREE, camera, canvas);
+          if (fit) {
+            center = fit.center;
+            distance = fit.distance;
+          } else if (typeof splats.getBoundingBox === 'function') {
+            const box = splats.getBoundingBox(false);
+            center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            distance = ((maxDim / 2) / Math.tan((camera.fov * Math.PI / 180) / 2)) * 1.6;
+          }
+          // Guard non-finite bounds: empty/degenerate geometry yields Infinity,
+          // which would poison cam.radius/position with NaN and freeze the
+          // camera (Math.min/max propagate NaN). On bad bounds keep the default.
+          if (center &&
+              Number.isFinite(center.x) && Number.isFinite(center.y) && Number.isFinite(center.z)) {
+            // rotation.x = π negates local Y,Z — cancel centroid accordingly
+            splats.position.set(-center.x, center.y, center.z);
+          }
+          if (Number.isFinite(distance) && distance > 0) {
+            cam.radius = distance;
+            cam.minRadius = distance * 0.4;
+            cam.maxRadius = distance * 8;
+          }
+        } catch (frameErr) {
+          console.warn('[RakuCapture] auto-frame failed:', frameErr);
+        }
+      }
+
+      if (overlay) hideViewerLoading(overlay);
+    }
+
     viewerStatus('controls');
     noteEl.hidden = true;
     metaEl.textContent =
-      t('viewer.metaControls', null, 'Drag to orbit · scroll or pinch to zoom');
+      t('viewer.metaControls', null,
+        'Drag to orbit · pinch or scroll to zoom · two fingers to pan');
 
     return () => {
       running = false;
       window.removeEventListener('resize', onResize);
       detachControls();
+      if (overlay) hideViewerLoading(overlay);
       try { renderer.dispose(); } catch (e) { /* best effort */ }
     };
   } catch (err) {
@@ -1885,6 +1951,7 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus
     // broken canvas, never a hang. If cdn_fallback.js is somehow absent we
     // still draw the inline placeholder so READY stays observable.
     console.warn('[RakuCapture] Spark viewer unavailable, using placeholder:', err);
+    if (overlay) hideViewerLoading(overlay);
     let offlineFile = splatUrl.split('/').pop() || splatUrl;
     // Use the outer-scope metaEl/noteEl (resolved from `targets` at the top
     // of loadSplatViewer) so the intro preview's detached stand-in nodes
@@ -1932,10 +1999,17 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus
  * @returns {()=>void} detach — removes every listener it added
  */
 function attachViewerControls(canvas, cam) {
-  let dragging = false;
-  let lastX = 0;
-  let lastY = 0;
-  let pinchDist = 0;
+  // Issue 3: pointer-events-ONLY controller. The old code mixed pointer events
+  // (orbit) with touch events (pinch); during a two-finger pinch a finger's
+  // pointermove leaked orbit rotation in between touchmove updates, spinning
+  // the object wildly. Tracking every active pointer in one map and branching
+  // on pointer count removes the conflict: 1 pointer = orbit, 2 = pinch-zoom +
+  // pan. (#viewer-canvas already sets touch-action:none, so the browser does
+  // not also fight us for the gesture.)
+  const pointers = new Map();
+  let lastX = 0, lastY = 0;          // single-pointer orbit anchor
+  let pinchDist = 0;                 // last two-pointer separation
+  let pinchMidX = 0, pinchMidY = 0;  // last two-pointer midpoint (for pan)
   let idleTimer = null;
 
   // Pause the idle auto-rotate while the user interacts; resume after 4 s.
@@ -1945,58 +2019,198 @@ function attachViewerControls(canvas, cam) {
     idleTimer = setTimeout(() => { cam.autoRotate = true; }, 4000);
   }
 
+  function twoPointer() {
+    const p = [...pointers.values()];
+    return {
+      dist: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y),
+      midX: (p[0].x + p[1].x) / 2,
+      midY: (p[0].y + p[1].y) / 2,
+    };
+  }
+
+  // Pan slides the look-at target across the camera's screen plane. Speed
+  // scales with zoom distance so it feels consistent at any scale.
+  function panTarget(dxPx, dyPx) {
+    const sinPhi = Math.sin(cam.phi);
+    const fx = sinPhi * Math.sin(cam.theta);
+    const fy = Math.cos(cam.phi);
+    const fz = sinPhi * Math.cos(cam.theta);
+    // right = normalize(cross(worldUp(0,1,0), forward))
+    let rx = fz, rz = -fx;
+    const rl = Math.hypot(rx, 0, rz) || 1; rx /= rl; rz /= rl;
+    // up = cross(forward, right)
+    const ux = fy * rz - fz * 0;
+    const uy = fz * rx - fx * rz;
+    const uz = fx * 0 - fy * rx;
+    const k = cam.radius * 0.0018;
+    cam.target.x += (-dxPx * rx + dyPx * ux) * k;
+    cam.target.y += (dyPx * uy) * k;
+    cam.target.z += (-dxPx * rz + dyPx * uz) * k;
+  }
+
   const onPointerDown = (e) => {
-    dragging = true;
-    lastX = e.clientX;
-    lastY = e.clientY;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 1) {
+      lastX = e.clientX; lastY = e.clientY;
+    } else if (pointers.size === 2) {
+      const s = twoPointer(); pinchDist = s.dist; pinchMidX = s.midX; pinchMidY = s.midY;
+    }
     pause();
-    if (canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
+    if (canvas.setPointerCapture) {
+      try { canvas.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+    }
   };
   const onPointerMove = (e) => {
-    if (!dragging || pinchDist) return; // ignore single-pointer drag mid-pinch
-    cam.theta -= (e.clientX - lastX) * 0.008;
-    cam.phi -= (e.clientY - lastY) * 0.008;
-    lastX = e.clientX;
-    lastY = e.clientY;
-    pause();
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 1) {
+      cam.theta -= (e.clientX - lastX) * 0.008;   // one finger = orbit
+      cam.phi -= (e.clientY - lastY) * 0.008;
+      lastX = e.clientX; lastY = e.clientY;
+      pause();
+    } else if (pointers.size >= 2) {
+      const s = twoPointer();
+      if (pinchDist) {
+        cam.radius *= pinchDist / (s.dist || pinchDist);   // pinch = zoom ONLY
+        panTarget(s.midX - pinchMidX, s.midY - pinchMidY); // two-finger drag = pan
+      }
+      pinchDist = s.dist; pinchMidX = s.midX; pinchMidY = s.midY;
+      pause();
+    }
   };
-  const endDrag = () => { dragging = false; };
+  const removePointer = (e) => {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinchDist = 0;
+    if (pointers.size === 1) {
+      const p = [...pointers.values()][0]; lastX = p.x; lastY = p.y;
+    }
+  };
   const onWheel = (e) => {
     e.preventDefault();
     cam.radius *= e.deltaY > 0 ? 1.1 : 0.9;
     pause();
   };
-  const onTouchMove = (e) => {
-    if (e.touches.length !== 2) return;
-    const dx = e.touches[0].clientX - e.touches[1].clientX;
-    const dy = e.touches[0].clientY - e.touches[1].clientY;
-    const dist = Math.hypot(dx, dy);
-    if (pinchDist) {
-      cam.radius *= pinchDist / dist;
-      pause();
-    }
-    pinchDist = dist;
-  };
-  const onTouchEnd = () => { pinchDist = 0; };
 
   canvas.addEventListener('pointerdown', onPointerDown);
   canvas.addEventListener('pointermove', onPointerMove);
-  canvas.addEventListener('pointerup', endDrag);
-  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('pointerup', removePointer);
+  canvas.addEventListener('pointercancel', removePointer);
+  canvas.addEventListener('pointerleave', removePointer);
   canvas.addEventListener('wheel', onWheel, { passive: false });
-  canvas.addEventListener('touchmove', onTouchMove, { passive: true });
-  canvas.addEventListener('touchend', onTouchEnd);
 
   return () => {
     if (idleTimer) clearTimeout(idleTimer);
     canvas.removeEventListener('pointerdown', onPointerDown);
     canvas.removeEventListener('pointermove', onPointerMove);
-    canvas.removeEventListener('pointerup', endDrag);
-    canvas.removeEventListener('pointercancel', endDrag);
+    canvas.removeEventListener('pointerup', removePointer);
+    canvas.removeEventListener('pointercancel', removePointer);
+    canvas.removeEventListener('pointerleave', removePointer);
     canvas.removeEventListener('wheel', onWheel);
-    canvas.removeEventListener('touchmove', onTouchMove);
-    canvas.removeEventListener('touchend', onTouchEnd);
   };
+}
+
+// ---- Viewer loading overlay (Issues 1 & 4) ---------------------------------
+let _viewerOverlayStyleInjected = false;
+function ensureViewerOverlayStyle() {
+  if (_viewerOverlayStyleInjected || typeof document === 'undefined') return;
+  _viewerOverlayStyleInjected = true;
+  const s = document.createElement('style');
+  s.textContent =
+    '.raku-viewer-loading{position:absolute;inset:0;display:flex;flex-direction:column;' +
+    'align-items:center;justify-content:center;gap:14px;background:#05050a;color:#cfcfe6;' +
+    'font:500 14px system-ui,sans-serif;text-align:center;padding:0 24px;z-index:5;' +
+    'pointer-events:none;transition:opacity .35s ease}' +
+    '.raku-viewer-loading.is-hiding{opacity:0}' +
+    '.raku-viewer-spinner{width:38px;height:38px;border-radius:50%;' +
+    'border:3px solid rgba(150,140,220,.25);border-top-color:#8a7bff;' +
+    'animation:raku-spin .9s linear infinite}' +
+    '@keyframes raku-spin{to{transform:rotate(360deg)}}';
+  document.head.appendChild(s);
+}
+function showViewerLoading(canvas) {
+  if (typeof document === 'undefined') return null;
+  // The overlay is non-essential chrome: it must NEVER break the viewer load.
+  // Any DOM quirk (no head, innerHTML/querySelector unsupported in a test shim,
+  // getComputedStyle returning null) degrades to "no overlay", not a thrown
+  // error that would bubble out of loadSplatViewer and drop the capture to the
+  // error phase.
+  try {
+    ensureViewerOverlayStyle();
+    const host = (canvas && canvas.parentElement) || document.body;
+    const hostStyle = (typeof getComputedStyle === 'function') ? getComputedStyle(host) : null;
+    if (host !== document.body && hostStyle && hostStyle.position === 'static') {
+      host.style.position = 'relative';
+    }
+    const el = document.createElement('div');
+    el.className = 'raku-viewer-loading';
+    el.innerHTML =
+      '<div class="raku-viewer-spinner"></div>' +
+      '<div class="raku-viewer-loading-text"></div>';
+    const txt = el.querySelector('.raku-viewer-loading-text');
+    if (txt) txt.textContent = t('viewer.loadingScene', null, 'Loading your 3D scene…');
+    host.appendChild(el);
+    return el;
+  } catch (e) {
+    console.warn('[RakuCapture] viewer loading overlay unavailable:', e);
+    return null;
+  }
+}
+function updateViewerLoading(el, frac) {
+  if (!el) return;
+  const txt = el.querySelector('.raku-viewer-loading-text');
+  if (!txt) return;
+  const pct = Math.max(0, Math.min(100, Math.round(frac * 100)));
+  txt.textContent =
+    t('viewer.loadingScenePct', { pct: pct }, 'Loading your 3D scene… ' + pct + '%');
+}
+function showViewerLoadingError(el) {
+  if (!el) return;
+  const txt = el.querySelector('.raku-viewer-loading-text');
+  if (txt) {
+    txt.textContent = t('viewer.loadingSlow', null,
+      'Still loading — large scene. It will appear as soon as it is ready…');
+  }
+}
+function hideViewerLoading(el) {
+  if (!el || !el.parentElement) return;
+  el.classList.add('is-hiding');
+  setTimeout(() => { if (el.parentElement) el.parentElement.removeChild(el); }, 380);
+}
+
+// ---- Floater-robust camera framing (Issue 2) -------------------------------
+// Returns { center: THREE.Vector3, radius, distance } framing the splat while
+// rejecting needle-shaped floaters (the radiating spikes) so the object — not
+// the outliers — fills the viewport. Uses a median centre + 90th-percentile
+// radius over a subsample of splat centres. Returns null when the splat build
+// does not expose forEachSplat, so the caller can fall back to a bounding box.
+function computeSplatFraming(splats, THREE, camera, canvas) {
+  if (!splats || typeof splats.forEachSplat !== 'function') return null;
+  const xs = [], ys = [], zs = [];
+  splats.forEachSplat((idx, center) => {
+    if ((idx & 3) !== 0) return;       // ~1/4 of splats is plenty for bounds
+    if (!center) return;
+    if (!Number.isFinite(center.x) || !Number.isFinite(center.y) || !Number.isFinite(center.z)) {
+      return;                          // skip NaN/Infinity — they poison median + distance
+    }
+    xs.push(center.x); ys.push(center.y); zs.push(center.z);
+  });
+  const n = xs.length;
+  if (!n) return null;
+  const med = (a) => { const b = a.slice().sort((p, q) => p - q); return b[b.length >> 1]; };
+  const cx = med(xs), cy = med(ys), cz = med(zs);   // median centre rejects skew
+  const d = [];
+  for (let k = 0; k < n; k++) {
+    d.push(Math.hypot(xs[k] - cx, ys[k] - cy, zs[k] - cz));
+  }
+  d.sort((p, q) => p - q);
+  const r = d[Math.floor(d.length * 0.90)] || d[d.length - 1] || 1; // ignore floaters
+  const aspect = (canvas && canvas.clientWidth && canvas.clientHeight)
+    ? canvas.clientWidth / canvas.clientHeight
+    : (camera.aspect || 1);
+  const vfov = (camera.fov * Math.PI) / 180;
+  const hfov = 2 * Math.atan(Math.tan(vfov / 2) * aspect);
+  const dist = Math.max(r / Math.sin(vfov / 2), r / Math.sin(hfov / 2)) * 1.3;
+  return { center: new THREE.Vector3(cx, cy, cz), radius: r, distance: dist };
 }
 
 function resizeRendererToCanvas(renderer, canvas) {
@@ -2042,32 +2256,48 @@ function drawViewerPlaceholder(canvas, splatUrl) {
  * MIT-licensed browser splat editor named in the build plan (§4).
  *
  * HONEST behaviour — no auto-trim is performed here:
- *   - .ply splats: SuperSplat's documented `?load=<url>` deep-link is used, so
- *     the editor opens with the splat already loaded.
- *   - .spz / other: SuperSplat's `?load=` is documented for .ply only, so we
- *     open the editor and copy the splat URL to the clipboard, showing a hint
- *     telling the user to paste / drag it in. The actual trimming happens in
- *     SuperSplat, by the user.
+ *   - Deep-linkable formats (.ply incl. compressed, .splat, .sog/.json, AND
+ *     .spz — current SuperSplat decodes SPZ): SuperSplat's `?load=<url>`
+ *     deep-link is used so the editor opens with the splat already loaded.
+ *   - Anything else: we open the editor and copy the splat URL to the clipboard,
+ *     showing a hint telling the user to paste / drag it in.
+ *
+ * The actual trimming happens in SuperSplat, by the user.
  *
  * @param {string} splatUrl the .spz/.sog/.ply asset URL to clean up
  */
 function openSplatCleanup(splatUrl) {
   if (!splatUrl) return;
-  const isPly = /\.ply(\?|#|$)/i.test(splatUrl);
+  // Issue 5 / format follow-up: production captures are .spz, and current
+  // SuperSplat decodes SPZ — so deep-link every format it can fetch (.ply,
+  // .splat, .sog/.json, .spz), not just .ply. The old code deep-linked .ply
+  // only, so .spz captures opened a BARE editor (empty grid) that looked like
+  // "the file never loads".
+  //
+  // The splat URL is frequently an Azure Blob URL with a SAS query string
+  // (…/<id>.spz?sv=…&sig=…). SuperSplat infers the format from the URL's
+  // trailing extension, which the query string hides — so we strip the
+  // query/hash to test the extension, and pass an explicit &filename=<id.ext>
+  // (SuperSplat honours it) so the format is detected regardless of the SAS.
+  //
+  // NOTE: the deep-link still requires the asset host (Azure Blob /
+  // cdn.raku.games) to send permissive CORS headers, or SuperSplat's
+  // cross-origin fetch is blocked and the grid stays empty. If Clean up opens
+  // empty for a deep-linkable format, check the splat host's CORS config.
+  const filename = (splatUrl.split(/[?#]/)[0].split('/').pop()) || '';
+  const isDeepLinkable = /\.(ply|splat|sog|json|spz)$/i.test(filename);
 
-  if (isPly) {
+  if (isDeepLinkable) {
     // Documented SuperSplat deep-link — editor opens with the splat loaded.
-    window.open(
-      SUPERSPLAT_EDITOR_URL + '?load=' + encodeURIComponent(splatUrl),
-      '_blank',
-      'noopener'
-    );
+    let target = SUPERSPLAT_EDITOR_URL + '?load=' + encodeURIComponent(splatUrl);
+    if (filename) target += '&filename=' + encodeURIComponent(filename);
+    window.open(target, '_blank', 'noopener');
     flashViewerHint(t('cleanup.openingPly', null,
       'Opening SuperSplat with your splat loaded — trim floaters, then re-export.'));
     return;
   }
 
-  // .spz/.sog: open the editor; copy the URL so the user can paste/drag it in.
+  // Unknown extension: open the editor; copy the URL so the user can paste/drag.
   window.open(SUPERSPLAT_EDITOR_URL, '_blank', 'noopener');
   const tell = (ok) => {
     flashViewerHint(
