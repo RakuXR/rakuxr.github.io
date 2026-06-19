@@ -270,13 +270,18 @@
                 <label for="subject">Assunto</label>
                 <select id="subject" name="subject" required aria-label="Assunto">
                     <option value="" disabled selected>Escolha um tópico</option>
-                    <option value="General Question">Dúvida geral</option>
-                    <option value="Bug Report">Reportar um bug</option>
-                    <option value="Feature Request">Sugestão de recurso</option>
-                    <option value="Partnership / Business">Parceria / Negócios</option>
-                    <option value="SDK / Runtime Access Request">Solicitação de acesso ao SDK / Runtime</option>
-                    <option value="Pro Subscription">Assinatura Pro</option>
-                    <option value="Other">Outro</option>
+                    <option value="General Question" data-topic="general">Dúvida geral</option>
+                    <option value="Press Inquiry" data-topic="press">Contato de imprensa</option>
+                    <option value="Partner Inquiry" data-topic="partner">Contato de parceria</option>
+                    <option value="Investor Inquiry" data-topic="investor">Contato de investidores</option>
+                    <option value="Capture Access Request" data-topic="capture">Solicitação de acesso ao Capture</option>
+                    <option value="SDK / Runtime Access Request" data-topic="sdk">Solicitação de acesso ao SDK / Runtime</option>
+                    <option value="Pro Subscription" data-topic="pro">Assinatura Pro</option>
+                    <option value="Bug Report" data-topic="bug">Reportar um bug</option>
+                    <option value="Feature Request" data-topic="feature">Sugestão de recurso</option>
+                    <option value="Privacy" data-topic="privacy">Privacidade</option>
+                    <option value="Legal" data-topic="legal">Jurídico</option>
+                    <option value="Other" data-topic="other">Outro</option>
                 </select>
             </div>
 
@@ -361,6 +366,21 @@
     var captchaError = document.getElementById('captcha-error');
     var successMsg = document.getElementById('form-success');
     var submitBtn = document.getElementById('submit-btn');
+
+    // Preselect the inquiry type from ?topic= so context pages can deep-link
+    // (e.g. contact.html?topic=press lands on "Press Inquiry"). Matching is on
+    // each option's data-topic, so it works regardless of localized label text.
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var topic = (params.get('topic') || params.get('subject') || '').toLowerCase().replace(/[^a-z]/g, '');
+        if (!topic) return;
+        var alias = { partners: 'partner', partnership: 'partner', partnerships: 'partner', investors: 'investor', media: 'press', oem: 'partner', sales: 'partner', enterprise: 'partner', demo: 'general', beta: 'general', pilot: 'partner' };
+        topic = alias[topic] || topic;
+        var select = document.getElementById('subject');
+        if (!select) return;
+        var opt = select.querySelector('option[data-topic="' + topic + '"]');
+        if (opt) { opt.selected = true; }
+    })();
 
     form.addEventListener('submit', function(e) {
         captchaError.style.display = 'none';
@@ -477,7 +497,7 @@
                     <li><a href="why-rakuai.html">Sobre</a></li>
                     <li><a href="pricing.html">Preços</a></li>
                     <li><a href="contact.html">Contato</a></li>
-                    <li><a href="mailto:partnerships@rakuai.com">Parceiros</a></li>
+                    <li><a href="/pt-BR/contact.html?topic=partner">Parceiros</a></li>
                     <li><a href="../privacy.html">Privacidade</a></li>
                     <li><a href="../terms.html">Termos</a></li>
                 </ul>

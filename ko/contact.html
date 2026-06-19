@@ -270,13 +270,18 @@
                 <label for="subject">제목</label>
                 <select id="subject" name="subject" required aria-label="Subject">
                     <option value="" disabled selected>주제 선택</option>
-                    <option value="General Question">일반 질문</option>
-                    <option value="Bug Report">버그 신고</option>
-                    <option value="Feature Request">기능 요청</option>
-                    <option value="Partnership / Business">파트너십 / 비즈니스</option>
-                    <option value="SDK / Runtime Access Request">SDK / 런타임 액세스 신청</option>
-                    <option value="Pro Subscription">Pro 구독</option>
-                    <option value="Other">기타</option>
+                    <option value="General Question" data-topic="general">일반 질문</option>
+                    <option value="Press Inquiry" data-topic="press">언론 문의</option>
+                    <option value="Partner Inquiry" data-topic="partner">파트너 문의</option>
+                    <option value="Investor Inquiry" data-topic="investor">투자자 문의</option>
+                    <option value="Capture Access Request" data-topic="capture">Capture 액세스 신청</option>
+                    <option value="SDK / Runtime Access Request" data-topic="sdk">SDK / 런타임 액세스 신청</option>
+                    <option value="Pro Subscription" data-topic="pro">Pro 구독</option>
+                    <option value="Bug Report" data-topic="bug">버그 신고</option>
+                    <option value="Feature Request" data-topic="feature">기능 요청</option>
+                    <option value="Privacy" data-topic="privacy">개인정보</option>
+                    <option value="Legal" data-topic="legal">법무</option>
+                    <option value="Other" data-topic="other">기타</option>
                 </select>
             </div>
 
@@ -361,6 +366,21 @@
     var captchaError = document.getElementById('captcha-error');
     var successMsg = document.getElementById('form-success');
     var submitBtn = document.getElementById('submit-btn');
+
+    // Preselect the inquiry type from ?topic= so context pages can deep-link
+    // (e.g. contact.html?topic=press lands on "Press Inquiry"). Matching is on
+    // each option's data-topic, so it works regardless of localized label text.
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var topic = (params.get('topic') || params.get('subject') || '').toLowerCase().replace(/[^a-z]/g, '');
+        if (!topic) return;
+        var alias = { partners: 'partner', partnership: 'partner', partnerships: 'partner', investors: 'investor', media: 'press', oem: 'partner', sales: 'partner', enterprise: 'partner', demo: 'general', beta: 'general', pilot: 'partner' };
+        topic = alias[topic] || topic;
+        var select = document.getElementById('subject');
+        if (!select) return;
+        var opt = select.querySelector('option[data-topic="' + topic + '"]');
+        if (opt) { opt.selected = true; }
+    })();
 
     form.addEventListener('submit', function(e) {
         captchaError.style.display = 'none';
@@ -477,7 +497,7 @@
                     <li><a href="why-rakuai.html">회사 소개</a></li>
                     <li><a href="pricing.html">요금제</a></li>
                     <li><a href="contact.html">문의하기</a></li>
-                    <li><a href="mailto:partnerships@rakuai.com">파트너</a></li>
+                    <li><a href="/ko/contact.html?topic=partner">파트너</a></li>
                     <li><a href="../privacy.html">개인정보처리방침</a></li>
                     <li><a href="../terms.html">이용약관</a></li>
                 </ul>

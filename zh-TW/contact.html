@@ -278,13 +278,18 @@
                 <label for="subject">主旨</label>
                 <select id="subject" name="subject" required aria-label="主旨">
                     <option value="" disabled selected>請選擇主題</option>
-                    <option value="General Question">一般問題</option>
-                    <option value="Bug Report">Bug 回報</option>
-                    <option value="Feature Request">功能建議</option>
-                    <option value="Partnership / Business">合作／商務</option>
-                    <option value="SDK / Runtime Access Request">SDK／執行環境使用權申請</option>
-                    <option value="Pro Subscription">Pro 訂閱</option>
-                    <option value="Other">其他</option>
+                    <option value="General Question" data-topic="general">一般問題</option>
+                    <option value="Press Inquiry" data-topic="press">媒體諮詢</option>
+                    <option value="Partner Inquiry" data-topic="partner">合作諮詢</option>
+                    <option value="Investor Inquiry" data-topic="investor">投資人諮詢</option>
+                    <option value="Capture Access Request" data-topic="capture">Capture 使用權申請</option>
+                    <option value="SDK / Runtime Access Request" data-topic="sdk">SDK／執行環境使用權申請</option>
+                    <option value="Pro Subscription" data-topic="pro">Pro 訂閱</option>
+                    <option value="Bug Report" data-topic="bug">Bug 回報</option>
+                    <option value="Feature Request" data-topic="feature">功能建議</option>
+                    <option value="Privacy" data-topic="privacy">隱私</option>
+                    <option value="Legal" data-topic="legal">法律</option>
+                    <option value="Other" data-topic="other">其他</option>
                 </select>
             </div>
 
@@ -369,6 +374,21 @@
     var captchaError = document.getElementById('captcha-error');
     var successMsg = document.getElementById('form-success');
     var submitBtn = document.getElementById('submit-btn');
+
+    // Preselect the inquiry type from ?topic= so context pages can deep-link
+    // (e.g. contact.html?topic=press lands on "Press Inquiry"). Matching is on
+    // each option's data-topic, so it works regardless of localized label text.
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        var topic = (params.get('topic') || params.get('subject') || '').toLowerCase().replace(/[^a-z]/g, '');
+        if (!topic) return;
+        var alias = { partners: 'partner', partnership: 'partner', partnerships: 'partner', investors: 'investor', media: 'press', oem: 'partner', sales: 'partner', enterprise: 'partner', demo: 'general', beta: 'general', pilot: 'partner' };
+        topic = alias[topic] || topic;
+        var select = document.getElementById('subject');
+        if (!select) return;
+        var opt = select.querySelector('option[data-topic="' + topic + '"]');
+        if (opt) { opt.selected = true; }
+    })();
 
     form.addEventListener('submit', function(e) {
         captchaError.style.display = 'none';
@@ -484,7 +504,7 @@
                     <li><a href="why-rakuai.html">為何選擇 RakuAI</a></li>
                     <li><a href="pricing.html">定價</a></li>
                     <li><a href="contact.html">聯絡我們</a></li>
-                    <li><a href="mailto:partners@rakuai.com">合作夥伴聯絡</a></li>
+                    <li><a href="/zh-TW/contact.html?topic=partner">合作夥伴聯絡</a></li>
                     <li><a href="../privacy.html">隱私權</a></li>
                     <li><a href="../terms.html">使用條款</a></li>
                 </ul>
