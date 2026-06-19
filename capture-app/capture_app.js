@@ -1595,15 +1595,18 @@ function uploadCapture(frames, onProgress) {
           reject(new Error(t('error.uploadUnreadable', null,
             'Upload succeeded but the response was unreadable.')));
         }
-      } else if (xhr.status === 401 || xhr.status === 403) {
+      } else if ((xhr.status === 401 || xhr.status === 403)
+                 && handleCaptureAuthError(xhr.status, xhr.responseText)) {
         // Auth gate: not signed in (401) or signed-in-but-not-approved /
-        // rejected (403). Route to the right auth UX instead of surfacing a
-        // raw error, and reject with a sentinel so runPipeline() does NOT also
-        // pop the generic error screen on top.
+        // rejected (403) with a recognized code. handleCaptureAuthError has
+        // already routed the user to the right auth UX, so reject with a
+        // sentinel that runPipeline() recognizes — it must NOT also pop the
+        // generic error screen on top. A 403 with no recognizable code falls
+        // through to the normal HTTP-failure branch below (a plain detail
+        // message beats a confusing "auth-redirect" string).
         dbg('ERROR', 'POST /api/v1/capture -> HTTP ' + xhr.status + ' (auth)');
-        const handled = handleCaptureAuthError(xhr.status, xhr.responseText);
         const e = new Error('auth-redirect');
-        e.captureAuthHandled = handled;
+        e.captureAuthHandled = true;
         reject(e);
       } else {
         let detail = t('error.uploadFailedHttp', { status: xhr.status },
@@ -1679,16 +1682,19 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
       } else if (resp.status === 404) {
         gone = true;
         dbg('NET', 'GET /capture/' + captureId + '/status -> 404 (job gone)');
-      } else if (resp.status === 401 || resp.status === 403) {
-        // Auth gate tripped mid-job (token expired / approval revoked). Route
-        // the user to the right auth UX and abandon the poll with a sentinel so
-        // runPipeline() does not also pop the generic error screen.
+      } else if ((resp.status === 401 || resp.status === 403)
+                 && handleCaptureAuthError(resp.status,
+                      await resp.text().catch(() => ''))) {
+        // Auth gate tripped mid-job (token expired / approval revoked) with a
+        // recognized code. handleCaptureAuthError routed the user to the right
+        // auth UX; abandon the poll with a sentinel so runPipeline() does not
+        // also pop the generic error screen. A 403 with no recognizable code
+        // falls through to the failure-count branch below rather than throwing
+        // a confusing "auth-redirect" string.
         dbg('NET', 'GET /capture/' + captureId + '/status -> HTTP '
           + resp.status + ' (auth)');
-        const body = await resp.text().catch(() => '');
-        const handled = handleCaptureAuthError(resp.status, body);
         const e = new Error('auth-redirect');
-        e.captureAuthHandled = handled;
+        e.captureAuthHandled = true;
         throw e;
       } else {
         consecutiveFailures += 1;
