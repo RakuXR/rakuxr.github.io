@@ -281,6 +281,7 @@ const Phase = Object.freeze({
   INTRO: 'intro',
   SIGNIN: 'signin',
   REGISTER: 'register',
+  CHANGE_PASSWORD: 'changepw',
   DEMO: 'demo',
   GUIDE: 'guide',
   SCALE: 'scale',
@@ -364,6 +365,7 @@ const screens = {
   [Phase.INTRO]: 'screen-intro',
   [Phase.SIGNIN]: 'screen-signin',
   [Phase.REGISTER]: 'screen-register',
+  [Phase.CHANGE_PASSWORD]: 'screen-changepw',
   [Phase.DEMO]: 'screen-demo',
   [Phase.GUIDE]: 'screen-guide',
   [Phase.SCALE]: 'screen-scale',
@@ -1595,6 +1597,19 @@ function uploadCapture(frames, onProgress) {
           reject(new Error(t('error.uploadUnreadable', null,
             'Upload succeeded but the response was unreadable.')));
         }
+      } else if ((xhr.status === 401 || xhr.status === 403)
+                 && handleCaptureAuthError(xhr.status, xhr.responseText)) {
+        // Auth gate: not signed in (401) or signed-in-but-not-approved /
+        // rejected (403) with a recognized code. handleCaptureAuthError has
+        // already routed the user to the right auth UX, so reject with a
+        // sentinel that runPipeline() recognizes — it must NOT also pop the
+        // generic error screen on top. A 403 with no recognizable code falls
+        // through to the normal HTTP-failure branch below (a plain detail
+        // message beats a confusing "auth-redirect" string).
+        dbg('ERROR', 'POST /api/v1/capture -> HTTP ' + xhr.status + ' (auth)');
+        const e = new Error('auth-redirect');
+        e.captureAuthHandled = true;
+        reject(e);
       } else {
         let detail = t('error.uploadFailedHttp', { status: xhr.status },
           `Upload failed (HTTP ${xhr.status}).`);
@@ -1669,6 +1684,20 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
       } else if (resp.status === 404) {
         gone = true;
         dbg('NET', 'GET /capture/' + captureId + '/status -> 404 (job gone)');
+      } else if ((resp.status === 401 || resp.status === 403)
+                 && handleCaptureAuthError(resp.status,
+                      await resp.text().catch(() => ''))) {
+        // Auth gate tripped mid-job (token expired / approval revoked) with a
+        // recognized code. handleCaptureAuthError routed the user to the right
+        // auth UX; abandon the poll with a sentinel so runPipeline() does not
+        // also pop the generic error screen. A 403 with no recognizable code
+        // falls through to the failure-count branch below rather than throwing
+        // a confusing "auth-redirect" string.
+        dbg('NET', 'GET /capture/' + captureId + '/status -> HTTP '
+          + resp.status + ' (auth)');
+        const e = new Error('auth-redirect');
+        e.captureAuthHandled = true;
+        throw e;
       } else {
         consecutiveFailures += 1;
         dbg('NET', 'GET /capture/' + captureId + '/status -> HTTP '
@@ -1676,6 +1705,9 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
           + MAX_CONSECUTIVE_FAILURES + ')');
       }
     } catch (err) {
+      // An auth-redirect sentinel is terminal — propagate it so runPipeline()
+      // sees it handled, rather than retrying it as a transient poll failure.
+      if (err && err.captureAuthHandled !== undefined) throw err;
       consecutiveFailures += 1;
       dbg('NET', 'status poll failed: '
         + (err && err.message ? err.message : String(err))
@@ -2617,6 +2649,10 @@ async function runPipeline() {
           { status: HISTORY_STATUS.FAILED });
       } catch (e2) { /* non-fatal */ }
     }
+    // Auth errors (401/403) are already handled by handleCaptureAuthError(),
+    // which routed the user to sign-in / showed the pending message. Don't pop
+    // the generic error screen on top of that.
+    if (err && err.captureAuthHandled) return;
     // Only surface the error if this run is still the active one.
     if (run === state.runToken) {
       const detail = err && err.message ? err.message : String(err);
@@ -2946,7 +2982,12 @@ function handleCaptureDeepLink() {
 
 function bindEvents() {
   // Intro -> guide (camera permission is requested on the guide screen).
+  // Auth gate: captures now require a signed-in + admin-approved account
+  // (backend rejects anonymous capture endpoints with 401/403). Route an
+  // unauthenticated user to the sign-in screen instead of the guide. Demo
+  // mode (?demo=) is exempt — it never touches the capture API.
   $('btn-grant-camera').addEventListener('click', () => {
+    if (!_requireAuth()) return;
     showPhase(Phase.GUIDE);
   });
 
@@ -2957,7 +2998,11 @@ function bindEvents() {
   }
 
   // Guide -> scale-reference step (metric-scale calibration, plan 6.1 step 2).
+  // Re-check auth here too: the token may have expired while the user lingered
+  // on the guide screen, and we must not let an unauthenticated session reach
+  // the camera/upload path.
   $('btn-begin-capture').addEventListener('click', () => {
+    if (!_requireAuth()) return;
     resetScaleState();
     renderScaleOptions();
     const cont = $('btn-scale-continue');
@@ -3210,6 +3255,104 @@ function _parseJwt(token) {
   } catch (e) { return null; }
 }
 
+/**
+ * Capture access gate. Captures now require a signed-in + admin-approved
+ * account: the backend rejects the capture endpoints with 401 (not signed in)
+ * or 403 ACCOUNT_PENDING_APPROVAL. _getAuthToken() already discards expired
+ * tokens, so a non-null result means a usable (non-expired) credential is
+ * present. Approval is enforced server-side — the client cannot read approval
+ * status from the JWT — so we let an approved/pending distinction surface as a
+ * 401/403 on the actual capture call (handled in handleCaptureAuthError).
+ *
+ * Demo mode never calls the capture API, so it is exempt from the gate.
+ *
+ * Returns true when the user may proceed; otherwise routes them to the
+ * sign-in screen and returns false.
+ */
+function _requireAuth() {
+  if (_demoMode()) return true;
+  if (_getAuthToken()) return true;
+  showPhase(Phase.SIGNIN);
+  return false;
+}
+
+/**
+ * Map a capture-call HTTP failure to the right auth UX. Captures require an
+ * approved account, so:
+ *   - 401  -> the session is not (or no longer) authenticated: clear any stale
+ *             token and send the user to sign in.
+ *   - 403 ACCOUNT_PENDING_APPROVAL -> signed in but not yet approved: show the
+ *             pending-approval message on the sign-in screen.
+ *   - 403 ACCOUNT_REJECTED -> the request was declined: show that message.
+ * Returns true when it handled the error (caller should stop), false when the
+ * error is not an auth error and should fall through to normal error handling.
+ */
+function _captureAuthCode(raw) {
+  if (!raw) return null;
+  // raw may be a parsed body, an Error, or a string. Normalize to a code.
+  let code = null;
+  try {
+    const obj = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    code = (obj && obj.error && obj.error.code)
+      || (obj && obj.code) || null;
+  } catch (e) { /* not JSON — fall back to substring match below */ }
+  const text = typeof raw === 'string' ? raw
+    : (raw && raw.message) ? raw.message : '';
+  if (code === 'ACCOUNT_PENDING_APPROVAL'
+      || /ACCOUNT_PENDING_APPROVAL/.test(text)) return 'ACCOUNT_PENDING_APPROVAL';
+  if (code === 'ACCOUNT_REJECTED' || /ACCOUNT_REJECTED/.test(text)) return 'ACCOUNT_REJECTED';
+  return code;
+}
+
+function handleCaptureAuthError(status, rawBody) {
+  if (status === 401) {
+    // Not signed in / token rejected — drop the stale token and re-auth.
+    _clearAuthToken();
+    _flashSigninNotice(t('auth.sessionExpired', null,
+      'Please sign in to capture.'));
+    showPhase(Phase.SIGNIN);
+    return true;
+  }
+  if (status === 403) {
+    const code = _captureAuthCode(rawBody);
+    if (code === 'ACCOUNT_PENDING_APPROVAL') {
+      _flashSigninNotice(_pendingApprovalMessage());
+      showPhase(Phase.SIGNIN);
+      return true;
+    }
+    if (code === 'ACCOUNT_REJECTED') {
+      _flashSigninNotice(_rejectedMessage());
+      showPhase(Phase.SIGNIN);
+      return true;
+    }
+  }
+  return false;
+}
+
+function _pendingApprovalMessage() {
+  return t('auth.pendingApproval', null,
+    'Your access request is pending approval — you\'ll be able to sign in once an admin approves it.');
+}
+
+function _accessRequestedMessage() {
+  return t('auth.accessRequested', null,
+    'Access requested — an admin will review it and email you a temporary password to sign in with.');
+}
+
+function _rejectedMessage() {
+  return t('auth.rejected', null,
+    'This account\'s access request was declined. Contact support if you think this is a mistake.');
+}
+
+/**
+ * Surface a notice on the sign-in screen's error slot (reused as a general
+ * status line). Shown the next time the sign-in screen is visible.
+ */
+function _flashSigninNotice(text) {
+  const errEl = $('signin-error');
+  if (errEl) { errEl.hidden = false; errEl.textContent = text; }
+}
+
 function applyAuthState() {
   const t = _getAuthToken();
   const signedOut = $('auth-state');
@@ -3228,25 +3371,83 @@ function applyAuthState() {
     if (headerLink) headerLink.textContent = window.RakuI18n ? window.RakuI18n.t('header.signout', null, 'Sign out') : 'Sign out';
   } else {
     signedOut.textContent = window.RakuI18n
-      ? window.RakuI18n.t('auth.signedOut', null, 'Not signed in - captures stay anonymous (3/day limit).')
-      : 'Not signed in - captures stay anonymous (3/day limit).';
+      ? window.RakuI18n.t('auth.signedOut', null, 'Sign in to capture — access requires an approved account.')
+      : 'Sign in to capture — access requires an approved account.';
     if (signinBtn) { signinBtn.textContent = window.RakuI18n ? window.RakuI18n.t('auth.signin', null, 'Sign in') : 'Sign in'; signinBtn.dataset.action = 'signin'; }
     if (registerBtn) registerBtn.style.display = '';
     if (headerLink) headerLink.textContent = window.RakuI18n ? window.RakuI18n.t('header.signin', null, 'Sign in') : 'Sign in';
   }
 }
 
+/**
+ * POST to an auth endpoint. Returns { status, body } so callers can branch on
+ * the HTTP status (register now returns 202 pending-approval with no token;
+ * login returns 403 ACCOUNT_PENDING_APPROVAL / ACCOUNT_REJECTED). The body is
+ * the parsed JSON (or {} when there is no/invalid body). Network errors throw.
+ */
 async function _postAuth(path, payload) {
   const res = await fetch(`${API_BASE_FOR_AUTH}/api/v1/auth/${path}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) {
-    const d = await res.json().catch(() => ({}));
-    throw new Error(d.detail || `HTTP ${res.status}`);
+  const body = await res.json().catch(() => ({}));
+  return { status: res.status, body };
+}
+
+/** Pull a stable error code out of an auth response body (login 403, etc.). */
+function _authErrorCode(body) {
+  if (!body) return null;
+  if (body.error && body.error.code) return body.error.code;
+  if (body.code) return body.code;
+  return null;
+}
+
+/** Truthy iff an object carries a must_change_password=true flag (any nesting
+ *  the backend has used: top-level, under .user, or inside the JWT payload). */
+function _hasMustChangeFlag(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  if (obj.must_change_password === true) return true;
+  if (obj.user && obj.user.must_change_password === true) return true;
+  return false;
+}
+
+/**
+ * Decide whether the just-signed-in user must change their password before
+ * entering capture. The temp-password flow sets must_change_password on first
+ * login. We check, in order: the login response body, the JWT payload, then —
+ * as a fallback when neither carries it — a GET /api/v1/auth/me. Any network
+ * hiccup on the /me probe is treated as "no" (the user can still capture; the
+ * backend would re-prompt on the next gated call if it truly required a reset).
+ */
+async function _mustChangePassword(loginBody) {
+  if (_hasMustChangeFlag(loginBody)) return true;
+  const token = _getAuthToken();
+  if (token && _hasMustChangeFlag(_parseJwt(token))) return true;
+  try {
+    const res = await fetch(`${API_BASE_FOR_AUTH}/api/v1/auth/me`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) return false;
+    const me = await res.json().catch(() => null);
+    return _hasMustChangeFlag(me);
+  } catch (e) {
+    return false;
   }
-  return res.json();
+}
+
+/** POST a password change for the signed-in user. Returns { status, body }. */
+async function _postPasswordChange(currentPassword, newPassword) {
+  const token = _getAuthToken();
+  const res = await fetch(`${API_BASE_FOR_AUTH}/api/v1/auth/password/change`, {
+    method: 'POST',
+    headers: Object.assign(
+      { 'Content-Type': 'application/json' },
+      token ? { Authorization: `Bearer ${token}` } : {}),
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  const body = await res.json().catch(() => ({}));
+  return { status: res.status, body };
 }
 
 function _bindAuth() {
@@ -3280,10 +3481,38 @@ function _bindAuth() {
     try {
       const email = $('signin-email').value.trim();
       const password = $('signin-password').value;
-      const result = await _postAuth('login', { email, password });
-      if (result.access_token) { _setAuthToken(result.access_token); showPhase(Phase.INTRO); }
+      const { status, body } = await _postAuth('login', { email, password });
+      if (status >= 200 && status < 300 && body.access_token) {
+        _setAuthToken(body.access_token);
+        // First login after an admin-issued temporary password: the backend
+        // flags the account with must_change_password. Route to the change-
+        // password screen before letting the user into capture. The flag may
+        // arrive on the login body, inside the JWT, or (fallback) from /me.
+        if (await _mustChangePassword(body)) {
+          showPhase(Phase.CHANGE_PASSWORD);
+        } else {
+          showPhase(Phase.INTRO);
+        }
+        return;
+      }
+      // Pending / rejected accounts come back as 403 with a stable code.
+      const code = _authErrorCode(body);
+      let msg;
+      if (status === 403 && code === 'ACCOUNT_PENDING_APPROVAL') {
+        msg = _pendingApprovalMessage();
+      } else if (status === 403 && code === 'ACCOUNT_REJECTED') {
+        msg = _rejectedMessage();
+      } else {
+        msg = body.detail || (body.error && body.error.message)
+          || t('signin.failed', null, 'Sign-in failed — check your email and password.');
+      }
+      if (errEl) { errEl.hidden = false; errEl.textContent = msg; }
     } catch (err) {
-      if (errEl) { errEl.hidden = false; errEl.textContent = err.message || 'Sign-in failed.'; }
+      if (errEl) {
+        errEl.hidden = false;
+        errEl.textContent = t('signin.network', null,
+          'Could not reach the server — check your connection and try again.');
+      }
     }
   });
   const rf = $('register-form');
@@ -3293,13 +3522,77 @@ function _bindAuth() {
     if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
     try {
       const email = $('register-email').value.trim();
-      const password = $('register-password').value;
       const terms = $('register-terms').checked;
-      if (!terms) throw new Error('Please accept the terms.');
-      const result = await _postAuth('register', { email, password });
-      if (result.access_token) { _setAuthToken(result.access_token); showPhase(Phase.INTRO); }
+      if (!terms) {
+        if (errEl) {
+          errEl.hidden = false;
+          errEl.textContent = t('register.acceptTerms', null, 'Please accept the terms.');
+        }
+        return;
+      }
+      // Registration is request-only now: no password is collected here. The
+      // user submits their email (+ optional display name); an admin approves
+      // and the backend emails them a temporary password to sign in with.
+      const payload = { email };
+      const nameEl = $('register-display-name');
+      const displayName = nameEl ? nameEl.value.trim() : '';
+      if (displayName) payload.display_name = displayName;
+      const { status, body } = await _postAuth('register', payload);
+      // Registration no longer returns tokens — it creates a pending account
+      // that an admin must approve. Confirm that on the sign-in screen so the
+      // user knows what to do next (and does NOT expect to be logged in).
+      if (status === 202 || (status >= 200 && status < 300)) {
+        _flashSigninNotice(_accessRequestedMessage());
+        showPhase(Phase.SIGNIN);
+        return;
+      }
+      const msg = body.detail || (body.error && body.error.message)
+        || t('register.failed', null, 'Request failed — please try again.');
+      if (errEl) { errEl.hidden = false; errEl.textContent = msg; }
     } catch (err) {
-      if (errEl) { errEl.hidden = false; errEl.textContent = err.message || 'Registration failed.'; }
+      if (errEl) {
+        errEl.hidden = false;
+        errEl.textContent = t('register.network', null,
+          'Could not reach the server — check your connection and try again.');
+      }
+    }
+  });
+
+  // Change-password screen — shown on first login after an admin-issued temp
+  // password (must_change_password). Clearing the flag is gated server-side;
+  // on success we drop the user into the intro/capture flow.
+  const cf = $('changepw-form');
+  if (cf) cf.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = $('changepw-error');
+    if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+    const currentPassword = $('changepw-current').value;
+    const newPassword = $('changepw-new').value;
+    const confirm = $('changepw-confirm') ? $('changepw-confirm').value : newPassword;
+    if (newPassword !== confirm) {
+      if (errEl) {
+        errEl.hidden = false;
+        errEl.textContent = t('changepw.mismatch', null, 'The new passwords do not match.');
+      }
+      return;
+    }
+    try {
+      const { status, body } = await _postPasswordChange(currentPassword, newPassword);
+      if (status >= 200 && status < 300) {
+        // Flag is cleared server-side — refresh any returned token and proceed.
+        if (body && body.access_token) _setAuthToken(body.access_token);
+        showPhase(Phase.INTRO);
+        return;
+      }
+      const msg = body.detail || (body.error && body.error.message)
+        || t('changepw.failed', null, 'Could not change your password — check the temporary password and try again.');
+      if (errEl) { errEl.hidden = false; errEl.textContent = msg; }
+    } catch (err) {
+      if (errEl) {
+        errEl.hidden = false;
+        errEl.textContent = t('changepw.network', null,
+          'Could not reach the server — check your connection and try again.');
+      }
     }
   });
 
