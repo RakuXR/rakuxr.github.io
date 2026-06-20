@@ -281,6 +281,7 @@ const Phase = Object.freeze({
   INTRO: 'intro',
   SIGNIN: 'signin',
   REGISTER: 'register',
+  CHANGE_PASSWORD: 'changepw',
   DEMO: 'demo',
   GUIDE: 'guide',
   SCALE: 'scale',
@@ -364,6 +365,7 @@ const screens = {
   [Phase.INTRO]: 'screen-intro',
   [Phase.SIGNIN]: 'screen-signin',
   [Phase.REGISTER]: 'screen-register',
+  [Phase.CHANGE_PASSWORD]: 'screen-changepw',
   [Phase.DEMO]: 'screen-demo',
   [Phase.GUIDE]: 'screen-guide',
   [Phase.SCALE]: 'screen-scale',
@@ -3332,6 +3334,11 @@ function _pendingApprovalMessage() {
     'Your access request is pending approval — you\'ll be able to sign in once an admin approves it.');
 }
 
+function _accessRequestedMessage() {
+  return t('auth.accessRequested', null,
+    'Access requested — an admin will review it and email you a temporary password to sign in with.');
+}
+
 function _rejectedMessage() {
   return t('auth.rejected', null,
     'This account\'s access request was declined. Contact support if you think this is a mistake.');
@@ -3396,6 +3403,53 @@ function _authErrorCode(body) {
   return null;
 }
 
+/** Truthy iff an object carries a must_change_password=true flag (any nesting
+ *  the backend has used: top-level, under .user, or inside the JWT payload). */
+function _hasMustChangeFlag(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  if (obj.must_change_password === true) return true;
+  if (obj.user && obj.user.must_change_password === true) return true;
+  return false;
+}
+
+/**
+ * Decide whether the just-signed-in user must change their password before
+ * entering capture. The temp-password flow sets must_change_password on first
+ * login. We check, in order: the login response body, the JWT payload, then —
+ * as a fallback when neither carries it — a GET /api/v1/auth/me. Any network
+ * hiccup on the /me probe is treated as "no" (the user can still capture; the
+ * backend would re-prompt on the next gated call if it truly required a reset).
+ */
+async function _mustChangePassword(loginBody) {
+  if (_hasMustChangeFlag(loginBody)) return true;
+  const token = _getAuthToken();
+  if (token && _hasMustChangeFlag(_parseJwt(token))) return true;
+  try {
+    const res = await fetch(`${API_BASE_FOR_AUTH}/api/v1/auth/me`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) return false;
+    const me = await res.json().catch(() => null);
+    return _hasMustChangeFlag(me);
+  } catch (e) {
+    return false;
+  }
+}
+
+/** POST a password change for the signed-in user. Returns { status, body }. */
+async function _postPasswordChange(currentPassword, newPassword) {
+  const token = _getAuthToken();
+  const res = await fetch(`${API_BASE_FOR_AUTH}/api/v1/auth/password/change`, {
+    method: 'POST',
+    headers: Object.assign(
+      { 'Content-Type': 'application/json' },
+      token ? { Authorization: `Bearer ${token}` } : {}),
+    body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+  });
+  const body = await res.json().catch(() => ({}));
+  return { status: res.status, body };
+}
+
 function _bindAuth() {
   const signinBtn = $('btn-signin');
   const registerBtn = $('btn-register');
@@ -3430,7 +3484,15 @@ function _bindAuth() {
       const { status, body } = await _postAuth('login', { email, password });
       if (status >= 200 && status < 300 && body.access_token) {
         _setAuthToken(body.access_token);
-        showPhase(Phase.INTRO);
+        // First login after an admin-issued temporary password: the backend
+        // flags the account with must_change_password. Route to the change-
+        // password screen before letting the user into capture. The flag may
+        // arrive on the login body, inside the JWT, or (fallback) from /me.
+        if (await _mustChangePassword(body)) {
+          showPhase(Phase.CHANGE_PASSWORD);
+        } else {
+          showPhase(Phase.INTRO);
+        }
         return;
       }
       // Pending / rejected accounts come back as 403 with a stable code.
@@ -3460,7 +3522,6 @@ function _bindAuth() {
     if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
     try {
       const email = $('register-email').value.trim();
-      const password = $('register-password').value;
       const terms = $('register-terms').checked;
       if (!terms) {
         if (errEl) {
@@ -3469,22 +3530,67 @@ function _bindAuth() {
         }
         return;
       }
-      const { status, body } = await _postAuth('register', { email, password });
+      // Registration is request-only now: no password is collected here. The
+      // user submits their email (+ optional display name); an admin approves
+      // and the backend emails them a temporary password to sign in with.
+      const payload = { email };
+      const nameEl = $('register-display-name');
+      const displayName = nameEl ? nameEl.value.trim() : '';
+      if (displayName) payload.display_name = displayName;
+      const { status, body } = await _postAuth('register', payload);
       // Registration no longer returns tokens — it creates a pending account
       // that an admin must approve. Confirm that on the sign-in screen so the
       // user knows what to do next (and does NOT expect to be logged in).
       if (status === 202 || (status >= 200 && status < 300)) {
-        _flashSigninNotice(_pendingApprovalMessage());
+        _flashSigninNotice(_accessRequestedMessage());
         showPhase(Phase.SIGNIN);
         return;
       }
       const msg = body.detail || (body.error && body.error.message)
-        || t('register.failed', null, 'Registration failed — please try again.');
+        || t('register.failed', null, 'Request failed — please try again.');
       if (errEl) { errEl.hidden = false; errEl.textContent = msg; }
     } catch (err) {
       if (errEl) {
         errEl.hidden = false;
         errEl.textContent = t('register.network', null,
+          'Could not reach the server — check your connection and try again.');
+      }
+    }
+  });
+
+  // Change-password screen — shown on first login after an admin-issued temp
+  // password (must_change_password). Clearing the flag is gated server-side;
+  // on success we drop the user into the intro/capture flow.
+  const cf = $('changepw-form');
+  if (cf) cf.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = $('changepw-error');
+    if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+    const currentPassword = $('changepw-current').value;
+    const newPassword = $('changepw-new').value;
+    const confirm = $('changepw-confirm') ? $('changepw-confirm').value : newPassword;
+    if (newPassword !== confirm) {
+      if (errEl) {
+        errEl.hidden = false;
+        errEl.textContent = t('changepw.mismatch', null, 'The new passwords do not match.');
+      }
+      return;
+    }
+    try {
+      const { status, body } = await _postPasswordChange(currentPassword, newPassword);
+      if (status >= 200 && status < 300) {
+        // Flag is cleared server-side — refresh any returned token and proceed.
+        if (body && body.access_token) _setAuthToken(body.access_token);
+        showPhase(Phase.INTRO);
+        return;
+      }
+      const msg = body.detail || (body.error && body.error.message)
+        || t('changepw.failed', null, 'Could not change your password — check the temporary password and try again.');
+      if (errEl) { errEl.hidden = false; errEl.textContent = msg; }
+    } catch (err) {
+      if (errEl) {
+        errEl.hidden = false;
+        errEl.textContent = t('changepw.network', null,
           'Could not reach the server — check your connection and try again.');
       }
     }
