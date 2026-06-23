@@ -280,6 +280,7 @@ const KEYFRAME_MAX_EDGE = 1280;    // downscale long edge before upload
 const Phase = Object.freeze({
   INTRO: 'intro',
   SIGNIN: 'signin',
+  OTP: 'otp',
   REGISTER: 'register',
   CHANGE_PASSWORD: 'changepw',
   DEMO: 'demo',
@@ -356,6 +357,11 @@ const state = {
   // the uploaded meta reports the score as null, never a fake number).
   movementScore: 0,
   movementConfidence: 0,
+
+  // ---- email-code (OTP) sign-in ------------------------------------------
+  // true once the user has requested a code on the OTP screen, so the shared
+  // OTP form switches its submit action from "request code" to "verify code".
+  otpRequested: false,
 };
 
 // DOM lookup helper ----------------------------------------------------------
@@ -364,6 +370,7 @@ const $ = (id) => document.getElementById(id);
 const screens = {
   [Phase.INTRO]: 'screen-intro',
   [Phase.SIGNIN]: 'screen-signin',
+  [Phase.OTP]: 'screen-otp',
   [Phase.REGISTER]: 'screen-register',
   [Phase.CHANGE_PASSWORD]: 'screen-changepw',
   [Phase.DEMO]: 'screen-demo',
@@ -3450,6 +3457,126 @@ async function _postPasswordChange(currentPassword, newPassword) {
   return { status: res.status, body };
 }
 
+/**
+ * Reset the email-code (OTP) screen back to its first step: email entry, code
+ * row hidden, request button shown. Called when the user navigates into the
+ * OTP flow so a previous attempt's state never lingers.
+ */
+function _resetOtpForm() {
+  state.otpRequested = false;
+  const codeRow = $('otp-code-row');
+  const sentNote = $('otp-sent-note');
+  const errEl = $('otp-error');
+  const codeInput = $('otp-code');
+  const reqBtn = $('btn-otp-request');
+  const verBtn = $('btn-otp-verify');
+  const resend = $('link-otp-resend');
+  if (codeRow) codeRow.hidden = true;
+  if (sentNote) sentNote.hidden = true;
+  if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+  if (codeInput) codeInput.value = '';
+  if (reqBtn) reqBtn.hidden = false;
+  if (verBtn) verBtn.hidden = true;
+  if (resend) resend.hidden = true;
+}
+
+/**
+ * Step 1 of OTP sign-in: request a 6-digit code by email. The backend always
+ * returns 202 (never confirms whether the account exists), so we always reveal
+ * the code-entry input with the neutral "if that account exists" message.
+ */
+async function _otpRequest() {
+  const errEl = $('otp-error');
+  if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+  const emailEl = $('otp-email');
+  const email = emailEl ? emailEl.value.trim() : '';
+  if (!email) {
+    if (errEl) { errEl.hidden = false; errEl.textContent = t('otp.needEmail', null, 'Enter your email to get a code.'); }
+    return;
+  }
+  try {
+    // _postAuth resolves on any HTTP status (it only throws on network errors),
+    // so an error response would otherwise advance to the code-entry step with
+    // no code ever sent (fake success). Gate the step-2 reveal on a real 2xx.
+    const { status, body } = await _postAuth('otp/request', { email });
+    if (status < 200 || status >= 300) {
+      if (errEl) {
+        errEl.hidden = false;
+        errEl.textContent = body.detail || (body.error && body.error.message)
+          || t('otp.failed', null, 'Could not sign you in — please try again.');
+      }
+      return;
+    }
+  } catch (err) {
+    if (errEl) {
+      errEl.hidden = false;
+      errEl.textContent = t('otp.network', null,
+        'Could not reach the server — check your connection and try again.');
+    }
+    return;
+  }
+  state.otpRequested = true;
+  const codeRow = $('otp-code-row');
+  const sentNote = $('otp-sent-note');
+  const reqBtn = $('btn-otp-request');
+  const verBtn = $('btn-otp-verify');
+  const resend = $('link-otp-resend');
+  const codeInput = $('otp-code');
+  if (codeRow) codeRow.hidden = false;
+  if (sentNote) sentNote.hidden = false;
+  if (reqBtn) reqBtn.hidden = true;
+  if (verBtn) verBtn.hidden = false;
+  if (resend) resend.hidden = false;
+  if (codeInput) codeInput.focus();
+}
+
+/**
+ * Step 2 of OTP sign-in: verify the entered code. On 200 we store the token
+ * and, mirroring the password login, route to CHANGE_PASSWORD when the account
+ * still carries must_change_password; otherwise into the intro/capture flow.
+ * A 401 means an invalid or expired code.
+ */
+async function _otpVerify() {
+  const errEl = $('otp-error');
+  if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+  const emailEl = $('otp-email');
+  const codeEl = $('otp-code');
+  const email = emailEl ? emailEl.value.trim() : '';
+  const code = codeEl ? codeEl.value.trim() : '';
+  if (!code) {
+    if (errEl) { errEl.hidden = false; errEl.textContent = t('otp.needCode', null, 'Enter the 6-digit code we emailed you.'); }
+    return;
+  }
+  try {
+    const { status, body } = await _postAuth('otp/verify', { email, code });
+    if (status >= 200 && status < 300 && body.access_token) {
+      _setAuthToken(body.access_token);
+      // Mirror the password-login path: an admin-issued / first-use account may
+      // still require a password change before entering capture.
+      if (await _mustChangePassword(body)) {
+        showPhase(Phase.CHANGE_PASSWORD);
+      } else {
+        showPhase(Phase.INTRO);
+      }
+      _resetOtpForm();
+      return;
+    }
+    if (status === 401) {
+      if (errEl) { errEl.hidden = false; errEl.textContent = t('otp.invalid', null, 'Invalid or expired code.'); }
+      return;
+    }
+    const msg = body.detail || (body.error && body.error.message)
+      || t('otp.failed', null, 'Could not sign you in — please try again.');
+    if (errEl) { errEl.hidden = false; errEl.textContent = msg; }
+  } catch (err) {
+    if (errEl) {
+      errEl.hidden = false;
+      errEl.textContent = t('otp.network', null,
+        'Could not reach the server — check your connection and try again.');
+    }
+  }
+}
+
 function _bindAuth() {
   const signinBtn = $('btn-signin');
   const registerBtn = $('btn-register');
@@ -3472,6 +3599,14 @@ function _bindAuth() {
   if (linkBack1) linkBack1.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.INTRO); });
   if (linkGoSign) linkGoSign.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.SIGNIN); });
   if (linkBack2) linkBack2.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.INTRO); });
+
+  // ---- email-code (OTP) sign-in navigation -------------------------------
+  const linkGoOtp = $('link-go-otp');
+  const linkOtpToSignin = $('link-otp-to-signin');
+  const linkOtpBack = $('link-otp-back');
+  if (linkGoOtp) linkGoOtp.addEventListener('click', (e) => { e.preventDefault(); _resetOtpForm(); showPhase(Phase.OTP); });
+  if (linkOtpToSignin) linkOtpToSignin.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.SIGNIN); });
+  if (linkOtpBack) linkOtpBack.addEventListener('click', (e) => { e.preventDefault(); showPhase(Phase.INTRO); });
 
   const sf = $('signin-form');
   if (sf) sf.addEventListener('submit', async (e) => {
@@ -3557,6 +3692,33 @@ function _bindAuth() {
       }
     }
   });
+
+  // ---- email-code (OTP) sign-in form -------------------------------------
+  // Device-independent sign-in: request a 6-digit code by email, then verify
+  // it for a token. No WebAuthn/passkey involved — works on any device. Two
+  // backend calls:
+  //   POST /api/v1/auth/otp/request {email}        -> always 202 (no leak)
+  //   POST /api/v1/auth/otp/verify  {email, code}  -> 200 {access_token,...}
+  //                                                   401 = bad/expired code
+  const of = $('otp-form');
+  if (of) of.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    // The same form serves both steps. Once a code has been requested, the
+    // verify button is the visible primary action; before that, request is.
+    if (state.otpRequested) { await _otpVerify(); }
+    else { await _otpRequest(); }
+  });
+  // The request/verify buttons live in the same <form>; route each explicitly
+  // so a stray Enter or button click always does the right step.
+  // preventDefault() skips the form's native submit, so it also skips native
+  // required / type=email validation. Re-run it explicitly via reportValidity()
+  // (which also surfaces the browser's inline validation bubble) before acting.
+  const otpRequestBtn = $('btn-otp-request');
+  const otpVerifyBtn = $('btn-otp-verify');
+  const otpResend = $('link-otp-resend');
+  if (otpRequestBtn) otpRequestBtn.addEventListener('click', (e) => { e.preventDefault(); if (of && of.reportValidity()) { _otpRequest(); } });
+  if (otpVerifyBtn) otpVerifyBtn.addEventListener('click', (e) => { e.preventDefault(); if (of && of.reportValidity()) { _otpVerify(); } });
+  if (otpResend) otpResend.addEventListener('click', (e) => { e.preventDefault(); if (of && of.reportValidity()) { _otpRequest(); } });
 
   // Change-password screen — shown on first login after an admin-issued temp
   // password (must_change_password). Clearing the flag is gated server-side;

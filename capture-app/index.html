@@ -761,9 +761,43 @@
         <button class="btn" id="btn-signin-submit" data-i18n="signin.submit">Sign in</button>
       </form>
       <p>
+        <a href="#" id="link-go-otp" data-i18n="signin.toOtp">Sign in with an email code instead</a>
+      </p>
+      <p>
         <a href="#" id="link-go-register" data-i18n="signin.toRegister">No account yet? Create one</a>
         &middot;
         <a href="#" id="link-back-to-intro" data-i18n="signin.cancel">Cancel</a>
+      </p>
+    </section>
+
+    <!-- PHASE: email-code (OTP) sign-in — device-independent, no passkey ------
+         Lets users (and admins on a new device) sign in on any device with a
+         one-time code emailed to them. Modeled on screen-signin. The phase is
+         wired in capture_app.js: Phase.OTP, the screens map, and _bindAuth(). -->
+    <section class="screen" id="screen-otp" hidden>
+      <h2 data-i18n="otp.heading">Sign in with an email code</h2>
+      <p class="lead" data-i18n="otp.lead">Enter your email and we'll send you a 6-digit sign-in code. No password or passkey needed — works on any device.</p>
+      <form class="auth-form" id="otp-form" autocomplete="on" onsubmit="return false;">
+        <label><span data-i18n="otp.emailLabel">Email</span>
+          <input type="email" id="otp-email" autocomplete="email" required>
+        </label>
+        <!-- code-entry row: hidden until the code has been requested. -->
+        <label id="otp-code-row" hidden><span data-i18n="otp.codeLabel">6-digit code</span>
+          <input type="text" id="otp-code" inputmode="numeric" autocomplete="one-time-code"
+                 pattern="[0-9]*" maxlength="6">
+        </label>
+        <p class="progress-label" id="otp-sent-note" hidden data-i18n="otp.sent">If that account exists, we emailed a 6-digit code. Enter it below.</p>
+        <p class="auth-error" id="otp-error" hidden></p>
+        <button class="btn" id="btn-otp-request" data-i18n="otp.requestSubmit">Email me a code</button>
+        <button class="btn" id="btn-otp-verify" hidden data-i18n="otp.verifySubmit">Sign in</button>
+      </form>
+      <p>
+        <a href="#" id="link-otp-resend" hidden data-i18n="otp.resend">Resend code</a>
+      </p>
+      <p>
+        <a href="#" id="link-otp-to-signin" data-i18n="otp.toSignin">Use a password instead</a>
+        &middot;
+        <a href="#" id="link-otp-back" data-i18n="otp.cancel">Cancel</a>
       </p>
     </section>
 
@@ -779,7 +813,11 @@
         </label>
         <label class="auth-terms">
           <input type="checkbox" id="register-terms" required>
-          <span data-i18n="register.terms">I agree to the <a href="https://rakuai.com/terms.html" target="_blank">terms</a> and <a href="https://rakuai.com/privacy.html" target="_blank">privacy policy</a>.</span>
+          <!-- register.terms carries our own hardcoded same-origin links, so it
+               is rendered as trusted HTML via data-i18n-html (-> innerHTML) so
+               the <a> tags are clickable. The generic data-i18n path stays
+               textContent for XSS safety; only this consent line opts in. -->
+          <span data-i18n-html="register.terms">I agree to the <a href="https://rakuai.com/terms.html" target="_blank" rel="noopener">terms</a> and <a href="https://rakuai.com/privacy.html" target="_blank" rel="noopener">privacy policy</a>.</span>
         </label>
         <p class="auth-error" id="register-error" hidden></p>
         <button class="btn" id="btn-register-submit" data-i18n="register.submit">Request access</button>
