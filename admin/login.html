@@ -116,7 +116,7 @@
 
 <div class="admin-login-shell">
     <h1>Admin Sign In</h1>
-    <p class="subtitle">Password + WebAuthn required. No bypass.</p>
+    <p class="subtitle">Password first, then a passkey or an emailed sign-in code.</p>
 
     <!-- Stage 1: password -->
     <form class="admin-card" id="password-form" autocomplete="off">
@@ -139,9 +139,26 @@
             Touch your security key, scan your fingerprint, or use Windows Hello.
         </p>
         <button type="submit" id="webauthn-btn">Activate security key</button>
+        <button type="button" id="otp-switch" style="background:transparent; color:var(--text-secondary); border:1px solid rgba(108,92,231,0.3); margin-top:10px;">Email me a sign-in code instead</button>
         <button type="button" id="webauthn-back" style="background:transparent; color:var(--text-secondary); border:1px solid rgba(108,92,231,0.3); margin-top:10px;">← Back</button>
         <div class="info-box" id="webauthn-info">Waiting for your security key…</div>
         <div class="error-box" id="webauthn-err"></div>
+    </form>
+
+    <!-- Stage 2 (alt): email sign-in code — passkey-less recovery -->
+    <form class="admin-card" id="otp-form" style="display:none;" autocomplete="off">
+        <div class="stage-pill"><span class="stage-dot"></span> Step 2 of 2 — email code</div>
+        <p style="color:var(--text-secondary); font-size:0.95rem; margin: 4px 0 14px;">
+            We sent a 6-digit code to your admin email. Enter it to finish signing in. It expires in 10 minutes.
+        </p>
+        <label for="otp-code">Sign-in code</label>
+        <input type="text" id="otp-code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]*" maxlength="6" required spellcheck="false">
+
+        <button type="submit" id="otp-btn">Verify code</button>
+        <button type="button" id="otp-resend" style="background:transparent; color:var(--text-secondary); border:1px solid rgba(108,92,231,0.3); margin-top:10px;">Resend code</button>
+        <button type="button" id="otp-back" style="background:transparent; color:var(--text-secondary); border:1px solid rgba(108,92,231,0.3); margin-top:10px;">← Use security key</button>
+        <div class="info-box" id="otp-info" style="display:none;"></div>
+        <div class="error-box" id="otp-err"></div>
     </form>
 
     <p class="footer-note">
@@ -170,6 +187,15 @@
     var waBack = document.getElementById('webauthn-back');
     var waErr  = document.getElementById('webauthn-err');
     var waInfo = document.getElementById('webauthn-info');
+    var otpSwitch = document.getElementById('otp-switch');
+
+    var otpForm = document.getElementById('otp-form');
+    var otpBtn  = document.getElementById('otp-btn');
+    var otpResend = document.getElementById('otp-resend');
+    var otpBack = document.getElementById('otp-back');
+    var otpErr  = document.getElementById('otp-err');
+    var otpInfo = document.getElementById('otp-info');
+    var otpCode = document.getElementById('otp-code');
 
     var stepUpToken = null;
 
@@ -268,6 +294,87 @@
             waInfo.style.display = 'none';
             waBtn.disabled = false;
             waBtn.textContent = 'Activate security key';
+        }
+    });
+
+    // --- Email-code recovery (passkey-less second factor) ---------------
+    //
+    // OTP is a stand-in for the WebAuthn step, NOT a bypass of the password:
+    // every call carries the step_up_token that POST /password issued, so the
+    // password leg must already have succeeded. The code is emailed to the
+    // admin's registered address and the server sets the same session cookie.
+
+    async function requestOtp() {
+        if (!stepUpToken) { showError(otpErr, 'Session expired. Sign in again.'); return false; }
+        otpResend.disabled = true;
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/admin/auth/otp/request', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ step_up_token: stepUpToken }),
+            });
+            if (!resp.ok) {
+                var msg = 'Could not send a sign-in code.';
+                try { msg = (await resp.json()).detail || msg; } catch (_) {}
+                showError(otpErr, msg);
+                otpResend.disabled = false;
+                return false;
+            }
+            otpInfo.textContent = 'Code sent. Check your admin email.';
+            otpInfo.style.display = 'block';
+            otpResend.disabled = false;
+            return true;
+        } catch (e) {
+            showError(otpErr, 'Network error. Try again.');
+            otpResend.disabled = false;
+            return false;
+        }
+    }
+
+    otpSwitch.addEventListener('click', async function () {
+        clearError(waErr);
+        var ok = await requestOtp();
+        if (ok) {
+            waForm.style.display = 'none';
+            otpForm.style.display = 'block';
+            otpCode.focus();
+        }
+    });
+
+    otpResend.addEventListener('click', function () { clearError(otpErr); requestOtp(); });
+
+    otpBack.addEventListener('click', function () {
+        clearError(otpErr);
+        otpInfo.style.display = 'none';
+        otpForm.style.display = 'none';
+        waForm.style.display = 'block';
+    });
+
+    otpForm.addEventListener('submit', async function (ev) {
+        ev.preventDefault();
+        clearError(otpErr);
+        if (!stepUpToken) { showError(otpErr, 'Session expired. Sign in again.'); return; }
+        otpBtn.disabled = true; otpBtn.textContent = 'Verifying…';
+        try {
+            var resp = await fetch(API_BASE + '/api/v1/admin/auth/otp/verify', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ step_up_token: stepUpToken, code: otpCode.value.trim() }),
+            });
+            if (!resp.ok) {
+                var msg = 'Invalid or expired code.';
+                try { msg = (await resp.json()).detail || msg; } catch (_) {}
+                showError(otpErr, msg);
+                otpBtn.disabled = false; otpBtn.textContent = 'Verify code';
+                return;
+            }
+            // Cookie is set. Redirect to the dashboard.
+            window.location.href = API_BASE + '/admin/dashboard';
+        } catch (e) {
+            showError(otpErr, 'Network error. Try again.');
+            otpBtn.disabled = false; otpBtn.textContent = 'Verify code';
         }
     });
 })();
