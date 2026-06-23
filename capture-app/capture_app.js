@@ -3674,12 +3674,10 @@ function _bindAuth() {
     if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
     try {
       const email = $('register-email').value.trim();
-      const firstName = ($('register-first-name') || {}).value ? $('register-first-name').value.trim() : '';
-      const lastName = ($('register-last-name') || {}).value ? $('register-last-name').value.trim() : '';
-      const phoneEl = $('register-phone');
-      const linkedinEl = $('register-linkedin');
-      const phone = phoneEl ? phoneEl.value.trim() : '';
-      const linkedin = linkedinEl ? linkedinEl.value.trim() : '';
+      const firstName = $('register-first-name')?.value.trim() || '';
+      const lastName = $('register-last-name')?.value.trim() || '';
+      const phone = $('register-phone')?.value.trim() || '';
+      const linkedin = $('register-linkedin')?.value.trim() || '';
       // First and last name are mandatory — this is a lead-gen form (we want
       // partners and interested investors, not anonymous email-only signups).
       if (!firstName || !lastName) {
