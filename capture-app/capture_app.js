@@ -1962,7 +1962,15 @@ function framingFromTable(table) {
     if (!n) return null;
     const xs = [], ys = [], zs = [];
     const step = Math.max(1, Math.floor(n / 50000)); // cap the subsample
-    for (let i = 0; i < n; i += step) { xs.push(X[i]); ys.push(Y[i]); zs.push(Z[i]); }
+    for (let i = 0; i < n; i += step) {
+      const x = X[i], y = Y[i], z = Z[i];
+      // Skip NaN/Infinity so they cannot poison the median centre and the
+      // percentile-radius distance (matches the Spark computeSplatFraming guard).
+      if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+        xs.push(x); ys.push(y); zs.push(z);
+      }
+    }
+    if (!xs.length) return null;
     const med = (a) => { const b = a.slice().sort((p, q) => p - q); return b[b.length >> 1]; };
     const cx = med(xs), cy = med(ys), cz = med(zs);
     const d = [];
