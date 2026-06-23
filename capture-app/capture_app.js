@@ -1467,21 +1467,6 @@ function _getAuthToken() {
 }
 
 /**
- * Authorization header for capture API calls, or {} when anonymous.
- *
- * Every gated capture endpoint (upload, status poll, cancel/DELETE) must send
- * the bearer token. The lockdown that made /capture/{id}/status require an
- * approved account broke the status poll because the poll fetched it
- * anonymously — the server returned 401 and handleCaptureAuthError() bounced a
- * signed-in, approved user back to the sign-in screen mid-reconstruction. Use
- * this helper for every authenticated capture fetch so they stay in sync.
- */
-function _authHeaders() {
-  const t = _getAuthToken();
-  return t ? { Authorization: `Bearer ${t}` } : {};
-}
-
-/**
  * Upload captured keyframes to the reconstruction service.
  *
  * @param {Blob[]} frames captured JPEG keyframes
@@ -1695,8 +1680,7 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
     let job = null;
     let gone = false;
     try {
-      const resp = await fetch(`${API_BASE}/api/v1/capture/${captureId}/status`,
-        { headers: _authHeaders() });
+      const resp = await fetch(`${API_BASE}/api/v1/capture/${captureId}/status`);
       if (resp.ok) {
         job = await resp.json();
         consecutiveFailures = 0;
@@ -1781,8 +1765,7 @@ async function pollReconstruction(captureId, onProgress, shouldAbort) {
 /** Best-effort cancellation of an in-flight reconstruction job. */
 function cancelReconstruction(captureId) {
   if (!captureId || _demoMode()) return; // demo mode never touches the API
-  fetch(`${API_BASE}/api/v1/capture/${captureId}`,
-    { method: 'DELETE', headers: _authHeaders() }).catch(() => {});
+  fetch(`${API_BASE}/api/v1/capture/${captureId}`, { method: 'DELETE' }).catch(() => {});
 }
 
 // ============================================================================
@@ -2331,21 +2314,33 @@ function openSplatCleanup(splatUrl) {
   // "the file never loads".
   //
   // The splat URL is frequently an Azure Blob URL with a SAS query string
-  // (…/<id>.spz?sv=…&sig=…). SuperSplat infers the format from the URL's
+  // (…/<id>.spz?sv=…&se=…&sig=…). SuperSplat infers the format from the URL's
   // trailing extension, which the query string hides — so we strip the
   // query/hash to test the extension, and pass an explicit &filename=<id.ext>
   // (SuperSplat honours it) so the format is detected regardless of the SAS.
   //
-  // NOTE: the deep-link still requires the asset host (Azure Blob /
-  // cdn.raku.games) to send permissive CORS headers, or SuperSplat's
-  // cross-origin fetch is blocked and the grid stays empty. If Clean up opens
-  // empty for a deep-linkable format, check the splat host's CORS config.
+  // CRITICAL — the `load` value is DOUBLE-encoded. SuperSplat reads it with
+  // `new URL(location).searchParams.getAll('load')` (one percent-decode) and
+  // THEN calls `decodeURIComponent` again before fetching (main.ts) — two
+  // decodes. A SAS signature carries percent-encoded bytes (`%2B`, `%2F`,
+  // `%3D`); a single encodeURIComponent survives the first decode, but the
+  // SECOND decode turns `%2B`→`+`, `%3D`→`=`, corrupting the signature, so
+  // Azure rejects the cross-origin fetch with HTTP 403 "Server failed to
+  // authenticate the request … signature". (The in-page viewer does a plain
+  // GET of the same URL and works, which proves the SAS itself is valid — the
+  // bug was purely this encoding.) Double-encoding round-trips the exact URL
+  // through both of SuperSplat's decodes; plain URLs without a SAS are
+  // unaffected (encodeURIComponent is idempotent for them). Verified by
+  // reproducing SuperSplat's two decodes in a Node harness. Blob CORS for
+  // superspl.at is configured account-side (raku-api azure-blob-cors.yml), and
+  // SuperSplat loads `?load=` URLs anonymously — no account is required.
   const filename = (splatUrl.split(/[?#]/)[0].split('/').pop()) || '';
   const isDeepLinkable = /\.(ply|splat|sog|json|spz)$/i.test(filename);
 
   if (isDeepLinkable) {
     // Documented SuperSplat deep-link — editor opens with the splat loaded.
-    let target = SUPERSPLAT_EDITOR_URL + '?load=' + encodeURIComponent(splatUrl);
+    let target = SUPERSPLAT_EDITOR_URL + '?load=' +
+      encodeURIComponent(encodeURIComponent(splatUrl));
     if (filename) target += '&filename=' + encodeURIComponent(filename);
     window.open(target, '_blank', 'noopener');
     flashViewerHint(t('cleanup.openingPly', null,
