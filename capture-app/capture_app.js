@@ -3677,7 +3677,10 @@ function _bindAuth() {
       const firstName = $('register-first-name')?.value.trim() || '';
       const lastName = $('register-last-name')?.value.trim() || '';
       const phone = $('register-phone')?.value.trim() || '';
-      const linkedin = $('register-linkedin')?.value.trim() || '';
+      let linkedin = $('register-linkedin')?.value.trim() || '';
+      // Normalize a scheme-less LinkedIn profile (linkedin.com/in/you) to a
+      // full https:// URL so it stores/links cleanly for the admin reviewer.
+      if (linkedin && !/^https?:\/\//i.test(linkedin)) linkedin = 'https://' + linkedin;
       // First and last name are mandatory — this is a lead-gen form (we want
       // partners and interested investors, not anonymous email-only signups).
       if (!firstName || !lastName) {

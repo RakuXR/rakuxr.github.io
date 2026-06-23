@@ -818,7 +818,11 @@
           <input type="tel" id="register-phone" autocomplete="tel">
         </label>
         <label><span data-i18n="register.linkedinLabel">LinkedIn profile (optional)</span>
-          <input type="url" id="register-linkedin" autocomplete="url" inputmode="url" placeholder="https://linkedin.com/in/you">
+          <!-- type="text" (not "url") so a profile typed without a scheme
+               (linkedin.com/in/you) doesn't trip the browser's strict url
+               validation and block submit; inputmode="url" keeps the URL
+               keyboard on mobile. The scheme is normalized in JS on submit. -->
+          <input type="text" id="register-linkedin" autocomplete="url" inputmode="url" placeholder="https://linkedin.com/in/you">
         </label>
         <label class="auth-terms">
           <input type="checkbox" id="register-terms" required>
