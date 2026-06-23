@@ -333,13 +333,15 @@
     }
 
     otpSwitch.addEventListener('click', async function () {
-        clearError(waErr);
-        var ok = await requestOtp();
-        if (ok) {
-            waForm.style.display = 'none';
-            otpForm.style.display = 'block';
-            otpCode.focus();
-        }
+        // Reveal the OTP form BEFORE requesting the code so that a failed
+        // request (expired session, network error) shows its error on the
+        // now-visible otp form rather than on the hidden one. "← Use security
+        // key" lets the user fall back if the send fails.
+        clearError(waErr); clearError(otpErr);
+        waForm.style.display = 'none';
+        otpForm.style.display = 'block';
+        otpCode.focus();
+        await requestOtp();
     });
 
     otpResend.addEventListener('click', function () { clearError(otpErr); requestOtp(); });
