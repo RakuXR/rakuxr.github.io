@@ -682,6 +682,7 @@
     body.demo-mode #compute-toggle,
     body.demo-mode #header-signin-link,
     body.demo-mode #btn-cleanup { display: none !important; }
+    body.demo-mode #btn-declutter { display: none !important; }
 </style>
 </head>
 
@@ -803,13 +804,26 @@
 
     <section class="screen" id="screen-register" hidden>
       <h2 data-i18n="register.heading">Request access</h2>
-      <p class="lead" data-i18n="register.lead">Request access with your email. An admin reviews each request — once approved, we email you a temporary password to sign in with.</p>
+      <p class="lead" data-i18n="register.lead">Tell us who you are and we'll be in touch. An admin reviews each request — once approved, we email you a temporary password to sign in with.</p>
       <form class="auth-form" id="register-form" autocomplete="on" onsubmit="return false;">
+        <label><span data-i18n="register.firstNameLabel">First name</span>
+          <input type="text" id="register-first-name" autocomplete="given-name" required>
+        </label>
+        <label><span data-i18n="register.lastNameLabel">Last name</span>
+          <input type="text" id="register-last-name" autocomplete="family-name" required>
+        </label>
         <label><span data-i18n="register.emailLabel">Email</span>
           <input type="email" id="register-email" autocomplete="email" required>
         </label>
-        <label><span data-i18n="register.displayNameLabel">Name (optional)</span>
-          <input type="text" id="register-display-name" autocomplete="name">
+        <label><span data-i18n="register.phoneLabel">Phone (optional)</span>
+          <input type="tel" id="register-phone" autocomplete="tel">
+        </label>
+        <label><span data-i18n="register.linkedinLabel">LinkedIn profile (optional)</span>
+          <!-- type="text" (not "url") so a profile typed without a scheme
+               (linkedin.com/in/you) doesn't trip the browser's strict url
+               validation and block submit; inputmode="url" keeps the URL
+               keyboard on mobile. The scheme is normalized in JS on submit. -->
+          <input type="text" id="register-linkedin" autocomplete="url" inputmode="url" placeholder="https://linkedin.com/in/you">
         </label>
         <label class="auth-terms">
           <input type="checkbox" id="register-terms" required>
@@ -995,6 +1009,7 @@
         <span class="progress-label" id="viewer-meta">Splat ready</span>
         <span class="spacer"></span>
         <button class="btn secondary" id="btn-new-capture" data-i18n="viewer.newCapture">New capture</button>
+        <button class="btn secondary" id="btn-declutter" data-i18n="viewer.removeFloaters" data-i18n-attr="title:viewer.removeFloatersTitle" title="Hide stray floaters and needle spikes in the live view (tap again to undo)">Remove floaters</button>
         <button class="btn secondary" id="btn-cleanup" data-i18n="viewer.cleanup" data-i18n-attr="title:viewer.cleanupTitle" title="Open this scan in the SuperSplat editor to trim floaters and crop">Clean up</button>
         <button class="btn" id="btn-share" data-i18n="viewer.share">Share</button>
       </div>
