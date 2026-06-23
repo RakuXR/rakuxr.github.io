@@ -246,6 +246,25 @@ function initDiagnostics() {
 const SPARK_CDN_URL = 'https://cdn.jsdelivr.net/npm/@sparkjsdev/spark@0.1.10/dist/spark.module.js';
 const THREE_CDN_URL = 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
 
+// WebGPU viewer path (renderer-selection Seam B, from Lane B's research:
+// raku-governance architecture/partner-tech/on-device-and-web-rendering.md).
+// PlayCanvas ships a compute-based WebGPU splat renderer (reported ~2x mobile,
+// up to ~5.7x desktop) that auto-falls-back to WebGL2 inside the engine.
+// @playcanvas/splat-transform decodes our gzip-framed SPZ v3 in the browser
+// (embedded WASM, no build step, and it strips the SAS query string), so the
+// PlayCanvas path renders the exact same .spz the Spark path does. Both load as
+// ESM from the same pinned jsdelivr CDN we already use for three and Spark.
+// Versions verified against the SuperSplat load path we replicate.
+const PLAYCANVAS_CDN_URL =
+  'https://cdn.jsdelivr.net/npm/playcanvas@2.20.0/build/playcanvas.min.mjs';
+const SPLAT_TRANSFORM_CDN_URL =
+  'https://cdn.jsdelivr.net/npm/@playcanvas/splat-transform@2.3.1/dist/index.mjs';
+// The one removable switch. Set false and the seam collapses to Spark only.
+// Default ON means: render with PlayCanvas WebGPU where the device reports a
+// working WebGPU adapter, and fall back to the Spark WebGL2 path everywhere
+// else (and on any WebGPU-path error). See resolveViewerEngine().
+const VIEWER_WEBGPU_DEFAULT_ON = true;
+
 // SuperSplat — MIT browser-based Gaussian-splat editor used for the viewer's
 // 'Clean up' affordance (trim floaters / crop the scan). URL verified 2026-05-24.
 // Its ?load= deep-link is documented for .ply URLs only; .spz is handled by
@@ -1790,16 +1809,381 @@ function cancelReconstruction(captureId) {
 // Spark splat viewer — interactive orbit/zoom camera (W1.3)
 // ============================================================================
 
+// ---- Renderer-selection seam (Seam B) --------------------------------------
+// Lane B's contract: viewer_engine (spark | playcanvas), renderer (auto |
+// webgpu | webgl2), device_tier (phone | desktop). Resolved once per real
+// viewer load. Default ON means PlayCanvas WebGPU where supported, Spark WebGL2
+// otherwise. A/B override for verification: ?renderer=webgpu|webgl2 (or
+// localStorage 'raku.renderer'). To remove the whole WebGPU path: delete
+// loadSplatViewerWebGPU and this seam block and have loadSplatViewer call
+// loadSplatViewerSpark directly, or just set VIEWER_WEBGPU_DEFAULT_ON = false.
+
+async function detectWebGPU() {
+  if (typeof navigator === 'undefined' || !('gpu' in navigator) || !navigator.gpu) {
+    return false;
+  }
+  try {
+    // A non-null adapter is the real gate. navigator.gpu alone is not enough
+    // (it can be present on a blocklisted GPU that yields no adapter).
+    const adapter = await navigator.gpu.requestAdapter();
+    return adapter != null;
+  } catch (_) {
+    return false;
+  }
+}
+
+function detectDeviceTier() {
+  if (typeof navigator === 'undefined') return 'desktop';
+  const ua = navigator.userAgent || '';
+  let coarse = false;
+  try {
+    coarse = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+  } catch (_) { /* ignore */ }
+  if (/Android|iPhone|iPad|iPod|Mobile/i.test(ua) || coarse) return 'phone';
+  return 'desktop';
+}
+
+function viewerRendererOverride() {
+  try {
+    const q = (typeof window !== 'undefined' && window.location && window.location.search) || '';
+    const m = /[?&]renderer=(webgpu|webgl2|spark)/i.exec(q);
+    if (m) return (m[1].toLowerCase() === 'spark') ? 'webgl2' : m[1].toLowerCase();
+    const ls = (typeof localStorage !== 'undefined') ? localStorage.getItem('raku.renderer') : null;
+    if (ls === 'webgpu' || ls === 'webgl2') return ls;
+  } catch (_) { /* ignore */ }
+  return null;
+}
+
+// Returns { engine: 'spark'|'playcanvas', renderer: 'webgl2'|'webgpu', deviceTier }.
+async function resolveViewerEngine() {
+  const deviceTier = detectDeviceTier();
+  const override = viewerRendererOverride();
+  if (override === 'webgl2') return { engine: 'spark', renderer: 'webgl2', deviceTier };
+  if (override === 'webgpu') return { engine: 'playcanvas', renderer: 'webgpu', deviceTier };
+  if (VIEWER_WEBGPU_DEFAULT_ON && await detectWebGPU()) {
+    return { engine: 'playcanvas', renderer: 'webgpu', deviceTier };
+  }
+  return { engine: 'spark', renderer: 'webgl2', deviceTier };
+}
+
+// Replace a possibly context-tainted canvas with a fresh clone in the same DOM
+// slot. A canvas yields only ONE context type for its lifetime, so if the
+// WebGPU path acquired a context and then failed, Spark's WebGL2 context would
+// be null on the same element. Returns the new canvas, or the original when
+// cloning is unavailable (e.g. the Node test DOM).
+function freshCanvasFor(canvas) {
+  try {
+    if (!canvas || !canvas.parentNode || typeof canvas.cloneNode !== 'function') return canvas;
+    const fresh = canvas.cloneNode(false);
+    canvas.parentNode.replaceChild(fresh, canvas);
+    return fresh;
+  } catch (_) {
+    return canvas;
+  }
+}
+
+/**
+ * Public viewer entry. Resolves the renderer-selection seam and dispatches to
+ * the PlayCanvas WebGPU path (where the device supports it) or the Spark WebGL2
+ * path. Any WebGPU-path failure falls back to Spark on a fresh canvas, so the
+ * viewer is never left broken. Same signature and return (a teardown fn) as the
+ * old loadSplatViewer, so every call site is unchanged.
+ */
+async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus, initialTheta) {
+  // The WebGPU upgrade targets the real capture/booth viewer only. The tiny
+  // chromeless intro preview (trackStatus=false) stays on Spark so it never
+  // pulls the heavier PlayCanvas + splat-transform CDN payload.
+  if (!trackStatus) {
+    return loadSplatViewerSpark(canvas, splatUrl, trackStatus, targets, autoFocus, initialTheta);
+  }
+  let resolved;
+  try { resolved = await resolveViewerEngine(); }
+  catch (_) { resolved = { engine: 'spark', renderer: 'webgl2', deviceTier: 'desktop' }; }
+  state.viewerRenderer = resolved.renderer;
+  state.viewerEngine = resolved.engine;
+  try {
+    if (canvas && canvas.setAttribute) canvas.setAttribute('data-renderer', resolved.renderer);
+  } catch (_) { /* ignore */ }
+
+  if (resolved.engine === 'playcanvas') {
+    try {
+      return await loadSplatViewerWebGPU(
+        canvas, splatUrl, trackStatus, targets, autoFocus, initialTheta, resolved);
+    } catch (err) {
+      console.warn('[RakuCapture] WebGPU viewer failed, falling back to Spark:', err);
+      canvas = freshCanvasFor(canvas);
+      state.viewerRenderer = 'webgl2';
+      state.viewerEngine = 'spark';
+      try {
+        if (canvas && canvas.setAttribute) canvas.setAttribute('data-renderer', 'webgl2');
+      } catch (_) { /* ignore */ }
+    }
+  }
+  return loadSplatViewerSpark(canvas, splatUrl, trackStatus, targets, autoFocus, initialTheta);
+}
+
+// ---- PlayCanvas WebGPU helpers (decode + framing, no THREE/Spark) -----------
+
+// Read a remote splat (our .spz, SAS query string and all) with splat-transform,
+// guarded by a watchdog so a stalled fetch/decode degrades to the Spark fallback
+// rather than hanging. Returns the array of DataTables (first is highest detail).
+async function readSplatTable(st, args) {
+  const readP = st.readFile({
+    filename: args.filename,
+    inputFormat: args.inputFormat,
+    options: { iterations: 10, lodSelect: [0], unbundled: false, lodChunkCount: 512, lodChunkExtent: 16 },
+    params: [],
+    fileSystem: args.fileSystem,
+  });
+  let watchdogId;
+  try {
+    return await Promise.race([
+      readP,
+      new Promise((_, reject) => {
+        watchdogId = setTimeout(() => reject(new Error('webgpu-decode-timeout')), 60000);
+      }),
+    ]);
+  } finally {
+    if (watchdogId) clearTimeout(watchdogId);
+  }
+}
+
+// Floater-robust framing straight from the decoded x/y/z columns (median centre
+// plus 90th-percentile radius), the same idea computeSplatFraming uses on the
+// Spark path. Returns { center:{x,y,z}, distance } or null.
+function framingFromTable(table) {
+  try {
+    if (!table || !table.columns) return null;
+    const col = (n) => table.columns.find((c) => c.name === n);
+    const Xc = col('x'), Yc = col('y'), Zc = col('z');
+    if (!Xc || !Yc || !Zc) return null;
+    const X = Xc.data, Y = Yc.data, Z = Zc.data;
+    const n = Math.min(X.length, Y.length, Z.length);
+    if (!n) return null;
+    const xs = [], ys = [], zs = [];
+    const step = Math.max(1, Math.floor(n / 50000)); // cap the subsample
+    for (let i = 0; i < n; i += step) {
+      const x = X[i], y = Y[i], z = Z[i];
+      // Skip NaN/Infinity so they cannot poison the median centre and the
+      // percentile-radius distance (matches the Spark computeSplatFraming guard).
+      if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+        xs.push(x); ys.push(y); zs.push(z);
+      }
+    }
+    if (!xs.length) return null;
+    const med = (a) => { const b = a.slice().sort((p, q) => p - q); return b[b.length >> 1]; };
+    const cx = med(xs), cy = med(ys), cz = med(zs);
+    const d = [];
+    for (let k = 0; k < xs.length; k++) d.push(Math.hypot(xs[k] - cx, ys[k] - cy, zs[k] - cz));
+    d.sort((p, q) => p - q);
+    const r = d[Math.floor(d.length * 0.9)] || d[d.length - 1] || 1;
+    const vfov = (60 * Math.PI) / 180;
+    const distance = (r / Math.sin(vfov / 2)) * 1.3;
+    return { center: { x: cx, y: cy, z: cz }, distance };
+  } catch (_) {
+    return null;
+  }
+}
+
+// Port of SuperSplat's dataTableToGSplatData (src/io/read/loader.ts): map the
+// splat-transform DataTable columns onto a PlayCanvas GSplatData, synthesizing
+// scale_2 for 2D splats. `pc` is the loaded PlayCanvas module.
+function dataTableToGSplatData(pc, table) {
+  const typeMap = {
+    int8: 'char', uint8: 'uchar', int16: 'short', uint16: 'ushort',
+    int32: 'int', uint32: 'uint', float32: 'float', float64: 'double',
+  };
+  const properties = table.columns.map((c) => ({
+    type: typeMap[c.dataType] || 'float',
+    name: c.name,
+    storage: c.data,
+    byteSize: c.data.BYTES_PER_ELEMENT,
+  }));
+  const gsplatData = new pc.GSplatData([{ name: 'vertex', count: table.numRows, properties }]);
+  if (gsplatData.getProp('scale_0') && gsplatData.getProp('scale_1') && !gsplatData.getProp('scale_2')) {
+    const scale2 = new Float32Array(gsplatData.numSplats).fill(Math.log(1e-6));
+    gsplatData.addProp('scale_2', scale2);
+    const props = gsplatData.getElement('vertex').properties;
+    props.splice(props.findIndex((p) => p.name === 'scale_1') + 1, 0, props.splice(props.length - 1, 1)[0]);
+  }
+  return gsplatData;
+}
+
+// Port of SuperSplat's validateGSplatData. Throws when the decoded data is not
+// gaussian-splat data, which makes the dispatcher fall back to Spark.
+function validateGSplatDataPC(gsplatData) {
+  const required = [
+    'x', 'y', 'z', 'scale_0', 'scale_1', 'scale_2',
+    'rot_0', 'rot_1', 'rot_2', 'rot_3', 'f_dc_0', 'f_dc_1', 'f_dc_2', 'opacity',
+  ];
+  const missing = required.filter((p) => !gsplatData.getProp(p));
+  if (missing.length) {
+    throw new Error('not gaussian splat data, missing: ' + missing.join(','));
+  }
+}
+
+/**
+ * PlayCanvas WebGPU viewer path (Seam B, engine 'playcanvas'). Renders the same
+ * .spz with the PlayCanvas compute WebGPU pipeline (the engine auto-falls-back
+ * to WebGL2 internally), decoding the .spz in-browser with splat-transform.
+ * Mirrors loadSplatViewerSpark's outer contract: loading overlay, floater-robust
+ * auto-framing, the shared orbit controller, and a teardown fn. THROWS on any
+ * failure so the dispatcher can fall back to the Spark path. The 'Remove
+ * floaters' declutter is Spark-only for now (different engine API), so this path
+ * leaves state.viewerSplats null and the button shows its honest hint.
+ */
+async function loadSplatViewerWebGPU(canvas, splatUrl, trackStatus, targets, autoFocus, initialTheta, resolved) {
+  const metaEl = (targets && targets.meta) || $('viewer-meta');
+  const noteEl = (targets && targets.note) || $('viewer-note');
+  const setStatus = (status) => {
+    if (trackStatus) { state.viewerStatus = status; state.viewerOfflineFile = null; }
+  };
+  setStatus('loading');
+  metaEl.textContent = t('viewer.metaLoading', null, 'Loading splat…');
+  const overlay = trackStatus ? showViewerLoading(canvas) : null;
+  if (trackStatus) { state.viewerSplats = null; state.declutter = { active: false }; }
+
+  const cam = {
+    theta: (typeof initialTheta === 'number') ? initialTheta : 0.6,
+    phi: 1.3, radius: 2.8, autoRotate: true,
+    target: { x: 0, y: 0, z: 0 },
+  };
+
+  let app = null, detachControls = null, onResize = null, torn = false;
+  const teardown = () => {
+    if (torn) return;
+    torn = true;
+    try { if (onResize) window.removeEventListener('resize', onResize); } catch (_) {}
+    try { if (detachControls) detachControls(); } catch (_) {}
+    try { if (overlay) hideViewerLoading(overlay); } catch (_) {}
+    try { if (app) app.destroy(); } catch (_) {}
+    if (trackStatus) { state.viewerSplats = null; state.declutter = { active: false }; }
+  };
+
+  try {
+    const importCdn = (typeof window !== 'undefined' && window.RakuCdnFallback)
+      ? window.RakuCdnFallback.loadCdnModule
+      : (url) => import(/* @vite-ignore */ url);
+    const pc = await importCdn(PLAYCANVAS_CDN_URL, 'playcanvas');
+    const st = await importCdn(SPLAT_TRANSFORM_CDN_URL, 'splat-transform');
+
+    // Decode to GSplatData BEFORE touching the canvas, so a CDN or decode failure
+    // falls back to Spark without ever acquiring (and tainting) a context.
+    const fmt = st.getInputFormat(splatUrl); // strips the SAS query string
+    const fs = new st.UrlReadFileSystem();
+    const tables = await readSplatTable(st, { filename: splatUrl, inputFormat: fmt, fileSystem: fs });
+    const table = tables[0];
+    const fit = framingFromTable(table);
+    try {
+      if (typeof st.sortMortonOrder === 'function' && typeof table.permuteRowsInPlace === 'function') {
+        const idx = new Uint32Array(table.numRows);
+        for (let i = 0; i < idx.length; i++) idx[i] = i;
+        st.sortMortonOrder(table, idx);
+        table.permuteRowsInPlace(idx);
+      }
+    } catch (_) { /* morton reorder is a perf optimization only */ }
+    const gsplatData = dataTableToGSplatData(pc, table);
+    validateGSplatDataPC(gsplatData); // throws -> fallback to Spark
+
+    // Graphics device: WebGPU first, the engine auto-falls-back to WebGL2.
+    const tier = (resolved && resolved.deviceTier) || detectDeviceTier();
+    const device = await pc.createGraphicsDevice(canvas, {
+      deviceTypes: [pc.DEVICETYPE_WEBGPU, pc.DEVICETYPE_WEBGL2],
+      antialias: false,
+    });
+    // Cap device-pixel-ratio: each splat is an alpha-blended billboard, so fill
+    // rate, not geometry, is the phone bottleneck (Lane B / PlayCanvas guidance).
+    try { device.maxPixelRatio = (tier === 'phone') ? 1.5 : 2; } catch (_) {}
+    const isWebGPU = (device.deviceType === pc.DEVICETYPE_WEBGPU || device.deviceType === 'webgpu');
+    state.viewerRenderer = isWebGPU ? 'webgpu' : 'webgl2';
+    try { canvas.setAttribute('data-renderer', state.viewerRenderer); } catch (_) {}
+
+    // Minimal component systems + resource handlers for camera + gsplat, the
+    // proven subset from SuperSplat's pc-app.ts. filter(Boolean) guards against a
+    // renamed/absent export in a future engine bump (degrades to Spark instead
+    // of crashing on an undefined system).
+    app = new pc.AppBase(canvas);
+    const appOptions = new pc.AppOptions();
+    appOptions.graphicsDevice = device;
+    appOptions.componentSystems = [
+      pc.AnimComponentSystem, pc.RenderComponentSystem, pc.CameraComponentSystem,
+      pc.LightComponentSystem, pc.GSplatComponentSystem,
+    ].filter(Boolean);
+    appOptions.resourceHandlers = [
+      pc.RenderHandler, pc.TextureHandler, pc.ContainerHandler, pc.GSplatHandler,
+    ].filter(Boolean);
+    app.init(appOptions);
+    try { app.setCanvasFillMode(pc.FILLMODE_NONE); } catch (_) {}
+    try { app.setCanvasResolution(pc.RESOLUTION_AUTO); } catch (_) {}
+
+    // Splat entity, built the SuperSplat way (the engine's gsplat handler cannot
+    // read .spz, so we attach the resource directly). SuperSplat applies no extra
+    // axis rotation, so neither do we: the orientation matches what 'Clean up'
+    // shows. For real captures, recenter to the origin so the orbit frames it.
+    const fileLabel = (splatUrl.split(/[?#]/)[0].split('/').pop()) || 'capture.spz';
+    const asset = new pc.Asset('capture', 'gsplat', { url: 'mem-' + fileLabel, filename: fileLabel });
+    app.assets.add(asset);
+    asset.resource = new pc.GSplatResource(device, gsplatData);
+    asset.loaded = true;
+    const splatEntity = new pc.Entity('splat');
+    splatEntity.addComponent('gsplat', { asset });
+    if (autoFocus && fit &&
+        Number.isFinite(fit.center.x) && Number.isFinite(fit.center.y) && Number.isFinite(fit.center.z)) {
+      splatEntity.setLocalPosition(-fit.center.x, -fit.center.y, -fit.center.z);
+    }
+    app.root.addChild(splatEntity);
+
+    // Camera + the shared orbit controller (engine-agnostic; it only mutates cam).
+    const camEntity = new pc.Entity('camera');
+    camEntity.addComponent('camera', { fov: 60, clearColor: new pc.Color(0.02, 0.02, 0.04, 1) });
+    app.root.addChild(camEntity);
+    if (autoFocus && fit && Number.isFinite(fit.distance) && fit.distance > 0) {
+      cam.radius = fit.distance; cam.minRadius = fit.distance * 0.4; cam.maxRadius = fit.distance * 8;
+    }
+    detachControls = attachViewerControls(canvas, cam);
+    onResize = () => { try { app.resizeCanvas(); } catch (_) {} };
+    window.addEventListener('resize', onResize);
+
+    // Drive the orbit camera each frame from the shared cam state.
+    app.on('update', () => {
+      if (cam.autoRotate) cam.theta += 0.0016;
+      cam.phi = Math.max(0.18, Math.min(Math.PI - 0.18, cam.phi));
+      const lo = cam.minRadius || 0.7, hi = cam.maxRadius || 8;
+      cam.radius = Math.max(lo, Math.min(hi, cam.radius));
+      const sinPhi = Math.sin(cam.phi);
+      camEntity.setLocalPosition(
+        cam.target.x + cam.radius * sinPhi * Math.sin(cam.theta),
+        cam.target.y + cam.radius * Math.cos(cam.phi),
+        cam.target.z + cam.radius * sinPhi * Math.cos(cam.theta)
+      );
+      camEntity.lookAt(cam.target.x, cam.target.y, cam.target.z);
+    });
+    app.start();
+
+    if (overlay) hideViewerLoading(overlay);
+    setStatus('controls');
+    noteEl.hidden = true;
+    metaEl.textContent =
+      t('viewer.metaControls', null,
+        'Drag to orbit · pinch or scroll to zoom · two fingers to pan');
+    return teardown;
+  } catch (err) {
+    teardown();
+    throw err; // dispatcher falls back to Spark on a fresh canvas
+  }
+}
+
 /**
  * Load the reconstructed splat with the Spark renderer and an interactive
  * orbit camera. Falls back to a labelled placeholder if the Spark/three CDN
- * modules are unreachable, so the READY state is always observable.
+ * modules are unreachable, so the READY state is always observable. This is the
+ * default WebGL2 path and the fallback target for the WebGPU path; unchanged.
  *
  * @param {HTMLCanvasElement} canvas
  * @param {string} splatUrl .spz/.sog asset URL on cdn.raku.games
- * @returns {Promise<()=>void>} teardown — stops the render loop + listeners
+ * @returns {Promise<()=>void>} teardown stops the render loop and listeners
  */
-async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus, initialTheta) {
+async function loadSplatViewerSpark(canvas, splatUrl, trackStatus, targets, autoFocus, initialTheta) {
   // When trackStatus is true this is the REAL capture viewer: record the
   // viewer status in `state` so relocalizeDynamic() can re-render the toolbar
   // on a locale switch. The intro preview passes false — it must not touch the
