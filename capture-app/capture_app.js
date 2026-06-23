@@ -3674,6 +3674,21 @@ function _bindAuth() {
     if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
     try {
       const email = $('register-email').value.trim();
+      const firstName = ($('register-first-name') || {}).value ? $('register-first-name').value.trim() : '';
+      const lastName = ($('register-last-name') || {}).value ? $('register-last-name').value.trim() : '';
+      const phoneEl = $('register-phone');
+      const linkedinEl = $('register-linkedin');
+      const phone = phoneEl ? phoneEl.value.trim() : '';
+      const linkedin = linkedinEl ? linkedinEl.value.trim() : '';
+      // First and last name are mandatory — this is a lead-gen form (we want
+      // partners and interested investors, not anonymous email-only signups).
+      if (!firstName || !lastName) {
+        if (errEl) {
+          errEl.hidden = false;
+          errEl.textContent = t('register.nameRequired', null, 'Please enter your first and last name.');
+        }
+        return;
+      }
       const terms = $('register-terms').checked;
       if (!terms) {
         if (errEl) {
@@ -3682,13 +3697,13 @@ function _bindAuth() {
         }
         return;
       }
-      // Registration is request-only now: no password is collected here. The
-      // user submits their email (+ optional display name); an admin approves
+      // Registration is request-only: no password is collected here. The user
+      // submits their contact details (mandatory first/last name + email,
+      // optional phone and LinkedIn); an admin reviews the lead and approves,
       // and the backend emails them a temporary password to sign in with.
-      const payload = { email };
-      const nameEl = $('register-display-name');
-      const displayName = nameEl ? nameEl.value.trim() : '';
-      if (displayName) payload.display_name = displayName;
+      const payload = { email, first_name: firstName, last_name: lastName };
+      if (phone) payload.phone = phone;
+      if (linkedin) payload.linkedin_url = linkedin;
       const { status, body } = await _postAuth('register', payload);
       // Registration no longer returns tokens — it creates a pending account
       // that an admin must approve. Confirm that on the sign-in screen so the
