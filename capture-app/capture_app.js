@@ -902,6 +902,7 @@ const HINTS_FALLBACK = [
   'Pan slowly across the room from one corner.',
   'Walk the perimeter, keeping the walls in frame.',
   'Move in close on furniture and objects.',
+  'Orbit the edges and corners — sweep a little past each border so the outline is fully covered (thin coverage there is what leaves stray spikes).',
   'Tilt up and down to catch the ceiling and floor.',
   'Great coverage — tap Finish capture when ready.',
 ];
@@ -1808,6 +1809,9 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus
   // come through here). Only the real capture viewer (trackStatus) gets it; the
   // tiny chromeless intro preview must stay bare.
   const overlay = trackStatus ? showViewerLoading(canvas) : null;
+  // Reset any prior viewer's declutter handle up front so a failed (placeholder)
+  // load never leaves the "Remove floaters" button pointed at a stale mesh.
+  if (trackStatus) { state.viewerSplats = null; state.declutter = { active: false }; }
 
   // Spherical orbit camera state, shared with the input controller. The
   // starting yaw defaults to 0.6 (the capture-result framing); callers that
@@ -1970,6 +1974,18 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus
       if (overlay) hideViewerLoading(overlay);
     }
 
+    // BUG2: expose the live mesh so the "Remove floaters" button can declutter
+    // it client-side. Only the real capture/booth viewer (trackStatus) gets it;
+    // the chromeless intro preview never does.
+    if (trackStatus) {
+      state.viewerSplats = splats;
+      state.declutter = { active: false };
+      const declutterBtn = $('btn-declutter');
+      if (declutterBtn) {
+        declutterBtn.textContent = t('viewer.removeFloaters', null, 'Remove floaters');
+      }
+    }
+
     viewerStatus('controls');
     noteEl.hidden = true;
     metaEl.textContent =
@@ -1981,6 +1997,7 @@ async function loadSplatViewer(canvas, splatUrl, trackStatus, targets, autoFocus
       window.removeEventListener('resize', onResize);
       detachControls();
       if (overlay) hideViewerLoading(overlay);
+      if (trackStatus) { state.viewerSplats = null; state.declutter = { active: false }; }
       try { renderer.dispose(); } catch (e) { /* best effort */ }
     };
   } catch (err) {
@@ -2305,6 +2322,95 @@ function drawViewerPlaceholder(canvas, splatUrl) {
  *
  * @param {string} splatUrl the .spz/.sog/.ply asset URL to clean up
  */
+// ---- Client-side floater / needle declutter (BUG2) -------------------------
+// One-tap, in-viewer cleanup that HIDES the obvious outlier Gaussians: faint
+// floaters (very low opacity), radiating needle spikes (extreme axis anisotropy
+// AND oversized), single giant blobs, and strays far past the object body. It
+// hides them in place by setting opacity to 0 — Spark 0.1.10 exposes no
+// rebuild/extractSplats, but setSplat + a texture re-upload (needsUpdate) makes
+// the change visible immediately. Fully REVERSIBLE: returns { hidden, restore }
+// where restore() puts the original opacities back. Returns null when the splat
+// build can't be edited (older Spark / placeholder), so the caller can fall
+// back to the SuperSplat "Clean up" hand-off.
+//
+// Thresholds are scene-RELATIVE percentiles so they adapt to any scan scale,
+// and are deliberately conservative (only clear outliers). They are gathered in
+// one constant block below for easy on-device tuning. Wrong forEachSplat arg
+// order would fail SAFE here (a mis-typed "opacity" is not < the cut, so the
+// splat is simply not dropped) — never a crash; every Spark call is guarded.
+function declutterLoadedSplats(splats) {
+  if (!splats || typeof splats.forEachSplat !== 'function' ||
+      typeof splats.setSplat !== 'function') {
+    return null;
+  }
+  const med = (a) => { const b = a.slice().sort((p, q) => p - q); return b[b.length >> 1]; };
+  const pct = (a, p) => {
+    const b = a.slice().sort((q, r) => q - r);
+    return b[Math.min(b.length - 1, Math.max(0, Math.floor(b.length * p)))];
+  };
+
+  // Pass 1 — robust scene stats from a ~1/4 subsample.
+  const cx = [], cy = [], cz = [], maxS = [];
+  splats.forEachSplat((idx, center, scales) => {
+    if ((idx & 3) !== 0 || !center || !scales) return;
+    cx.push(center.x); cy.push(center.y); cz.push(center.z);
+    maxS.push(Math.max(Math.abs(scales.x), Math.abs(scales.y), Math.abs(scales.z)));
+  });
+  if (cx.length < 8) return null; // too few to characterise — leave it alone
+  const mcx = med(cx), mcy = med(cy), mcz = med(cz);
+  const dists = [];
+  for (let k = 0; k < cx.length; k++) {
+    dists.push(Math.hypot(cx[k] - mcx, cy[k] - mcy, cz[k] - mcz));
+  }
+  const dist95 = pct(dists, 0.95) || 1;
+  const scaleMed = med(maxS) || 1;
+  const scale98 = pct(maxS, 0.98) || scaleMed;
+
+  // Cutoffs — conservative; tune these on real captures.
+  const OPACITY_CUT = 0.04;          // faint floater haze (real surfaces ≫ this)
+  const DIST_CUT = dist95 * 1.6;     // strays well past the object body
+  const NEEDLE_ANISO = 8;            // longest/shortest axis ratio …
+  const NEEDLE_SCALE = scaleMed * 3; // … and meaningfully larger than typical
+  const GIANT_SCALE = scale98 * 2.2; // a single oversized blob
+
+  // Pass 2 — flag + hide (opacity → 0), recording originals for restore. We
+  // setSplat the CURRENT index inside the iteration, reusing the callback's own
+  // center/scales/quaternion/color objects (correct types guaranteed) and only
+  // changing opacity; writing the just-read index does not disturb the forward
+  // read of later indices.
+  const hidden = [];
+  splats.forEachSplat((idx, center, scales, quat, opacity, color) => {
+    if (!center || !scales) return;
+    const sx = Math.abs(scales.x), sy = Math.abs(scales.y), sz = Math.abs(scales.z);
+    const mx = Math.max(sx, sy, sz), mn = Math.max(1e-9, Math.min(sx, sy, sz));
+    const op = (typeof opacity === 'number') ? opacity : 1;
+    if (op <= 0) return; // already hidden
+    const dist = Math.hypot(center.x - mcx, center.y - mcy, center.z - mcz);
+    const isNeedle = (mx / mn) > NEEDLE_ANISO && mx > NEEDLE_SCALE;
+    if (op < OPACITY_CUT || dist > DIST_CUT || isNeedle || mx > GIANT_SCALE) {
+      hidden.push({ idx: idx, opacity: op });
+      try { splats.setSplat(idx, center, scales, quat, 0, color); } catch (_) { /* skip one */ }
+    }
+  });
+  const flush = () => {
+    try { if (splats.packedSplats) splats.packedSplats.needsUpdate = true; } catch (_) { /* */ }
+    try { splats.needsUpdate = true; } catch (_) { /* */ }
+  };
+  flush();
+  const byIdx = new Map(hidden.map((h) => [h.idx, h.opacity]));
+  return {
+    hidden: hidden.length,
+    restore() {
+      splats.forEachSplat((idx, center, scales, quat, opacity, color) => {
+        if (!byIdx.has(idx)) return;
+        try { splats.setSplat(idx, center, scales, quat, byIdx.get(idx), color); }
+        catch (_) { /* skip one */ }
+      });
+      flush();
+    },
+  };
+}
+
 function openSplatCleanup(splatUrl) {
   if (!splatUrl) return;
   // Issue 5 / format follow-up: production captures are .spz, and current
@@ -3127,6 +3233,47 @@ function bindEvents() {
   $('btn-cleanup').addEventListener('click', () => {
     openSplatCleanup(state.cleanupSplatUrl || state.splatUrl);
   });
+
+  // BUG2 — 'Remove floaters' declutters the live splat in place (reversible
+  // toggle). Falls back to the SuperSplat hand-off when the mesh can't be
+  // edited (older Spark build / placeholder viewer).
+  const declutterBtn = $('btn-declutter');
+  if (declutterBtn) {
+    declutterBtn.addEventListener('click', () => {
+      const splats = state.viewerSplats;
+      if (!splats) {
+        flashViewerHint(t('viewer.declutterUnavailable', null,
+          'Auto-clean needs the live 3D view — use Clean up to edit in SuperSplat.'));
+        return;
+      }
+      // Active → undo.
+      if (state.declutter && state.declutter.active && state.declutter.restore) {
+        try { state.declutter.restore(); } catch (_) { /* best effort */ }
+        state.declutter = { active: false };
+        declutterBtn.textContent = t('viewer.removeFloaters', null, 'Remove floaters');
+        flashViewerHint(t('viewer.restoreDone', null, 'Restored every splat.'));
+        return;
+      }
+      // Inactive → declutter.
+      let plan = null;
+      try { plan = declutterLoadedSplats(splats); }
+      catch (e) { console.warn('[RakuCapture] declutter failed:', e); }
+      if (!plan) {
+        flashViewerHint(t('viewer.declutterUnavailable', null,
+          'Auto-clean needs the live 3D view — use Clean up to edit in SuperSplat.'));
+        return;
+      }
+      if (!plan.hidden) {
+        flashViewerHint(t('viewer.declutterNone', null,
+          'No obvious floaters found — this scan already looks clean.'));
+        return;
+      }
+      state.declutter = { active: true, restore: plan.restore };
+      declutterBtn.textContent = t('viewer.restoreView', null, 'Undo clean');
+      flashViewerHint(t('viewer.declutterDone', { n: plan.hidden },
+        'Removed ' + plan.hidden + ' stray splats — tap again to undo.'));
+    });
+  }
 
   $('btn-share').addEventListener('click', () => {
     const url = state.splatUrl || window.location.href;
