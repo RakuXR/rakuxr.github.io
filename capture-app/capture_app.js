@@ -3495,9 +3495,18 @@ async function _otpRequest() {
     return;
   }
   try {
-    // Always-202 contract: the response body carries no signal, so we don't
-    // branch on status beyond the network-error path. Reveal step 2 regardless.
-    await _postAuth('otp/request', { email });
+    // _postAuth resolves on any HTTP status (it only throws on network errors),
+    // so an error response would otherwise advance to the code-entry step with
+    // no code ever sent (fake success). Gate the step-2 reveal on a real 2xx.
+    const { status, body } = await _postAuth('otp/request', { email });
+    if (status < 200 || status >= 300) {
+      if (errEl) {
+        errEl.hidden = false;
+        errEl.textContent = body.detail || (body.error && body.error.message)
+          || t('otp.failed', null, 'Could not sign you in — please try again.');
+      }
+      return;
+    }
   } catch (err) {
     if (errEl) {
       errEl.hidden = false;
@@ -3701,12 +3710,15 @@ function _bindAuth() {
   });
   // The request/verify buttons live in the same <form>; route each explicitly
   // so a stray Enter or button click always does the right step.
+  // preventDefault() skips the form's native submit, so it also skips native
+  // required / type=email validation. Re-run it explicitly via reportValidity()
+  // (which also surfaces the browser's inline validation bubble) before acting.
   const otpRequestBtn = $('btn-otp-request');
   const otpVerifyBtn = $('btn-otp-verify');
   const otpResend = $('link-otp-resend');
-  if (otpRequestBtn) otpRequestBtn.addEventListener('click', (e) => { e.preventDefault(); _otpRequest(); });
-  if (otpVerifyBtn) otpVerifyBtn.addEventListener('click', (e) => { e.preventDefault(); _otpVerify(); });
-  if (otpResend) otpResend.addEventListener('click', (e) => { e.preventDefault(); _otpRequest(); });
+  if (otpRequestBtn) otpRequestBtn.addEventListener('click', (e) => { e.preventDefault(); if (of && of.reportValidity()) { _otpRequest(); } });
+  if (otpVerifyBtn) otpVerifyBtn.addEventListener('click', (e) => { e.preventDefault(); if (of && of.reportValidity()) { _otpVerify(); } });
+  if (otpResend) otpResend.addEventListener('click', (e) => { e.preventDefault(); if (of && of.reportValidity()) { _otpRequest(); } });
 
   // Change-password screen — shown on first login after an admin-issued temp
   // password (must_change_password). Clearing the flag is gated server-side;
