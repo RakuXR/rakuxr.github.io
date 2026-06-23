@@ -114,19 +114,20 @@
         <div id="me-loading" class="loading">Loading…</div>
         <div id="me-body" style="display: none;">
             <div class="meta-row"><span class="k">Email</span><span class="v" id="me-email">—</span></div>
-            <div class="meta-row"><span class="k">Last login</span><span class="v" id="me-last-login">—</span></div>
         </div>
         <div class="error-box" id="me-err"></div>
     </div>
 
     <div class="admin-card">
-        <h2>Tools</h2>
+        <h2>Approvals &amp; tools</h2>
         <p style="color: var(--text-secondary); font-size: 0.95rem; margin: 0 0 14px;">
-            The full developer-admin console lives in the developer portal. Use the link below
-            to manage developer accounts, API keys, and content packs.
+            Approve capture-app access requests, review captures, and manage accounts in the
+            admin console. Pending sign-ups (people who requested capture access) appear there
+            with Approve / Reject buttons.
         </p>
         <div class="actions">
-            <a class="btn-primary" href="../developers/dashboard.html">Open developer dashboard →</a>
+            <a class="btn-primary" id="console-link" href="#">Open admin console →</a>
+            <a class="btn-secondary" href="../developers/dashboard.html">Developer portal</a>
             <button type="button" class="btn-secondary" id="logout-btn">Sign out</button>
         </div>
     </div>
@@ -145,25 +146,20 @@
     var meLoading = document.getElementById('me-loading');
     var meBody    = document.getElementById('me-body');
     var meEmail   = document.getElementById('me-email');
-    var meLast    = document.getElementById('me-last-login');
     var meErr     = document.getElementById('me-err');
     var logoutBtn = document.getElementById('logout-btn');
+
+    // The real admin console (pending capture-access approvals, captures,
+    // accounts) is served by raku-api, not this static page. Point the primary
+    // button at it; the admin session cookie is set on the API host so the
+    // link carries the session, and an unauthenticated hit 303s to login.
+    var consoleLink = document.getElementById('console-link');
+    if (consoleLink) consoleLink.href = API_BASE + '/admin/dashboard';
 
     function showError(msg) {
         meErr.textContent = msg;
         meErr.style.display = 'block';
         meLoading.style.display = 'none';
-    }
-
-    function formatTs(ts) {
-        if (!ts) return '—';
-        try {
-            var d = new Date(ts);
-            if (isNaN(d.getTime())) return String(ts);
-            return d.toLocaleString();
-        } catch (_) {
-            return String(ts);
-        }
     }
 
     async function loadMe() {
@@ -181,9 +177,10 @@
                 showError('Could not load session (HTTP ' + resp.status + ').');
                 return;
             }
+            // /admin/auth/me returns { user: { id, email, display_name, is_admin } }.
             var data = await resp.json();
-            meEmail.textContent = (data && data.email) || '(unknown)';
-            meLast.textContent  = formatTs(data && (data.last_login || data.last_login_at));
+            var user = (data && data.user) || {};
+            meEmail.textContent = user.email || '(unknown)';
             meLoading.style.display = 'none';
             meBody.style.display = 'block';
         } catch (e) {
