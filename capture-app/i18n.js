@@ -27,7 +27,9 @@
 
   // Locales shipped with the app. Order is the order shown in the switcher.
   // The first entry is the ultimate fallback when detection finds nothing.
-  var SUPPORTED = ['en', 'ja'];
+  // Region-tagged codes are lowercased here to match normalize()/the
+  // locales/<code>.json filenames (e.g. 'pt-BR' -> 'pt-br.json').
+  var SUPPORTED = ['en', 'ja', 'es', 'fr', 'de', 'ko', 'pt-br', 'zh-cn', 'zh-tw'];
   var FALLBACK = 'en';
   var STORAGE_KEY = 'rakuCapture.lang';
 
