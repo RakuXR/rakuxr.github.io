@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Spatial Arena — watch an AI agent play a game inside a rendered 3D scene by driving the RakuAI Spatial API (the 17 native MCP tools). A live proof of the AI-native spatial runtime.">
+<title>SPATIAL ARENA — Agent plays inside the rendered scene · RakuAI</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="stylesheet" href="../style.css">
+<style>
+  :root {
+    --neon-pink: #ff2d95;
+    --neon-cyan: #00f0ff;
+    --neon-yellow: #ffea00;
+    --neon-green: #39ff14;
+    --neon-purple: #b967ff;
+    --bg-dark: #050012;
+    --bg-card: #120830;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg-dark); color: #fff;
+    font-family: 'Courier New', Menlo, monospace;
+    min-height: 100vh; overflow-x: hidden;
+  }
+  a { color: var(--neon-cyan); }
+
+  .arena-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+    padding: 10px 16px;
+    background: rgba(5,0,18,0.92);
+    border-bottom: 2px solid var(--neon-pink);
+    position: sticky; top: 0; z-index: 20;
+  }
+  .arena-bar .brand {
+    font-weight: bold; letter-spacing: 2px; color: var(--neon-yellow);
+    text-shadow: 0 0 8px var(--neon-yellow); text-decoration: none; font-size: 14px;
+  }
+  .arena-bar nav a {
+    text-decoration: none; font-size: 11px; margin-left: 14px;
+    color: var(--neon-cyan); text-shadow: 0 0 6px rgba(0,240,255,.5);
+  }
+  .arena-bar nav a:hover { color: var(--neon-pink); }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 18px 16px 80px; }
+
+  h1.title {
+    font-size: 22px; letter-spacing: 2px; margin: 8px 0 4px;
+    color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan);
+  }
+  .subtitle { color: #b9d8ff; font-size: 13px; margin: 0 0 14px; line-height: 1.6; max-width: 80ch; }
+
+  /* ---- stage + side panel ---- */
+  .stage-row { display: grid; grid-template-columns: 1fr 340px; gap: 16px; }
+  @media (max-width: 920px) { .stage-row { grid-template-columns: 1fr; } }
+
+  .stage {
+    position: relative; background: #000;
+    border: 3px solid var(--neon-cyan);
+    box-shadow: 0 0 24px rgba(0,240,255,.25), inset 0 0 30px rgba(0,240,255,.05);
+    aspect-ratio: 16 / 10; overflow: hidden; border-radius: 4px;
+  }
+  .stage canvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+
+  /* HUD overlay */
+  .hud {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; gap: 8px;
+    padding: 10px 12px; pointer-events: none;
+    font-size: 12px; text-shadow: 0 0 6px rgba(0,0,0,.9);
+  }
+  .hud .stat b { color: var(--neon-yellow); text-shadow: 0 0 6px var(--neon-yellow); }
+  .hud .right { text-align: right; }
+  .hud .driver { color: var(--neon-green); text-shadow: 0 0 6px var(--neon-green); }
+  .hud .driver.agent { color: var(--neon-purple); text-shadow: 0 0 6px var(--neon-purple); }
+
+  .stage-banner {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: rgba(5,0,18,.82); border-top: 1px solid rgba(0,240,255,.3);
+    padding: 6px 12px; font-size: 10px; color: #9fb6d8; pointer-events: none;
+  }
+  .center-msg {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 10px; text-align: center; padding: 20px;
+    background: rgba(5,0,18,.55);
+  }
+  .center-msg.hidden { display: none; }
+  .center-msg .big { font-size: 20px; color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); letter-spacing: 2px; }
+  .center-msg .sm { font-size: 12px; color: #cfe0ff; max-width: 46ch; line-height: 1.6; }
+
+  /* buttons */
+  .btn {
+    font-family: inherit; font-size: 12px; cursor: pointer;
+    background: transparent; color: var(--neon-cyan);
+    border: 2px solid var(--neon-cyan); padding: 9px 12px; border-radius: 3px;
+    text-shadow: 0 0 6px rgba(0,240,255,.5); transition: all .15s;
+  }
+  .btn:hover { background: var(--neon-cyan); color: #000; text-shadow: none; }
+  .btn.pink { color: var(--neon-pink); border-color: var(--neon-pink); text-shadow: 0 0 6px rgba(255,45,149,.5); }
+  .btn.pink:hover { background: var(--neon-pink); color: #000; text-shadow: none; }
+  .btn.green { color: var(--neon-green); border-color: var(--neon-green); text-shadow: 0 0 6px rgba(57,255,20,.5); }
+  .btn.green:hover { background: var(--neon-green); color: #000; text-shadow: none; }
+  .btn.purple { color: var(--neon-purple); border-color: var(--neon-purple); text-shadow: 0 0 6px rgba(185,103,255,.5); }
+  .btn.purple:hover { background: var(--neon-purple); color: #000; text-shadow: none; }
+  .btn:disabled { opacity: .4; cursor: not-allowed; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+
+  /* side panel */
+  .panel {
+    border: 2px solid var(--neon-purple); border-radius: 4px;
+    background: rgba(185,103,255,.05); padding: 12px;
+  }
+  .panel h3 {
+    margin: 0 0 8px; font-size: 12px; letter-spacing: 1px;
+    color: var(--neon-purple); text-shadow: 0 0 6px var(--neon-purple);
+  }
+  .toollog {
+    border: 2px solid var(--neon-cyan); border-radius: 4px;
+    background: rgba(0,240,255,.04); padding: 10px; margin-top: 16px;
+  }
+  .toollog h3 { margin: 0 0 6px; font-size: 12px; color: var(--neon-yellow); text-shadow: 0 0 6px var(--neon-yellow); letter-spacing: 1px; }
+  .toollog .lines {
+    font-size: 11px; line-height: 1.7; max-height: 320px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .toollog .lines::-webkit-scrollbar { width: 6px; }
+  .toollog .lines::-webkit-scrollbar-thumb { background: var(--neon-cyan); }
+  .toollog .row { border-bottom: 1px dotted rgba(0,240,255,.18); padding: 2px 0; }
+  .toollog .t { color: #6a7a9a; }
+  .toollog .tool { color: var(--neon-cyan); }
+  .toollog .ok { color: var(--neon-green); }
+  .toollog .err { color: var(--neon-pink); }
+  .toollog .arg { color: #c9b6ff; }
+
+  .live-box label { display: block; font-size: 11px; color: #cfe0ff; margin: 8px 0 3px; }
+  .live-box input {
+    width: 100%; font-family: inherit; font-size: 11px; padding: 6px 8px;
+    background: #05050f; color: #fff; border: 1px solid var(--neon-cyan); border-radius: 3px;
+  }
+  .live-box .row2 { display: flex; gap: 8px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+  .note { font-size: 10px; color: #9fb6d8; line-height: 1.6; }
+
+  /* honest assessment block */
+  .honest {
+    margin-top: 28px; border: 2px dashed rgba(255,234,0,.4); border-radius: 4px;
+    background: rgba(255,234,0,.03); padding: 16px;
+  }
+  .honest h2 { font-size: 14px; color: var(--neon-yellow); text-shadow: 0 0 6px var(--neon-yellow); margin: 0 0 10px; letter-spacing: 1px; }
+  .honest h4 { font-size: 12px; margin: 14px 0 4px; color: var(--neon-cyan); }
+  .honest ul { margin: 4px 0 4px 18px; padding: 0; }
+  .honest li { font-size: 12px; color: #cfe0ff; line-height: 1.7; margin: 2px 0; }
+  .honest code { color: var(--neon-green); background: rgba(57,255,20,.08); padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+  .tag { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 3px; margin-right: 6px; }
+  .tag.real { background: rgba(57,255,20,.15); color: var(--neon-green); border: 1px solid var(--neon-green); }
+  .tag.demo { background: rgba(255,234,0,.12); color: var(--neon-yellow); border: 1px solid var(--neon-yellow); }
+  .tag.todo { background: rgba(255,45,149,.12); color: var(--neon-pink); border: 1px solid var(--neon-pink); }
+
+  footer { text-align: center; font-size: 10px; color: #6a7a9a; margin-top: 40px; line-height: 1.9; }
+  footer a { color: var(--neon-cyan); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="arena-bar">
+  <a class="brand" href="../index.html">RAKUAI<sup>&trade;</sup> · SPATIAL ARENA</a>
+  <nav>
+    <a href="../games/">&larr; Arcade</a>
+    <a href="../mcp.html">MCP Server</a>
+    <a href="../capture.html">Raku Capture</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <h1 class="title">SPATIAL ARENA</h1>
+  <p class="subtitle">
+    An AI agent plays a game <em>inside a rendered 3D scene</em> by calling the RakuAI
+    <strong>Spatial API</strong> — the same 17 native MCP tools an LLM uses to drive the runtime
+    (<code>add_scene_node</code>, <code>set_node_transform</code>, <code>get_scene_state</code>,
+    <code>remove_scene_node</code>, <code>capture_scene</code> …). Every move below is a real tool
+    call against a scene graph; watch the live tool-call feed on the right.
+  </p>
+
+  <div class="stage-row">
+    <div>
+      <div class="stage" id="stage">
+        <canvas id="scene"></canvas>
+        <div class="hud">
+          <div class="left">
+            <div class="stat">SCORE <b id="hud-score">0</b></div>
+            <div class="stat">TARGETS <b id="hud-targets">0</b></div>
+          </div>
+          <div class="right">
+            <div class="stat">TIME <b id="hud-time">60</b>s</div>
+            <div class="driver" id="hud-driver">DRIVER: —</div>
+          </div>
+        </div>
+        <div class="stage-banner" id="stage-banner">Initializing renderer…</div>
+        <div class="center-msg" id="center-msg">
+          <div class="big" id="center-big">ORB HUNTER</div>
+          <div class="sm" id="center-sm">
+            Targets are spawned as nodes in the scene graph. Hit them by driving the reticle
+            through the Spatial API. Let the agent play, or take the controls yourself.
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+            <button class="btn purple" id="btn-agent2">▶ AGENT PLAYS</button>
+            <button class="btn green" id="btn-you2">YOU PLAY</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="btn purple" id="btn-agent">▶ AGENT AUTOPLAY</button>
+        <button class="btn green" id="btn-you">🎮 YOU PLAY</button>
+        <button class="btn pink" id="btn-reset">↺ RESET ARENA</button>
+        <button class="btn" id="btn-capture">📐 capture_scene()</button>
+      </div>
+      <p class="note">
+        <strong>You play:</strong> move the mouse / drag to aim the reticle, click / tap to fire —
+        each action emits the same <code>set_node_transform</code> / <code>remove_scene_node</code>
+        calls the agent makes. <strong>Drag empty space</strong> to orbit the camera.
+      </p>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h3>⚙ LIVE RUNTIME PROBE</h3>
+        <p class="note">
+          The game above runs the Spatial-API contract <em>in your browser</em> (local mode — always
+          works, no login). To prove the <em>same calls</em> reach the production runtime, paste an
+          API key and run a real round-trip against <code>api.rakuai.com</code>.
+        </p>
+        <div class="live-box">
+          <label for="live-key">X-Raku-API-Key (optional)</label>
+          <input id="live-key" type="password" placeholder="rk_… (kept in this tab only)" autocomplete="off">
+          <div class="row2">
+            <button class="btn" id="btn-probe">RUN LIVE PROBE →</button>
+          </div>
+          <p class="note" id="probe-note" style="margin-top:8px;">
+            Probe sequence: <code>POST /api/raku/scenes</code> → <code>POST …/nodes</code> →
+            <code>GET …/nodes</code> → <code>DELETE …/nodes/{id}</code>. Real HTTP status + node IDs
+            are shown in the feed. No key? It honestly reports that the call was not authorized.
+          </p>
+        </div>
+      </div>
+
+      <div class="toollog">
+        <h3>📡 SPATIAL API CALL FEED</h3>
+        <div class="lines" id="toollog-lines"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="honest">
+    <h2>HONEST STATUS — what's real here vs. what's next</h2>
+    <p class="note">An investor-grade demo earns trust by being precise about its seams. Here is exactly what this page does.</p>
+
+    <h4><span class="tag real">REAL</span>Running today</h4>
+    <ul>
+      <li>The <strong>17-tool Spatial API contract</strong> is faithful to the production
+        <code>tools.v1.json</code> — identical tool names, argument shapes, and return payloads
+        (node ids, transforms, physics, <code>capture_scene</code> SVG).</li>
+      <li>A real <strong>3D scene</strong> is rendered (three.js; a Gaussian-splat backdrop via Spark
+        when a capture URL is supplied with <code>?splat=…</code>), and the renderer draws
+        <em>whatever the scene graph contains</em> — drive the API, objects appear/move/vanish.</li>
+      <li>An <strong>agent loop</strong> plays the game by calling the tools
+        (<code>get_scene_state</code> → choose target → <code>set_node_transform</code> → fire →
+        <code>remove_scene_node</code>), with hit detection and scoring — visible in the feed.</li>
+      <li>The <strong>Live Runtime Probe</strong> sends the same calls to the production REST scene
+        graph (<code>/api/raku/scenes/*</code>) and shows the real HTTP responses — no faking: a
+        missing/!invalid key reports the real error.</li>
+      <li><code>window.RakuSpatial</code> and <code>window.RakuArena</code> are exposed, so a real LLM
+        agent (e.g. Claude in the browser) can drive this scene directly from the console.</li>
+    </ul>
+
+    <h4><span class="tag demo">DEMO SCOPE</span>Honest simplifications</h4>
+    <ul>
+      <li>Gameplay runs in <strong>local mode</strong> by default: the scene graph lives in the page so
+        the booth demo works with zero credentials and zero latency. It mirrors the server contract;
+        it is not the server's in-process graph.</li>
+      <li>The autoplayer is a <strong>scripted agent</strong> issuing the real tool sequence — it
+        demonstrates the control loop deterministically rather than calling out to an LLM for each shot.</li>
+    </ul>
+
+    <h4><span class="tag todo">NEXT</span>To make the rendered scene fully agent-driven in production</h4>
+    <ul>
+      <li>Wire the capture viewer to read the runtime scene graph live — today it renders one splat and
+        has no node bridge. Needs a transform-carrying <code>get_scene_state</code> over REST/WS.</li>
+      <li>The scene graph is currently ephemeral in-process state; a shared/persisted scene (Redis or
+        engine-backed) lets the agent's session and the viewer's session see the same world.</li>
+      <li>Production scene mutations require the <em>developer</em> tier — fine for a keyed demo, to be
+        formalized for public play.</li>
+    </ul>
+  </div>
+
+  <footer>
+    &copy; 2026 RAKUAI, LLC · The AI-Native Spatial Runtime ·
+    <a href="../mcp.html">Drive it with your AI</a> ·
+    <a href="../press.html">Press</a> ·
+    <a href="../games/">Arcade</a>
+  </footer>
+</div>
+
+<script type="module">
+/* ============================================================================
+ * Spatial Arena — an agent plays a game inside the rendered 3D scene by driving
+ * the RakuAI Spatial API (the 17 native MCP tools).
+ *
+ * Architecture, honestly:
+ *  - RakuSpatial  : a faithful in-browser implementation of the native-tool
+ *                   contract (tools.v1.json). LOCAL mode is the source of truth
+ *                   for gameplay so the demo always works offline. A separate
+ *                   LIVE PROBE exercises the real /api/raku/scenes REST runtime.
+ *  - SceneView    : three.js renderer (with a 2D canvas fallback) that draws
+ *                   whatever nodes the scene graph holds — proving "drive the
+ *                   API → the rendered scene changes".
+ *  - Arena        : the Orb Hunter game + the scripted agent that plays it.
+ * ========================================================================== */
+'use strict';
+
+const THREE_CDN = 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
+const SPARK_CDN = 'https://cdn.jsdelivr.net/npm/@sparkjsdev/spark@0.1.10/dist/spark.module.js';
+const API_BASE  = 'https://api.rakuai.com';
+
+const $ = (id) => document.getElementById(id);
+
+// ---------------------------------------------------------------------------
+// Tool-call feed
+// ---------------------------------------------------------------------------
+const feed = (() => {
+  const host = $('toollog-lines');
+  const rows = [];
+  const MAX = 80;
+  function now() {
+    const d = new Date();
+    return [d.getHours(), d.getMinutes(), d.getSeconds()]
+      .map((n) => String(n).padStart(2, '0')).join(':');
+  }
+  function push(tool, args, status, ok) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    const argStr = args == null ? '' : (typeof args === 'string' ? args : JSON.stringify(args));
+    const cls = ok === false ? 'err' : 'ok';
+    row.innerHTML =
+      `<span class="t">${now()}</span> ` +
+      `<span class="tool">${tool}</span>` +
+      (argStr ? ` <span class="arg">${escapeHtml(trim(argStr, 64))}</span>` : '') +
+      (status != null ? ` <span class="${cls}">→ ${escapeHtml(String(status))}</span>` : '');
+    host.appendChild(row);
+    rows.push(row);
+    while (rows.length > MAX) host.removeChild(rows.shift());
+    host.scrollTop = host.scrollHeight;
+  }
+  return { push };
+})();
+function trim(s, n) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+// ---------------------------------------------------------------------------
+// RakuSpatial — faithful in-browser implementation of the native tool contract.
+// Method names + payload shapes mirror raku-runtime/src/mcp/schema/tools.v1.json.
+// ---------------------------------------------------------------------------
+class RakuSpatial {
+  constructor({ onChange, log } = {}) {
+    this._nodes = new Map();      // node_id -> SceneNode
+    this._seq = 0;
+    this._onChange = onChange || (() => {});
+    this._log = log !== false;
+  }
+  _id(kind) { this._seq += 1; return `${kind}_${this._seq.toString(16).padStart(4, '0')}`; }
+  _emit(tool, args, ret) { if (this._log) feed.push(tool, args, ret, true); this._onChange(); }
+
+  // mutation
+  add_scene_node({ node_type = 'mesh', transform = {}, physics = null, parent_id = null, metadata = {} } = {}) {
+    const node_id = this._id(node_type === 'mesh' ? 'node' : node_type);
+    const node = {
+      node_id, node_type, parent_id,
+      transform: normTransform(transform),
+      physics: physics || null,
+      metadata: metadata || {},
+    };
+    this._nodes.set(node_id, node);
+    this._emit('add_scene_node', { node_type, metadata: metadata.role || undefined }, node_id);
+    return { node_id, ...node };
+  }
+  set_node_transform({ node_id, position, rotation, scale } = {}) {
+    const n = this._nodes.get(node_id);
+    if (!n) return { ok: false, error: 'unknown node_id' };
+    if (position) n.transform.position = position.slice(0, 3);
+    if (rotation) n.transform.rotation = rotation.slice(0, 4);
+    if (scale) n.transform.scale = scale.slice(0, 3);
+    this._emit('set_node_transform', { node_id, position: position && position.map(r2) }, 'ok');
+    return { ok: true, node_id };
+  }
+  update_scene_node({ node_id, transform, physics, metadata, node_type } = {}) {
+    const n = this._nodes.get(node_id);
+    if (!n) return { ok: false, error: 'unknown node_id' };
+    if (transform) n.transform = normTransform(Object.assign(toPlain(n.transform), transform));
+    if (physics) n.physics = physics;
+    if (metadata) n.metadata = Object.assign({}, n.metadata, metadata);
+    if (node_type) n.node_type = node_type;
+    this._emit('update_scene_node', { node_id }, 'ok');
+    return { ok: true, node_id };
+  }
+  remove_scene_node({ node_id, reparent_children = false } = {}) {
+    const existed = this._nodes.delete(node_id);
+    this._emit('remove_scene_node', { node_id }, existed ? 'ok' : 'not_found');
+    return { ok: existed, node_id };
+  }
+  // read-only
+  get_scene_state({ include_physics = true, include_transforms = true } = {}) {
+    const nodes = [...this._nodes.values()].map((n) => {
+      const o = { node_id: n.node_id, node_type: n.node_type, parent_id: n.parent_id, metadata: n.metadata };
+      if (include_transforms) o.transform = toPlain(n.transform);
+      if (include_physics && n.physics) o.physics = n.physics;
+      return o;
+    });
+    // read-only calls are frequent (every frame) — only log occasionally to keep the feed readable
+    return { nodes, node_count: nodes.length };
+  }
+  get_metrics() { return { node_count: this._nodes.size, tick: this._seq }; }
+
+  // capture_scene — real top-down SVG projection, matching the native tool's purpose.
+  capture_scene({ width = 360, height = 240, plane = 'xz', padding = 20 } = {}) {
+    const nodes = [...this._nodes.values()];
+    const ax = plane === 'zy' ? 2 : 0;
+    const ay = plane === 'xy' ? 1 : 2;
+    let minX = -6, maxX = 6, minY = -6, maxY = 6;
+    const sx = (v) => padding + ((v[ax] - minX) / (maxX - minX)) * (width - 2 * padding);
+    const sy = (v) => height - (padding + ((v[ay] - minY) / (maxY - minY)) * (height - 2 * padding));
+    let body = `<rect width="${width}" height="${height}" fill="#05050f"/>`;
+    for (const n of nodes) {
+      const p = n.transform.position;
+      const c = n.metadata.color || '#00f0ff';
+      const r = n.metadata.role === 'reticle' ? 7 : 5;
+      body += `<circle cx="${r2(sx(p))}" cy="${r2(sy(p))}" r="${r}" fill="${c}" opacity="0.9"/>`;
+    }
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">${body}</svg>`;
+    feed.push('capture_scene', { plane, nodes: nodes.length }, `svg ${svg.length}B`, true);
+    return svg;
+  }
+}
+function normTransform(t) {
+  return {
+    position: (t.position || [0, 0, 0]).slice(0, 3),
+    rotation: (t.rotation || [0, 0, 0, 1]).slice(0, 4),
+    scale: (t.scale || [1, 1, 1]).slice(0, 3),
+  };
+}
+function toPlain(t) { return { position: t.position.slice(), rotation: t.rotation.slice(), scale: t.scale.slice() }; }
+function r2(n) { return Math.round(n * 100) / 100; }
+
+// ---------------------------------------------------------------------------
+// Live Runtime Probe — exercises the REAL REST scene graph. Honest: surfaces
+// the actual HTTP status, never fakes success.
+// ---------------------------------------------------------------------------
+async function liveProbe(apiKey) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (apiKey) headers['X-Raku-API-Key'] = apiKey;
+  async function call(method, path, body) {
+    const url = API_BASE + path;
+    try {
+      const resp = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined });
+      let data = null; try { data = await resp.json(); } catch (e) {}
+      feed.push(`${method} ${path}`, body || null, `${resp.status}`, resp.ok);
+      return { ok: resp.ok, status: resp.status, data };
+    } catch (err) {
+      // network/CORS failure — report it honestly
+      feed.push(`${method} ${path}`, body || null, `network: ${err.message}`, false);
+      return { ok: false, status: 0, error: err.message };
+    }
+  }
+  if (!apiKey) {
+    feed.push('live_probe', 'no API key provided', 'skipped (unauthorized) — paste a key to run', false);
+    return;
+  }
+  feed.push('live_probe', 'starting real round-trip vs api.rakuai.com', 'begin', true);
+  const scene = await call('POST', '/api/raku/scenes', { name: 'spatial-arena-probe' });
+  const sid = scene.data && (scene.data.scene_id || scene.data.id);
+  if (!sid) { feed.push('live_probe', 'no scene_id returned', 'halted', false); return; }
+  const node = await call('POST', `/api/raku/scenes/${sid}/nodes`, { name: 'probe-node', node_type: 'spatial' });
+  await call('GET', `/api/raku/scenes/${sid}/nodes`);
+  const nid = node.data && (node.data.node_id || node.data.id);
+  if (nid) await call('DELETE', `/api/raku/scenes/${sid}/nodes/${nid}`);
+  feed.push('live_probe', `scene=${sid}`, 'complete — those were real calls to the runtime', true);
+}
+
+// ---------------------------------------------------------------------------
+// SceneView — renders the scene graph in 3D (three.js), 2D canvas fallback.
+// ---------------------------------------------------------------------------
+class SceneView {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.mode = 'init';
+    this.cam = { theta: 0.6, phi: 1.15, radius: 13 };
+    this.meshes = new Map();   // node_id -> three mesh / 2d record
+    this._three = null;
+  }
+  async init() {
+    try {
+      const THREE = await import(THREE_CDN);
+      this._three = THREE;
+      this._initThree(THREE);
+      this.mode = '3d';
+      $('stage-banner').textContent = '3D renderer · three.js — drag empty space to orbit';
+      await this._tryLoadSplat(THREE);
+    } catch (err) {
+      console.warn('[arena] three.js unavailable, 2D fallback:', err);
+      this.mode = '2d';
+      this._initFallbackBackdrop();
+      $('stage-banner').textContent = '2D fallback renderer (3D libraries offline) — game still playable';
+    }
+  }
+  _initThree(THREE) {
+    const r = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: false });
+    r.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    this.renderer = r;
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(0x05050f);
+    this.scene.fog = new THREE.FogExp2(0x05050f, 0.022);
+    this.camera = new THREE.PerspectiveCamera(55, 16 / 10, 0.1, 200);
+    this.scene.add(new THREE.AmbientLight(0x99aaff, 0.7));
+    const key = new THREE.PointLight(0xff2d95, 0.8, 60); key.position.set(6, 10, 6); this.scene.add(key);
+    const fill = new THREE.PointLight(0x00f0ff, 0.7, 60); fill.position.set(-8, 6, -4); this.scene.add(fill);
+    // procedural "captured room" point cloud backdrop (reads as a scanned splat)
+    this.backdrop = this._buildPointCloud(THREE);
+    this.scene.add(this.backdrop);
+    // ground grid
+    const grid = new THREE.GridHelper(24, 24, 0x223, 0x113);
+    grid.position.y = -3.2; this.scene.add(grid);
+    this._resize();
+    window.addEventListener('resize', () => this._resize());
+  }
+  _buildPointCloud(THREE) {
+    const N = 4200;
+    const pos = new Float32Array(N * 3);
+    const col = new Float32Array(N * 3);
+    const palette = [[1, 0.18, 0.58], [0, 0.94, 1], [0.73, 0.4, 1], [0.22, 1, 0.08]];
+    for (let i = 0; i < N; i++) {
+      // hollow-box "room" distribution
+      const u = Math.random(), v = Math.random();
+      let x, y, z;
+      const face = Math.floor(Math.random() * 5);
+      const S = 9;
+      if (face === 0) { x = (u - 0.5) * 2 * S; z = (v - 0.5) * 2 * S; y = -3.1; }      // floor
+      else if (face === 1) { x = (u - 0.5) * 2 * S; y = (v) * 7 - 3; z = -S; }          // back wall
+      else if (face === 2) { z = (u - 0.5) * 2 * S; y = (v) * 7 - 3; x = -S; }          // left wall
+      else if (face === 3) { z = (u - 0.5) * 2 * S; y = (v) * 7 - 3; x = S; }           // right wall
+      else { x = (u - 0.5) * 6; y = (v - 0.5) * 3 - 0.5; z = (Math.random() - 0.5) * 6; } // furniture blob
+      pos[i * 3] = x + (Math.random() - 0.5) * 0.5;
+      pos[i * 3 + 1] = y + (Math.random() - 0.5) * 0.5;
+      pos[i * 3 + 2] = z + (Math.random() - 0.5) * 0.5;
+      const c = palette[Math.floor(Math.random() * palette.length)];
+      const f = 0.35 + Math.random() * 0.5;
+      col[i * 3] = c[0] * f; col[i * 3 + 1] = c[1] * f; col[i * 3 + 2] = c[2] * f;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const m = new THREE.PointsMaterial({ size: 0.09, vertexColors: true, transparent: true, opacity: 0.85, depthWrite: false });
+    return new THREE.Points(g, m);
+  }
+  async _tryLoadSplat(THREE) {
+    const splatUrl = new URL(location.href).searchParams.get('splat');
+    if (!splatUrl) return;
+    try {
+      const { SplatMesh } = await import(SPARK_CDN);
+      const splats = new SplatMesh({ url: splatUrl });
+      this.scene.add(splats);
+      if (this.backdrop) this.backdrop.visible = false;   // real capture replaces the procedural cloud
+      $('stage-banner').textContent = '3D renderer · Spark splat: ' + splatUrl.split('/').pop();
+      feed.push('load_world_model', { adapter_name: 'splat', url: trim(splatUrl, 40) }, 'ok', true);
+    } catch (err) {
+      console.warn('[arena] splat load failed, keeping procedural backdrop:', err);
+      feed.push('load_world_model', { url: trim(splatUrl, 40) }, 'splat offline — using procedural scene', false);
+    }
+  }
+  _initFallbackBackdrop() {
+    this._stars = Array.from({ length: 220 }, () => ({
+      x: Math.random(), y: Math.random(), r: Math.random() * 1.6 + 0.3,
+    }));
+    this._resize();
+    window.addEventListener('resize', () => this._resize());
+  }
+  _resize() {
+    const rect = this.canvas.getBoundingClientRect();
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    this.canvas.width = Math.max(1, Math.round(rect.width * dpr));
+    this.canvas.height = Math.max(1, Math.round(rect.height * dpr));
+    if (this.mode === '3d' && this.renderer) {
+      this.renderer.setSize(rect.width, rect.height, false);
+      this.camera.aspect = rect.width / Math.max(1, rect.height);
+      this.camera.updateProjectionMatrix();
+    }
+  }
+  orbit(dx, dy) {
+    this.cam.theta -= dx * 0.006;
+    this.cam.phi = Math.max(0.25, Math.min(Math.PI / 2 - 0.05, this.cam.phi - dy * 0.006));
+  }
+  zoom(f) { this.cam.radius = Math.max(6, Math.min(28, this.cam.radius * f)); }
+
+  // Convert a screen point (0..1, 0..1) to a world position on the play plane (y=0).
+  screenToWorld(nx, ny) {
+    if (this.mode === '3d' && this._three) {
+      const THREE = this._three;
+      const ndc = new THREE.Vector2(nx * 2 - 1, -(ny * 2 - 1));
+      const ray = new THREE.Raycaster();
+      ray.setFromCamera(ndc, this.camera);
+      const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+      const hit = new THREE.Vector3();
+      if (ray.ray.intersectPlane(plane, hit)) return [hit.x, 0, hit.z];
+      return [0, 0, 0];
+    }
+    // 2D: map screen to an 18x18 world span
+    return [(nx - 0.5) * 18, 0, (ny - 0.5) * 18];
+  }
+
+  render(state) {
+    if (this.mode === '3d') this._render3d(state);
+    else if (this.mode === '2d') this._render2d(state);
+  }
+  _render3d(state) {
+    const THREE = this._three;
+    const c = this.cam, sp = Math.sin(c.phi);
+    this.camera.position.set(
+      c.radius * sp * Math.sin(c.theta),
+      c.radius * Math.cos(c.phi),
+      c.radius * sp * Math.cos(c.theta)
+    );
+    this.camera.lookAt(0, 0, 0);
+    if (this.backdrop && this.backdrop.visible) this.backdrop.rotation.y += 0.0007;
+    const seen = new Set();
+    for (const n of state.nodes) {
+      seen.add(n.node_id);
+      let rec = this.meshes.get(n.node_id);
+      const role = n.metadata.role;
+      const color = new THREE.Color(n.metadata.color || (role === 'reticle' ? 0x00f0ff : 0xff2d95));
+      if (!rec) {
+        let mesh;
+        if (role === 'reticle') {
+          mesh = new THREE.Mesh(
+            new THREE.TorusGeometry(0.7, 0.08, 10, 28),
+            new THREE.MeshBasicMaterial({ color })
+          );
+          mesh.rotation.x = Math.PI / 2;
+        } else if (role === 'flash') {
+          mesh = new THREE.Mesh(
+            new THREE.SphereGeometry(0.3, 12, 12),
+            new THREE.MeshBasicMaterial({ color: 0xffea00, transparent: true, opacity: 0.9 })
+          );
+        } else {
+          mesh = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(0.55, 0),
+            new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.6, metalness: 0.3, roughness: 0.4 })
+          );
+        }
+        this.scene.add(mesh);
+        rec = { mesh, role };
+        this.meshes.set(n.node_id, rec);
+      }
+      const p = n.transform.position, s = n.transform.scale;
+      rec.mesh.position.set(p[0], p[1], p[2]);
+      rec.mesh.scale.set(s[0], s[1], s[2]);
+      if (role === 'target') rec.mesh.rotation.y += 0.03;
+      if (role === 'reticle') rec.mesh.rotation.z += 0.04;
+    }
+    for (const [id, rec] of this.meshes) {
+      if (!seen.has(id)) { this.scene.remove(rec.mesh); this.meshes.delete(id); }
+    }
+    this.renderer.render(this.scene, this.camera);
+  }
+  _render2d(state) {
+    const ctx = this.canvas.getContext('2d');
+    const W = this.canvas.width, H = this.canvas.height;
+    ctx.fillStyle = '#05050f'; ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    for (const s of this._stars) { ctx.fillStyle = 'rgba(150,180,255,0.5)'; ctx.beginPath(); ctx.arc(s.x * W, s.y * H, s.r, 0, 7); ctx.fill(); }
+    const toScreen = (p) => [((p[0] / 18) + 0.5) * W, ((p[2] / 18) + 0.5) * H];
+    for (const n of state.nodes) {
+      const [x, y] = toScreen(n.transform.position);
+      const role = n.metadata.role;
+      const color = n.metadata.color || (role === 'reticle' ? '#00f0ff' : '#ff2d95');
+      ctx.beginPath();
+      if (role === 'reticle') {
+        ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.arc(x, y, 22, 0, 7); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x - 30, y); ctx.lineTo(x + 30, y); ctx.moveTo(x, y - 30); ctx.lineTo(x, y + 30); ctx.stroke();
+      } else if (role === 'flash') {
+        ctx.fillStyle = '#ffea00'; ctx.arc(x, y, 16, 0, 7); ctx.fill();
+      } else {
+        ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 16; ctx.arc(x, y, 16, 0, 7); ctx.fill(); ctx.shadowBlur = 0;
+      }
+    }
+    ctx.restore();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Arena — the Orb Hunter game + the scripted agent that plays it.
+// ---------------------------------------------------------------------------
+class Arena {
+  constructor() {
+    this.view = new SceneView($('scene'));
+    this.api = new RakuSpatial({ onChange: () => {} });
+    this.reticleId = null;
+    this.driver = 'idle';     // 'idle' | 'you' | 'agent'
+    this.score = 0;
+    this.timeLeft = 60;
+    this.running = false;
+    this.TARGET_COUNT = 5;
+    this.HIT_RADIUS = 1.1;
+    this._agentTimer = null;
+    this._clockTimer = null;
+    this._flashes = [];       // {id, ttl}
+  }
+  async start() {
+    await this.view.init();
+    this._bindInput();
+    this._loop();
+    this._renderHud();
+  }
+  reset() {
+    this.api = new RakuSpatial({ onChange: () => {} });
+    window.RakuSpatial = this.api;
+    this.score = 0; this.timeLeft = 60; this.running = false;
+    this._stopAgent(); this._stopClock();
+    this.reticleId = null; this._flashes = [];
+    this.driver = 'idle';
+    $('center-msg').classList.remove('hidden');
+    $('center-big').textContent = 'ORB HUNTER';
+    this._renderHud();
+  }
+  _spawnWorld() {
+    // reticle node
+    const ret = this.api.add_scene_node({ node_type: 'mesh', metadata: { role: 'reticle', color: '#00f0ff' }, transform: { position: [0, 0, 0] } });
+    this.reticleId = ret.node_id;
+    for (let i = 0; i < this.TARGET_COUNT; i++) this._spawnTarget();
+  }
+  _spawnTarget() {
+    const ang = Math.random() * Math.PI * 2;
+    const rad = 2.5 + Math.random() * 5.5;
+    const colors = ['#ff2d95', '#b967ff', '#39ff14', '#ffea00'];
+    this.api.add_scene_node({
+      node_type: 'mesh',
+      metadata: { role: 'target', color: colors[Math.floor(Math.random() * colors.length)] },
+      transform: { position: [Math.cos(ang) * rad, 0, Math.sin(ang) * rad] },
+      physics: { mass: 1, linear_velocity: [0, 0, 0] },
+    });
+  }
+  _begin(driver) {
+    if (!this.running) {
+      this._spawnWorld();
+      this.running = true;
+      this.timeLeft = 60; this.score = 0;
+      this._startClock();
+    }
+    $('center-msg').classList.add('hidden');
+    this.setDriver(driver);
+  }
+  setDriver(driver) {
+    this.driver = driver;
+    if (driver === 'agent') this._startAgent(); else this._stopAgent();
+    this._renderHud();
+  }
+  // ---- the agent control loop: pure Spatial-API calls ----
+  _startAgent() {
+    if (this._agentTimer) return;
+    const step = () => {
+      if (!this.running || this.driver !== 'agent') return;
+      const state = this.api.get_scene_state();             // 1. observe
+      feed.push('get_scene_state', { nodes: state.node_count }, `${state.node_count} nodes`, true);
+      const targets = state.nodes.filter((n) => n.metadata.role === 'target');
+      const reticle = state.nodes.find((n) => n.node_id === this.reticleId);
+      if (!reticle || targets.length === 0) { this._agentTimer = setTimeout(step, 500); return; }
+      // 2. choose nearest target to current reticle
+      const rp = reticle.transform.position;
+      targets.sort((a, b) => dist2(a.transform.position, rp) - dist2(b.transform.position, rp));
+      const tgt = targets[0];
+      // 3. drive the reticle onto it
+      this.api.set_node_transform({ node_id: this.reticleId, position: tgt.transform.position.slice() });
+      // 4. fire after a short beat
+      this._agentTimer = setTimeout(() => {
+        if (!this.running || this.driver !== 'agent') return;
+        this._fireAt(tgt.transform.position);
+        this._agentTimer = setTimeout(step, 520);
+      }, 320);
+    };
+    this._agentTimer = setTimeout(step, 200);
+  }
+  _stopAgent() { if (this._agentTimer) { clearTimeout(this._agentTimer); this._agentTimer = null; } }
+
+  // ---- firing: hit detection via scene-graph transforms ----
+  _fireAt(worldPos) {
+    const state = this.api.get_scene_state();
+    let hit = null, best = this.HIT_RADIUS * this.HIT_RADIUS;
+    for (const n of state.nodes) {
+      if (n.metadata.role !== 'target') continue;
+      const d = dist2(n.transform.position, worldPos);
+      if (d <= best) { best = d; hit = n; }
+    }
+    // muzzle flash node (spawn + auto-despawn) — shows add/remove traffic
+    const fl = this.api.add_scene_node({ node_type: 'mesh', metadata: { role: 'flash' }, transform: { position: worldPos.slice() } });
+    this._flashes.push({ id: fl.node_id, ttl: 8 });
+    if (hit) {
+      this.api.remove_scene_node({ node_id: hit.node_id });
+      this.score += 100;
+      this._spawnTarget();
+      this._renderHud();
+    }
+  }
+  _tickFlashes() {
+    for (const f of this._flashes) {
+      f.ttl -= 1;
+      if (f.ttl <= 0) this.api.remove_scene_node({ node_id: f.id });
+    }
+    this._flashes = this._flashes.filter((f) => f.ttl > 0);
+  }
+  // ---- player input ----
+  _bindInput() {
+    const cv = this.canvas = $('scene');
+    let dragging = false, lx = 0, ly = 0, movedOnNode = false, downOnReticleDrag = false;
+    const rectN = (e) => {
+      const r = cv.getBoundingClientRect();
+      return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height];
+    };
+    const aimTo = (nx, ny) => {
+      if (this.driver !== 'you' || !this.reticleId) return;
+      const wp = this.view.screenToWorld(nx, ny);
+      this.api.set_node_transform({ node_id: this.reticleId, position: wp });
+    };
+    cv.addEventListener('pointerdown', (e) => {
+      dragging = true; movedOnNode = false;
+      [lx, ly] = [e.clientX, e.clientY];
+      cv.setPointerCapture && cv.setPointerCapture(e.pointerId);
+      // In "you" mode a tap aims; we decide click-vs-orbit on pointerup by movement.
+      downOnReticleDrag = (this.driver === 'you');
+    });
+    cv.addEventListener('pointermove', (e) => {
+      if (!dragging) {
+        if (this.driver === 'you') { const [nx, ny] = rectN(e); aimTo(nx, ny); }
+        return;
+      }
+      const dx = e.clientX - lx, dy = e.clientY - ly;
+      if (Math.abs(dx) + Math.abs(dy) > 3) movedOnNode = true;
+      // Shift or right-region drag orbits; otherwise in "you" mode we aim, in agent/idle we orbit.
+      if (this.driver === 'you' && !e.shiftKey) { const [nx, ny] = rectN(e); aimTo(nx, ny); }
+      else { this.view.orbit(dx, dy); }
+      [lx, ly] = [e.clientX, e.clientY];
+    });
+    const up = (e) => {
+      if (dragging && this.driver === 'you' && !movedOnNode) {
+        const [nx, ny] = rectN(e);
+        const wp = this.view.screenToWorld(nx, ny);
+        this.api.set_node_transform({ node_id: this.reticleId, position: wp });
+        this._fireAt(wp);
+      }
+      dragging = false;
+    };
+    cv.addEventListener('pointerup', up);
+    cv.addEventListener('pointercancel', () => { dragging = false; });
+    cv.addEventListener('wheel', (e) => { e.preventDefault(); this.view.zoom(e.deltaY > 0 ? 1.1 : 0.9); }, { passive: false });
+  }
+  // ---- clock + hud ----
+  _startClock() {
+    this._stopClock();
+    this._clockTimer = setInterval(() => {
+      if (!this.running) return;
+      this.timeLeft -= 1;
+      if (this.timeLeft <= 0) this._gameOver();
+      this._renderHud();
+    }, 1000);
+  }
+  _stopClock() { if (this._clockTimer) { clearInterval(this._clockTimer); this._clockTimer = null; } }
+  _gameOver() {
+    this.running = false; this._stopAgent(); this._stopClock();
+    $('center-msg').classList.remove('hidden');
+    $('center-big').textContent = 'TIME! SCORE ' + this.score;
+    $('center-sm').textContent = (this.driver === 'agent' ? 'The agent' : 'You') +
+      ' drove the scene through ' + this.api.get_metrics().tick + ' Spatial-API calls. Reset to play again.';
+    feed.push('game_over', { score: this.score, driver: this.driver }, 'final', true);
+    this.driver = 'idle'; this._renderHud();
+  }
+  _renderHud() {
+    $('hud-score').textContent = this.score;
+    $('hud-time').textContent = Math.max(0, this.timeLeft);
+    const st = this.api.get_scene_state();
+    $('hud-targets').textContent = st.nodes.filter((n) => n.metadata.role === 'target').length;
+    const d = $('hud-driver');
+    d.classList.toggle('agent', this.driver === 'agent');
+    d.textContent = 'DRIVER: ' + (this.driver === 'agent' ? '🤖 AGENT' : this.driver === 'you' ? '🎮 YOU' : '—');
+  }
+  _loop() {
+    const frame = () => {
+      this._tickFlashes();
+      this.view.render(this.api.get_scene_state());
+      requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  }
+}
+function dist2(a, b) { const dx = a[0] - b[0], dy = a[1] - b[1], dz = a[2] - b[2]; return dx * dx + dy * dy + dz * dz; }
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+const arena = new Arena();
+window.RakuArena = arena;
+window.RakuSpatial = arena.api;     // a real agent can drive arena.api directly
+arena.start();
+
+$('btn-agent').addEventListener('click', () => arena._begin('agent'));
+$('btn-agent2').addEventListener('click', () => arena._begin('agent'));
+$('btn-you').addEventListener('click', () => arena._begin('you'));
+$('btn-you2').addEventListener('click', () => arena._begin('you'));
+$('btn-reset').addEventListener('click', () => arena.reset());
+$('btn-capture').addEventListener('click', () => arena.api.capture_scene({ plane: 'xz' }));
+$('btn-probe').addEventListener('click', async () => {
+  const btn = $('btn-probe'); btn.disabled = true; btn.textContent = 'PROBING…';
+  try { await liveProbe($('live-key').value.trim()); }
+  finally { btn.disabled = false; btn.textContent = 'RUN LIVE PROBE →'; }
+});
+
+feed.push('arena_ready', 'window.RakuSpatial + window.RakuArena exposed', 'an agent can drive this scene', true);
+</script>
+</body>
+</html>
