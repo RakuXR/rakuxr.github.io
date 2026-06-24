@@ -3821,10 +3821,10 @@ function initInstallHint() {
   const dismissBtn = $('btn-install-dismiss');
   const textEl = $('install-hint-text');
   const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  const maxTouch = (typeof navigator !== 'undefined' && typeof navigator.maxTouchPoints === 'number')
+    ? navigator.maxTouchPoints : 0;
   // iOS, including iPadOS which reports as Macintosh plus a touch screen.
-  const isIOS = /iPhone|iPad|iPod/i.test(ua) ||
-    (/Macintosh/i.test(ua) && typeof navigator.maxTouchPoints === 'number' &&
-      navigator.maxTouchPoints > 1);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && maxTouch > 1);
 
   let deferredPrompt = null;
 
@@ -3833,6 +3833,10 @@ function initInstallHint() {
     try { e.preventDefault(); } catch (_) { /* ignore */ }
     deferredPrompt = e;
     if (textEl) {
+      // Re-key data-i18n to the Android copy so a later locale switch
+      // re-localizes to it, not the iOS default that sits on the element in
+      // markup (RakuI18n.onChange re-applies data-i18n on locale change).
+      textEl.setAttribute('data-i18n', 'install.hintAndroid');
       textEl.textContent = t('install.hintAndroid', null,
         'Install Raku Capture for a full screen, app-like experience.');
     }
