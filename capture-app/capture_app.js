@@ -3789,6 +3789,90 @@ function relocalizeDynamic() {
   }
 }
 
+// ---- Install nudge (B): standalone detection + Android/iOS install hint -----
+// Safari's bottom toolbar crowds the viewer controls when the app runs as a
+// normal browser tab. Installing it (standalone display) removes the browser
+// chrome. We show a one-time, dismissible hint on the intro screen when the app
+// is NOT already running standalone: an Install button on Android (driven by the
+// native beforeinstallprompt) and the Share -> Add to Home Screen instruction on
+// iOS (which never fires beforeinstallprompt).
+function isRunningStandalone() {
+  try {
+    return (typeof window !== 'undefined') && (
+      (typeof window.matchMedia === 'function' &&
+        window.matchMedia('(display-mode: standalone)').matches) ||
+      window.navigator.standalone === true // iOS Safari
+    );
+  } catch (_) {
+    return false;
+  }
+}
+
+function initInstallHint() {
+  if (typeof document === 'undefined') return;
+  const hint = $('install-hint');
+  if (!hint) return;
+  if (isRunningStandalone()) return; // already installed: never nudge
+  let dismissed = false;
+  try { dismissed = localStorage.getItem('raku.installHintDismissed') === '1'; } catch (_) {}
+  if (dismissed) return;
+
+  const installBtn = $('btn-install-app');
+  const dismissBtn = $('btn-install-dismiss');
+  const textEl = $('install-hint-text');
+  const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  const maxTouch = (typeof navigator !== 'undefined' && typeof navigator.maxTouchPoints === 'number')
+    ? navigator.maxTouchPoints : 0;
+  // iOS, including iPadOS which reports as Macintosh plus a touch screen.
+  const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && maxTouch > 1);
+
+  let deferredPrompt = null;
+
+  // Android / Chromium: capture the native prompt and show an Install button.
+  window.addEventListener('beforeinstallprompt', (e) => {
+    try { e.preventDefault(); } catch (_) { /* ignore */ }
+    deferredPrompt = e;
+    if (textEl) {
+      // Re-key data-i18n to the Android copy so a later locale switch
+      // re-localizes to it, not the iOS default that sits on the element in
+      // markup (RakuI18n.onChange re-applies data-i18n on locale change).
+      textEl.setAttribute('data-i18n', 'install.hintAndroid');
+      textEl.textContent = t('install.hintAndroid', null,
+        'Install Raku Capture for a full screen, app-like experience.');
+    }
+    if (installBtn) installBtn.hidden = false;
+    hint.hidden = false;
+  });
+  window.addEventListener('appinstalled', () => { hint.hidden = true; });
+
+  if (installBtn) {
+    installBtn.addEventListener('click', () => {
+      if (!deferredPrompt) return;
+      try { deferredPrompt.prompt(); } catch (_) { /* ignore */ }
+      const choice = deferredPrompt.userChoice;
+      if (choice && typeof choice.then === 'function') choice.then(() => {}, () => {});
+      deferredPrompt = null;
+      hint.hidden = true;
+    });
+  }
+  if (dismissBtn) {
+    dismissBtn.addEventListener('click', () => {
+      hint.hidden = true;
+      try { localStorage.setItem('raku.installHintDismissed', '1'); } catch (_) { /* ignore */ }
+    });
+  }
+
+  // iOS never fires beforeinstallprompt, so show the instruction directly.
+  if (isIOS) {
+    if (textEl) {
+      textEl.textContent = t('install.hintIos', null,
+        'For a full screen, app-like experience, tap the Share icon, then Add to Home Screen.');
+    }
+    if (installBtn) installBtn.hidden = true;
+    hint.hidden = false;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const i18nReady =
     (window.RakuI18n && window.RakuI18n.ready) || Promise.resolve();
@@ -3800,6 +3884,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       initDiagnostics(); // debug logger + client-log shipping (no-op on failure)
       bindEvents();
+      initInstallHint(); // B: nudge to install standalone when in a browser tab
       if (_demoMode()) {
         // Booth demo (?demo=1 / ?demo=<sampleId>): pre-baked samples only —
         // no sign-in, no camera, no capture/reconstruction API calls. The

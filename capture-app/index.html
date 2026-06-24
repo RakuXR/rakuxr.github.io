@@ -37,6 +37,7 @@
   <meta name="theme-color" content="#6c63ff">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Capture">
 
   <!--
     PROTOTYPE NOTICE
@@ -260,6 +261,8 @@
       flex-direction: column;
       justify-content: space-between;
       padding: 18px;
+      /* keep the Cancel/Finish controls clear of the home indicator / chrome */
+      padding-bottom: calc(18px + env(safe-area-inset-bottom));
     }
     .capture-hint {
       align-self: center;
@@ -471,6 +474,9 @@
       display: flex;
       gap: 10px;
       padding: 12px 16px;
+      /* lift the New/Remove/Clean/Share controls above the iOS home indicator
+         and Safari's bottom chrome so they are thumb-reachable */
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
       background: var(--panel);
       border-top: 1px solid var(--border);
       align-items: center;
@@ -575,6 +581,27 @@
     .header-signin {
       border: 1px solid rgba(108,99,255,0.45); color: var(--accent, #6c63ff);
     }
+    .install-hint {
+      align-self: stretch;
+      max-width: 460px;
+      width: 100%;
+      margin: 4px auto 0;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      text-align: left;
+      line-height: 1.4;
+    }
+    .install-hint[hidden] { display: none; }
+    .install-hint-actions { display: flex; gap: 8px; justify-content: flex-end; }
+    .install-hint .btn { padding: 8px 14px; font-size: 13px; }
+
     .intro-auth {
       margin-top: 20px; padding: 16px; border-top: 1px solid var(--border, #2a2a3a);
       display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center;
@@ -720,6 +747,19 @@
       <button class="btn" id="btn-grant-camera" data-i18n="intro.getStarted">Get started</button>
       <button class="btn secondary" id="btn-my-captures" data-i18n="intro.myCaptures">My captures</button>
       <p class="progress-label" data-i18n="intro.cameraNote">Camera access is requested later, when you open the camera.</p>
+
+      <!-- Install nudge (B). Shown only when NOT already running standalone, so
+           the user can launch full screen without the browser bars that crowd
+           the bottom controls. Populated and toggled by initInstallHint(). It
+           lives inside screen-intro, so it only ever shows on the intro and
+           never overlaps the viewer toolbar. -->
+      <div class="install-hint" id="install-hint" hidden>
+        <span class="install-hint-text" id="install-hint-text" data-i18n="install.hintIos">For a full screen, app-like experience, tap the Share icon, then Add to Home Screen.</span>
+        <span class="install-hint-actions">
+          <button class="btn" id="btn-install-app" hidden data-i18n="install.button">Install app</button>
+          <button class="btn secondary" id="btn-install-dismiss" data-i18n="install.dismiss">Not now</button>
+        </span>
+      </div>
 
       <!-- Phone vs Cloud reconstruction toggle (task #174) -->
       <fieldset class="compute-toggle" id="compute-toggle" aria-describedby="compute-toggle-hint">
