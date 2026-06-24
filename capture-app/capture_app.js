@@ -2066,6 +2066,7 @@ async function loadSplatViewerWebGPU(canvas, splatUrl, trackStatus, targets, aut
       : (url) => import(/* @vite-ignore */ url);
     const pc = await importCdn(PLAYCANVAS_CDN_URL, 'playcanvas');
     const st = await importCdn(SPLAT_TRANSFORM_CDN_URL, 'splat-transform');
+    if (overlay) setViewerLoadingStage(overlay, 'viewer.loadingDecode', 'Decoding your scene…');
 
     // Decode to GSplatData BEFORE touching the canvas, so a CDN or decode failure
     // falls back to Spark without ever acquiring (and tainting) a context.
@@ -2084,6 +2085,7 @@ async function loadSplatViewerWebGPU(canvas, splatUrl, trackStatus, targets, aut
     } catch (_) { /* morton reorder is a perf optimization only */ }
     const gsplatData = dataTableToGSplatData(pc, table);
     validateGSplatDataPC(gsplatData); // throws -> fallback to Spark
+    if (overlay) setViewerLoadingStage(overlay, 'viewer.loadingRender', 'Rendering your scene…');
 
     // Graphics device: WebGPU first, the engine auto-falls-back to WebGL2.
     const tier = (resolved && resolved.deviceTier) || detectDeviceTier();
@@ -2117,9 +2119,12 @@ async function loadSplatViewerWebGPU(canvas, splatUrl, trackStatus, targets, aut
     try { app.setCanvasResolution(pc.RESOLUTION_AUTO); } catch (_) {}
 
     // Splat entity, built the SuperSplat way (the engine's gsplat handler cannot
-    // read .spz, so we attach the resource directly). SuperSplat applies no extra
-    // axis rotation, so neither do we: the orientation matches what 'Clean up'
-    // shows. For real captures, recenter to the origin so the orbit frames it.
+    // read .spz, so we attach the resource directly). The raw .spz frame renders
+    // upside down in PlayCanvas (the same way it does in SuperSplat), so we apply
+    // the SAME 180 degree rotation about X that the Spark path uses
+    // (rotation.x = Math.PI) to keep this in-app view right side up and matching
+    // the Spark view. That rotation negates local Y and Z, so the recenter cancels
+    // the centroid as (-cx, +cy, +cz), mirroring the Spark path.
     const fileLabel = (splatUrl.split(/[?#]/)[0].split('/').pop()) || 'capture.spz';
     const asset = new pc.Asset('capture', 'gsplat', { url: 'mem-' + fileLabel, filename: fileLabel });
     app.assets.add(asset);
@@ -2127,9 +2132,10 @@ async function loadSplatViewerWebGPU(canvas, splatUrl, trackStatus, targets, aut
     asset.loaded = true;
     const splatEntity = new pc.Entity('splat');
     splatEntity.addComponent('gsplat', { asset });
+    splatEntity.setLocalEulerAngles(180, 0, 0); // match Spark's rotation.x = Math.PI
     if (autoFocus && fit &&
         Number.isFinite(fit.center.x) && Number.isFinite(fit.center.y) && Number.isFinite(fit.center.z)) {
-      splatEntity.setLocalPosition(-fit.center.x, -fit.center.y, -fit.center.z);
+      splatEntity.setLocalPosition(-fit.center.x, fit.center.y, fit.center.z);
     }
     app.root.addChild(splatEntity);
 
@@ -2578,6 +2584,8 @@ function ensureViewerOverlayStyle() {
     'font:500 14px system-ui,sans-serif;text-align:center;padding:0 24px;z-index:5;' +
     'pointer-events:none;transition:opacity .35s ease}' +
     '.raku-viewer-loading.is-hiding{opacity:0}' +
+    '.raku-viewer-loading-text{font:600 15px system-ui,sans-serif}' +
+    '.raku-viewer-loading-sub{font-size:12px;color:#9a9ab8;max-width:300px;line-height:1.4}' +
     '.raku-viewer-spinner{width:38px;height:38px;border-radius:50%;' +
     'border:3px solid rgba(150,140,220,.25);border-top-color:#8a7bff;' +
     'animation:raku-spin .9s linear infinite}' +
@@ -2602,9 +2610,13 @@ function showViewerLoading(canvas) {
     el.className = 'raku-viewer-loading';
     el.innerHTML =
       '<div class="raku-viewer-spinner"></div>' +
-      '<div class="raku-viewer-loading-text"></div>';
+      '<div class="raku-viewer-loading-text"></div>' +
+      '<div class="raku-viewer-loading-sub"></div>';
     const txt = el.querySelector('.raku-viewer-loading-text');
     if (txt) txt.textContent = t('viewer.loadingScene', null, 'Loading your 3D scene…');
+    const sub = el.querySelector('.raku-viewer-loading-sub');
+    if (sub) sub.textContent = t('viewer.loadingSub', null,
+      'A detailed scene can take a few seconds.');
     host.appendChild(el);
     return el;
   } catch (e) {
@@ -2620,12 +2632,19 @@ function updateViewerLoading(el, frac) {
   txt.textContent =
     t('viewer.loadingScenePct', { pct: pct }, 'Loading your 3D scene… ' + pct + '%');
 }
+// Set the loading overlay's stage line (capture-to-render progress states:
+// fetching, decoding, rendering). Leaves the subtitle untouched.
+function setViewerLoadingStage(el, key, fallback) {
+  if (!el) return;
+  const txt = el.querySelector('.raku-viewer-loading-text');
+  if (txt) txt.textContent = t(key, null, fallback);
+}
 function showViewerLoadingError(el) {
   if (!el) return;
   const txt = el.querySelector('.raku-viewer-loading-text');
   if (txt) {
     txt.textContent = t('viewer.loadingSlow', null,
-      'Still loading — large scene. It will appear as soon as it is ready…');
+      'Still loading the scene. It will appear as soon as it is ready.');
   }
 }
 function hideViewerLoading(el) {
