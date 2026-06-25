@@ -65,7 +65,7 @@ function addSampleLabel(mount) {
   mount.appendChild(label);
 }
 
-async function mountViewer(mount, splatUrl) {
+async function mountViewer(mount, splatUrl, isSample) {
   // Dynamically import Spark + three only when we actually have a URL to load.
   // This keeps the page light when the viewer is in PENDING state.
   let THREE;
@@ -199,7 +199,14 @@ async function mountViewer(mount, splatUrl) {
   }
   window.addEventListener('resize', resize);
 
+  // Auto-orbit: off during normal use (the user drives the camera), turned on
+  // by the share recorder so the saved clip is a clean turntable. Dragging
+  // pauses it so a user grabbing the model mid-record is still respected.
+  let autoOrbit = false;
   function tick() {
+    if (autoOrbit && !dragging) {
+      yaw += 0.01;
+    }
     splat.rotation.y = yaw;
     splat.rotation.x = pitch;
     renderer.render(scene, camera);
@@ -210,8 +217,55 @@ async function mountViewer(mount, splatUrl) {
   // The splat may still be downloading in the background, but the renderer is
   // mounted and producing frames -- this is not fake success.
   hidePlaceholderChildren(mount);
-  addSampleLabel(mount);
+  if (isSample) {
+    addSampleLabel(mount);
+  }
   requestAnimationFrame(tick);
+
+  // Expose a small, stable handle so the optional share module (capture-share.js)
+  // can record a turntable clip without reaching into renderer internals. Kept
+  // deliberately minimal. No-op if the share module is not loaded.
+  window.rakuSplatViewer = {
+    canvas: canvas,
+    isSample: !!isSample,
+    splatUrl: splatUrl,
+    startAutoOrbit: function () { autoOrbit = true; },
+    stopAutoOrbit: function () { autoOrbit = false; },
+  };
+  mount.dispatchEvent(new CustomEvent('raku-splat-ready', { bubbles: true }));
+}
+
+function resolveTarget(mount) {
+  // Decide what to load and whether it is the visitor's own capture or a
+  // labelled sample. Priority, highest first:
+  //   1. ?splat=<url> query param  -- a shared capture link (a real capture)
+  //   2. data-splat-url (non-PENDING) -- an operator-pinned real capture
+  //   3. data-splat-sample-url       -- a default demo sample (labelled)
+  // Returns { url, isSample } or null when there is nothing to load.
+  let params;
+  try {
+    params = new URLSearchParams(window.location.search);
+  } catch (err) {
+    params = null;
+  }
+  const shared = params && (params.get('splat') || '').trim();
+  if (shared) {
+    return { url: shared, isSample: false };
+  }
+  const pinned = (mount.getAttribute('data-splat-url') || '').trim();
+  if (pinned && pinned !== SENTINEL_PENDING) {
+    return { url: pinned, isSample: false };
+  }
+  const sample = (mount.getAttribute('data-splat-sample-url') || '').trim();
+  if (sample) {
+    return { url: sample, isSample: true };
+  }
+  if (!pinned) {
+    logOperatorHint('data-splat-url attribute is empty');
+  } else {
+    logOperatorHint('data-splat-url is the sentinel "PENDING" and no sample is set');
+  }
+  return null;
 }
 
 function init() {
@@ -220,15 +274,11 @@ function init() {
     // Page does not include the viewer mount -- nothing to do.
     return;
   }
-  const splatUrl = (mount.getAttribute('data-splat-url') || '').trim();
-  if (!splatUrl) {
-    logOperatorHint('data-splat-url attribute is empty');
+  const target = resolveTarget(mount);
+  if (!target) {
     return;
   }
-  if (splatUrl === SENTINEL_PENDING) {
-    logOperatorHint('data-splat-url is the sentinel "PENDING"');
-    return;
-  }
+  const splatUrl = target.url;
   // Defensive: resolve through the URL constructor so a same-origin relative
   // path (e.g. `captures/room.spz` for local testing or for a future
   // raku-api-hosted asset) works, but the resolved protocol must still be
@@ -244,7 +294,7 @@ function init() {
     logOperatorHint('data-splat-url protocol is not http(s): ' + splatUrl);
     return;
   }
-  mountViewer(mount, resolvedUrl.href);
+  mountViewer(mount, resolvedUrl.href, target.isSample);
 }
 
 if (document.readyState === 'loading') {

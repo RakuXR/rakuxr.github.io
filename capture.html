@@ -598,13 +598,30 @@
             "Sample scene -- your scans replace this when ready" so a public
             sample is never mistaken for a visitor's own capture.
         -->
+        <style>
+            #splat-share { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+            #splat-share:empty { display:none; }
+            .splat-share-btn {
+                appearance:none; cursor:pointer; font:inherit; font-size:0.82rem;
+                padding:8px 14px; border-radius:999px; border:1px solid #2a2a4a;
+                background:rgba(20,20,40,0.7); color:#cfc8ff; letter-spacing:0.02em;
+                transition:background 0.15s ease, border-color 0.15s ease;
+            }
+            .splat-share-btn:hover, .splat-share-btn:focus-visible { background:rgba(40,40,70,0.85); border-color:#4a4a7a; }
+            .splat-share-btn:focus-visible { outline:2px solid #a388ff; outline-offset:2px; }
+            .splat-share-btn:disabled { opacity:0.7; cursor:default; }
+        </style>
         <div class="cap-viewer-wrap">
-            <div id="splat-viewer" data-splat-url="PENDING" role="figure" aria-label="Placeholder for a live, draggable 3D capture (Gaussian splat) of a scanned space">
-                <span class="viewer-badge">Live splat viewer &middot; coming to this page</span>
-                <span class="viewer-headline">Drag to look around your scanned world.</span>
-                <span class="viewer-note">A real, draggable Gaussian-splat capture mounts here. We are not faking a viewer — the Spark renderer is wired in; when an operator points <code>data-splat-url</code> at a captured .spz, the placeholder is replaced by an interactive splat you can orbit with your mouse.</span>
+            <div id="splat-viewer"
+                 data-splat-url="PENDING"
+                 data-splat-sample-url="https://sparkjs.dev/assets/splats/fireplace.spz"
+                 role="figure" aria-label="A live, draggable 3D capture (Gaussian splat) of a scanned space">
+                <span class="viewer-badge">Live splat viewer</span>
+                <span class="viewer-headline">Drag to look around a real scanned space.</span>
+                <span class="viewer-note">A real, draggable Gaussian-splat capture mounts here. We are not faking a viewer — the Spark renderer is wired in, and a sample scan loads by default (labelled as a sample). Point <code>data-splat-url</code> at your own captured .spz and it replaces the sample, or open <code>?splat=&lt;url&gt;</code> to view a shared capture.</span>
             </div>
-            <p class="cap-viewer-caption"><strong>Real today:</strong> phone scan in, draggable splat out, Spark renderer wired on this page, MCP runtime live. <strong>Pending:</strong> a verifiable public sample to load by default — until then the honest placeholder above stands.</p>
+            <p class="cap-viewer-caption"><strong>Real today:</strong> phone scan in, draggable splat out, a live Spark render of a real sample scan on this page, share + embed below, MCP runtime live. The sample is clearly labelled so it is never mistaken for your own capture.</p>
+            <div id="splat-share" aria-label="Share this capture"></div>
         </div>
         <!--
             Importmap so the splat-viewer module can use the bare specifier
@@ -615,11 +632,13 @@
         <script type="importmap">
         {
           "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+            "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
           }
         }
         </script>
         <script type="module" src="js/splat-viewer.js"></script>
+        <script defer src="js/capture-share.js"></script>
 
         <div class="cap-qr">
             <div class="cap-qr-img">
