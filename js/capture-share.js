@@ -105,10 +105,14 @@
     rec.ondataavailable = function (ev) { if (ev.data && ev.data.size) { chunks.push(ev.data); } };
     rec.onstop = function () {
       handle.stopAutoOrbit();
-      var blob = new Blob(chunks, { type: mime || 'video/webm' });
+      // iOS Safari records MP4/H.264 by default (it ignores our webm request),
+      // so name the file from the ACTUAL container, not a hardcoded .webm.
+      var actualMime = rec.mimeType || mime || 'video/webm';
+      var isMp4 = actualMime.indexOf('mp4') !== -1;
+      var blob = new Blob(chunks, { type: actualMime });
       var a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'raku-capture-orbit.webm';
+      a.download = isMp4 ? 'raku-capture-orbit.mp4' : 'raku-capture-orbit.webm';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -119,7 +123,18 @@
     btn.textContent = 'Recording...';
     btn.disabled = true;
     handle.startAutoOrbit();
-    rec.start();
+    // rec.start() can throw (security/invalid-state/unsupported tracks); if it
+    // does, restore the UI and auto-orbit instead of getting stuck on
+    // "Recording...".
+    try {
+      rec.start();
+    } catch (e) {
+      handle.stopAutoOrbit();
+      btn.textContent = 'Save orbit clip';
+      btn.disabled = false;
+      flash(btn, 'Cannot record');
+      return;
+    }
     // ~6s turntable: long enough for a full-ish rotation at 0.01 rad/frame.
     setTimeout(function () { try { rec.stop(); } catch (e) { /* already stopped */ } }, 6000);
   }
