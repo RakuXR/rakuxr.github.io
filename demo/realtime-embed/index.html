@@ -55,7 +55,8 @@
   .btn{font-family:inherit;font-size:12px;cursor:pointer;background:transparent;
     color:var(--neon-cyan);border:2px solid var(--neon-cyan);padding:9px 12px;
     border-radius:3px;text-shadow:0 0 6px rgba(0,240,255,.5);transition:all .15s}
-  .btn:hover{background:var(--neon-cyan);color:#000;text-shadow:none}
+  .btn:hover,.btn:focus-visible{background:var(--neon-cyan);color:#000;text-shadow:none}
+  .btn:focus-visible,.bar nav a:focus-visible{outline:2px solid var(--neon-yellow);outline-offset:2px}
   .btn.pink{color:var(--neon-pink);border-color:var(--neon-pink)}
   .btn.pink:hover{background:var(--neon-pink);color:#000}
   .btn.green{color:var(--neon-green);border-color:var(--neon-green)}
@@ -374,10 +375,24 @@ function clearMeshes(){
 }
 function updateHud(){ $('hud-nodes').textContent=state.meshes.size; $('hud-step').textContent=state.step; }
 
+function rendererFailed(msg){
+  // Fail loudly: WebGL is required to show the scene. Never pretend it works.
+  $('stage-banner').textContent='WebGL unavailable: '+msg+
+    ' — the scene cannot render in this browser. The tool calls still hit the runtime; '+
+    'see the LIVE TOOL-CALL FEED.';
+  for(const id of ['btn-run','btn-stop','btn-step']) $(id).disabled=true;
+}
+
 async function initRenderer(){
   const THREE=await import(THREE_CDN); state.THREE=THREE;
   const canvas=$('scene');
-  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  let renderer;
+  try{
+    renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  }catch(e){
+    rendererFailed(e.message||'context creation failed');
+    throw e;            // surface to the boot .catch — no silent half-init
+  }
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));
   const resize=()=>{const r=canvas.getBoundingClientRect();
     renderer.setSize(r.width,r.height,false);
