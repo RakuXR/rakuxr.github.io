@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Govern an Agent — Deny, Permit, Attest — RakuAI Demo</title>
+<meta name="description" content="Watch the same autonomous-agent action go DENIED by a deny-by-default policy, PERMITTED after a policy-as-code rule, then ATTESTED with a verifiable HMAC-signed record. This is how a security owner safely approves an AI agent acting in the RakuAI runtime.">
+<meta property="og:title" content="Govern an Agent — RakuAI">
+<meta property="og:description" content="Deny-by-default permissions, policy-as-code, and an HMAC-signed audit trail — the controls that let an autonomous agent drive a spatial runtime safely.">
+<!-- CSP: this page only talks to its own origin and the RakuAI API. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://api.rakuai.com; frame-ancestors 'none'">
+<style>
+  :root{
+    --bg:#0e0e16; --bg2:#16161f; --fg:#ececf4; --muted:#9090b0;
+    --accent:#6c5ce7; --accent2:#4f46e5; --line:rgba(108,92,231,.25);
+    --nv:#76b900; --deny:#ff6b6b; --permit:#4cd4a0; --attest:#5aa9ff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  a{color:var(--accent)}
+  header{display:flex;align-items:center;gap:14px;padding:12px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .brand{font-weight:800;letter-spacing:.2px}
+  .brand .kanji{color:var(--accent)}
+  header .sep{flex:1}
+  .chip{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
+  main{max-width:960px;margin:0 auto;padding:28px 18px 60px}
+  h1{font-size:28px;margin:0 0 6px}
+  .lede{color:var(--muted);max-width:70ch;margin:0 0 22px}
+  .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0 26px}
+  button{font:inherit;font-weight:600;cursor:pointer;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:11px 18px}
+  button:disabled{opacity:.5;cursor:default}
+  button.ghost{background:transparent;color:var(--fg)}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media (max-width:760px){.steps{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:14px;background:var(--bg2);padding:16px;opacity:.45;transition:opacity .3s,border-color .3s}
+  .card.active{opacity:1}
+  .card h2{font-size:15px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+  .badge{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:.4px}
+  .card.deny .badge{background:rgba(255,107,107,.16);color:var(--deny)}
+  .card.permit .badge{background:rgba(76,212,160,.16);color:var(--permit)}
+  .card.attest .badge{background:rgba(90,169,255,.16);color:var(--attest)}
+  .card p{font-size:13px;color:var(--muted);margin:8px 0 0}
+  .verdict{font-size:14px;font-weight:700;margin-top:10px}
+  .verdict.no{color:var(--deny)} .verdict.yes{color:var(--permit)} .verdict.sig{color:var(--attest)}
+  pre{background:#0a0a12;border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;font-size:12px;color:#c7c7e6;margin:24px 0 0;max-height:360px}
+  .note{font-size:12px;color:var(--muted);margin-top:6px}
+  .meta{font-size:12px;color:var(--muted);margin-top:20px;border-top:1px solid var(--line);padding-top:14px}
+  code{background:#0a0a12;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:12px}
+  .err{color:var(--deny);font-size:13px;margin-top:12px}
+</style>
+</head>
+<body>
+<header>
+  <span class="brand"><span class="kanji">楽</span> RakuAI</span>
+  <span class="chip">Govern layer</span>
+  <span class="sep"></span>
+  <span class="chip">deny-by-default · policy-as-code · HMAC attestation</span>
+</header>
+
+<main>
+  <h1>Govern an autonomous agent</h1>
+  <p class="lede">
+    Before a security owner lets an AI agent drive a spatial runtime, they need three
+    guarantees: the agent can do <em>nothing</em> by default, a permission is a
+    declarative rule a human can read and approve, and every permitted action leaves a
+    tamper-evident record. This demo runs the <strong>same agent action</strong> through
+    all three states against the live RakuAI API.
+  </p>
+
+  <div class="controls">
+    <button id="run">Run the demo</button>
+    <label class="chip"><input type="checkbox" id="live" checked> live API
+      (<code>api.rakuai.com</code>)</label>
+  </div>
+
+  <div class="steps">
+    <div class="card deny" id="c-deny">
+      <h2><span class="badge">1 · Denied</span></h2>
+      <p>The action is evaluated against the deny-by-default policy. It matches no
+        <code>allow</code> rule, so it is refused. Nothing runs.</p>
+      <div class="verdict" id="v-deny">—</div>
+    </div>
+    <div class="card permit" id="c-permit">
+      <h2><span class="badge">2 · Permitted</span></h2>
+      <p>A security owner adds a declarative <code>allow</code> rule (policy-as-code,
+        not a code change). The same action now matches and is permitted.</p>
+      <div class="verdict" id="v-permit">—</div>
+    </div>
+    <div class="card attest" id="c-attest">
+      <h2><span class="badge">3 · Attested</span></h2>
+      <p>The permitted decision is wrapped in an HMAC-signed, hash-chained record, then
+        re-verified. Mutate one field and the signature rejects it.</p>
+      <div class="verdict" id="v-attest">—</div>
+      <div class="note" id="n-attest"></div>
+    </div>
+  </div>
+
+  <div class="err" id="err" hidden></div>
+  <pre id="out" hidden></pre>
+
+  <div class="meta">
+    The govern engine lives in <code>raku-api</code> at
+    <code>services/govern/</code>; this page calls
+    <code>GET /api/v1/govern/demo</code>. The signing key never leaves the server — the
+    record carries only the non-secret key id and the HMAC. When no signing key is
+    configured the attestation is an honest <code>signed=false</code> envelope (the hash
+    chain still proves integrity and ordering), never a fabricated signature.
+  </div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var API = "https://api.rakuai.com";
+  var runBtn = document.getElementById("run");
+  var out = document.getElementById("out");
+  var err = document.getElementById("err");
+
+  function setVerdict(id, cls, text) {
+    var el = document.getElementById(id);
+    el.className = "verdict " + cls;
+    el.textContent = text;
+  }
+  function activate(id) { document.getElementById(id).classList.add("active"); }
+  function reset() {
+    ["c-deny", "c-permit", "c-attest"].forEach(function (i) {
+      document.getElementById(i).classList.remove("active");
+    });
+    ["v-deny", "v-permit", "v-attest"].forEach(function (i) {
+      document.getElementById(i).className = "verdict";
+      document.getElementById(i).textContent = "—";
+    });
+    document.getElementById("n-attest").textContent = "";
+    err.hidden = true; out.hidden = true; out.textContent = "";
+  }
+
+  function render(data) {
+    var act = data.action || {};
+    activate("c-deny");
+    var denied = !((data.denied || {}).decision || {}).allowed;
+    setVerdict("v-deny", denied ? "no" : "yes",
+      denied ? "DENIED — " + act.action + " on " + act.resource : "permitted (unexpected)");
+
+    setTimeout(function () {
+      activate("c-permit");
+      var permitted = ((data.permitted || {}).decision || {}).allowed;
+      setVerdict("v-permit", permitted ? "yes" : "no",
+        permitted ? "PERMITTED — by rule "
+          + (((data.permitted || {}).decision || {}).rule_id || "?") : "still denied");
+    }, 450);
+
+    setTimeout(function () {
+      activate("c-attest");
+      var a = data.attested || {};
+      var v = a.verification || {};
+      var ok = v.valid === true;
+      var tamper = (a.tamper_check || {}).rejected_after_tamper === true;
+      setVerdict("v-attest", ok ? "sig" : "no",
+        ok ? (a.signed ? "ATTESTED — HMAC signature verifies"
+                       : "ATTESTED — chain verifies (unsigned: no key configured)")
+           : "verification failed");
+      var n = document.getElementById("n-attest");
+      n.textContent = (a.signed ? "" : "No RAKU_AUDIT_SIGNING_KEY on this deployment — honest signed=false. ")
+        + (tamper ? "Tamper check: a mutated record is correctly rejected." : "");
+    }, 900);
+
+    out.hidden = false;
+    out.textContent = JSON.stringify(data, null, 2);
+  }
+
+  runBtn.addEventListener("click", function () {
+    reset();
+    runBtn.disabled = true; runBtn.textContent = "Running…";
+    var live = document.getElementById("live").checked;
+    var p = live
+      ? fetch(API + "/api/v1/govern/demo").then(function (r) {
+          if (!r.ok) throw new Error("API returned " + r.status);
+          return r.json();
+        })
+      : Promise.resolve(SAMPLE);
+    p.then(render).catch(function (e) {
+      err.hidden = false;
+      err.textContent = "Could not reach the live govern API (" + e.message
+        + "). Showing the recorded sample response instead.";
+      render(SAMPLE);
+    }).finally(function () {
+      runBtn.disabled = false; runBtn.textContent = "Run the demo again";
+    });
+  });
+
+  // Recorded sample (offline fallback only). Shape mirrors the live endpoint;
+  // it is illustrative, not a signed artifact.
+  var SAMPLE = {
+    action: { action: "scene.write", resource: "scene:demo", tier: "pro", actor: "connector:demo-agent" },
+    denied: { state: "DENIED", decision: { allowed: false, effect: "deny", rule_id: null,
+      reason: "no matching allow rule (deny-by-default)" },
+      note: "Under the deny-by-default base policy the action matches no allow rule, so it is refused." },
+    permitted: { state: "PERMITTED", decision: { allowed: true, effect: "allow",
+      rule_id: "allow-scene-write-demo", reason: "permitted by rule 'allow-scene-write-demo'" },
+      note: "A security owner added a declarative allow rule (policy-as-code, not a code change)." },
+    attested: { attested: true, signed: false,
+      verification: { valid: true, signed: false, chain_intact: true,
+        reason: "chain intact; export was not cryptographically signed (no key configured)" },
+      tamper_check: { rejected_after_tamper: true },
+      note: "Recorded sample. The live endpoint signs with the deployment HMAC key when configured." },
+    summary: "Same action, three states: DENIED by deny-by-default, PERMITTED after a policy-as-code rule, ATTESTED with a verifiable record."
+  };
+})();
+</script>
+</body>
+</html>
