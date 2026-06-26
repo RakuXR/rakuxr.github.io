@@ -28,9 +28,13 @@
   h1{font-size:28px;margin:0 0 6px}
   .lede{color:var(--muted);max-width:70ch;margin:0 0 22px}
   .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0 26px}
-  button{font:inherit;font-weight:600;cursor:pointer;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:11px 18px}
+  button{font:inherit;font-weight:600;cursor:pointer;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:11px 18px;transition:background .15s}
+  button:hover:not(:disabled){background:var(--accent2)}
+  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   button:disabled{opacity:.5;cursor:default}
   button.ghost{background:transparent;color:var(--fg)}
+  .chip:hover{border-color:var(--accent)}
+  .chip:focus-within{outline:2px solid var(--accent);outline-offset:2px}
   .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   @media (max-width:760px){.steps{grid-template-columns:1fr}}
   .card{border:1px solid var(--line);border-radius:14px;background:var(--bg2);padding:16px;opacity:.45;transition:opacity .3s,border-color .3s}
@@ -117,6 +121,8 @@
   var out = document.getElementById("out");
   var err = document.getElementById("err");
 
+  var permitTimeout, attestTimeout;
+
   function setVerdict(id, cls, text) {
     var el = document.getElementById(id);
     el.className = "verdict " + cls;
@@ -124,6 +130,9 @@
   }
   function activate(id) { document.getElementById(id).classList.add("active"); }
   function reset() {
+    // Cancel any pending step animations from a previous run so rapid
+    // re-clicks don't produce overlapping, out-of-order state updates.
+    clearTimeout(permitTimeout); clearTimeout(attestTimeout);
     ["c-deny", "c-permit", "c-attest"].forEach(function (i) {
       document.getElementById(i).classList.remove("active");
     });
@@ -142,7 +151,7 @@
     setVerdict("v-deny", denied ? "no" : "yes",
       denied ? "DENIED — " + act.action + " on " + act.resource : "permitted (unexpected)");
 
-    setTimeout(function () {
+    permitTimeout = setTimeout(function () {
       activate("c-permit");
       var permitted = ((data.permitted || {}).decision || {}).allowed;
       setVerdict("v-permit", permitted ? "yes" : "no",
@@ -150,7 +159,7 @@
           + (((data.permitted || {}).decision || {}).rule_id || "?") : "still denied");
     }, 450);
 
-    setTimeout(function () {
+    attestTimeout = setTimeout(function () {
       activate("c-attest");
       var a = data.attested || {};
       var v = a.verification || {};
@@ -179,12 +188,15 @@
           return r.json();
         })
       : Promise.resolve(SAMPLE);
-    p.then(render).catch(function (e) {
+    // .catch() is placed BEFORE .then(render) so only API/network errors
+    // trigger the sample fallback; an error thrown inside render() propagates
+    // normally instead of being mislabeled as a network failure.
+    p.catch(function (e) {
       err.hidden = false;
       err.textContent = "Could not reach the live govern API (" + e.message
         + "). Showing the recorded sample response instead.";
-      render(SAMPLE);
-    }).finally(function () {
+      return SAMPLE;
+    }).then(render).finally(function () {
       runBtn.disabled = false; runBtn.textContent = "Run the demo again";
     });
   });
