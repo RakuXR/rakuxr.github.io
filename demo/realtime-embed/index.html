@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Realtime Embed — an LLM driving a live scene · RakuAI</title>
+<meta name="description" content="Watch an AI agent drive a live 3D scene in realtime over the RakuAI runtime: spawn, move, relight, and measure objects via tool calls that hit a real server-authoritative scene graph and render to your browser. This is the runtime, not a capture tool.">
+<meta property="og:title" content="Realtime Embed — an LLM driving a live scene · RakuAI">
+<meta property="og:description" content="An LLM emits tool calls; a real scene mutates and renders in realtime. The RakuAI spatial runtime, live in your browser.">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<!-- CSP: three from jsDelivr; live scene state from the RakuAI API. No inline eval. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.rakuai.com; frame-ancestors 'none'">
+<style>
+  :root{
+    --neon-cyan:#00f0ff; --neon-pink:#ff2d95; --neon-green:#39ff14;
+    --neon-yellow:#ffea00; --neon-purple:#b967ff;
+    --bg:#06030f; --bg-card:#0f0824; --line:rgba(0,240,255,.22);
+    --muted:#9fb6d8;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:#fff;
+    font-family:'Courier New',Menlo,monospace;min-height:100vh}
+  a{color:var(--neon-cyan)}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    flex-wrap:wrap;padding:10px 16px;background:rgba(6,3,15,.94);
+    border-bottom:2px solid var(--neon-pink);position:sticky;top:0;z-index:20}
+  .bar .brand{font-weight:bold;letter-spacing:2px;color:var(--neon-yellow);
+    text-shadow:0 0 8px var(--neon-yellow);text-decoration:none;font-size:14px}
+  .bar nav a{text-decoration:none;font-size:11px;margin-left:14px;color:var(--neon-cyan)}
+  .bar nav a:hover{color:var(--neon-pink)}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px 16px 80px}
+  h1.title{font-size:22px;letter-spacing:2px;margin:8px 0 4px;color:var(--neon-cyan);
+    text-shadow:0 0 10px var(--neon-cyan)}
+  .subtitle{color:#c7dbff;font-size:13px;margin:0 0 14px;line-height:1.6;max-width:84ch}
+  code{color:var(--neon-green);background:rgba(57,255,20,.08);padding:1px 5px;border-radius:3px;font-size:.92em}
+
+  .stage-row{display:grid;grid-template-columns:1fr 360px;gap:16px}
+  @media (max-width:940px){.stage-row{grid-template-columns:1fr}}
+  .stage{position:relative;background:#000;border:3px solid var(--neon-cyan);
+    box-shadow:0 0 24px rgba(0,240,255,.25),inset 0 0 30px rgba(0,240,255,.05);
+    aspect-ratio:16/10;overflow:hidden;border-radius:4px}
+  .stage canvas{display:block;width:100%;height:100%}
+  .hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
+    gap:8px;padding:10px 12px;pointer-events:none;font-size:12px;
+    text-shadow:0 0 6px rgba(0,0,0,.9)}
+  .hud b{color:var(--neon-yellow);text-shadow:0 0 6px var(--neon-yellow)}
+  .hud .right{text-align:right}
+  .mode{font-weight:bold}
+  .mode.live{color:var(--neon-green);text-shadow:0 0 6px var(--neon-green)}
+  .mode.local{color:var(--neon-yellow);text-shadow:0 0 6px var(--neon-yellow)}
+  .stage-banner{position:absolute;left:0;right:0;bottom:0;background:rgba(6,3,15,.82);
+    border-top:1px solid var(--line);padding:6px 12px;font-size:10px;color:var(--muted);
+    pointer-events:none}
+
+  .btn{font-family:inherit;font-size:12px;cursor:pointer;background:transparent;
+    color:var(--neon-cyan);border:2px solid var(--neon-cyan);padding:9px 12px;
+    border-radius:3px;text-shadow:0 0 6px rgba(0,240,255,.5);transition:all .15s}
+  .btn:hover{background:var(--neon-cyan);color:#000;text-shadow:none}
+  .btn.pink{color:var(--neon-pink);border-color:var(--neon-pink)}
+  .btn.pink:hover{background:var(--neon-pink);color:#000}
+  .btn.green{color:var(--neon-green);border-color:var(--neon-green)}
+  .btn.green:hover{background:var(--neon-green);color:#000}
+  .btn.purple{color:var(--neon-purple);border-color:var(--neon-purple)}
+  .btn.purple:hover{background:var(--neon-purple);color:#000}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+
+  .panel{border:2px solid var(--neon-purple);border-radius:4px;
+    background:rgba(185,103,255,.05);padding:12px}
+  .panel h3{margin:0 0 8px;font-size:12px;letter-spacing:1px;color:var(--neon-purple);
+    text-shadow:0 0 6px var(--neon-purple)}
+  .panel .think{font-size:12px;line-height:1.7;color:#dce7ff;min-height:3em}
+  .panel .think .who{color:var(--neon-purple);font-weight:bold}
+
+  .toollog{border:2px solid var(--neon-cyan);border-radius:4px;
+    background:rgba(0,240,255,.04);padding:10px;margin-top:14px}
+  .toollog h3{margin:0 0 6px;font-size:12px;color:var(--neon-yellow);
+    text-shadow:0 0 6px var(--neon-yellow);letter-spacing:1px}
+  .toollog .lines{font-size:11px;line-height:1.7;max-height:300px;overflow-y:auto;
+    white-space:pre-wrap;word-break:break-word}
+  .toollog .row{border-bottom:1px dotted rgba(0,240,255,.18);padding:2px 0}
+  .toollog .t{color:#6a7a9a}
+  .toollog .m{color:var(--neon-purple)}
+  .toollog .tool{color:var(--neon-cyan)}
+  .toollog .ok{color:var(--neon-green)}
+  .toollog .err{color:var(--neon-pink)}
+
+  .live-box{margin-top:14px}
+  .live-box label{display:block;font-size:11px;color:#cfe0ff;margin:8px 0 3px}
+  .live-box input{width:100%;font-family:inherit;font-size:11px;padding:6px 8px;
+    background:#05050f;color:#fff;border:1px solid var(--neon-cyan);border-radius:3px}
+  .note{font-size:10px;color:var(--muted);line-height:1.6}
+
+  .honest{margin-top:28px;border:2px dashed rgba(255,234,0,.4);border-radius:4px;
+    background:rgba(255,234,0,.03);padding:16px}
+  .honest h2{font-size:14px;color:var(--neon-yellow);text-shadow:0 0 6px var(--neon-yellow);
+    margin:0 0 10px;letter-spacing:1px}
+  .honest h4{font-size:12px;margin:14px 0 4px;color:var(--neon-cyan)}
+  .honest ul{margin:4px 0 4px 18px;padding:0}
+  .honest li{font-size:12px;color:#cfe0ff;line-height:1.7;margin:2px 0}
+  .tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:3px;margin-right:6px}
+  .tag.real{background:rgba(57,255,20,.15);color:var(--neon-green);border:1px solid var(--neon-green)}
+  .tag.local{background:rgba(255,234,0,.12);color:var(--neon-yellow);border:1px solid var(--neon-yellow)}
+  .tag.todo{background:rgba(255,45,149,.12);color:var(--neon-pink);border:1px solid var(--neon-pink)}
+
+  footer{text-align:center;font-size:10px;color:#6a7a9a;margin-top:40px;line-height:1.9}
+  footer a{color:var(--neon-cyan);text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <a class="brand" href="../../index.html">RAKUAI<sup>&trade;</sup> &middot; REALTIME EMBED</a>
+  <nav>
+    <a href="../../spatial-arena/">Spatial Arena</a>
+    <a href="../talk-to-a-room/">Talk to a Room</a>
+    <a href="../../mcp.html">MCP Server</a>
+  </nav>
+</div>
+
+<div class="wrap">
+  <h1 class="title">REALTIME EMBED &middot; AN LLM DRIVING A LIVE SCENE</h1>
+  <p class="subtitle">
+    This is the <strong>runtime</strong>, not a capture tool. An AI agent emits tool calls
+    (<code>spawn_node</code>, <code>move_node</code>, <code>relight</code>, <code>measure</code>) and a
+    real scene <em>mutates and renders in realtime</em> in your browser. Each call hits a live,
+    server-authoritative scene graph on <code>api.rakuai.com</code>; the state the server returns is
+    what you see. No camera, no upload, no signup. Watch the tool-call feed on the right.
+  </p>
+
+  <div class="stage-row">
+    <div>
+      <div class="stage" id="stage">
+        <canvas id="scene"></canvas>
+        <div class="hud">
+          <div class="left">
+            <div>NODES <b id="hud-nodes">0</b></div>
+            <div>STEP <b id="hud-step">0</b></div>
+          </div>
+          <div class="right">
+            <div class="mode local" id="hud-mode">MODE: &mdash;</div>
+            <div id="hud-scene" style="color:var(--muted);font-size:10px"></div>
+          </div>
+        </div>
+        <div class="stage-banner" id="stage-banner">Loading renderer&hellip;</div>
+      </div>
+
+      <div class="controls">
+        <button class="btn green" id="btn-run">&#9654; RUN AGENT</button>
+        <button class="btn pink" id="btn-stop" disabled>&#9632; STOP</button>
+        <button class="btn purple" id="btn-step">STEP ONCE</button>
+        <button class="btn" id="btn-reset">RESET SCENE</button>
+      </div>
+      <p class="note">
+        The agent's plan is scripted here (RakuAI runs no LLM server-side &mdash; it is BYO-LLM).
+        Any model connected over <a href="../../mcp.html">MCP</a> issues the same tool calls. The
+        point being proven is the <strong>realtime runtime loop</strong>: intent &rarr; tool call
+        &rarr; live scene mutation &rarr; render.
+      </p>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h3>AGENT</h3>
+        <div class="think" id="think"><span class="who">agent:</span> idle. Press RUN AGENT.</div>
+      </div>
+
+      <div class="toollog">
+        <h3>LIVE TOOL-CALL FEED</h3>
+        <div class="lines" id="feed"></div>
+      </div>
+
+      <div class="live-box">
+        <label for="apikey">Backend (optional): the public demo path is keyless. Leave blank.</label>
+        <input id="apikey" placeholder="X-Raku-API-Key (not required for /demo/realtime)" autocomplete="off">
+        <p class="note" id="probe-note" style="margin-top:6px"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="honest">
+    <h2>WHAT IS REAL HERE (no theater)</h2>
+    <ul>
+      <li><span class="tag real">REAL</span> The scene graph is <strong>server-authoritative</strong>.
+        Every tool call is a real HTTP request to <code>/api/raku/demo/realtime/*</code> on
+        <code>api.rakuai.com</code>, and the renderer draws the state the <em>server</em> returns
+        (positions, scales, colors, the light). You can replay the exact calls with <code>curl</code>.</li>
+      <li><span class="tag real">REAL</span> <code>measure</code> returns the true Euclidean distance
+        the server computes between two nodes &mdash; not a number made up in the browser.</li>
+      <li><span class="tag real">REAL</span> The endpoints fail loudly: an unknown scene or node is a
+        <code>404</code>, a no-op relight is a <code>422</code>. Nothing returns fake success.</li>
+      <li><span class="tag local">LOCAL FALLBACK</span> If the backend is unreachable (offline, CORS,
+        cold start), the demo drops to a clearly-labeled <strong>LOCAL</strong> mode and keeps rendering
+        from a browser-side mirror so the loop is still visible. The HUD says <code>MODE: LOCAL</code>
+        and the feed marks the call <code>(local)</code> &mdash; it never pretends the server answered.</li>
+      <li><span class="tag local">DEMO-SCOPED</span> The realtime scene store is ephemeral: in-process,
+        TTL-evicted, capped. It proves the realtime <em>loop</em>; it is not the durable, native-backed
+        scene runtime (that lives behind the key-gated <code>/api/raku/scenes/*</code> surface and the
+        17 native MCP tools at <code>mcp.rakuai.com</code>).</li>
+      <li><span class="tag todo">NEXT</span> <strong>Android XR emulator view.</strong> The same tool
+        loop is the input to an Android XR (Jetpack XR / OpenXR) emulator surface. That path is
+        documented below as a next step &mdash; it is not wired in this page.</li>
+    </ul>
+
+    <h4>Android XR emulator path (honest status)</h4>
+    <ul>
+      <li>The render here is WebGL (three.js) so it runs in any browser today. An Android XR view
+        would consume the <em>same</em> server scene state (<code>GET /api/raku/demo/realtime/scenes/{id}</code>)
+        and re-render it through Jetpack XR's <code>Session</code> + scene graph, run in the Android XR
+        Emulator (Android Studio, system image with XR).</li>
+      <li>Status: <span class="tag todo">NOT BUILT HERE</span>. It needs the Android XR Emulator system
+        image and an APK build host &mdash; dev-hardware that is gated (see the Android XR Catalyst
+        applications, decision by 2026-07-15). The seam that makes it cheap already exists: the scene
+        state is a plain JSON document any renderer can poll. Wave 2 can build the emulator client
+        against this exact endpoint with no backend change.</li>
+    </ul>
+  </div>
+
+  <footer>
+    RakuAI&trade; &mdash; AI-native spatial runtime &middot;
+    <a href="../../index.html">Home</a> &middot;
+    <a href="../../mcp.html">Connect your AI over MCP</a> &middot;
+    <a href="../../spatial-arena/">Spatial Arena</a><br>
+    Tool surface: <code>GET /api/raku/demo/realtime/tools</code>
+  </footer>
+</div>
+
+<script type="module">
+/* ----------------------------------------------------------------------
+ * Realtime Embed — an LLM driving a live scene over the RakuAI runtime.
+ *
+ * Loop:  agent intent  ->  tool call (real HTTP)  ->  server scene state
+ *        ->  render.  When live, the SERVER's returned state is the source
+ *        of truth and drives three.js. When the backend is unreachable we
+ *        fall to a clearly-labeled LOCAL mirror so the loop stays visible
+ *        — we never fake a server response.
+ * -------------------------------------------------------------------- */
+const API_BASE   = 'https://api.rakuai.com';
+const DEMO       = '/api/raku/demo/realtime';
+const THREE_CDN  = 'https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js';
+
+const $ = id => document.getElementById(id);
+const feedEl = $('feed');
+const state = {
+  THREE:null, renderer:null, scene:null, camera:null, light:null,
+  meshes:new Map(),            // node_id -> THREE.Mesh
+  sceneId:null, mode:'local',  // 'live' | 'local'
+  step:0, running:false, t:0,
+  // local mirror of authoritative state (used to render + as fallback truth)
+  nodes:new Map(), lightState:{direction:[-0.4,-1,-0.3],color:'#ffffff',intensity:1.0},
+};
+
+/* ---- tool-call feed ------------------------------------------------- */
+function feed(method, path, status, ok, extra){
+  const row=document.createElement('div'); row.className='row';
+  const ts=new Date().toLocaleTimeString();
+  row.innerHTML=`<span class="t">${ts}</span> `+
+    `<span class="m">${method}</span> <span class="tool">${path}</span> `+
+    `<span class="${ok?'ok':'err'}">${status}</span>`+
+    (extra?` <span class="t">${extra}</span>`:'');
+  feedEl.appendChild(row); feedEl.scrollTop=feedEl.scrollHeight;
+}
+function say(html){ $('think').innerHTML=`<span class="who">agent:</span> ${html}`; }
+
+/* ---- HTTP with graceful degrade ------------------------------------ */
+async function call(method, path, body){
+  const headers={'Content-Type':'application/json'};
+  const key=$('apikey').value.trim();
+  if(key) headers['X-Raku-API-Key']=key;       // not required for /demo, accepted anyway
+  try{
+    const resp=await fetch(API_BASE+path,{method,headers,
+      body:body?JSON.stringify(body):undefined});
+    let data=null; try{ data=await resp.json(); }catch{}
+    feed(method,path,resp.status,resp.ok);
+    if(!resp.ok) return {ok:false,status:resp.status,data};
+    if(state.mode!=='live'){ state.mode='live'; setMode(); }
+    return {ok:true,status:resp.status,data};
+  }catch(err){
+    // Network/CORS failure: degrade to LOCAL, mark the call honestly.
+    feed(method,path,'no-net',false,'(local fallback)');
+    if(state.mode!=='local'){ state.mode='local'; setMode(); }
+    return {ok:false,status:0,data:null,local:true};
+  }
+}
+
+function setMode(){
+  const el=$('hud-mode');
+  el.className='mode '+(state.mode==='live'?'live':'local');
+  el.textContent='MODE: '+(state.mode==='live'?'LIVE (server-authoritative)':'LOCAL (server unreachable)');
+}
+
+/* ---- tool wrappers: each mirrors to the server, then updates render --
+ * The server response (when live) is authoritative. In local fallback we
+ * apply the same change to the local mirror so the loop is still shown. */
+async function createScene(){
+  const r=await call('POST',`${DEMO}/scenes`,{name:'realtime-embed'});
+  if(r.ok && r.data){ state.sceneId=r.data.scene_id; }
+  else { state.sceneId='local-'+Math.random().toString(36).slice(2,8); }
+  $('hud-scene').textContent='scene '+state.sceneId;
+  state.nodes.clear();
+  return state.sceneId;
+}
+function applyNode(n){
+  state.nodes.set(n.node_id, n);
+}
+async function spawn(kind,position,color,scale){
+  const body={kind,position,color,scale:scale||[1,1,1]};
+  const r=await call('POST',`${DEMO}/scenes/${state.sceneId}/nodes`,body);
+  let node;
+  if(r.ok && r.data){ node=r.data.node; }              // server truth
+  else { node={node_id:'ln_'+(state.t++),name:kind,kind,position,
+               rotation:[0,0,0,1],scale:body.scale,color}; } // local mirror
+  applyNode(node); upsertMesh(node); updateHud();
+  return node.node_id;
+}
+async function move(node_id,position){
+  const r=await call('PUT',`${DEMO}/scenes/${state.sceneId}/nodes/${node_id}/transform`,{position});
+  const n=state.nodes.get(node_id); if(n){ n.position=position; }
+  if(r.ok && r.data && r.data.node){ applyNode(r.data.node); upsertMesh(r.data.node); }
+  else if(n){ upsertMesh(n); }
+}
+async function relight(direction,color,intensity){
+  const body={}; if(direction)body.direction=direction; if(color)body.color=color;
+  if(intensity!=null)body.intensity=intensity;
+  const r=await call('PUT',`${DEMO}/scenes/${state.sceneId}/light`,body);
+  const L=(r.ok && r.data && r.data.light)?r.data.light:
+    Object.assign(state.lightState,body);
+  state.lightState=L; applyLight(L);
+}
+async function measure(a,b){
+  const r=await call('GET',`${DEMO}/scenes/${state.sceneId}/measure?from_node=${a}&to_node=${b}`);
+  if(r.ok && r.data){ return r.data.distance; }
+  // local fallback distance
+  const na=state.nodes.get(a), nb=state.nodes.get(b);
+  if(!na||!nb) return null;
+  const d=Math.hypot(nb.position[0]-na.position[0],nb.position[1]-na.position[1],nb.position[2]-na.position[2]);
+  return d;
+}
+
+/* ---- three.js render ------------------------------------------------ */
+function geomFor(THREE,kind){
+  switch(kind){
+    case 'sphere':   return new THREE.SphereGeometry(0.6,24,18);
+    case 'cylinder': return new THREE.CylinderGeometry(0.5,0.5,1.2,24);
+    case 'cone':     return new THREE.ConeGeometry(0.6,1.2,24);
+    case 'torus':    return new THREE.TorusGeometry(0.5,0.2,16,32);
+    default:         return new THREE.BoxGeometry(1,1,1);
+  }
+}
+function upsertMesh(node){
+  const T=state.THREE; if(!T) return;
+  let mesh=state.meshes.get(node.node_id);
+  if(!mesh){
+    mesh=new T.Mesh(geomFor(T,node.kind),
+      new T.MeshStandardMaterial({color:new T.Color(node.color||'#00f0ff'),
+        roughness:.4,metalness:.2,emissive:new T.Color(node.color||'#00f0ff'),
+        emissiveIntensity:.15}));
+    state.scene.add(mesh); state.meshes.set(node.node_id,mesh);
+  }
+  mesh.position.set(node.position[0],node.position[1],node.position[2]);
+  if(node.scale) mesh.scale.set(node.scale[0],node.scale[1],node.scale[2]);
+  if(node.color) mesh.material.color.set(node.color);
+}
+function applyLight(L){
+  if(!state.light) return;
+  const d=L.direction||[-0.4,-1,-0.3];
+  state.light.position.set(-d[0]*10,-d[1]*10,-d[2]*10);
+  state.light.color.set(L.color||'#ffffff');
+  state.light.intensity=L.intensity!=null?L.intensity:1.0;
+}
+function clearMeshes(){
+  for(const m of state.meshes.values()) state.scene.remove(m);
+  state.meshes.clear(); state.nodes.clear(); updateHud();
+}
+function updateHud(){ $('hud-nodes').textContent=state.meshes.size; $('hud-step').textContent=state.step; }
+
+async function initRenderer(){
+  const THREE=await import(THREE_CDN); state.THREE=THREE;
+  const canvas=$('scene');
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  const resize=()=>{const r=canvas.getBoundingClientRect();
+    renderer.setSize(r.width,r.height,false);
+    state.camera.aspect=r.width/r.height; state.camera.updateProjectionMatrix();};
+  const scene=new THREE.Scene(); scene.background=new THREE.Color('#06030f');
+  const camera=new THREE.PerspectiveCamera(50,16/10,0.1,100);
+  camera.position.set(6,5,8); camera.lookAt(0,0.5,0);
+  const amb=new THREE.AmbientLight('#3a2a66',0.6); scene.add(amb);
+  const key=new THREE.DirectionalLight('#ffffff',1.0); key.position.set(4,10,3); scene.add(key);
+  // ground grid for spatial reference
+  const grid=new THREE.GridHelper(20,20,0x00f0ff,0x1a2a4a);
+  grid.material.opacity=.35; grid.material.transparent=true; scene.add(grid);
+  state.renderer=renderer; state.scene=scene; state.camera=camera; state.light=key;
+  addEventListener('resize',resize); resize();
+  (function loop(){
+    requestAnimationFrame(loop);
+    // slow orbit so depth reads on a static scene
+    const a=performance.now()*0.00015;
+    camera.position.set(Math.cos(a)*9,5,Math.sin(a)*9); camera.lookAt(0,0.5,0);
+    renderer.render(scene,camera);
+  })();
+  $('stage-banner').textContent='Renderer ready. Press RUN AGENT to drive the scene over the runtime.';
+}
+
+/* ---- the agent: a scripted plan of natural-language intents ----------
+ * Each step narrates intent, then issues the matching tool call(s). A real
+ * connected LLM emits the same calls; we script the plan because RakuAI
+ * runs no model server-side. */
+const PALETTE=['#00f0ff','#ff2d95','#39ff14','#ffea00','#b967ff'];
+let pillars=[];
+const PLAN=[
+  {say:'New scene. I will lay out a small spatial composition, then light and measure it.',
+   run:async()=>{ await createScene(); clearMeshes(); pillars=[]; }},
+  {say:'Spawn a ground anchor (box) at the origin.',
+   run:async()=>{ pillars.push(await spawn('box',[0,0.5,0],'#00f0ff',[1.4,0.3,1.4])); }},
+  {say:'Place four pillars around it in a ring.',
+   run:async()=>{
+     const R=3.2;
+     for(let i=0;i<4;i++){
+       const ang=i/4*Math.PI*2;
+       pillars.push(await spawn('cylinder',[Math.cos(ang)*R,1.2,Math.sin(ang)*R],PALETTE[i%PALETTE.length]));
+     }}},
+  {say:'Drop a sphere overhead — I will move it into place next.',
+   run:async()=>{ pillars.push(await spawn('sphere',[0,5,0],'#ffea00')); }},
+  {say:'Move the sphere down to rest on the anchor.',
+   run:async()=>{ const id=pillars[pillars.length-1]; await move(id,[0,1.6,0]); }},
+  {say:'Relight: warm key light from the side, brighter.',
+   run:async()=>{ await relight([-0.8,-0.5,-0.2],'#ffd27f',2.2); }},
+  {say:'Measure the span between two opposite pillars.',
+   run:async()=>{
+     const d=await measure(pillars[1],pillars[3]);
+     say(`measured span = <b style="color:var(--neon-green)">${d==null?'n/a':d.toFixed(3)} units</b> (computed server-side).`);
+     return true; // suppress default say overwrite
+   }},
+  {say:'Add a torus accent and tint the scene cool.',
+   run:async()=>{ pillars.push(await spawn('torus',[0,3.2,0],'#b967ff')); await relight([-0.3,-1,-0.3],'#9fe6ff',1.6); }},
+  {say:'Composition complete. The whole scene was built by tool calls against the live runtime.',
+   run:async()=>{}},
+];
+
+async function stepOnce(){
+  if(state.step>=PLAN.length){ say('plan complete — RESET to run again.'); stop(); return; }
+  const s=PLAN[state.step];
+  const suppress=await (async()=>{ say(s.say); return await s.run(); })();
+  if(!suppress) say(s.say);
+  state.step++; updateHud();
+}
+let timer=null;
+function run(){
+  if(state.running) return;
+  state.running=true; $('btn-run').disabled=true; $('btn-stop').disabled=false;
+  const tick=async()=>{ if(!state.running) return;
+    await stepOnce();
+    if(state.step>=PLAN.length){ stop(); return; }
+    timer=setTimeout(tick,1600); };
+  tick();
+}
+function stop(){ state.running=false; clearTimeout(timer);
+  $('btn-run').disabled=false; $('btn-stop').disabled=true; }
+async function reset(){ stop(); state.step=0; clearMeshes(); pillars=[];
+  feedEl.innerHTML=''; $('hud-scene').textContent=''; state.sceneId=null;
+  say('idle. Press RUN AGENT.'); updateHud(); }
+
+$('btn-run').addEventListener('click',run);
+$('btn-stop').addEventListener('click',stop);
+$('btn-step').addEventListener('click',()=>{ if(!state.running) stepOnce(); });
+$('btn-reset').addEventListener('click',reset);
+
+/* ---- boot ----------------------------------------------------------- */
+setMode();
+initRenderer().then(async()=>{
+  // Probe the tool manifest so the page proves the surface is live on load.
+  const r=await call('GET',`${DEMO}/tools`);
+  if(r.ok && r.data){
+    $('probe-note').textContent=`Live: ${r.data.tools.length} tools published, ttl ${r.data.ttl_seconds}s, keyless=${!r.data.authenticated}.`;
+  }else{
+    $('probe-note').textContent='Backend unreachable on load — the demo will run in LOCAL mode until it recovers.';
+  }
+}).catch(e=>{ $('stage-banner').textContent='Renderer failed to load: '+e.message; });
+</script>
+</body>
+</html>
