@@ -97,13 +97,13 @@
     border: 2px solid var(--neon-cyan); padding: 9px 12px; border-radius: 3px;
     text-shadow: 0 0 6px rgba(0,240,255,.5); transition: all .15s;
   }
-  .btn:hover { background: var(--neon-cyan); color: #000; text-shadow: none; }
+  .btn:hover, .btn:focus-visible { background: var(--neon-cyan); color: #000; text-shadow: none; outline: none; }
   .btn.pink { color: var(--neon-pink); border-color: var(--neon-pink); text-shadow: 0 0 6px rgba(255,45,149,.5); }
-  .btn.pink:hover { background: var(--neon-pink); color: #000; text-shadow: none; }
+  .btn.pink:hover, .btn.pink:focus-visible { background: var(--neon-pink); color: #000; text-shadow: none; outline: none; }
   .btn.green { color: var(--neon-green); border-color: var(--neon-green); text-shadow: 0 0 6px rgba(57,255,20,.5); }
-  .btn.green:hover { background: var(--neon-green); color: #000; text-shadow: none; }
+  .btn.green:hover, .btn.green:focus-visible { background: var(--neon-green); color: #000; text-shadow: none; outline: none; }
   .btn.purple { color: var(--neon-purple); border-color: var(--neon-purple); text-shadow: 0 0 6px rgba(185,103,255,.5); }
-  .btn.purple:hover { background: var(--neon-purple); color: #000; text-shadow: none; }
+  .btn.purple:hover, .btn.purple:focus-visible { background: var(--neon-purple); color: #000; text-shadow: none; outline: none; }
   .btn:disabled { opacity: .4; cursor: not-allowed; }
   .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 
@@ -426,7 +426,7 @@ class RakuSpatial {
   capture_scene({ width = 360, height = 240, plane = 'xz', padding = 20 } = {}) {
     const nodes = [...this._nodes.values()];
     const ax = plane === 'zy' ? 2 : 0;
-    const ay = plane === 'xy' ? 1 : 2;
+    const ay = plane === 'xz' ? 2 : 1;
     let minX = -6, maxX = 6, minY = -6, maxY = 6;
     const sx = (v) => padding + ((v[ax] - minX) / (maxX - minX)) * (width - 2 * padding);
     const sy = (v) => height - (padding + ((v[ay] - minY) / (maxY - minY)) * (height - 2 * padding));
@@ -563,8 +563,18 @@ class SceneView {
     return new THREE.Points(g, m);
   }
   async _tryLoadSplat(THREE) {
-    const splatUrl = new URL(location.href).searchParams.get('splat');
-    if (!splatUrl) return;
+    const splatParam = new URL(location.href).searchParams.get('splat');
+    if (!splatParam) return;
+    // Validate the user-supplied ?splat= URL: only http(s); block javascript:/data:/file:.
+    let splatUrl;
+    try {
+      const u = new URL(splatParam, window.location.origin);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+        feed.push('load_world_model', { url: trim(splatParam, 40) }, 'invalid protocol', false);
+        return;
+      }
+      splatUrl = u.href;
+    } catch (e) { return; }
     try {
       const { SplatMesh } = await import(SPARK_CDN);
       const splats = new SplatMesh({ url: splatUrl });
@@ -667,7 +677,15 @@ class SceneView {
       if (role === 'reticle') rec.mesh.rotation.z += 0.04;
     }
     for (const [id, rec] of this.meshes) {
-      if (!seen.has(id)) { this.scene.remove(rec.mesh); this.meshes.delete(id); }
+      if (!seen.has(id)) {
+        // Three.js does not free GPU resources on scene.remove — dispose
+        // geometry+material so continuous target/flash churn doesn't leak.
+        this.scene.remove(rec.mesh);
+        if (rec.mesh.geometry) rec.mesh.geometry.dispose();
+        if (Array.isArray(rec.mesh.material)) rec.mesh.material.forEach((m) => m.dispose());
+        else if (rec.mesh.material) rec.mesh.material.dispose();
+        this.meshes.delete(id);
+      }
     }
     this.renderer.render(this.scene, this.camera);
   }
