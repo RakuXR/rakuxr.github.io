@@ -382,70 +382,8 @@
     drawBitmap(SPR.cannon, player.x, player.y, CANNON_SCALE, "#0f0");
   }
 
-  // ---- Wave / level tracking ----
-  let wave = 1; // increments on each formation clear
-
   // ---- Shots ----
   const playerShot = { active: false, x: 0, y: 0, w: 2, h: 10 };
-
-  // Alien shots (Level 2+)
-  const alienShots = [];
-  let alienShootTimer = 0;
-
-  function alienShootInterval() {
-    // Level 1: no shots. Level 2: 3.5s. Each additional wave cuts 0.35s, min 0.6s.
-    if (wave < 2) return Infinity;
-    return Math.max(0.6, 3.5 - (wave - 2) * 0.35);
-  }
-
-  function fireAlienShot() {
-    // Pick a random live alien from the bottom of each column.
-    const cols = {};
-    for (const a of formation.aliens) {
-      if (!a.alive) continue;
-      if (cols[a.c] === undefined || a.r > cols[a.c].r) cols[a.c] = a;
-    }
-    const candidates = Object.values(cols);
-    if (!candidates.length) return;
-    const shooter = candidates[Math.floor(Math.random() * candidates.length)];
-    const p = alienPos(shooter);
-    alienShots.push({ x: p.x + ALIEN_W / 2 - 1, y: p.y + ALIEN_H, w: 2, h: 8 });
-    sound.blip(); // placeholder — reuse blip for alien shot sound
-  }
-
-  function updateAlienShots(dt) {
-    alienShootTimer -= dt;
-    if (alienShootTimer <= 0) {
-      alienShootTimer = alienShootInterval();
-      if (isFinite(alienShootTimer)) fireAlienShot();
-    }
-    const shotSpeed = 160 + wave * 18; // faster each wave
-    for (let i = alienShots.length - 1; i >= 0; i--) {
-      const s = alienShots[i];
-      s.y += shotSpeed * dt;
-      // Off-screen
-      if (s.y > GROUND_Y + 10) { alienShots.splice(i, 1); continue; }
-      // Hit player
-      if (
-        s.x < player.x + CANNON_W && s.x + s.w > player.x &&
-        s.y < player.y + CANNON_H && s.y + s.h > player.y
-      ) {
-        alienShots.splice(i, 1);
-        player.lives--;
-        sound.explode();
-        player.reset();
-        if (player.lives <= 0) {
-          state = STATE.GAMEOVER;
-          try { engine.captureFrame(WORLD_ID); } catch (_) {}
-        }
-      }
-    }
-  }
-
-  function drawAlienShots() {
-    ctx.fillStyle = '#f88';
-    for (const s of alienShots) ctx.fillRect(s.x | 0, s.y | 0, s.w, s.h);
-  }
 
   function firePlayerShot() {
     if (playerShot.active) return;
