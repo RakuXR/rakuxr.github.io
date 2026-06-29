@@ -103,10 +103,6 @@
 
 <main class="blog-main">
     <article class="post">
-        <nav class="post-top-nav" aria-label="Blog post navigation">
-            <a class="post-top-index" href="/blog/">&larr; All posts</a>
-            <span class="post-top-series"><a class="nav-prev" href="/blog/replacing-seven-brute-force-algorithms/" rel="prev">&larr; Replacing Seven O(N²) Algorithms on a Saturday</a><a class="nav-next" href="/blog/gemini-reviewed-claudes-pr/" rel="next">Gemini Reviewed Claude&#x27;s PR. Thirty-Six Comments Later, It Was Better. &rarr;</a></span>
-        </nav>
         <header class="post-header">
             <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
             <h1>Hot-Reloading Game Design Like Code</h1>
@@ -162,57 +158,57 @@
 <p>The file format is not glamorous. It is load-bearing.</p>
 <h2 id="what-a-real-raku-file-looks-like">What a real .raku file looks like</h2>
 <p>Here is a real game definition, trimmed for the post:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;game&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;My Space Shooter&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;genre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;space_shooter&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;template&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;space_shooter&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prototype&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;max_players&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;ai&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;dda_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;target_flow_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;profiler_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;emotional_tracking&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;adaptive_music&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
-<span class="w">  </span><span class="p">},</span>
-<span class="w">  </span><span class="nt">&quot;entities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;player_ship&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;shield&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;speed&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">22.0</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;fire_rate&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.09</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enemy_wave&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;strafe&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;enemy_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;interceptor&quot;</span><span class="w"> </span><span class="p">}</span>
-<span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boss&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boss_pattern&quot;</span>
-<span class="w">    </span><span class="p">}</span>
-<span class="w">  </span><span class="p">]</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;schema_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;game&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;My Space Shooter&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;genre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;space_shooter&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;template&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;space_shooter&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;prototype&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;max_players&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;ai&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;dda_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;target_flow_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;profiler_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;emotional_tracking&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;adaptive_music&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w"></span>
+<span class="w">  </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;entities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;player_ship&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;shield&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;speed&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">22.0</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;fire_rate&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.09</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enemy_wave&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;strafe&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;enemy_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;interceptor&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">},</span><span class="w"></span>
+<span class="w">    </span><span class="p">{</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boss&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;health&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">500</span><span class="p">,</span><span class="w"></span>
+<span class="w">      </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boss_pattern&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">  </span><span class="p">]</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </code></pre></div>
 
 <p>That is most of an experience. A schema-versioned header. A game block with the surface metadata. An <code>ai</code> block with runtime AI configuration. An <code>entities</code> array describing what is in the world and how each entity behaves.</p>
 <p>A few things worth pointing at.</p>
 <h2 id="the-ai-block-is-the-runtime-contract">The <code>ai</code> block is the runtime contract</h2>
 <p>Look at this part again:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;ai&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;dda_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;target_flow_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;profiler_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;emotional_tracking&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;adaptive_music&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;ai&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;dda_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;target_flow_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;profiler_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;emotional_tracking&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;adaptive_music&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </code></pre></div>
 
 <p>This is where the file says &ldquo;the AI nervous system is on.&rdquo; Not &ldquo;ask GPT to write me a level.&rdquo; On. At the runtime layer, every frame, while the player is playing.</p>
@@ -221,11 +217,11 @@
 <p>You can review this block in a PR. You can A/B-test two values in CI. A producer who has never seen an editor can read this and have a conversation with engineering about what target flow state means. The file format makes the design decision visible.</p>
 <h2 id="per-entity-ai-behavior-is-a-string-not-an-integration">Per-entity AI behavior is a string, not an integration</h2>
 <p>Each entity in the file can carry an <code>ai_behavior</code> field:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enemy_wave&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;strafe&quot;</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;enemy_wave&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;count&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;ai_behavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;strafe&quot;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </code></pre></div>
 
 <p><code>"strafe"</code> is not a model invocation. It is a registered behavior in the runtime that the nervous-system layer drives. The same entity can be <code>"patrol"</code> or <code>"boss_pattern"</code> or anything else the runtime knows how to do. The file does not import a model. It addresses a capability.</p>
@@ -333,16 +329,6 @@
             5 Granted US Patents (Priority: July 2012).
         </p>
     </div>
-        <!-- nv-inception:start -->
-        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; margin:20px 0 8px; opacity:0.9;">
-            <a href="../../press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
-                <img src="../../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
-            </a>
-            <a href="../../press.html#aws-activate" aria-label="AWS Activate participant - read more on the press page" style="line-height: 0;">
-                <img src="../../branding/aws/powered-by-aws-white.png" alt="Powered by AWS" width="120" height="43" style="height: 36px; width: auto; display: block;">
-            </a>
-        </div>
-        <!-- nv-inception:end -->
 </footer>
 
 <script src="/js/nav-dropdown.js" defer></script>

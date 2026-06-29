@@ -103,10 +103,6 @@
 
 <main class="blog-main">
     <article class="post">
-        <nav class="post-top-nav" aria-label="Blog post navigation">
-            <a class="post-top-index" href="/blog/">&larr; All posts</a>
-            <span class="post-top-series"><a class="nav-prev" href="/blog/foundation-built-by-agents-not-for-agents/" rel="prev">&larr; The Weekend an Autonomous Agent Shipped Ten Subsystems</a><a class="nav-next" href="/blog/pink-graphics-score-runaway-xr-crash/" rel="next">Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday. &rarr;</a></span>
-        </nav>
         <header class="post-header">
             <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
             <h1>AI as Nervous System, Not AI as Factory</h1>
@@ -157,7 +153,7 @@
 <h2 id="two-patterns-drawn-out">Two patterns, drawn out</h2>
 <p>Here is the factory pattern, condensed to its honest minimum:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Factory: AI produces artifacts. The runtime consumes them.</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">author_session</span><span class="p">(</span><span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Asset</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">author_session</span><span class="p">(</span><span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Asset</span><span class="p">:</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">remote_model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
     <span class="n">asset</span> <span class="o">=</span> <span class="n">parse</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
     <span class="n">save_to_project</span><span class="p">(</span><span class="n">asset</span><span class="p">)</span>
@@ -167,7 +163,7 @@
 <p>The lifecycle is straightforward. Human types. Model produces. File lands on disk. Runtime loads the file later. The model is a content vendor. The runtime never talks to it after the artifact is delivered. If the model goes offline, you still have a working engine. You just have one fewer place to buy assets.</p>
 <p>Now here is the nervous-system pattern:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Nervous system: AI is wired into the simulation step itself.</span>
-<span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">agents</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="n">world</span><span class="p">,</span> <span class="n">agents</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="n">agents</span><span class="p">:</span>
         <span class="n">observation</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">senses</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">world</span><span class="p">)</span>        <span class="c1"># what is around me</span>
         <span class="n">intent</span>      <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">brain</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>  <span class="c1"># AI is in the loop</span>
@@ -282,16 +278,6 @@
             5 Granted US Patents (Priority: July 2012).
         </p>
     </div>
-        <!-- nv-inception:start -->
-        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; margin:20px 0 8px; opacity:0.9;">
-            <a href="../../press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
-                <img src="../../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
-            </a>
-            <a href="../../press.html#aws-activate" aria-label="AWS Activate participant - read more on the press page" style="line-height: 0;">
-                <img src="../../branding/aws/powered-by-aws-white.png" alt="Powered by AWS" width="120" height="43" style="height: 36px; width: auto; display: block;">
-            </a>
-        </div>
-        <!-- nv-inception:end -->
 </footer>
 
 <script src="/js/nav-dropdown.js" defer></script>
