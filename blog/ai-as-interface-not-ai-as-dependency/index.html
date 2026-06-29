@@ -103,10 +103,6 @@
 
 <main class="blog-main">
     <article class="post">
-        <nav class="post-top-nav" aria-label="Blog post navigation">
-            <a class="post-top-index" href="/blog/">&larr; All posts</a>
-            <span class="post-top-series"><a class="nav-prev" href="/blog/pink-graphics-score-runaway-xr-crash/" rel="prev">&larr; Pink Graphics, Score Runaway, XR Crash. Four Bugs in One Saturday.</a><a class="nav-next" href="/blog/when-the-demo-crashed-silently/" rel="next">When the Demo Crashed Silently &rarr;</a></span>
-        </nav>
         <header class="post-header">
             <p class="series-breadcrumb"><a href="/blog/series/learning-to-code-with-ai/">Series: Learning to Code with AI</a></p>
             <h1>How the Engine Talks to Any Model You Bring</h1>
@@ -168,9 +164,9 @@
 <h2 id="the-model-management-layer-is-its-own-subsystem">The model-management layer is its own subsystem</h2>
 <p>When we needed actual machine-learning inference inside the runtime, we did not bolt it into one of the five subsystems above. We added a sixth concern with its own API surface: model management.</p>
 <div class="highlight"><pre><span></span><code><span class="c1">// Roughly what the surface looks like, simplified for the post.</span>
-<span class="n">RakuModelHandle</span><span class="w"> </span><span class="nf">raku_ai_load_model</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">model_id</span><span class="p">,</span><span class="w"> </span><span class="n">RakuModelOptions</span><span class="w"> </span><span class="n">opts</span><span class="p">);</span>
-<span class="n">RakuInferenceResult</span><span class="w"> </span><span class="nf">raku_ai_infer</span><span class="p">(</span><span class="n">RakuModelHandle</span><span class="w"> </span><span class="n">h</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">RakuTensor</span><span class="o">*</span><span class="w"> </span><span class="n">input</span><span class="p">);</span>
-<span class="kt">void</span><span class="w"> </span><span class="nf">raku_ai_unload_model</span><span class="p">(</span><span class="n">RakuModelHandle</span><span class="w"> </span><span class="n">h</span><span class="p">);</span>
+<span class="n">RakuModelHandle</span><span class="w"> </span><span class="nf">raku_ai_load_model</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">model_id</span><span class="p">,</span><span class="w"> </span><span class="n">RakuModelOptions</span><span class="w"> </span><span class="n">opts</span><span class="p">);</span><span class="w"></span>
+<span class="n">RakuInferenceResult</span><span class="w"> </span><span class="nf">raku_ai_infer</span><span class="p">(</span><span class="n">RakuModelHandle</span><span class="w"> </span><span class="n">h</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">RakuTensor</span><span class="o">*</span><span class="w"> </span><span class="n">input</span><span class="p">);</span><span class="w"></span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">raku_ai_unload_model</span><span class="p">(</span><span class="n">RakuModelHandle</span><span class="w"> </span><span class="n">h</span><span class="p">);</span><span class="w"></span>
 </code></pre></div>
 
 <p>A behavior tree node that wants to call a model goes through this API. Not by importing a vendor SDK. Not by linking to a specific runtime. By asking the model-management subsystem for a handle and using it.</p>
@@ -178,11 +174,11 @@
 <p>This is unglamorous infrastructure work. It is also what lets us not panic when the AI ecosystem has its quarterly tantrum about which model is the new best.</p>
 <h2 id="the-boundary-protects-the-file-format-too">The boundary protects the file format too</h2>
 <p>Take a look at the <code>ai</code> block at the top of any <code>.raku</code> experience file. It has keys like:</p>
-<div class="highlight"><pre><span></span><code><span class="nt">&quot;ai&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;dda_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;target_flow_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;profiler_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span>
-<span class="p">}</span>
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;ai&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;dda_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;target_flow_state&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.7</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;profiler_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;active&quot;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
 </code></pre></div>
 
 <p>None of those names a model. They name <em>capabilities</em>. &ldquo;Dynamic difficulty adjustment is on. The runtime should aim for a flow state of 0.7. The profiler is active.&rdquo; The runtime decides which subsystems get involved to deliver those capabilities. If the right answer this quarter is a behavior tree, that is what runs. If next quarter it becomes a small on-device model, the file does not change.</p>
@@ -280,16 +276,6 @@
             5 Granted US Patents (Priority: July 2012).
         </p>
     </div>
-        <!-- nv-inception:start -->
-        <div class="footer-recognition" style="display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; margin:20px 0 8px; opacity:0.9;">
-            <a href="../../press.html#nvidia-inception" aria-label="NVIDIA Inception Member - read more on the press page" style="line-height: 0;">
-                <img src="../../branding/nvidia-inception-member.svg" alt="NVIDIA Inception Member" width="160" height="69" style="height: 40px; width: auto; display: block;">
-            </a>
-            <a href="../../press.html#aws-activate" aria-label="AWS Activate participant - read more on the press page" style="line-height: 0;">
-                <img src="../../branding/aws/powered-by-aws-white.png" alt="Powered by AWS" width="120" height="43" style="height: 36px; width: auto; display: block;">
-            </a>
-        </div>
-        <!-- nv-inception:end -->
 </footer>
 
 <script src="/js/nav-dropdown.js" defer></script>
